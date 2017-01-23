@@ -20,7 +20,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.eventhelper;
+package me.lucko.helper;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -46,8 +46,6 @@ import java.util.function.Predicate;
 
 /**
  * A utility class to help with event listening.
- *
- * @author Luck
  */
 public final class Events {
     public static final DefaultFilters DEFAULT_FILTERS = new DefaultFiltersImpl();
