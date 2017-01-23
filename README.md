@@ -1,5 +1,5 @@
-# EventHelper
-A utility to aid with the handling of Bukkit events
+# helper
+A utility to reduce boilerplate code in Bukkit plugins.
 
 ## Example Usage
 Soon.
