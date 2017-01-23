@@ -36,6 +36,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+/**
+ * A utility class to help with scheduling.
+ */
 public final class Scheduler {
     private static Plugin plugin = null;
 
@@ -49,6 +52,10 @@ public final class Scheduler {
         return plugin;
     }
 
+    /**
+     * Get an Executor instance which will execute all passed runnables on the main server thread.
+     * @return a "sync" executor instance
+     */
     public static synchronized Executor getSyncExecutor() {
         if (syncExecutor == null) {
             syncExecutor = runnable -> getPlugin().getServer().getScheduler().scheduleSyncDelayedTask(getPlugin(), runnable);
@@ -56,6 +63,10 @@ public final class Scheduler {
         return syncExecutor;
     }
 
+    /**
+     * Get an Executor instance which will execute all passed runnables using the Bukkit Scheduler thread pool
+     * @return an "async" executor instance
+     */
     public static synchronized Executor getAsyncExecutor() {
         if (asyncExecutor == null) {
             asyncExecutor = runnable -> getPlugin().getServer().getScheduler().runTaskAsynchronously(getPlugin(), runnable);
@@ -63,16 +74,34 @@ public final class Scheduler {
         return asyncExecutor;
     }
 
+    /**
+     * Compute the result of the passed supplier on the main thread
+     * @param supplier the supplier
+     * @param <T> the return type
+     * @return a completable future which will return the result of the computation
+     */
     public static <T> CompletableFuture<T> supplySync(Supplier<T> supplier) {
         Preconditions.checkNotNull(supplier, "supplier");
         return CompletableFuture.supplyAsync(supplier, getSyncExecutor());
     }
 
+    /**
+     * Compute the result of the passed supplier asynchronously
+     * @param supplier the supplier
+     * @param <T> the return type
+     * @return a completable future which will return the result of the computation
+     */
     public static <T> CompletableFuture<T> supplyAsync(Supplier<T> supplier) {
         Preconditions.checkNotNull(supplier, "supplier");
         return CompletableFuture.supplyAsync(supplier, getAsyncExecutor());
     }
 
+    /**
+     * Call a callable on the main server thread
+     * @param callable the callable
+     * @param <T> the return type
+     * @return a completable future which will return the result of the computation
+     */
     public static <T> CompletableFuture<T> callSync(Callable<T> callable) {
         Preconditions.checkNotNull(callable, "callable");
         return supplySync(() -> {
@@ -84,6 +113,12 @@ public final class Scheduler {
         });
     }
 
+    /**
+     * Call a callable asynchronously
+     * @param callable the callable
+     * @param <T> the return type
+     * @return a completable future which will return the result of the computation
+     */
     public static <T> CompletableFuture<T> callAsync(Callable<T> callable) {
         Preconditions.checkNotNull(callable, "callable");
         return supplyAsync(() -> {
@@ -95,16 +130,33 @@ public final class Scheduler {
         });
     }
 
+    /**
+     * Execute a runnable on the main server thread
+     * @param runnable the runnable
+     * @return a completable future which will return when the runnable is complete
+     */
     public static CompletableFuture<Void> runSync(Runnable runnable) {
         Preconditions.checkNotNull(runnable, "runnable");
         return CompletableFuture.runAsync(runnable, getSyncExecutor());
     }
 
+    /**
+     * Execute a runnable asynchronously
+     * @param runnable the runnable
+     * @return a completable future which will return when the runnable is complete
+     */
     public static CompletableFuture<Void> runAsync(Runnable runnable) {
         Preconditions.checkNotNull(runnable, "runnable");
         return CompletableFuture.runAsync(runnable, getAsyncExecutor());
     }
 
+    /**
+     * Compute the result of the passed supplier on the main thread at some point in the future
+     * @param supplier the supplier
+     * @param delay the delay in ticks before calling the supplier
+     * @param <T> the return type
+     * @return a completable future which will return the result of the computation
+     */
     public static <T> CompletableFuture<T> supplySyncLater(Supplier<T> supplier, long delay) {
         Preconditions.checkNotNull(supplier, "supplier");
         CompletableFuture<T> fut = new CompletableFuture<>();
@@ -116,6 +168,13 @@ public final class Scheduler {
         return fut;
     }
 
+    /**
+     * Compute the result of the passed supplier asynchronously at some point in the future
+     * @param supplier the supplier
+     * @param delay the delay in ticks before calling the supplier
+     * @param <T> the return type
+     * @return a completable future which will return the result of the computation
+     */
     public static <T> CompletableFuture<T> supplyAsyncLater(Supplier<T> supplier, long delay) {
         Preconditions.checkNotNull(supplier, "supplier");
         CompletableFuture<T> fut = new CompletableFuture<>();
@@ -127,6 +186,13 @@ public final class Scheduler {
         return fut;
     }
 
+    /**
+     * Call a callable on the main thread at some point in the future
+     * @param callable the callable
+     * @param delay the delay in ticks before calling the supplier
+     * @param <T> the return type
+     * @return a completable future which will return the result of the computation
+     */
     public static <T> CompletableFuture<T> callSyncLater(Callable<T> callable, long delay) {
         Preconditions.checkNotNull(callable, "callable");
         return supplySyncLater(() -> {
@@ -138,6 +204,13 @@ public final class Scheduler {
         }, delay);
     }
 
+    /**
+     * Call a callable asynchronously at some point in the future
+     * @param callable the callable
+     * @param delay the delay in ticks before calling the supplier
+     * @param <T> the return type
+     * @return a completable future which will return the result of the computation
+     */
     public static <T> CompletableFuture<T> callAsyncLater(Callable<T> callable, long delay) {
         Preconditions.checkNotNull(callable, "callable");
         return supplyAsyncLater(() -> {
@@ -149,6 +222,12 @@ public final class Scheduler {
         }, delay);
     }
 
+    /**
+     * Execute a runnable on the main server thread at some point in the future
+     * @param runnable the runnable
+     * @param delay the delay in ticks before calling the supplier
+     * @return a completable future which will return when the runnable is complete
+     */
     public static CompletableFuture<Void> runSyncLater(Runnable runnable, long delay) {
         Preconditions.checkNotNull(runnable, "runnable");
         return supplySyncLater(() -> {
@@ -157,6 +236,12 @@ public final class Scheduler {
         }, delay);
     }
 
+    /**
+     * Execute a runnable asynchronously at some point in the future
+     * @param runnable the runnable
+     * @param delay the delay in ticks before calling the supplier
+     * @return a completable future which will return when the runnable is complete
+     */
     public static CompletableFuture<Void> runAsyncLater(Runnable runnable, long delay) {
         Preconditions.checkNotNull(runnable, "runnable");
         return supplyAsyncLater(() -> {
@@ -165,6 +250,13 @@ public final class Scheduler {
         }, delay);
     }
 
+    /**
+     * Schedule a repeating task to run on the main server thread
+     * @param consumer the task to run
+     * @param delay the delay before the task begins
+     * @param interval the interval at which the task will repeat
+     * @return a task instance
+     */
     public static Task runTaskSyncRepeating(Consumer<Task> consumer, long delay, long interval) {
         Preconditions.checkNotNull(consumer, "consumer");
         TaskImpl task = new TaskImpl(consumer);
@@ -172,6 +264,13 @@ public final class Scheduler {
         return task;
     }
 
+    /**
+     * Schedule a repeating task to run asynchronously
+     * @param consumer the task to run
+     * @param delay the delay before the task begins
+     * @param interval the interval at which the task will repeat
+     * @return a task instance
+     */
     public static Task runTaskAsyncRepeating(Consumer<Task> consumer, long delay, long interval) {
         Preconditions.checkNotNull(consumer, "consumer");
         TaskImpl task = new TaskImpl(consumer);
@@ -179,16 +278,33 @@ public final class Scheduler {
         return task;
     }
 
+    /**
+     * Schedule a repeating task to run on the main server thread
+     * @param runnable the task to run
+     * @param delay the delay before the task begins
+     * @param interval the interval at which the task will repeat
+     * @return a task instance
+     */
     public static Task runTaskSyncRepeating(Runnable runnable, long delay, long interval) {
         Preconditions.checkNotNull(runnable, "runnable");
         return runTaskSyncRepeating(task -> runnable.run(), delay, interval);
     }
 
+    /**
+     * Schedule a repeating task to run asynchronously
+     * @param runnable the task to run
+     * @param delay the delay before the task begins
+     * @param interval the interval at which the task will repeat
+     * @return a task instance
+     */
     public static Task runTaskAsyncRepeating(Runnable runnable, long delay, long interval) {
         Preconditions.checkNotNull(runnable, "runnable");
         return runTaskAsyncRepeating(task -> runnable.run(), delay, interval);
     }
 
+    /**
+     * Represents a scheduled repeating task
+     */
     public interface Task {
 
         /**
@@ -211,7 +327,7 @@ public final class Scheduler {
 
     }
 
-    public static class TaskImpl extends BukkitRunnable implements Task {
+    private static class TaskImpl extends BukkitRunnable implements Task {
         private final Consumer<Task> backingTask;
 
         private final AtomicInteger counter = new AtomicInteger(0);
