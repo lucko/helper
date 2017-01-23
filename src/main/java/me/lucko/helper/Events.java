@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Lucko (Luck) <luck@lucko.me>
+ * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -432,6 +432,10 @@ public final class Events {
         public <T extends PlayerMoveEvent> Predicate<T> ignoreSameChunk() {
             return e -> !e.getFrom().getChunk().equals(e.getTo().getChunk());
         }
+    }
+
+    private Events() {
+        throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 
 }
