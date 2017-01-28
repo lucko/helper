@@ -6,11 +6,22 @@
 
     <groupId>me.lucko</groupId>
     <artifactId>helper</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>helper</name>
     <description>Helps reduce boilerplate code in Bukkit plugins</description>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>luck-snapshots</id>
+            <url>https://nexus.lucko.me/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>luck-releases</id>
+            <url>https://nexus.lucko.me/repository/maven-releases/</url>
+        </repository>
+    </distributionManagement>
 
     <build>
         <defaultGoal>clean package</defaultGoal>
