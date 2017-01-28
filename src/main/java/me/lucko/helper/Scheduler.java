@@ -24,8 +24,8 @@ package me.lucko.helper;
 
 import com.google.common.base.Preconditions;
 
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
+import me.lucko.helper.utils.LoaderUtils;
+
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.Callable;
@@ -40,17 +40,8 @@ import java.util.function.Supplier;
  * A utility class to help with scheduling.
  */
 public final class Scheduler {
-    private static Plugin plugin = null;
-
     private static Executor syncExecutor = null;
     private static Executor asyncExecutor = null;
-
-    private static synchronized Plugin getPlugin() {
-        if (plugin == null) {
-            plugin = JavaPlugin.getProvidingPlugin(Scheduler.class);
-        }
-        return plugin;
-    }
 
     /**
      * Get an Executor instance which will execute all passed runnables on the main server thread.
@@ -58,7 +49,7 @@ public final class Scheduler {
      */
     public static synchronized Executor getSyncExecutor() {
         if (syncExecutor == null) {
-            syncExecutor = runnable -> getPlugin().getServer().getScheduler().scheduleSyncDelayedTask(getPlugin(), runnable);
+            syncExecutor = runnable -> LoaderUtils.getPlugin().getServer().getScheduler().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), runnable);
         }
         return syncExecutor;
     }
@@ -69,7 +60,7 @@ public final class Scheduler {
      */
     public static synchronized Executor getAsyncExecutor() {
         if (asyncExecutor == null) {
-            asyncExecutor = runnable -> getPlugin().getServer().getScheduler().runTaskAsynchronously(getPlugin(), runnable);
+            asyncExecutor = runnable -> LoaderUtils.getPlugin().getServer().getScheduler().runTaskAsynchronously(LoaderUtils.getPlugin(), runnable);
         }
         return asyncExecutor;
     }
@@ -157,10 +148,10 @@ public final class Scheduler {
      * @param <T> the return type
      * @return a completable future which will return the result of the computation
      */
-    public static <T> CompletableFuture<T> supplySyncLater(Supplier<T> supplier, long delay) {
+    public static <T> CompletableFuture<T> supplyLaterSync(Supplier<T> supplier, long delay) {
         Preconditions.checkNotNull(supplier, "supplier");
         CompletableFuture<T> fut = new CompletableFuture<>();
-        getPlugin().getServer().getScheduler().scheduleSyncDelayedTask(getPlugin(), () -> {
+        LoaderUtils.getPlugin().getServer().getScheduler().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), () -> {
             T result = supplier.get();
             fut.complete(result);
         }, delay);
@@ -175,10 +166,10 @@ public final class Scheduler {
      * @param <T> the return type
      * @return a completable future which will return the result of the computation
      */
-    public static <T> CompletableFuture<T> supplyAsyncLater(Supplier<T> supplier, long delay) {
+    public static <T> CompletableFuture<T> supplyLaterAsync(Supplier<T> supplier, long delay) {
         Preconditions.checkNotNull(supplier, "supplier");
         CompletableFuture<T> fut = new CompletableFuture<>();
-        getPlugin().getServer().getScheduler().runTaskLaterAsynchronously(getPlugin(), () -> {
+        LoaderUtils.getPlugin().getServer().getScheduler().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), () -> {
             T result = supplier.get();
             fut.complete(result);
         }, delay);
@@ -193,9 +184,9 @@ public final class Scheduler {
      * @param <T> the return type
      * @return a completable future which will return the result of the computation
      */
-    public static <T> CompletableFuture<T> callSyncLater(Callable<T> callable, long delay) {
+    public static <T> CompletableFuture<T> callLaterSync(Callable<T> callable, long delay) {
         Preconditions.checkNotNull(callable, "callable");
-        return supplySyncLater(() -> {
+        return supplyLaterSync(() -> {
             try {
                 return callable.call();
             } catch (Exception e) {
@@ -211,9 +202,9 @@ public final class Scheduler {
      * @param <T> the return type
      * @return a completable future which will return the result of the computation
      */
-    public static <T> CompletableFuture<T> callAsyncLater(Callable<T> callable, long delay) {
+    public static <T> CompletableFuture<T> callLaterAsync(Callable<T> callable, long delay) {
         Preconditions.checkNotNull(callable, "callable");
-        return supplyAsyncLater(() -> {
+        return supplyLaterAsync(() -> {
             try {
                 return callable.call();
             } catch (Exception e) {
@@ -228,9 +219,9 @@ public final class Scheduler {
      * @param delay the delay in ticks before calling the supplier
      * @return a completable future which will return when the runnable is complete
      */
-    public static CompletableFuture<Void> runSyncLater(Runnable runnable, long delay) {
+    public static CompletableFuture<Void> runLaterSync(Runnable runnable, long delay) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return supplySyncLater(() -> {
+        return supplyLaterSync(() -> {
             runnable.run();
             return null;
         }, delay);
@@ -242,9 +233,9 @@ public final class Scheduler {
      * @param delay the delay in ticks before calling the supplier
      * @return a completable future which will return when the runnable is complete
      */
-    public static CompletableFuture<Void> runAsyncLater(Runnable runnable, long delay) {
+    public static CompletableFuture<Void> runLaterAsync(Runnable runnable, long delay) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return supplyAsyncLater(() -> {
+        return supplyLaterAsync(() -> {
             runnable.run();
             return null;
         }, delay);
@@ -257,10 +248,10 @@ public final class Scheduler {
      * @param interval the interval at which the task will repeat
      * @return a task instance
      */
-    public static Task runTaskSyncRepeating(Consumer<Task> consumer, long delay, long interval) {
+    public static Task runTaskRepeatingSync(Consumer<Task> consumer, long delay, long interval) {
         Preconditions.checkNotNull(consumer, "consumer");
         TaskImpl task = new TaskImpl(consumer);
-        task.runTaskTimer(getPlugin(), delay, interval);
+        task.runTaskTimer(LoaderUtils.getPlugin(), delay, interval);
         return task;
     }
 
@@ -271,10 +262,10 @@ public final class Scheduler {
      * @param interval the interval at which the task will repeat
      * @return a task instance
      */
-    public static Task runTaskAsyncRepeating(Consumer<Task> consumer, long delay, long interval) {
+    public static Task runTaskRepeatingAsync(Consumer<Task> consumer, long delay, long interval) {
         Preconditions.checkNotNull(consumer, "consumer");
         TaskImpl task = new TaskImpl(consumer);
-        task.runTaskTimerAsynchronously(getPlugin(), delay, interval);
+        task.runTaskTimerAsynchronously(LoaderUtils.getPlugin(), delay, interval);
         return task;
     }
 
@@ -285,9 +276,9 @@ public final class Scheduler {
      * @param interval the interval at which the task will repeat
      * @return a task instance
      */
-    public static Task runTaskSyncRepeating(Runnable runnable, long delay, long interval) {
+    public static Task runTaskRepeatingSync(Runnable runnable, long delay, long interval) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return runTaskSyncRepeating(task -> runnable.run(), delay, interval);
+        return runTaskRepeatingSync(task -> runnable.run(), delay, interval);
     }
 
     /**
@@ -297,9 +288,9 @@ public final class Scheduler {
      * @param interval the interval at which the task will repeat
      * @return a task instance
      */
-    public static Task runTaskAsyncRepeating(Runnable runnable, long delay, long interval) {
+    public static Task runTaskRepeatingAsync(Runnable runnable, long delay, long interval) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return runTaskAsyncRepeating(task -> runnable.run(), delay, interval);
+        return runTaskRepeatingAsync(task -> runnable.run(), delay, interval);
     }
 
     /**

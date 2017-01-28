@@ -25,14 +25,14 @@ package me.lucko.helper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
-import org.bukkit.Bukkit;
+import me.lucko.helper.utils.LoaderUtils;
+
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +49,6 @@ import java.util.function.Predicate;
  */
 public final class Events {
     public static final DefaultFilters DEFAULT_FILTERS = new DefaultFiltersImpl();
-    private static Plugin plugin;
 
     /**
      * Makes a HandlerBuilder for a given event
@@ -76,13 +75,6 @@ public final class Events {
         Preconditions.checkNotNull(eventClass, "eventClass");
         Preconditions.checkNotNull(priority, "priority");
         return new HandlerBuilderImpl<>(eventClass, priority);
-    }
-
-    private static Plugin getPlugin() {
-        if (plugin == null) {
-            plugin = JavaPlugin.getProvidingPlugin(Events.class);
-        }
-        return plugin;
     }
 
     /**
@@ -309,7 +301,7 @@ public final class Events {
 
                 // Actually call the handler
                 if (handleAsync) {
-                    Bukkit.getScheduler().runTaskAsynchronously(getPlugin(), () -> handle(eventInstance));
+                    Scheduler.runAsync(() -> handle(eventInstance));
                 } else {
                     handle(eventInstance);
                 }
@@ -411,7 +403,7 @@ public final class Events {
             Preconditions.checkNotNull(handler, "handler");
 
             HandlerImpl<T> impl = new HandlerImpl<>(this, handler);
-            impl.register(getPlugin());
+            impl.register(LoaderUtils.getPlugin());
             return impl;
         }
     }
