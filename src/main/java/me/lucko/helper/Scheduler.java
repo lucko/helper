@@ -26,11 +26,14 @@ import com.google.common.base.Preconditions;
 
 import me.lucko.helper.utils.LoaderUtils;
 
+import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -41,7 +44,8 @@ import java.util.function.Supplier;
  */
 public final class Scheduler {
     private static Executor syncExecutor = null;
-    private static Executor asyncExecutor = null;
+    private static Executor bukkitAsyncExecutor = null;
+    private static ExecutorService asyncExecutor = null;
 
     /**
      * Get an Executor instance which will execute all passed runnables on the main server thread.
@@ -59,9 +63,17 @@ public final class Scheduler {
      * @return an "async" executor instance
      */
     public static synchronized Executor getAsyncExecutor() {
-        if (asyncExecutor == null) {
-            asyncExecutor = runnable -> LoaderUtils.getPlugin().getServer().getScheduler().runTaskAsynchronously(LoaderUtils.getPlugin(), runnable);
+        if (bukkitAsyncExecutor != null && LoaderUtils.getPlugin().isEnabled()) {
+            return bukkitAsyncExecutor;
         }
+
+        if (asyncExecutor == null) {
+            asyncExecutor = Executors.newCachedThreadPool();
+            getSyncExecutor().execute(() -> {
+                bukkitAsyncExecutor = runnable -> LoaderUtils.getPlugin().getServer().getScheduler().runTaskAsynchronously(LoaderUtils.getPlugin(), runnable);
+            });
+        }
+
         return asyncExecutor;
     }
 
