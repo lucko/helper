@@ -151,11 +151,27 @@ public class ItemStackBuilder {
     }
 
     public Item build(Runnable handler) {
-        return new Item(ImmutableMap.of(ClickType.RIGHT, handler, ClickType.LEFT, handler), itemStack);
+        if (handler == null) {
+            return new Item(ImmutableMap.of(), itemStack);
+        } else {
+            return new Item(ImmutableMap.of(ClickType.RIGHT, handler, ClickType.LEFT, handler), itemStack);
+        }
     }
 
     public Item build(Runnable rightClick, Runnable leftClick) {
-        return new Item(ImmutableMap.of(ClickType.RIGHT, rightClick, ClickType.LEFT, leftClick), itemStack);
+        if (rightClick != null) {
+            if (leftClick != null) {
+                return new Item(ImmutableMap.of(ClickType.RIGHT, rightClick, ClickType.LEFT, leftClick), itemStack);
+            } else {
+                return new Item(ImmutableMap.of(ClickType.RIGHT, rightClick), itemStack);
+            }
+        } else {
+            if (leftClick != null) {
+                return new Item(ImmutableMap.of(ClickType.LEFT, leftClick), itemStack);
+            } else {
+                return new Item(ImmutableMap.of(), itemStack);
+            }
+        }
     }
 
 }
