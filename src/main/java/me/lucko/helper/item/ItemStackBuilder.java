@@ -22,10 +22,15 @@
 
 package me.lucko.helper.item;
 
+import com.google.common.collect.ImmutableMap;
+
+import me.lucko.helper.menu.Item;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -143,6 +148,14 @@ public class ItemStackBuilder {
 
     public ItemStack build() {
         return itemStack;
+    }
+
+    public Item build(Runnable handler) {
+        return new Item(ImmutableMap.of(ClickType.RIGHT, handler, ClickType.LEFT, handler), itemStack);
+    }
+
+    public Item build(Runnable rightClick, Runnable leftClick) {
+        return new Item(ImmutableMap.of(ClickType.RIGHT, rightClick, ClickType.LEFT, leftClick), itemStack);
     }
 
 }
