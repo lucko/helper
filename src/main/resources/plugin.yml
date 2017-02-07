@@ -1,0 +1,6 @@
+name: helper
+author: Luck
+version: ${project.version}
+description: ${project.description}
+main: me.lucko.helper.plugin.DummyHelperPlugin
+website: https://github.com/lucko/helper
