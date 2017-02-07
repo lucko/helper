@@ -34,18 +34,4 @@ public class DummyHelperPlugin extends JavaPlugin {
         getLogger().info("Initialized helper v" + getDescription().getVersion());
     }
 
-    @Override
-    public void onLoad() {
-        getLogger().info("Loaded helper v" + getDescription().getVersion());
-    }
-
-    @Override
-    public void onEnable() {
-        getLogger().info("Enabled helper v" + getDescription().getVersion());
-    }
-
-    @Override
-    public void onDisable() {
-        getLogger().info("Disabled helper v" + getDescription().getVersion());
-    }
 }
