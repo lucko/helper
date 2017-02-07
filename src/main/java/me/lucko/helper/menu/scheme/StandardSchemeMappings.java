@@ -29,4 +29,6 @@ public class StandardSchemeMappings {
 
     public static final SchemeMapping STAINED_GLASS = new StainedGlassScheme();
 
+    private StandardSchemeMappings() {}
+
 }

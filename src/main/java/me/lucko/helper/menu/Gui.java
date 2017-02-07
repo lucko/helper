@@ -44,14 +44,28 @@ import java.util.function.Function;
  * A simple GUI abstraction
  */
 public abstract class Gui {
+    
+    public static int getMenuSize(int count) {
+        return (count / 9 + ((count % 9 != 0) ? 1 : 0));
+    }
 
+    // The player holding the GUI
     private final Player player;
+    // The backing inventory instance
     private final Inventory inventory;
+    // The initial title set when the inventory was made.
     private final String initialTitle;
+    // The clickable items in the gui
     private final Map<Integer, Item> itemMap;
+    // This remains true until after #redraw is called for the first time
+    private boolean firstDraw = true;
+    // A function used to build a fallback page when this page is closed.
     private Function<Player, Gui> fallbackGui = null;
 
+    // The event handlers bound to this GUI, currently listening to events
     private final Set<Events.Handler> handlers = new HashSet<>();
+    // Callbacks to be ran when the GUI is invalidated (closed). useful for cancelling tick tasks
+    private final Set<Runnable> invalidateCallbacks = new HashSet<>();
 
     public Gui(Player player, int lines, String title) {
         this.player = player;
@@ -60,6 +74,10 @@ public abstract class Gui {
         this.itemMap = new HashMap<>();
     }
 
+    /**
+     * Places items on the GUI. Called when the GUI is opened.
+     * Use {@link #isFirstDraw()} to determine if this is the first time {@link #redraw()} has been called.
+     */
     public abstract void redraw();
 
     public Player getPlayer() {
@@ -80,6 +98,14 @@ public abstract class Gui {
 
     public void setFallbackGui(Function<Player, Gui> fallbackGui) {
         this.fallbackGui = fallbackGui;
+    }
+
+    public void addInvalidationCallback(Runnable r) {
+        invalidateCallbacks.add(r);
+    }
+
+    public boolean isFirstDraw() {
+        return firstDraw;
     }
 
     public void setItem(int slot, Item item) {
@@ -117,6 +143,7 @@ public abstract class Gui {
 
     public void open() {
         redraw();
+        firstDraw = false;
         startListening();
         player.openInventory(inventory);
     }
@@ -125,16 +152,32 @@ public abstract class Gui {
         player.closeInventory();
     }
 
-    public void invalidate() {
+    private void invalidate() {
+        invalidateCallbacks.forEach(r -> {
+            try {
+                r.run();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+        invalidateCallbacks.clear();
+
         clearItems();
         handlers.forEach(Events.Handler::unregister);
         handlers.clear();
     }
 
+    /**
+     * Returns true unless this GUI has been invalidated, through being closed, or the player leaving.
+     * @return true unless this GUI has been invalidated.
+     */
     public boolean isValid() {
         return !handlers.isEmpty();
     }
 
+    /**
+     * Registers the event handlers for this GUI
+     */
     private void startListening() {
         handlers.add(Events.subscribe(InventoryClickEvent.class)
                 .filter(e -> e.getInventory().getHolder() != null)
