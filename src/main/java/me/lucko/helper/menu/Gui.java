@@ -44,7 +44,7 @@ import java.util.function.Function;
  * A simple GUI abstraction
  */
 public abstract class Gui {
-    
+
     public static int getMenuSize(int count) {
         return (count / 9 + ((count % 9 != 0) ? 1 : 0));
     }
