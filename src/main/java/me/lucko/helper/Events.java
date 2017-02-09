@@ -285,7 +285,7 @@ public final class Events {
                 long now = System.currentTimeMillis();
                 if (now > expiry) {
                     event.getHandlers().unregister(listener);
-                    unregister();
+                    active.set(false);
                     return;
                 }
             }
@@ -294,7 +294,7 @@ public final class Events {
             if (maxCalls != -1) {
                 if (callCount.get() >= maxCalls) {
                     event.getHandlers().unregister(listener);
-                    unregister();
+                    active.set(false);
                     return;
                 }
             }
