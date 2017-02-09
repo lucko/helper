@@ -119,6 +119,28 @@ public abstract class Gui {
         }
     }
 
+    public int getFirstEmpty() {
+        int ret = inventory.firstEmpty();
+        if (ret < 0) {
+            throw new IndexOutOfBoundsException("no empty slots");
+        }
+        return ret;
+    }
+
+    public void addItem(Item item) {
+        try {
+            setItem(getFirstEmpty(), item);
+        } catch (IndexOutOfBoundsException e) {
+            // ignore
+        }
+    }
+
+    public void addItems(Iterable<Item> items) {
+        for (Item item : items) {
+            addItem(item);
+        }
+    }
+
     public void removeItem(int slot) {
         itemMap.remove(slot);
         inventory.setItem(slot, null);
