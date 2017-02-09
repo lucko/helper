@@ -29,11 +29,15 @@ import me.lucko.helper.utils.LoaderUtils;
 
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
+import org.bukkit.event.EventException;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalLong;
@@ -234,7 +238,7 @@ public final class Events {
 
     }
 
-    private static class HandlerImpl<T extends Event> implements Handler<T> {
+    private static class HandlerImpl<T extends Event> implements Handler<T>, EventExecutor {
         private final Class<T> eventClass;
         private final EventPriority priority;
 
@@ -261,51 +265,54 @@ public final class Events {
         }
 
         private void register(Plugin plugin) {
-            plugin.getServer().getPluginManager().registerEvent(eventClass, listener, priority, (l, event) -> {
-                if (event.getClass() != eventClass) {
-                    return;
-                }
+            plugin.getServer().getPluginManager().registerEvent(eventClass, listener, priority, this, plugin, false);
+        }
 
-                // This handler is disabled, so unregister from the event.
-                if (!active.get()) {
+        @Override
+        public void execute(Listener listener, Event event) throws EventException {
+            if (event.getClass() != eventClass) {
+                return;
+            }
+
+            // This handler is disabled, so unregister from the event.
+            if (!active.get()) {
+                event.getHandlers().unregister(listener);
+                return;
+            }
+
+            // Check if the handler has expired.
+            if (expiry != -1) {
+                long now = System.currentTimeMillis();
+                if (now > expiry) {
                     event.getHandlers().unregister(listener);
+                    unregister();
                     return;
                 }
+            }
 
-                // Check if the handler has expired.
-                if (expiry != -1) {
-                    long now = System.currentTimeMillis();
-                    if (now > expiry) {
-                        event.getHandlers().unregister(listener);
-                        unregister();
-                        return;
-                    }
+            // Check if the handler has reached its max calls
+            if (maxCalls != -1) {
+                if (callCount.get() >= maxCalls) {
+                    event.getHandlers().unregister(listener);
+                    unregister();
+                    return;
                 }
+            }
 
-                // Check if the handler has reached its max calls
-                if (maxCalls != -1) {
-                    if (callCount.get() >= maxCalls) {
-                        event.getHandlers().unregister(listener);
-                        unregister();
-                        return;
-                    }
+            T eventInstance = eventClass.cast(event);
+
+            for (Predicate<T> filter : filters) {
+                if (!filter.test(eventInstance)) {
+                    return;
                 }
+            }
 
-                T eventInstance = eventClass.cast(event);
-
-                for (Predicate<T> filter : filters) {
-                    if (!filter.test(eventInstance)) {
-                        return;
-                    }
-                }
-
-                // Actually call the handler
-                if (handleAsync) {
-                    Scheduler.runAsync(() -> handle(eventInstance));
-                } else {
-                    handle(eventInstance);
-                }
-            }, plugin, false);
+            // Actually call the handler
+            if (handleAsync) {
+                Scheduler.runAsync(() -> handle(eventInstance));
+            } else {
+                handle(eventInstance);
+            }
         }
 
         private void handle(T e) {
@@ -344,7 +351,21 @@ public final class Events {
 
         @Override
         public boolean unregister() {
-            return active.getAndSet(false);
+            // already unregistered
+            if (!active.getAndSet(false)) {
+                return false;
+            }
+
+            // Also remove the handler directly, just in case the event has a really low throughput.
+            // Unfortunately we can't cache this call, as the method is static
+            try {
+                Method getHandlerListMethod = eventClass.getMethod("getHandlerList");
+                HandlerList handlerList = (HandlerList) getHandlerListMethod.invoke(null);
+                handlerList.unregister(listener);
+            } catch (Throwable t) {
+                // ignored
+            }
+            return true;
         }
     }
 
