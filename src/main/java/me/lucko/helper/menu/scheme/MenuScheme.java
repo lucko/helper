@@ -112,4 +112,32 @@ public class MenuScheme {
             e.printStackTrace();
         }
     }
+
+    public List<Integer> getMaskedIndexes() {
+        List<Integer> ret = new ArrayList<>();
+        try {
+            // the index of the item slot in the inventory
+            AtomicInteger invIndex = new AtomicInteger(-1);
+
+            // iterate all of the loaded masks
+            for (int i = 0; i < maskRows.size(); i++) {
+                boolean[] mask = maskRows.get(i);
+
+                // iterate the values in the mask (0 --> 8)
+                for (boolean b : mask) {
+
+                    // increment the index in the gui. we're handling a new item.
+                    int index = invIndex.incrementAndGet();
+
+                    // if this index is masked.
+                    if (b) {
+                        ret.add(index);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
 }
