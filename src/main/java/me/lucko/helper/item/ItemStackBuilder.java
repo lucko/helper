@@ -58,12 +58,12 @@ public class ItemStackBuilder {
         this.itemStack = itemStack;
     }
 
-    private ItemStackBuilder transform(Consumer<ItemStack> is) {
+    public ItemStackBuilder transform(Consumer<ItemStack> is) {
         is.accept(itemStack);
         return this;
     }
 
-    private ItemStackBuilder transformMeta(Consumer<ItemMeta> meta) {
+    public ItemStackBuilder transformMeta(Consumer<ItemMeta> meta) {
         ItemMeta m = itemStack.getItemMeta();
         meta.accept(m);
         itemStack.setItemMeta(m);
