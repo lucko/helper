@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.utils.LoaderUtils;
+import me.lucko.helper.utils.Terminable;
 
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -85,7 +86,7 @@ public final class Events {
      * Responsible for the handling of a given event
      * @param <T> the event type
      */
-    public interface Handler<T> {
+    public interface Handler<T> extends Terminable {
 
         /**
          * Gets the class the handler is handling
@@ -122,6 +123,10 @@ public final class Events {
          */
         boolean unregister();
 
+        @Override
+        default boolean terminate() {
+            return unregister();
+        }
     }
 
     /**

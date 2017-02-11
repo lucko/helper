@@ -25,6 +25,7 @@ package me.lucko.helper;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.utils.LoaderUtils;
+import me.lucko.helper.utils.Terminable;
 
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -307,7 +308,7 @@ public final class Scheduler {
     /**
      * Represents a scheduled repeating task
      */
-    public interface Task {
+    public interface Task extends Terminable {
 
         /**
          * Gets the number of times this task has ran. The counter is only incremented at the end of execution.
@@ -327,6 +328,10 @@ public final class Scheduler {
          */
         int getBukkitId();
 
+        @Override
+        default boolean terminate() {
+            return stop();
+        }
     }
 
     private static class TaskImpl extends BukkitRunnable implements Task {
