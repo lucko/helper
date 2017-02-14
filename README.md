@@ -26,6 +26,16 @@ Events.subscribe(PlayerMoveEvent.class, EventPriority.MONITOR)
         });
 ```
 
+You can merge events together into the same handler, and specify options to automatically handle events asynchronously.
+```java
+Events.merge(PlayerEvent.class, PlayerQuitEvent.class, PlayerKickEvent.class)
+        .filter(e -> !e.getPlayer().isOp())
+        .handleAsync()
+        .handler(e -> {
+            // Perform some I/O to save the players special data.
+        });
+```
+
 ### [`Scheduler`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/Scheduler.java)
 The scheduler class provides easy static access to the Bukkit Scheduler. It also adds methods to retrieve synchronous and asynchronous executor instances. All future methods return `CompletableFuture`s, allowing for easy use of callbacks and use of the Completion Stage API.
 
@@ -144,7 +154,7 @@ You can either install the standalone helper plugin your server, or shade the cl
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>1.2.1</version>
+        <version>1.2.7</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -160,6 +170,6 @@ repositories {
 }
 
 dependencies {
-    compile ("me.lucko:helper:1.2.1")
+    compile ("me.lucko:helper:1.2.7")
 }
 ```
