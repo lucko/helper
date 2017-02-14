@@ -24,6 +24,7 @@ package me.lucko.helper;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Terminable;
@@ -42,6 +43,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -52,6 +54,7 @@ import java.util.function.Predicate;
 /**
  * A utility class to help with event listening.
  */
+@SuppressWarnings("Duplicates")
 public final class Events {
     public static final DefaultFilters DEFAULT_FILTERS = new DefaultFiltersImpl();
 
@@ -80,6 +83,22 @@ public final class Events {
         Preconditions.checkNotNull(eventClass, "eventClass");
         Preconditions.checkNotNull(priority, "priority");
         return new HandlerBuilderImpl<>(eventClass, priority);
+    }
+
+    @SafeVarargs
+    public static <S extends Event> MergedHandlerBuilder<S> merge(Class<S> superClass, Class<? extends S>... eventClasses) {
+        return merge(superClass, EventPriority.NORMAL, eventClasses);
+    }
+
+    @SafeVarargs
+    public static <S extends Event> MergedHandlerBuilder<S> merge(Class<S> superClass, EventPriority priority, Class<? extends S>... eventClasses) {
+        Preconditions.checkNotNull(superClass, "superClass");
+        Preconditions.checkNotNull(eventClasses, "eventClasses");
+        Preconditions.checkNotNull(priority, "priority");
+        if (eventClasses.length < 2) {
+            throw new IllegalArgumentException("merge method used for only one subclass");
+        }
+        return new MergedHandlerBuilderImpl<>(superClass, ImmutableSet.copyOf(eventClasses), priority);
     }
 
     /**
@@ -127,6 +146,37 @@ public final class Events {
         default boolean terminate() {
             return unregister();
         }
+    }
+
+    /**
+     * Responsible for the handling of a merged event
+     * @param <T> the event type
+     */
+    public interface MergedHandler<T> extends Handler<T> {
+
+        /**
+         * Gets the super class of the handler
+         * @return the class the handler is handling
+         * @deprecated because a {@link MergedHandler} handles more than one class.
+         */
+        @Override
+        @Deprecated
+        default Class<T> getEventClass() {
+            return getSuperClass();
+        }
+
+        /**
+         * Gets the super event class
+         * @return the super event class
+         */
+        Class<T> getSuperClass();
+
+        /**
+         * Gets a set of the individual event classes being listened to
+         * @return the individual classes
+         */
+        Set<Class<? extends T>> getEventClasses();
+
     }
 
     /**
@@ -209,6 +259,89 @@ public final class Events {
          * @throws NullPointerException if the handler is null
          */
         Handler<T> handler(BiConsumer<Handler<T>, ? super T> handler);
+
+    }
+
+    /**
+     * Builds a {@link MergedHandler}
+     *
+     * @param <T> the super event type
+     */
+    public interface MergedHandlerBuilder<T extends Event> {
+
+        /**
+         * Sets the expiry time on the handler
+         *
+         * @param duration the duration until expiry
+         * @param unit the unit for the duration
+         * @return the builder instance
+         * @throws IllegalArgumentException if duration is not >= 1
+         */
+        MergedHandlerBuilder<T> expireAfter(long duration, TimeUnit unit);
+
+        /**
+         * Sets the number of calls until the handler will automatically be unregistered
+         *
+         * <p>The call counter is only incremented if the event call passes all filters and if the handler completes
+         * without throwing an exception.
+         *
+         * @param maxCalls the number of times the handler will be called until being unregistered.
+         * @return the builder instance
+         * @throws IllegalArgumentException if maxCalls is not >= 1
+         */
+        MergedHandlerBuilder<T> maxCalls(long maxCalls);
+
+        /**
+         * Sets the handler to be called asynchronously.
+         *
+         * <p>This only applies to the handler. All filters will be evaluated on the thread on which the event was
+         * called.
+         *
+         * @return the builder instance
+         */
+        MergedHandlerBuilder<T> handleAsync();
+
+        /**
+         * Sets the exception consumer for the handler.
+         *
+         * <p> If an exception is thrown in the handler, it is passed to this consumer to be swallowed.
+         *
+         * @param consumer the consumer
+         * @return the builder instance
+         * @throws NullPointerException if the consumer is null
+         */
+        MergedHandlerBuilder<T> exceptionConsumer(Consumer<Throwable> consumer);
+
+        /**
+         * Adds a filter to the handler.
+         *
+         * <p>An event will only be handled if it passes all filters. Filters are evaluated in the order they are
+         * registered.
+         *
+         * @param predicate the filter
+         * @return the builder instance
+         */
+        MergedHandlerBuilder<T> filter(Predicate<T> predicate);
+
+        /**
+         * Builds and registers the Handler.
+         *
+         * @param handler the consumer responsible for handling the event.
+         * @return a registered {@link Handler} instance.
+         * @throws NullPointerException if the handler is null
+         */
+        default MergedHandler<T> handler(Consumer<? super T> handler) {
+            return handler((h, t) -> handler.accept(t));
+        }
+
+        /**
+         * Builds and registers the Handler.
+         *
+         * @param handler the bi-consumer responsible for handling the event.
+         * @return a registered {@link Handler} instance.
+         * @throws NullPointerException if the handler is null
+         */
+        MergedHandler<T> handler(BiConsumer<MergedHandler<T>, ? super T> handler);
 
     }
 
@@ -374,6 +507,156 @@ public final class Events {
         }
     }
 
+    private static class MergedHandlerImpl<T extends Event> implements MergedHandler<T>, EventExecutor {
+        private final Class<T> superClass;
+        private final Set<Class<? extends T>> eventClasses;
+        private final EventPriority priority;
+
+        private final long expiry;
+        private final long maxCalls;
+        private final boolean handleAsync;
+        private final Consumer<Throwable> exceptionConsumer;
+        private final List<Predicate<T>> filters;
+        private final BiConsumer<MergedHandler<T>, ? super T> handler;
+
+        private final Listener listener = new Listener() {};
+        private final AtomicLong callCount = new AtomicLong(0);
+        private final AtomicBoolean active = new AtomicBoolean(true);
+
+        private MergedHandlerImpl(MergedHandlerBuilderImpl<T> builder, BiConsumer<MergedHandler<T>, ? super T> handler) {
+            this.superClass = builder.superClass;
+            this.eventClasses = builder.eventClasses;
+            this.priority = builder.priority;
+            this.expiry = builder.expiry;
+            this.maxCalls = builder.maxCalls;
+            this.handleAsync = builder.handleAsync;
+            this.exceptionConsumer = builder.exceptionConsumer;
+            this.filters = ImmutableList.copyOf(builder.filters);
+            this.handler = handler;
+        }
+
+        private void register(Plugin plugin) {
+            for (Class<? extends T> clazz : eventClasses) {
+                plugin.getServer().getPluginManager().registerEvent(clazz, listener, priority, this, plugin, false);
+            }
+        }
+
+        @Override
+        public void execute(Listener listener, Event event) throws EventException {
+            boolean found = false;
+            for (Class<? extends T> clazz : eventClasses) {
+                if (event.getClass() == clazz) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                return;
+            }
+
+            // This handler is disabled, so unregister from the event.
+            if (!active.get()) {
+                event.getHandlers().unregister(listener);
+                return;
+            }
+
+            // Check if the handler has expired.
+            if (expiry != -1) {
+                long now = System.currentTimeMillis();
+                if (now > expiry) {
+                    event.getHandlers().unregister(listener);
+                    active.set(false);
+                    return;
+                }
+            }
+
+            // Check if the handler has reached its max calls
+            if (maxCalls != -1) {
+                if (callCount.get() >= maxCalls) {
+                    event.getHandlers().unregister(listener);
+                    active.set(false);
+                    return;
+                }
+            }
+
+            T eventInstance = superClass.cast(event);
+
+            for (Predicate<T> filter : filters) {
+                if (!filter.test(eventInstance)) {
+                    return;
+                }
+            }
+
+            // Actually call the handler
+            if (handleAsync) {
+                Scheduler.runAsync(() -> handle(eventInstance));
+            } else {
+                handle(eventInstance);
+            }
+        }
+
+        private void handle(T e) {
+            if (exceptionConsumer == null) {
+                handler.accept(this, e);
+                callCount.incrementAndGet();
+            } else {
+                try {
+                    handler.accept(this, e);
+                    callCount.incrementAndGet();
+                } catch (Throwable t) {
+                    exceptionConsumer.accept(t);
+                }
+            }
+        }
+
+        @Override
+        public boolean isActive() {
+            return active.get();
+        }
+
+        @Override
+        public long getCallCounter() {
+            return callCount.get();
+        }
+
+        @Override
+        public OptionalLong getExpiryTimeMillis() {
+            return expiry == -1 ? OptionalLong.empty() : OptionalLong.of(expiry);
+        }
+
+        @Override
+        public boolean unregister() {
+            // already unregistered
+            if (!active.getAndSet(false)) {
+                return false;
+            }
+
+            // Also remove the handler directly, just in case the event has a really low throughput.
+            // Unfortunately we can't cache this call, as the method is static
+            for (Class<? extends T> clazz : eventClasses) {
+                try {
+                    Method getHandlerListMethod = clazz.getMethod("getHandlerList");
+                    HandlerList handlerList = (HandlerList) getHandlerListMethod.invoke(null);
+                    handlerList.unregister(listener);
+                } catch (Throwable t) {
+                    // ignored
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public Class<T> getSuperClass() {
+            return superClass;
+        }
+
+        @Override
+        public Set<Class<? extends T>> getEventClasses() {
+            return eventClasses;
+        }
+    }
+
     private static class HandlerBuilderImpl<T extends Event> implements HandlerBuilder<T> {
         private final Class<T> eventClass;
         private final EventPriority priority;
@@ -429,6 +712,68 @@ public final class Events {
             Preconditions.checkNotNull(handler, "handler");
 
             HandlerImpl<T> impl = new HandlerImpl<>(this, handler);
+            impl.register(LoaderUtils.getPlugin());
+            return impl;
+        }
+    }
+
+    private static class MergedHandlerBuilderImpl<T extends Event> implements MergedHandlerBuilder<T> {
+        private final Class<T> superClass;
+        private final Set<Class<? extends T>> eventClasses;
+        private final EventPriority priority;
+
+        private long expiry = -1;
+        private long maxCalls = -1;
+        private boolean handleAsync = false;
+        private Consumer<Throwable> exceptionConsumer = null;
+        private List<Predicate<T>> filters = new ArrayList<>();
+
+        private MergedHandlerBuilderImpl(Class<T> superClass, Set<Class<? extends T>> eventClasses, EventPriority priority) {
+            this.superClass = superClass;
+            this.eventClasses = eventClasses;
+            this.priority = priority;
+        }
+
+        @Override
+        public MergedHandlerBuilder<T> expireAfter(long duration, TimeUnit unit) {
+            Preconditions.checkNotNull(unit, "unit");
+            Preconditions.checkArgument(duration >= 1, "duration >= 1");
+            this.expiry = Math.addExact(System.currentTimeMillis(), unit.toMillis(duration));
+            return this;
+        }
+
+        @Override
+        public MergedHandlerBuilder<T> maxCalls(long maxCalls) {
+            Preconditions.checkArgument(maxCalls >= 1, "maxCalls >= 1");
+            this.maxCalls = maxCalls;
+            return this;
+        }
+
+        @Override
+        public MergedHandlerBuilder<T> handleAsync() {
+            this.handleAsync = true;
+            return this;
+        }
+
+        @Override
+        public MergedHandlerBuilder<T> exceptionConsumer(Consumer<Throwable> exceptionConsumer) {
+            Preconditions.checkNotNull(exceptionConsumer, "exceptionConsumer");
+            this.exceptionConsumer = exceptionConsumer;
+            return this;
+        }
+
+        @Override
+        public MergedHandlerBuilder<T> filter(Predicate<T> predicate) {
+            Preconditions.checkNotNull(predicate, "predicate");
+            this.filters.add(predicate);
+            return this;
+        }
+
+        @Override
+        public MergedHandler<T> handler(BiConsumer<MergedHandler<T>, ? super T> handler) {
+            Preconditions.checkNotNull(handler, "handler");
+
+            MergedHandlerImpl<T> impl = new MergedHandlerImpl<>(this, handler);
             impl.register(LoaderUtils.getPlugin());
             return impl;
         }
