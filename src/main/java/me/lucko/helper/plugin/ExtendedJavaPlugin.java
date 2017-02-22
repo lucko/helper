@@ -22,6 +22,11 @@
 
 package me.lucko.helper.plugin;
 
+import com.google.common.collect.Lists;
+
+import me.lucko.helper.utils.CompositeTerminable;
+import me.lucko.helper.utils.Terminable;
+
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
@@ -36,6 +41,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 public abstract class ExtendedJavaPlugin extends JavaPlugin {
     private static Constructor<?> commandConstructor;
@@ -55,11 +63,37 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin {
         }
     }
 
+    // Cached CommandMap instance
     private CommandMap commandMap = null;
+
+    private final List<Terminable> terminables = new ArrayList<>();
+    private final Consumer<Terminable> terminableConsumer = terminables::add;
+
+    @Override
+    public void onDisable() {
+        Lists.reverse(terminables).forEach((terminable) -> {
+            try {
+                terminable.terminate();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        terminables.clear();
+    }
 
     public <T extends Listener> T registerListener(T listener) {
         getServer().getPluginManager().registerEvents(listener, this);
         return listener;
+    }
+
+    public <T extends Terminable> T registerTerminable(T terminable) {
+        terminables.add(terminable);
+        return terminable;
+    }
+
+    public <T extends CompositeTerminable> T registerTerminables(T terminable) {
+        terminable.bind(terminableConsumer);
+        return terminable;
     }
 
     public <T extends CommandExecutor> T registerCommand(T command, String... aliases) {
@@ -116,8 +150,12 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin {
         return instance;
     }
 
+    public <T> T provideService(Class<T> clazz, T instance) {
+        return provideService(clazz, instance, ServicePriority.Normal);
+    }
+
     @SuppressWarnings("unchecked")
-    public <T> T getPlugin(Class<T> clazz, String name) {
+    public <T> T getPlugin(String name, Class<T> pluginClass) {
         return (T) getServer().getPluginManager().getPlugin(name);
     }
 

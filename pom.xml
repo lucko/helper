@@ -6,11 +6,11 @@
 
     <groupId>me.lucko</groupId>
     <artifactId>helper</artifactId>
-    <version>1.2.7</version>
+    <version>1.2.8</version>
     <packaging>jar</packaging>
 
     <name>helper</name>
-    <description>Helps reduce boilerplate code in Bukkit plugins</description>
+    <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
 
     <distributionManagement>
         <snapshotRepository>
