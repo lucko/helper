@@ -22,6 +22,8 @@
 
 package me.lucko.helper.utils;
 
+import java.util.function.Consumer;
+
 /**
  * Represents an object that can be unregistered, stopped, or gracefully halted.
  */
@@ -32,5 +34,13 @@ public interface Terminable {
      * @return true if the object wasn't already terminated
      */
     boolean terminate();
+
+    /**
+     * Registers this terminable with a terminable consumer (usually the plugin instance)
+     * @param consumer the terminable consumer
+     */
+    default void register(Consumer<Terminable> consumer) {
+        consumer.accept(this);
+    }
 
 }
