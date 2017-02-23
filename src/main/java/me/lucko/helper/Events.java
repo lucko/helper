@@ -65,7 +65,7 @@ public final class Events {
      * Makes a HandlerBuilder for a given event
      *
      * @param eventClass the class of the event
-     * @param <T> the event type
+     * @param <T>        the event type
      * @return a {@link HandlerBuilder} to construct the event handler
      * @throws NullPointerException if eventClass is null
      */
@@ -77,8 +77,8 @@ public final class Events {
      * Makes a HandlerBuilder for a given event
      *
      * @param eventClass the class of the event
-     * @param priority the priority to listen at
-     * @param <T> the event type
+     * @param priority   the priority to listen at
+     * @param <T>        the event type
      * @return a {@link HandlerBuilder} to construct the event handler
      * @throws NullPointerException if eventClass or priority is null
      */
@@ -88,16 +88,40 @@ public final class Events {
         return new HandlerBuilderImpl<>(eventClass, priority);
     }
 
+    /**
+     * Makes a MergedHandlerBuilder for a given super type
+     *
+     * @param handledClass the super type of the event handler
+     * @param <T>          the super type class
+     * @return a {@link MergedHandlerBuilder} to construct the event handler
+     */
     public static <T> MergedHandlerBuilder<T> merge(Class<T> handledClass) {
         Preconditions.checkNotNull(handledClass, "handledClass");
         return new MergedHandlerBuilderImpl<>(handledClass);
     }
 
+    /**
+     * Makes a MergedHandlerBuilder for a super event class
+     *
+     * @param superClass   the abstract super event class
+     * @param eventClasses the event classes to be bound to
+     * @param <S>          the super class type
+     * @return a {@link MergedHandlerBuilder} to construct the event handler
+     */
     @SafeVarargs
     public static <S extends Event> MergedHandlerBuilder<S> merge(Class<S> superClass, Class<? extends S>... eventClasses) {
         return merge(superClass, EventPriority.NORMAL, eventClasses);
     }
 
+    /**
+     * Makes a MergedHandlerBuilder for a super event class
+     *
+     * @param superClass   the abstract super event class
+     * @param priority     the priority to listen at
+     * @param eventClasses the event classes to be bound to
+     * @param <S>          the super class type
+     * @return a {@link MergedHandlerBuilder} to construct the event handler
+     */
     @SafeVarargs
     public static <S extends Event> MergedHandlerBuilder<S> merge(Class<S> superClass, EventPriority priority, Class<? extends S>... eventClasses) {
         Preconditions.checkNotNull(superClass, "superClass");
@@ -116,6 +140,7 @@ public final class Events {
 
     /**
      * Responsible for the handling of a given event
+     *
      * @param <T> the event type
      */
     public interface Handler<T> extends Terminable {
@@ -163,18 +188,21 @@ public final class Events {
 
     /**
      * Responsible for the handling of a merged event
+     *
      * @param <T> the event type
      */
     public interface MergedHandler<T> extends Terminable {
 
         /**
          * Gets the handled class
+         *
          * @return the handled class
          */
         Class<T> getHandledClass();
 
         /**
          * Gets a set of the individual event classes being listened to
+         *
          * @return the individual classes
          */
         Set<Class<? extends Event>> getEventClasses();
@@ -224,7 +252,7 @@ public final class Events {
          * Sets the expiry time on the handler
          *
          * @param duration the duration until expiry
-         * @param unit the unit for the duration
+         * @param unit     the unit for the duration
          * @return the builder instance
          * @throws IllegalArgumentException if duration is not >= 1
          */
@@ -305,19 +333,21 @@ public final class Events {
 
         /**
          * Binds this handler to an event
+         *
          * @param eventClass the event class to bind to
-         * @param function the function to remap the event
-         * @param <E> the event class
+         * @param function   the function to remap the event
+         * @param <E>        the event class
          * @return the builder instance
          */
         <E extends Event> MergedHandlerBuilder<T> bindEvent(Class<E> eventClass, Function<E, T> function);
 
         /**
          * Binds this handler to an event
+         *
          * @param eventClass the event class to bind to
-         * @param priority the priority to listen at
-         * @param function the function to remap the event
-         * @param <E> the event class
+         * @param priority   the priority to listen at
+         * @param function   the function to remap the event
+         * @param <E>        the event class
          * @return the builder instance
          */
         <E extends Event> MergedHandlerBuilder<T> bindEvent(Class<E> eventClass, EventPriority priority, Function<E, T> function);
@@ -326,7 +356,7 @@ public final class Events {
          * Sets the expiry time on the handler
          *
          * @param duration the duration until expiry
-         * @param unit the unit for the duration
+         * @param unit     the unit for the duration
          * @return the builder instance
          * @throws IllegalArgumentException if duration is not >= 1
          */
@@ -381,7 +411,7 @@ public final class Events {
          *
          * @param handler the consumer responsible for handling the event.
          * @return a registered {@link Handler} instance.
-         * @throws NullPointerException if the handler is null
+         * @throws NullPointerException  if the handler is null
          * @throws IllegalStateException if no events have been bound to
          */
         default MergedHandler<T> handler(Consumer<? super T> handler) {
@@ -393,7 +423,7 @@ public final class Events {
          *
          * @param handler the bi-consumer responsible for handling the event.
          * @return a registered {@link Handler} instance.
-         * @throws NullPointerException if the handler is null
+         * @throws NullPointerException  if the handler is null
          * @throws IllegalStateException if no events have been bound to
          */
         MergedHandler<T> handler(BiConsumer<MergedHandler<T>, ? super T> handler);
@@ -864,6 +894,7 @@ public final class Events {
 
         private HandlerMapping(EventPriority priority, Function<E, T> function) {
             this.priority = priority;
+            //noinspection unchecked
             this.function = o -> function.apply((E) o);
         }
 
