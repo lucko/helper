@@ -45,7 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public abstract class ExtendedJavaPlugin extends JavaPlugin {
+public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<Terminable> {
     private static Constructor<?> commandConstructor;
     private static Field owningPluginField;
     static {
@@ -67,10 +67,9 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin {
     private CommandMap commandMap = null;
 
     private final List<Terminable> terminables = new ArrayList<>();
-    private final Consumer<Terminable> terminableConsumer = terminables::add;
 
     @Override
-    public void onDisable() {
+    public final void onDisable() {
         Lists.reverse(terminables).forEach((terminable) -> {
             try {
                 terminable.terminate();
@@ -79,6 +78,11 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin {
             }
         });
         terminables.clear();
+    }
+
+    @Override
+    public void accept(Terminable terminable) {
+        registerTerminable(terminable);
     }
 
     public <T extends Listener> T registerListener(T listener) {
@@ -91,8 +95,8 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin {
         return terminable;
     }
 
-    public <T extends CompositeTerminable> T registerTerminables(T terminable) {
-        terminable.bind(terminableConsumer);
+    public <T extends CompositeTerminable> T bindTerminable(T terminable) {
+        terminable.bind(this);
         return terminable;
     }
 
