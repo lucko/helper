@@ -7,6 +7,7 @@ helper adds a functional event handling utility. The class lets you subscribe to
 ```java
 Events.subscribe(PlayerJoinEvent.class).handler(e -> e.setJoinMessage(""));
 ```
+
 It also allows for more advanced handling.
 ```java
 Events.subscribe(PlayerJoinEvent.class)
@@ -33,6 +34,17 @@ Events.merge(PlayerEvent.class, PlayerQuitEvent.class, PlayerKickEvent.class)
         .handleAsync()
         .handler(e -> {
             // Perform some I/O to save the players special data.
+        });
+```
+
+This also works when events don't share a common interface or super class.
+```java
+Events.merge(Player.class)
+        .bindEvent(PlayerDeathEvent.class, PlayerDeathEvent::getEntity)
+        .bindEvent(PlayerQuitEvent.class, PlayerEvent::getPlayer)
+        .handler(e -> {
+            // poof!
+            e.getLocation().getWorld().createExplosion(e.getLocation(), 1.0f);
         });
 ```
 
