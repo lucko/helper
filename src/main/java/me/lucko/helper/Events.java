@@ -24,7 +24,7 @@ package me.lucko.helper;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Terminable;
@@ -41,7 +41,9 @@ import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -49,6 +51,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -85,6 +88,11 @@ public final class Events {
         return new HandlerBuilderImpl<>(eventClass, priority);
     }
 
+    public static <T> MergedHandlerBuilder<T> merge(Class<T> handledClass) {
+        Preconditions.checkNotNull(handledClass, "handledClass");
+        return new MergedHandlerBuilderImpl<>(handledClass);
+    }
+
     @SafeVarargs
     public static <S extends Event> MergedHandlerBuilder<S> merge(Class<S> superClass, Class<? extends S>... eventClasses) {
         return merge(superClass, EventPriority.NORMAL, eventClasses);
@@ -98,7 +106,12 @@ public final class Events {
         if (eventClasses.length < 2) {
             throw new IllegalArgumentException("merge method used for only one subclass");
         }
-        return new MergedHandlerBuilderImpl<>(superClass, ImmutableSet.copyOf(eventClasses), priority);
+
+        MergedHandlerBuilderImpl<S> h = new MergedHandlerBuilderImpl<>(superClass);
+        for (Class<? extends S> clazz : eventClasses) {
+            h.bindEvent(clazz, priority, e -> e);
+        }
+        return h;
     }
 
     /**
@@ -152,31 +165,52 @@ public final class Events {
      * Responsible for the handling of a merged event
      * @param <T> the event type
      */
-    public interface MergedHandler<T> extends Handler<T> {
+    public interface MergedHandler<T> extends Terminable {
 
         /**
-         * Gets the super class of the handler
-         * @return the class the handler is handling
-         * @deprecated because a {@link MergedHandler} handles more than one class.
+         * Gets the handled class
+         * @return the handled class
          */
-        @Override
-        @Deprecated
-        default Class<T> getEventClass() {
-            return getSuperClass();
-        }
-
-        /**
-         * Gets the super event class
-         * @return the super event class
-         */
-        Class<T> getSuperClass();
+        Class<T> getHandledClass();
 
         /**
          * Gets a set of the individual event classes being listened to
          * @return the individual classes
          */
-        Set<Class<? extends T>> getEventClasses();
+        Set<Class<? extends Event>> getEventClasses();
 
+        /**
+         * Gets whether the handler is active
+         *
+         * @return if the handler is active
+         */
+        boolean isActive();
+
+        /**
+         * Gets the number of times the handler has been called
+         *
+         * @return the number of times the handler has been called
+         */
+        long getCallCounter();
+
+        /**
+         * Gets the time in milliseconds when this handler will expire, if any
+         *
+         * @return the time in milliseconds when this handler will expire, if any
+         */
+        OptionalLong getExpiryTimeMillis();
+
+        /**
+         * Unregisters the handler
+         *
+         * @return true if the handler wasn't already unregistered
+         */
+        boolean unregister();
+
+        @Override
+        default boolean terminate() {
+            return unregister();
+        }
     }
 
     /**
@@ -267,7 +301,26 @@ public final class Events {
      *
      * @param <T> the super event type
      */
-    public interface MergedHandlerBuilder<T extends Event> {
+    public interface MergedHandlerBuilder<T> {
+
+        /**
+         * Binds this handler to an event
+         * @param eventClass the event class to bind to
+         * @param function the function to remap the event
+         * @param <E> the event class
+         * @return the builder instance
+         */
+        <E extends Event> MergedHandlerBuilder<T> bindEvent(Class<E> eventClass, Function<E, T> function);
+
+        /**
+         * Binds this handler to an event
+         * @param eventClass the event class to bind to
+         * @param priority the priority to listen at
+         * @param function the function to remap the event
+         * @param <E> the event class
+         * @return the builder instance
+         */
+        <E extends Event> MergedHandlerBuilder<T> bindEvent(Class<E> eventClass, EventPriority priority, Function<E, T> function);
 
         /**
          * Sets the expiry time on the handler
@@ -329,6 +382,7 @@ public final class Events {
          * @param handler the consumer responsible for handling the event.
          * @return a registered {@link Handler} instance.
          * @throws NullPointerException if the handler is null
+         * @throws IllegalStateException if no events have been bound to
          */
         default MergedHandler<T> handler(Consumer<? super T> handler) {
             return handler((h, t) -> handler.accept(t));
@@ -340,6 +394,7 @@ public final class Events {
          * @param handler the bi-consumer responsible for handling the event.
          * @return a registered {@link Handler} instance.
          * @throws NullPointerException if the handler is null
+         * @throws IllegalStateException if no events have been bound to
          */
         MergedHandler<T> handler(BiConsumer<MergedHandler<T>, ? super T> handler);
 
@@ -365,6 +420,15 @@ public final class Events {
          * @return a predicate which only returns true if the player has moved over a block.
          */
         <T extends PlayerMoveEvent> Predicate<T> ignoreSameBlock();
+
+        /**
+         * Returns a predicate which only returns true if the player has moved over a block, not including movement
+         * directly up and down. (so jumping wouldn't return true)
+         *
+         * @param <T> the event type
+         * @return a predicate which only returns true if the player has moved across a block border
+         */
+        <T extends PlayerMoveEvent> Predicate<T> ignoreSameBlockAndY();
 
         /**
          * Returns a predicate which only returns true if the player has moved over a chunk border.
@@ -507,10 +571,9 @@ public final class Events {
         }
     }
 
-    private static class MergedHandlerImpl<T extends Event> implements MergedHandler<T>, EventExecutor {
-        private final Class<T> superClass;
-        private final Set<Class<? extends T>> eventClasses;
-        private final EventPriority priority;
+    private static class MergedHandlerImpl<T> implements MergedHandler<T>, EventExecutor {
+        private final Class<T> handledClass;
+        private final Map<Class<? extends Event>, HandlerMapping<T, ? extends Event>> mappings;
 
         private final long expiry;
         private final long maxCalls;
@@ -524,9 +587,8 @@ public final class Events {
         private final AtomicBoolean active = new AtomicBoolean(true);
 
         private MergedHandlerImpl(MergedHandlerBuilderImpl<T> builder, BiConsumer<MergedHandler<T>, ? super T> handler) {
-            this.superClass = builder.superClass;
-            this.eventClasses = builder.eventClasses;
-            this.priority = builder.priority;
+            this.handledClass = builder.handledClass;
+            this.mappings = ImmutableMap.copyOf(builder.mappings);
             this.expiry = builder.expiry;
             this.maxCalls = builder.maxCalls;
             this.handleAsync = builder.handleAsync;
@@ -536,22 +598,23 @@ public final class Events {
         }
 
         private void register(Plugin plugin) {
-            for (Class<? extends T> clazz : eventClasses) {
-                plugin.getServer().getPluginManager().registerEvent(clazz, listener, priority, this, plugin, false);
+            for (Map.Entry<Class<? extends Event>, HandlerMapping<T, ? extends Event>> ent : mappings.entrySet()) {
+                plugin.getServer().getPluginManager().registerEvent(ent.getKey(), listener, ent.getValue().getPriority(), this, plugin, false);
             }
         }
 
         @Override
         public void execute(Listener listener, Event event) throws EventException {
-            boolean found = false;
-            for (Class<? extends T> clazz : eventClasses) {
-                if (event.getClass() == clazz) {
-                    found = true;
+            Function<Object, T> function = null;
+
+            for (Map.Entry<Class<? extends Event>, HandlerMapping<T, ? extends Event>> ent : mappings.entrySet()) {
+                if (event.getClass() == ent.getKey()) {
+                    function = ent.getValue().getFunction();
                     break;
                 }
             }
 
-            if (!found) {
+            if (function == null) {
                 return;
             }
 
@@ -580,7 +643,7 @@ public final class Events {
                 }
             }
 
-            T eventInstance = superClass.cast(event);
+            T eventInstance = function.apply(event);
 
             for (Predicate<T> filter : filters) {
                 if (!filter.test(eventInstance)) {
@@ -634,7 +697,7 @@ public final class Events {
 
             // Also remove the handler directly, just in case the event has a really low throughput.
             // Unfortunately we can't cache this call, as the method is static
-            for (Class<? extends T> clazz : eventClasses) {
+            for (Class<? extends Event> clazz : mappings.keySet()) {
                 try {
                     Method getHandlerListMethod = clazz.getMethod("getHandlerList");
                     HandlerList handlerList = (HandlerList) getHandlerListMethod.invoke(null);
@@ -647,13 +710,13 @@ public final class Events {
         }
 
         @Override
-        public Class<T> getSuperClass() {
-            return superClass;
+        public Class<T> getHandledClass() {
+            return handledClass;
         }
 
         @Override
-        public Set<Class<? extends T>> getEventClasses() {
-            return eventClasses;
+        public Set<Class<? extends Event>> getEventClasses() {
+            return mappings.keySet();
         }
     }
 
@@ -717,10 +780,9 @@ public final class Events {
         }
     }
 
-    private static class MergedHandlerBuilderImpl<T extends Event> implements MergedHandlerBuilder<T> {
-        private final Class<T> superClass;
-        private final Set<Class<? extends T>> eventClasses;
-        private final EventPriority priority;
+    private static class MergedHandlerBuilderImpl<T> implements MergedHandlerBuilder<T> {
+        private final Class<T> handledClass;
+        private final Map<Class<? extends Event>, HandlerMapping<T, ? extends Event>> mappings = new HashMap<>();
 
         private long expiry = -1;
         private long maxCalls = -1;
@@ -728,10 +790,23 @@ public final class Events {
         private Consumer<Throwable> exceptionConsumer = null;
         private List<Predicate<T>> filters = new ArrayList<>();
 
-        private MergedHandlerBuilderImpl(Class<T> superClass, Set<Class<? extends T>> eventClasses, EventPriority priority) {
-            this.superClass = superClass;
-            this.eventClasses = eventClasses;
-            this.priority = priority;
+        private MergedHandlerBuilderImpl(Class<T> handledClass) {
+            this.handledClass = handledClass;
+        }
+
+        @Override
+        public <E extends Event> MergedHandlerBuilder<T> bindEvent(Class<E> eventClass, Function<E, T> function) {
+            return bindEvent(eventClass, EventPriority.NORMAL, function);
+        }
+
+        @Override
+        public <E extends Event> MergedHandlerBuilder<T> bindEvent(Class<E> eventClass, EventPriority priority, Function<E, T> function) {
+            Preconditions.checkNotNull(eventClass, "eventClass");
+            Preconditions.checkNotNull(priority, "priority");
+            Preconditions.checkNotNull(function, "function");
+
+            mappings.put(eventClass, new HandlerMapping<>(priority, function));
+            return this;
         }
 
         @Override
@@ -773,9 +848,31 @@ public final class Events {
         public MergedHandler<T> handler(BiConsumer<MergedHandler<T>, ? super T> handler) {
             Preconditions.checkNotNull(handler, "handler");
 
+            if (mappings.isEmpty()) {
+                throw new IllegalStateException("No mappings were created");
+            }
+
             MergedHandlerImpl<T> impl = new MergedHandlerImpl<>(this, handler);
             impl.register(LoaderUtils.getPlugin());
             return impl;
+        }
+    }
+
+    private static class HandlerMapping<T, E extends Event> {
+        private final EventPriority priority;
+        private final Function<Object, T> function;
+
+        private HandlerMapping(EventPriority priority, Function<E, T> function) {
+            this.priority = priority;
+            this.function = o -> function.apply((E) o);
+        }
+
+        public Function<Object, T> getFunction() {
+            return function;
+        }
+
+        public EventPriority getPriority() {
+            return priority;
         }
     }
 
@@ -788,12 +885,17 @@ public final class Events {
 
         @Override
         public <T extends PlayerMoveEvent> Predicate<T> ignoreSameBlock() {
-            return e -> !e.getFrom().getBlock().getLocation().equals(e.getTo().getBlock().getLocation());
+            return e -> e.getFrom().getBlockX() != e.getTo().getBlockX() || e.getFrom().getBlockZ() != e.getTo().getBlockZ() || e.getFrom().getBlockY() != e.getTo().getBlockY();
+        }
+
+        @Override
+        public <T extends PlayerMoveEvent> Predicate<T> ignoreSameBlockAndY() {
+            return e -> e.getFrom().getBlockX() != e.getTo().getBlockX() || e.getFrom().getBlockZ() != e.getTo().getBlockZ();
         }
 
         @Override
         public <T extends PlayerMoveEvent> Predicate<T> ignoreSameChunk() {
-            return e -> !e.getFrom().getChunk().equals(e.getTo().getChunk());
+            return e -> (e.getFrom().getBlockX() >> 4) != (e.getTo().getBlockX() >> 4) || (e.getFrom().getBlockZ() >> 4) != (e.getTo().getBlockZ() >> 4);
         }
     }
 
