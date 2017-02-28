@@ -254,7 +254,7 @@ public final class Events {
          * @param duration the duration until expiry
          * @param unit     the unit for the duration
          * @return the builder instance
-         * @throws IllegalArgumentException if duration is not >= 1
+         * @throws IllegalArgumentException if duration is not greater than or equal to 1
          */
         HandlerBuilder<T> expireAfter(long duration, TimeUnit unit);
 
@@ -266,7 +266,7 @@ public final class Events {
          *
          * @param maxCalls the number of times the handler will be called until being unregistered.
          * @return the builder instance
-         * @throws IllegalArgumentException if maxCalls is not >= 1
+         * @throws IllegalArgumentException if maxCalls is not greater than or equal to 1
          */
         HandlerBuilder<T> maxCalls(long maxCalls);
 
@@ -358,7 +358,7 @@ public final class Events {
          * @param duration the duration until expiry
          * @param unit     the unit for the duration
          * @return the builder instance
-         * @throws IllegalArgumentException if duration is not >= 1
+         * @throws IllegalArgumentException if duration is not greater than or equal to 1
          */
         MergedHandlerBuilder<T> expireAfter(long duration, TimeUnit unit);
 
@@ -370,7 +370,7 @@ public final class Events {
          *
          * @param maxCalls the number of times the handler will be called until being unregistered.
          * @return the builder instance
-         * @throws IllegalArgumentException if maxCalls is not >= 1
+         * @throws IllegalArgumentException if maxCalls is not greater than or equal to 1
          */
         MergedHandlerBuilder<T> maxCalls(long maxCalls);
 
