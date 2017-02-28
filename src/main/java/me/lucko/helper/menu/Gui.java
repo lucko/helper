@@ -221,7 +221,7 @@ public abstract class Gui {
                             try {
                                 handler.run();
                             } catch (Exception ex) {
-                                ex.getStackTrace();
+                                ex.printStackTrace();
                             }
                         }
                     }
