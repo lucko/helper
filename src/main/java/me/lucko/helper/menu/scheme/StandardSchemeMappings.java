@@ -22,12 +22,20 @@
 
 package me.lucko.helper.menu.scheme;
 
+import org.bukkit.Material;
+
+import java.util.Collections;
+
 /**
  * Contains a new standard schemes for use in a {@link MenuScheme}
  */
 public class StandardSchemeMappings {
 
-    public static final SchemeMapping STAINED_GLASS = new StainedGlassScheme();
+    public static final SchemeMapping STAINED_GLASS = new ColoredSchemeMapping(Material.STAINED_GLASS_PANE);
+    public static final SchemeMapping STAINED_GLASS_BLOCK = new ColoredSchemeMapping(Material.STAINED_GLASS);
+    public static final SchemeMapping HARDENED_CLAY = new ColoredSchemeMapping(Material.STAINED_CLAY);
+    public static final SchemeMapping WOOL = new ColoredSchemeMapping(Material.WOOL);
+    public static final SchemeMapping EMPTY = Collections::emptyMap;
 
     private StandardSchemeMappings() {}
 

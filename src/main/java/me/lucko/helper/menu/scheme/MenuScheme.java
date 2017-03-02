@@ -22,7 +22,7 @@
 
 package me.lucko.helper.menu.scheme;
 
-import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.menu.Gui;
 import me.lucko.helper.menu.Item;
@@ -41,10 +41,13 @@ public class MenuScheme {
     private final List<int[]> schemeRows;
 
     public MenuScheme(SchemeMapping mapping) {
-        Preconditions.checkNotNull(mapping, "mapping");
-        this.mapping = mapping.getMapping();
+        this.mapping = mapping == null ? StandardSchemeMappings.EMPTY.getMapping() : mapping.getMapping();
         this.maskRows = new ArrayList<>();
         this.schemeRows = new ArrayList<>();
+    }
+
+    public MenuScheme() {
+        this(null);
     }
 
     public MenuScheme mask(String s) {
@@ -64,6 +67,20 @@ public class MenuScheme {
             }
         }
         maskRows.add(ret);
+        return this;
+    }
+
+    public MenuScheme masks(String... strings) {
+        for (String s : strings) {
+            mask(s);
+        }
+        return this;
+    }
+
+    public MenuScheme maskEmpty(int lines) {
+        for (int i = 0; i < lines; i++) {
+            maskRows.add(new boolean[]{false, false, false, false, false, false, false, false, false});
+        }
         return this;
     }
 
@@ -139,5 +156,9 @@ public class MenuScheme {
             e.printStackTrace();
         }
         return ret;
+    }
+
+    public ImmutableList<Integer> getMaskedIndexesImmutable() {
+        return ImmutableList.copyOf(getMaskedIndexes());
     }
 }
