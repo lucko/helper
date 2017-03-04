@@ -264,7 +264,7 @@ public abstract class Gui implements Consumer<Terminable> {
                         if (!player.isOnline()) {
                             return;
                         }
-                        fallbackGui.apply(player).open();
+                        fallback.apply(player).open();
                     }, 1L);
                 })
                 .register(this);
