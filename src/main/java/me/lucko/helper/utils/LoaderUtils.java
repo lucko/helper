@@ -31,7 +31,7 @@ public class LoaderUtils {
 
     public static synchronized JavaPlugin getPlugin() {
         if (plugin == null) {
-            plugin = JavaPlugin.getProvidingPlugin(Scheduler.class);
+            plugin = JavaPlugin.getProvidingPlugin(LoaderUtils.class);
         }
         return plugin;
     }
