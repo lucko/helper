@@ -24,6 +24,8 @@ package me.lucko.helper.menu;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.Scheduler;
+import me.lucko.helper.utils.Color;
+import me.lucko.helper.utils.Terminable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -38,13 +40,19 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
  * A simple GUI abstraction
  */
-public abstract class Gui {
+public abstract class Gui implements Consumer<Terminable> {
 
+    /**
+     * Utility method to get the number of lines needed for x items
+     * @param count the number of items
+     * @return the number of lines needed
+     */
     public static int getMenuSize(int count) {
         return (count / 9 + ((count % 9 != 0) ? 1 : 0));
     }
@@ -62,14 +70,15 @@ public abstract class Gui {
     // A function used to build a fallback page when this page is closed.
     private Function<Player, Gui> fallbackGui = null;
 
-    // The event handlers bound to this GUI, currently listening to events
-    private final Set<Events.Handler> handlers = new HashSet<>();
     // Callbacks to be ran when the GUI is invalidated (closed). useful for cancelling tick tasks
-    private final Set<Runnable> invalidateCallbacks = new HashSet<>();
+    // Also contains the event handlers bound to this GUI, currently listening to events
+    private final Set<Terminable> terminables = new HashSet<>();
+
+    private boolean valid = false;
 
     public Gui(Player player, int lines, String title) {
         this.player = player;
-        this.initialTitle = ChatColor.translateAlternateColorCodes('&', title);
+        this.initialTitle = Color.colorize(title);
         this.inventory = Bukkit.createInventory(player, lines * 9, this.initialTitle);
         this.itemMap = new HashMap<>();
     }
@@ -101,7 +110,15 @@ public abstract class Gui {
     }
 
     public void addInvalidationCallback(Runnable r) {
-        invalidateCallbacks.add(r);
+        terminables.add(() -> {
+            r.run();
+            return true;
+        });
+    }
+
+    @Override
+    public void accept(Terminable terminable) {
+        terminables.add(terminable);
     }
 
     public boolean isFirstDraw() {
@@ -168,6 +185,7 @@ public abstract class Gui {
         firstDraw = false;
         startListening();
         player.openInventory(inventory);
+        valid = true;
     }
 
     public void close() {
@@ -175,18 +193,14 @@ public abstract class Gui {
     }
 
     private void invalidate() {
-        invalidateCallbacks.forEach(r -> {
-            try {
-                r.run();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
-        invalidateCallbacks.clear();
+        valid = false;
 
+        // stop listening
+        terminables.forEach(Terminable::terminate);
+        terminables.clear();
+
+        // clear all items from the GUI, just in case the menu didn't close properly.
         clearItems();
-        handlers.forEach(Events.Handler::unregister);
-        handlers.clear();
     }
 
     /**
@@ -194,14 +208,14 @@ public abstract class Gui {
      * @return true unless this GUI has been invalidated.
      */
     public boolean isValid() {
-        return !handlers.isEmpty();
+        return valid;
     }
 
     /**
      * Registers the event handlers for this GUI
      */
     private void startListening() {
-        handlers.add(Events.subscribe(InventoryClickEvent.class)
+        Events.subscribe(InventoryClickEvent.class)
                 .filter(e -> e.getInventory().getHolder() != null)
                 .filter(e -> e.getInventory().getHolder().equals(player))
                 .handler(e -> {
@@ -225,13 +239,15 @@ public abstract class Gui {
                             }
                         }
                     }
-                }));
+                })
+                .register(this);
 
-        handlers.add(Events.subscribe(PlayerQuitEvent.class)
+        Events.subscribe(PlayerQuitEvent.class)
                 .filter(e -> e.getPlayer().equals(player))
-                .handler(e -> invalidate()));
+                .handler(e -> invalidate())
+                .register(this);
 
-        handlers.add(Events.subscribe(InventoryCloseEvent.class)
+        Events.subscribe(InventoryCloseEvent.class)
                 .filter(e -> e.getPlayer().equals(player))
                 .filter(e -> e.getInventory().equals(inventory))
                 .handler(e -> {
@@ -250,7 +266,8 @@ public abstract class Gui {
                         }
                         fallbackGui.apply(player).open();
                     }, 1L);
-                }));
+                })
+                .register(this);
     }
 
 }
