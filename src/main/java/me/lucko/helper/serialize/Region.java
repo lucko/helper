@@ -68,7 +68,7 @@ public final class Region {
     }
 
     public boolean inRegion(BlockPosition pos) {
-        return inRegion(pos.getX(), pos.getY(), pos.getZ());
+        return pos.getWorld().equals(min.getWorld()) && inRegion(pos.getX(), pos.getY(), pos.getZ());
     }
 
     public boolean inRegion(int x, int y, int z) {
