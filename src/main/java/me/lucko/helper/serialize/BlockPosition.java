@@ -28,6 +28,7 @@ import com.google.gson.JsonObject;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
 /**
@@ -35,7 +36,7 @@ import org.bukkit.block.BlockFace;
  */
 public final class BlockPosition {
     public static BlockPosition deserialize(JsonElement element) {
-        Preconditions.checkArgument(element instanceof JsonObject);
+        Preconditions.checkArgument(element.isJsonObject());
         JsonObject object = element.getAsJsonObject();
 
         Preconditions.checkArgument(object.has("x"));
@@ -57,6 +58,10 @@ public final class BlockPosition {
 
     public static BlockPosition of(Location location) {
         return of(location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getWorld().getName()).setBukkitLocation(location);
+    }
+
+    public static BlockPosition of(Block block) {
+        return of(block.getLocation());
     }
 
     private final int x;
@@ -98,6 +103,10 @@ public final class BlockPosition {
         return bukkitLocation;
     }
 
+    public Block toBlock() {
+        return toLocation().getBlock();
+    }
+
     private BlockPosition setBukkitLocation(Location bukkitLocation) {
         this.bukkitLocation = bukkitLocation;
         return this;
@@ -109,6 +118,14 @@ public final class BlockPosition {
 
     public BlockPosition getRelative(BlockFace face, int distance) {
         return BlockPosition.of(x + (face.getModX() * distance), y + (face.getModY() * distance), z + (face.getModZ() * distance), world);
+    }
+
+    public BlockPosition add(int x, int y, int z) {
+        return BlockPosition.of(this.x + x, this.y + y, this.z + z, world);
+    }
+
+    public BlockPosition subtract(int x, int y, int z) {
+        return add(-x, -y, -z);
     }
 
     public JsonObject serialize() {
@@ -138,8 +155,7 @@ public final class BlockPosition {
         result = result * PRIME + this.getX();
         result = result * PRIME + this.getY();
         result = result * PRIME + this.getZ();
-        final Object world = this.getWorld();
-        result = result * PRIME + (world == null ? 43 : world.hashCode());
+        result = result * PRIME + (this.getWorld() == null ? 43 : this.getWorld().hashCode());
         return result;
     }
 
