@@ -26,9 +26,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
+import me.lucko.helper.utils.Cooldown;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Terminable;
 
+import org.bukkit.Bukkit;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventException;
@@ -55,9 +57,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * A utility class to help with event listening.
+ * A functional event listening utility.
  */
-@SuppressWarnings("Duplicates")
 public final class Events {
     public static final DefaultFilters DEFAULT_FILTERS = new DefaultFiltersImpl();
 
@@ -136,6 +137,33 @@ public final class Events {
             h.bindEvent(clazz, priority, e -> e);
         }
         return h;
+    }
+
+    /**
+     * Submit the event on the current thread
+     *
+     * @param event the event to call
+     */
+    public static void call(Event event) {
+        Bukkit.getPluginManager().callEvent(event);
+    }
+
+    /**
+     * Submit the event on a new async thread.
+     *
+     * @param event the event to call
+     */
+    public static void callAsync(Event event) {
+        Scheduler.runAsync(() -> call(event));
+    }
+
+    /**
+     * Submit the event on the main server thread.
+     *
+     * @param event the event to call
+     */
+    public static void callSync(Event event) {
+        Scheduler.runSync(() -> call(event));
     }
 
     /**
@@ -268,17 +296,7 @@ public final class Events {
          * @return the builder instance
          * @throws IllegalArgumentException if maxCalls is not greater than or equal to 1
          */
-        HandlerBuilder<T> maxCalls(long maxCalls);
-
-        /**
-         * Sets the handler to be called asynchronously.
-         *
-         * <p>This only applies to the handler. All filters will be evaluated on the thread on which the event was
-         * called.
-         *
-         * @return the builder instance
-         */
-        HandlerBuilder<T> handleAsync();
+        HandlerBuilder<T> expireAfter(long maxCalls);
 
         /**
          * Sets the exception consumer for the handler.
@@ -301,6 +319,32 @@ public final class Events {
          * @return the builder instance
          */
         HandlerBuilder<T> filter(Predicate<T> predicate);
+
+        /**
+         * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
+         *
+         * @param cooldown the cooldown
+         * @return the builder instance
+         */
+        HandlerBuilder<T> withCooldown(Cooldown cooldown);
+
+        /**
+         * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
+         *
+         * @param cooldown the cooldown
+         * @param cooldownFailConsumer a consumer to be called when the cooldown fails.
+         * @return the builder instance
+         */
+        HandlerBuilder<T> withCooldown(Cooldown cooldown, Consumer<? super T> cooldownFailConsumer);
+
+        /**
+         * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
+         *
+         * @param cooldown the cooldown
+         * @param cooldownFailConsumer a consumer to be called when the cooldown fails.
+         * @return the builder instance
+         */
+        HandlerBuilder<T> withCooldown(Cooldown cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer);
 
         /**
          * Builds and registers the Handler.
@@ -372,17 +416,7 @@ public final class Events {
          * @return the builder instance
          * @throws IllegalArgumentException if maxCalls is not greater than or equal to 1
          */
-        MergedHandlerBuilder<T> maxCalls(long maxCalls);
-
-        /**
-         * Sets the handler to be called asynchronously.
-         *
-         * <p>This only applies to the handler. All filters will be evaluated on the thread on which the event was
-         * called.
-         *
-         * @return the builder instance
-         */
-        MergedHandlerBuilder<T> handleAsync();
+        MergedHandlerBuilder<T> expireAfter(long maxCalls);
 
         /**
          * Sets the exception consumer for the handler.
@@ -405,6 +439,32 @@ public final class Events {
          * @return the builder instance
          */
         MergedHandlerBuilder<T> filter(Predicate<T> predicate);
+
+        /**
+         * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
+         *
+         * @param cooldown the cooldown
+         * @return the builder instance
+         */
+        MergedHandlerBuilder<T> withCooldown(Cooldown cooldown);
+
+        /**
+         * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
+         *
+         * @param cooldown the cooldown
+         * @param cooldownFailConsumer a consumer to be called when the cooldown fails.
+         * @return the builder instance
+         */
+        MergedHandlerBuilder<T> withCooldown(Cooldown cooldown, Consumer<? super T> cooldownFailConsumer);
+
+        /**
+         * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
+         *
+         * @param cooldown the cooldown
+         * @param cooldownFailConsumer a consumer to be called when the cooldown fails.
+         * @return the builder instance
+         */
+        MergedHandlerBuilder<T> withCooldown(Cooldown cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer);
 
         /**
          * Builds and registers the Handler.
@@ -476,7 +536,6 @@ public final class Events {
 
         private final long expiry;
         private final long maxCalls;
-        private final boolean handleAsync;
         private final Consumer<Throwable> exceptionConsumer;
         private final List<Predicate<T>> filters;
         private final BiConsumer<Handler<T>, ? super T> handler;
@@ -490,7 +549,6 @@ public final class Events {
             this.priority = builder.priority;
             this.expiry = builder.expiry;
             this.maxCalls = builder.maxCalls;
-            this.handleAsync = builder.handleAsync;
             this.exceptionConsumer = builder.exceptionConsumer;
             this.filters = ImmutableList.copyOf(builder.filters);
             this.handler = handler;
@@ -523,12 +581,8 @@ public final class Events {
             }
 
             // Check if the handler has reached its max calls
-            if (maxCalls != -1) {
-                if (callCount.get() >= maxCalls) {
-                    event.getHandlers().unregister(listener);
-                    active.set(false);
-                    return;
-                }
+            if (tryExpire(listener, event.getHandlers())) {
+                return;
             }
 
             T eventInstance = eventClass.cast(event);
@@ -540,11 +594,21 @@ public final class Events {
             }
 
             // Actually call the handler
-            if (handleAsync) {
-                Scheduler.runAsync(() -> handle(eventInstance));
-            } else {
-                handle(eventInstance);
+            handle(eventInstance);
+
+            // has it expired now?
+            tryExpire(listener, event.getHandlers());
+        }
+
+        private boolean tryExpire(Listener listener, HandlerList handlerList) {
+            if (maxCalls != -1) {
+                if (callCount.get() >= maxCalls) {
+                    handlerList.unregister(listener);
+                    active.set(false);
+                    return true;
+                }
             }
+            return false;
         }
 
         private void handle(T e) {
@@ -607,7 +671,6 @@ public final class Events {
 
         private final long expiry;
         private final long maxCalls;
-        private final boolean handleAsync;
         private final Consumer<Throwable> exceptionConsumer;
         private final List<Predicate<T>> filters;
         private final BiConsumer<MergedHandler<T>, ? super T> handler;
@@ -621,7 +684,6 @@ public final class Events {
             this.mappings = ImmutableMap.copyOf(builder.mappings);
             this.expiry = builder.expiry;
             this.maxCalls = builder.maxCalls;
-            this.handleAsync = builder.handleAsync;
             this.exceptionConsumer = builder.exceptionConsumer;
             this.filters = ImmutableList.copyOf(builder.filters);
             this.handler = handler;
@@ -655,20 +717,14 @@ public final class Events {
             }
 
             // Check if the handler has expired.
-            if (expiry != -1) {
-                long now = System.currentTimeMillis();
-                if (now > expiry) {
-                    event.getHandlers().unregister(listener);
-                    active.set(false);
-                    return;
-                }
+            if (tryExpire()) {
+                return;
             }
 
             // Check if the handler has reached its max calls
             if (maxCalls != -1) {
                 if (callCount.get() >= maxCalls) {
-                    event.getHandlers().unregister(listener);
-                    active.set(false);
+                    unregister();
                     return;
                 }
             }
@@ -682,11 +738,20 @@ public final class Events {
             }
 
             // Actually call the handler
-            if (handleAsync) {
-                Scheduler.runAsync(() -> handle(eventInstance));
-            } else {
-                handle(eventInstance);
+            handle(eventInstance);
+
+            // check if the call caused the method to expire.
+            tryExpire();
+        }
+
+        private boolean tryExpire() {
+            if (maxCalls != -1) {
+                if (callCount.get() >= maxCalls) {
+                    unregister();
+                    return true;
+                }
             }
+            return false;
         }
 
         private void handle(T e) {
@@ -756,7 +821,6 @@ public final class Events {
 
         private long expiry = -1;
         private long maxCalls = -1;
-        private boolean handleAsync = false;
         private Consumer<Throwable> exceptionConsumer = null;
         private List<Predicate<T>> filters = new ArrayList<>();
 
@@ -774,15 +838,9 @@ public final class Events {
         }
 
         @Override
-        public HandlerBuilder<T> maxCalls(long maxCalls) {
+        public HandlerBuilder<T> expireAfter(long maxCalls) {
             Preconditions.checkArgument(maxCalls >= 1, "maxCalls >= 1");
             this.maxCalls = maxCalls;
-            return this;
-        }
-
-        @Override
-        public HandlerBuilder<T> handleAsync() {
-            this.handleAsync = true;
             return this;
         }
 
@@ -797,6 +855,43 @@ public final class Events {
         public HandlerBuilder<T> filter(Predicate<T> predicate) {
             Preconditions.checkNotNull(predicate, "predicate");
             this.filters.add(predicate);
+            return this;
+        }
+
+        @Override
+        public HandlerBuilder<T> withCooldown(Cooldown cooldown) {
+            Preconditions.checkNotNull(cooldown, "cooldown");
+            filter(t -> cooldown.test());
+            return this;
+        }
+
+        @Override
+        public HandlerBuilder<T> withCooldown(Cooldown cooldown, Consumer<? super T> cooldownFailConsumer) {
+            Preconditions.checkNotNull(cooldown, "cooldown");
+            Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
+            filter(t -> {
+                if (cooldown.test()) {
+                    return true;
+                }
+
+                cooldownFailConsumer.accept(t);
+                return false;
+            });
+            return this;
+        }
+
+        @Override
+        public HandlerBuilder<T> withCooldown(Cooldown cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer) {
+            Preconditions.checkNotNull(cooldown, "cooldown");
+            Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
+            filter(t -> {
+                if (cooldown.test()) {
+                    return true;
+                }
+
+                cooldownFailConsumer.accept(cooldown, t);
+                return false;
+            });
             return this;
         }
 
@@ -816,7 +911,6 @@ public final class Events {
 
         private long expiry = -1;
         private long maxCalls = -1;
-        private boolean handleAsync = false;
         private Consumer<Throwable> exceptionConsumer = null;
         private List<Predicate<T>> filters = new ArrayList<>();
 
@@ -848,15 +942,9 @@ public final class Events {
         }
 
         @Override
-        public MergedHandlerBuilder<T> maxCalls(long maxCalls) {
+        public MergedHandlerBuilder<T> expireAfter(long maxCalls) {
             Preconditions.checkArgument(maxCalls >= 1, "maxCalls >= 1");
             this.maxCalls = maxCalls;
-            return this;
-        }
-
-        @Override
-        public MergedHandlerBuilder<T> handleAsync() {
-            this.handleAsync = true;
             return this;
         }
 
@@ -871,6 +959,43 @@ public final class Events {
         public MergedHandlerBuilder<T> filter(Predicate<T> predicate) {
             Preconditions.checkNotNull(predicate, "predicate");
             this.filters.add(predicate);
+            return this;
+        }
+
+        @Override
+        public MergedHandlerBuilder<T> withCooldown(Cooldown cooldown) {
+            Preconditions.checkNotNull(cooldown, "cooldown");
+            filter(t -> cooldown.test());
+            return this;
+        }
+
+        @Override
+        public MergedHandlerBuilder<T> withCooldown(Cooldown cooldown, Consumer<? super T> cooldownFailConsumer) {
+            Preconditions.checkNotNull(cooldown, "cooldown");
+            Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
+            filter(t -> {
+                if (cooldown.test()) {
+                    return true;
+                }
+
+                cooldownFailConsumer.accept(t);
+                return false;
+            });
+            return this;
+        }
+
+        @Override
+        public MergedHandlerBuilder<T> withCooldown(Cooldown cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer) {
+            Preconditions.checkNotNull(cooldown, "cooldown");
+            Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
+            filter(t -> {
+                if (cooldown.test()) {
+                    return true;
+                }
+
+                cooldownFailConsumer.accept(cooldown, t);
+                return false;
+            });
             return this;
         }
 

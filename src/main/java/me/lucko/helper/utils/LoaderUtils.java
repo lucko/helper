@@ -22,8 +22,6 @@
 
 package me.lucko.helper.utils;
 
-import me.lucko.helper.Scheduler;
-
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class LoaderUtils {
