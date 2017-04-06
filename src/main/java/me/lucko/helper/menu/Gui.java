@@ -28,7 +28,6 @@ import me.lucko.helper.utils.Color;
 import me.lucko.helper.utils.Terminable;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -136,6 +135,12 @@ public abstract class Gui implements Consumer<Terminable> {
         }
     }
 
+    public void setItems(Iterable<Integer> slots, Item item) {
+        for (int slot : slots) {
+            setItem(slot, item);
+        }
+    }
+
     public int getFirstEmpty() {
         int ret = inventory.firstEmpty();
         if (ret < 0) {
@@ -169,12 +174,18 @@ public abstract class Gui implements Consumer<Terminable> {
         }
     }
 
+    public void removeItems(Iterable<Integer> slots) {
+        for (int slot : slots) {
+            removeItem(slot);
+        }
+    }
+
     public void clearItems() {
         itemMap.clear();
         inventory.clear();
     }
 
-    public void fill(Item item) {
+    public void fillWith(Item item) {
         for (int i = 0; i < inventory.getSize(); ++i) {
             setItem(i, item);
         }

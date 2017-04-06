@@ -29,6 +29,13 @@ import java.util.function.Consumer;
  */
 public interface Terminable {
 
+    static Terminable of(Runnable r) {
+        return () -> {
+            r.run();
+            return true;
+        };
+    }
+
     /**
      * Terminate this instance
      * @return true if the object wasn't already terminated

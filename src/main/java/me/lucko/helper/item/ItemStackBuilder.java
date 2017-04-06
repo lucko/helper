@@ -38,6 +38,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -158,6 +159,10 @@ public class ItemStackBuilder {
         }
     }
 
+    public Item build(ClickType type, Runnable runnable) {
+        return new Item(ImmutableMap.of(type, runnable), itemStack);
+    }
+
     public Item build(Runnable rightClick, Runnable leftClick) {
         if (rightClick != null) {
             if (leftClick != null) {
@@ -172,6 +177,10 @@ public class ItemStackBuilder {
                 return new Item(ImmutableMap.of(), itemStack);
             }
         }
+    }
+
+    public Item buildFromMap(Map<ClickType, Runnable> handlers) {
+        return new Item(ImmutableMap.copyOf(handlers), itemStack);
     }
 
 }

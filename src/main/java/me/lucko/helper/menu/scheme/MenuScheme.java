@@ -80,6 +80,7 @@ public class MenuScheme {
     public MenuScheme maskEmpty(int lines) {
         for (int i = 0; i < lines; i++) {
             maskRows.add(new boolean[]{false, false, false, false, false, false, false, false, false});
+            schemeRows.add(new int[]{});
         }
         return this;
     }
