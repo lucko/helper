@@ -192,7 +192,14 @@ public abstract class Gui implements Consumer<Terminable> {
     }
 
     public void open() {
-        redraw();
+        try {
+            redraw();
+        } catch (Exception e) {
+            e.printStackTrace();
+            invalidate();
+            return;
+        }
+
         firstDraw = false;
         startListening();
         player.openInventory(inventory);
