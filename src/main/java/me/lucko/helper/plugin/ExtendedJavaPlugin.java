@@ -39,7 +39,6 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -67,18 +66,15 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
     // Cached CommandMap instance
     private CommandMap commandMap = null;
 
-    private final List<WeakReference<Terminable>> terminables = new ArrayList<>();
+    private final List<Terminable> terminables = new ArrayList<>();
 
     @Override
     public final void onDisable() {
         Lists.reverse(terminables).forEach((terminable) -> {
-            Terminable t = terminable.get();
-            if (t != null) {
-                try {
-                    t.terminate();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            try {
+                terminable.terminate();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
         terminables.clear();
@@ -95,7 +91,7 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
     }
 
     public <T extends Terminable> T registerTerminable(T terminable) {
-        terminables.add(new WeakReference<>(terminable));
+        terminables.add(terminable);
         return terminable;
     }
 
