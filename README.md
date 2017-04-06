@@ -12,7 +12,7 @@ It also allows for more advanced handling.
 ```java
 Events.subscribe(PlayerJoinEvent.class)
         .expireAfter(2, TimeUnit.MINUTES)
-        .maxCalls(1)
+        .expireAfter(1)
         .filter(e -> !e.getPlayer().isOp())
         .handler(e -> e.getPlayer().sendMessage("Wew! You were first to join the server since it restarted!"));
 ```
@@ -27,11 +27,10 @@ Events.subscribe(PlayerMoveEvent.class, EventPriority.MONITOR)
         });
 ```
 
-You can merge events together into the same handler, and specify options to automatically handle events asynchronously.
+You can also merge events together into the same handler.
 ```java
 Events.merge(PlayerEvent.class, PlayerQuitEvent.class, PlayerKickEvent.class)
         .filter(e -> !e.getPlayer().isOp())
-        .handleAsync()
         .handler(e -> {
             // Perform some I/O to save the players special data.
         });
@@ -166,7 +165,7 @@ You can either install the standalone helper plugin your server, or shade the cl
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>1.2.10</version>
+        <version>1.2.14</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -182,6 +181,6 @@ repositories {
 }
 
 dependencies {
-    compile ("me.lucko:helper:1.2.10")
+    compile ("me.lucko:helper:1.2.14")
 }
 ```
