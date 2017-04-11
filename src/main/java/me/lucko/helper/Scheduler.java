@@ -24,9 +24,9 @@ package me.lucko.helper;
 
 import com.google.common.base.Preconditions;
 
+import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
-import me.lucko.helper.utils.Terminable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;

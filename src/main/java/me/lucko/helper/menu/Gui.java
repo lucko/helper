@@ -24,8 +24,9 @@ package me.lucko.helper.menu;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.Scheduler;
+import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.terminable.TerminableRegistry;
 import me.lucko.helper.utils.Color;
-import me.lucko.helper.utils.Terminable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -36,9 +37,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -71,7 +70,7 @@ public abstract class Gui implements Consumer<Terminable> {
 
     // Callbacks to be ran when the GUI is invalidated (closed). useful for cancelling tick tasks
     // Also contains the event handlers bound to this GUI, currently listening to events
-    private final Set<Terminable> terminables = new HashSet<>();
+    private final TerminableRegistry terminableRegistry = TerminableRegistry.create();
 
     private boolean valid = false;
 
@@ -109,15 +108,12 @@ public abstract class Gui implements Consumer<Terminable> {
     }
 
     public void addInvalidationCallback(Runnable r) {
-        terminables.add(() -> {
-            r.run();
-            return true;
-        });
+        terminableRegistry.accept(Terminable.of(r));
     }
 
     @Override
     public void accept(Terminable terminable) {
-        terminables.add(terminable);
+        terminableRegistry.accept(terminable);
     }
 
     public boolean isFirstDraw() {
@@ -214,8 +210,7 @@ public abstract class Gui implements Consumer<Terminable> {
         valid = false;
 
         // stop listening
-        terminables.forEach(Terminable::terminate);
-        terminables.clear();
+        terminableRegistry.terminate();
 
         // clear all items from the GUI, just in case the menu didn't close properly.
         clearItems();

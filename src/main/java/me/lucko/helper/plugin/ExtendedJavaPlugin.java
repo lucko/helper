@@ -22,10 +22,9 @@
 
 package me.lucko.helper.plugin;
 
-import com.google.common.collect.Lists;
-
-import me.lucko.helper.utils.CompositeTerminable;
-import me.lucko.helper.utils.Terminable;
+import me.lucko.helper.terminable.CompositeTerminable;
+import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.terminable.TerminableRegistry;
 
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandMap;
@@ -41,8 +40,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<Terminable> {
@@ -66,18 +63,11 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
     // Cached CommandMap instance
     private CommandMap commandMap = null;
 
-    private final List<Terminable> terminables = new ArrayList<>();
+    private final TerminableRegistry terminableRegistry = TerminableRegistry.create();
 
     @Override
     public final void onDisable() {
-        Lists.reverse(terminables).forEach((terminable) -> {
-            try {
-                terminable.terminate();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-        terminables.clear();
+        terminableRegistry.terminate();
     }
 
     public <T extends Listener> T registerListener(T listener) {
@@ -91,7 +81,7 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
     }
 
     public <T extends Terminable> T registerTerminable(T terminable) {
-        terminables.add(terminable);
+        terminableRegistry.accept(terminable);
         return terminable;
     }
 
