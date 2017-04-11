@@ -30,6 +30,8 @@ public class Color {
         return s == null ? null : ChatColor.translateAlternateColorCodes('&', s);
     }
 
-    private Color() {}
+    private Color() {
+        throw new UnsupportedOperationException("This class cannot be instantiated");
+    }
 
 }

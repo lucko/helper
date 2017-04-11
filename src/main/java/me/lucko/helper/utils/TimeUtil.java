@@ -22,7 +22,17 @@
 
 package me.lucko.helper.utils;
 
+import java.time.Instant;
+
 public class TimeUtil {
+
+    public static long now() {
+        return Instant.now().toEpochMilli();
+    }
+
+    public static long nowUnix() {
+        return Instant.now().getEpochSecond();
+    }
 
     public static String toShortForm(long seconds) {
         if (seconds == 0) {

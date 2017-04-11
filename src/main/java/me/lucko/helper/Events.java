@@ -27,7 +27,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.utils.Cooldown;
+import me.lucko.helper.utils.CooldownCollection;
 import me.lucko.helper.utils.LoaderUtils;
+import me.lucko.helper.utils.Log;
 import me.lucko.helper.utils.Terminable;
 
 import org.bukkit.Bukkit;
@@ -60,6 +62,11 @@ import java.util.function.Predicate;
  * A functional event listening utility.
  */
 public final class Events {
+    private static final BiConsumer<Event, Throwable> DEFAULT_EXCEPTION_CONSUMER = (event, throwable) -> {
+        Log.severe("[EVENTS] Exception thrown whilst handling event: " + event.getClass().getName());
+        throwable.printStackTrace();
+    };
+
     public static final DefaultFilters DEFAULT_FILTERS = new DefaultFiltersImpl();
 
     /**
@@ -307,7 +314,7 @@ public final class Events {
          * @return the builder instance
          * @throws NullPointerException if the consumer is null
          */
-        HandlerBuilder<T> exceptionConsumer(Consumer<Throwable> consumer);
+        HandlerBuilder<T> exceptionConsumer(BiConsumer<? super T, Throwable> consumer);
 
         /**
          * Adds a filter to the handler.
@@ -335,7 +342,15 @@ public final class Events {
          * @param cooldownFailConsumer a consumer to be called when the cooldown fails.
          * @return the builder instance
          */
-        HandlerBuilder<T> withCooldown(Cooldown cooldown, Consumer<? super T> cooldownFailConsumer);
+        HandlerBuilder<T> withCooldown(Cooldown cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer);
+
+        /**
+         * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
+         *
+         * @param cooldown the cooldown
+         * @return the builder instance
+         */
+        HandlerBuilder<T> withCooldown(CooldownCollection<? super T> cooldown);
 
         /**
          * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
@@ -344,7 +359,7 @@ public final class Events {
          * @param cooldownFailConsumer a consumer to be called when the cooldown fails.
          * @return the builder instance
          */
-        HandlerBuilder<T> withCooldown(Cooldown cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer);
+        HandlerBuilder<T> withCooldown(CooldownCollection<? super T> cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer);
 
         /**
          * Builds and registers the Handler.
@@ -427,7 +442,7 @@ public final class Events {
          * @return the builder instance
          * @throws NullPointerException if the consumer is null
          */
-        MergedHandlerBuilder<T> exceptionConsumer(Consumer<Throwable> consumer);
+        MergedHandlerBuilder<T> exceptionConsumer(BiConsumer<Event, Throwable> consumer);
 
         /**
          * Adds a filter to the handler.
@@ -455,7 +470,15 @@ public final class Events {
          * @param cooldownFailConsumer a consumer to be called when the cooldown fails.
          * @return the builder instance
          */
-        MergedHandlerBuilder<T> withCooldown(Cooldown cooldown, Consumer<? super T> cooldownFailConsumer);
+        MergedHandlerBuilder<T> withCooldown(Cooldown cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer);
+
+        /**
+         * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
+         *
+         * @param cooldown the cooldown
+         * @return the builder instance
+         */
+        MergedHandlerBuilder<T> withCooldown(CooldownCollection<? super T> cooldown);
 
         /**
          * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
@@ -464,7 +487,7 @@ public final class Events {
          * @param cooldownFailConsumer a consumer to be called when the cooldown fails.
          * @return the builder instance
          */
-        MergedHandlerBuilder<T> withCooldown(Cooldown cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer);
+        MergedHandlerBuilder<T> withCooldown(CooldownCollection<? super T> cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer);
 
         /**
          * Builds and registers the Handler.
@@ -536,7 +559,7 @@ public final class Events {
 
         private final long expiry;
         private final long maxCalls;
-        private final Consumer<Throwable> exceptionConsumer;
+        private final BiConsumer<? super T, Throwable> exceptionConsumer;
         private final List<Predicate<T>> filters;
         private final BiConsumer<Handler<T>, ? super T> handler;
 
@@ -612,16 +635,11 @@ public final class Events {
         }
 
         private void handle(T e) {
-            if (exceptionConsumer == null) {
+            try {
                 handler.accept(this, e);
                 callCount.incrementAndGet();
-            } else {
-                try {
-                    handler.accept(this, e);
-                    callCount.incrementAndGet();
-                } catch (Throwable t) {
-                    exceptionConsumer.accept(t);
-                }
+            } catch (Throwable t) {
+                exceptionConsumer.accept(e, t);
             }
         }
 
@@ -671,7 +689,7 @@ public final class Events {
 
         private final long expiry;
         private final long maxCalls;
-        private final Consumer<Throwable> exceptionConsumer;
+        private final BiConsumer<Event, Throwable> exceptionConsumer;
         private final List<Predicate<T>> filters;
         private final BiConsumer<MergedHandler<T>, ? super T> handler;
 
@@ -738,7 +756,7 @@ public final class Events {
             }
 
             // Actually call the handler
-            handle(eventInstance);
+            handle(event, eventInstance);
 
             // check if the call caused the method to expire.
             tryExpire();
@@ -754,17 +772,12 @@ public final class Events {
             return false;
         }
 
-        private void handle(T e) {
-            if (exceptionConsumer == null) {
+        private void handle(Event event, T e) {
+            try {
                 handler.accept(this, e);
                 callCount.incrementAndGet();
-            } else {
-                try {
-                    handler.accept(this, e);
-                    callCount.incrementAndGet();
-                } catch (Throwable t) {
-                    exceptionConsumer.accept(t);
-                }
+            } catch (Throwable t) {
+                exceptionConsumer.accept(event, t);
             }
         }
 
@@ -821,7 +834,7 @@ public final class Events {
 
         private long expiry = -1;
         private long maxCalls = -1;
-        private Consumer<Throwable> exceptionConsumer = null;
+        private BiConsumer<? super T, Throwable> exceptionConsumer = DEFAULT_EXCEPTION_CONSUMER;
         private List<Predicate<T>> filters = new ArrayList<>();
 
         private HandlerBuilderImpl(Class<T> eventClass, EventPriority priority) {
@@ -845,7 +858,7 @@ public final class Events {
         }
 
         @Override
-        public HandlerBuilder<T> exceptionConsumer(Consumer<Throwable> exceptionConsumer) {
+        public HandlerBuilder<T> exceptionConsumer(BiConsumer<? super T, Throwable> exceptionConsumer) {
             Preconditions.checkNotNull(exceptionConsumer, "exceptionConsumer");
             this.exceptionConsumer = exceptionConsumer;
             return this;
@@ -866,21 +879,6 @@ public final class Events {
         }
 
         @Override
-        public HandlerBuilder<T> withCooldown(Cooldown cooldown, Consumer<? super T> cooldownFailConsumer) {
-            Preconditions.checkNotNull(cooldown, "cooldown");
-            Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
-            filter(t -> {
-                if (cooldown.test()) {
-                    return true;
-                }
-
-                cooldownFailConsumer.accept(t);
-                return false;
-            });
-            return this;
-        }
-
-        @Override
         public HandlerBuilder<T> withCooldown(Cooldown cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer) {
             Preconditions.checkNotNull(cooldown, "cooldown");
             Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
@@ -890,6 +888,28 @@ public final class Events {
                 }
 
                 cooldownFailConsumer.accept(cooldown, t);
+                return false;
+            });
+            return this;
+        }
+
+        @Override
+        public HandlerBuilder<T> withCooldown(CooldownCollection<? super T> cooldown) {
+            Preconditions.checkNotNull(cooldown, "cooldown");
+            filter(t -> cooldown.get(t).test());
+            return this;
+        }
+
+        @Override
+        public HandlerBuilder<T> withCooldown(CooldownCollection<? super T> cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer) {
+            Preconditions.checkNotNull(cooldown, "cooldown");
+            Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
+            filter(t -> {
+                if (cooldown.get(t).test()) {
+                    return true;
+                }
+
+                cooldownFailConsumer.accept(cooldown.get(t), t);
                 return false;
             });
             return this;
@@ -911,7 +931,7 @@ public final class Events {
 
         private long expiry = -1;
         private long maxCalls = -1;
-        private Consumer<Throwable> exceptionConsumer = null;
+        private BiConsumer<Event, Throwable> exceptionConsumer = DEFAULT_EXCEPTION_CONSUMER;
         private List<Predicate<T>> filters = new ArrayList<>();
 
         private MergedHandlerBuilderImpl(Class<T> handledClass) {
@@ -949,7 +969,7 @@ public final class Events {
         }
 
         @Override
-        public MergedHandlerBuilder<T> exceptionConsumer(Consumer<Throwable> exceptionConsumer) {
+        public MergedHandlerBuilder<T> exceptionConsumer(BiConsumer<Event, Throwable> exceptionConsumer) {
             Preconditions.checkNotNull(exceptionConsumer, "exceptionConsumer");
             this.exceptionConsumer = exceptionConsumer;
             return this;
@@ -970,21 +990,6 @@ public final class Events {
         }
 
         @Override
-        public MergedHandlerBuilder<T> withCooldown(Cooldown cooldown, Consumer<? super T> cooldownFailConsumer) {
-            Preconditions.checkNotNull(cooldown, "cooldown");
-            Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
-            filter(t -> {
-                if (cooldown.test()) {
-                    return true;
-                }
-
-                cooldownFailConsumer.accept(t);
-                return false;
-            });
-            return this;
-        }
-
-        @Override
         public MergedHandlerBuilder<T> withCooldown(Cooldown cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer) {
             Preconditions.checkNotNull(cooldown, "cooldown");
             Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
@@ -994,6 +999,28 @@ public final class Events {
                 }
 
                 cooldownFailConsumer.accept(cooldown, t);
+                return false;
+            });
+            return this;
+        }
+
+        @Override
+        public MergedHandlerBuilder<T> withCooldown(CooldownCollection<? super T> cooldown) {
+            Preconditions.checkNotNull(cooldown, "cooldown");
+            filter(t -> cooldown.get(t).test());
+            return this;
+        }
+
+        @Override
+        public MergedHandlerBuilder<T> withCooldown(CooldownCollection<? super T> cooldown, BiConsumer<Cooldown, ? super T> cooldownFailConsumer) {
+            Preconditions.checkNotNull(cooldown, "cooldown");
+            Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
+            filter(t -> {
+                if (cooldown.get(t).test()) {
+                    return true;
+                }
+
+                cooldownFailConsumer.accept(cooldown.get(t), t);
                 return false;
             });
             return this;
