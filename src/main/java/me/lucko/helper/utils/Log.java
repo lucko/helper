@@ -22,21 +22,18 @@
 
 package me.lucko.helper.utils;
 
-import java.util.logging.Logger;
-
 public class Log {
-    private static Logger logger = LoaderUtils.getPlugin().getLogger();
 
     public static void info(String s) {
-        logger.info(s);
+        LoaderUtils.getPlugin().getLogger().info(s);
     }
 
     public static void warn(String s) {
-        logger.warning(s);
+        LoaderUtils.getPlugin().getLogger().warning(s);
     }
 
     public static void severe(String s) {
-        logger.severe(s);
+        LoaderUtils.getPlugin().getLogger().severe(s);
     }
 
 }

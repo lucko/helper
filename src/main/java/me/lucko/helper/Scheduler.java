@@ -25,12 +25,16 @@ package me.lucko.helper;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.utils.LoaderUtils;
+import me.lucko.helper.utils.Log;
 import me.lucko.helper.utils.Terminable;
 
+import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,38 +47,73 @@ import java.util.function.Supplier;
  * A utility class to help with scheduling.
  */
 public final class Scheduler {
-    private static Executor syncExecutor = null;
-    private static Executor bukkitAsyncExecutor = null;
-    private static ExecutorService asyncExecutor = null;
+    private static final Consumer<Throwable> EXCEPTION_CONSUMER = throwable -> {
+        Log.severe("[SCHEDULER] Exception thrown whilst executing task");
+        throwable.printStackTrace();
+    };
+
+    private static <T> Supplier<T> wrapSupplier(Supplier<T> supplier) {
+        return () -> {
+            try {
+                return supplier.get();
+            } catch (Throwable t) {
+                // print debug info, then re-throw
+                EXCEPTION_CONSUMER.accept(t);
+                throw new CompletionException(t);
+            }
+        };
+    }
+
+    private static <T> Supplier<T> wrapCallable(Callable<T> callable) {
+        return () -> {
+            try {
+                return callable.call();
+            } catch (Throwable t) {
+                // print debug info, then re-throw
+                EXCEPTION_CONSUMER.accept(t);
+                throw new CompletionException(t);
+            }
+        };
+    }
+
+    private static Runnable wrapRunnable(Runnable runnable) {
+        return () -> {
+            try {
+                runnable.run();
+            } catch (Throwable t) {
+                // print debug info, then re-throw
+                EXCEPTION_CONSUMER.accept(t);
+                throw new CompletionException(t);
+            }
+        };
+    }
+
+    private static final Executor SYNC_EXECUTOR = runnable -> bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), runnable);
+    private static final Executor BUKKIT_ASYNC_EXECUTOR = runnable -> bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), runnable);
+    private static final ExecutorService ASYNC_EXECUTOR = Executors.newCachedThreadPool();
 
     /**
      * Get an Executor instance which will execute all passed runnables on the main server thread.
      * @return a "sync" executor instance
      */
-    public static synchronized Executor getSyncExecutor() {
-        if (syncExecutor == null) {
-            syncExecutor = runnable -> LoaderUtils.getPlugin().getServer().getScheduler().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), runnable);
-        }
-        return syncExecutor;
+    public static synchronized Executor sync() {
+        return SYNC_EXECUTOR;
     }
 
     /**
-     * Get an Executor instance which will execute all passed runnables using the Bukkit Scheduler thread pool
+     * Get an Executor instance which will execute all passed runnables using a thread pool
      * @return an "async" executor instance
      */
-    public static synchronized Executor getAsyncExecutor() {
-        if (bukkitAsyncExecutor != null && LoaderUtils.getPlugin().isEnabled()) {
-            return bukkitAsyncExecutor;
+    public static synchronized Executor async() {
+        if (LoaderUtils.getPlugin().isEnabled()) {
+            return BUKKIT_ASYNC_EXECUTOR;
+        } else {
+            return ASYNC_EXECUTOR;
         }
-
-        if (asyncExecutor == null) {
-            asyncExecutor = Executors.newCachedThreadPool();
-            getSyncExecutor().execute(() -> {
-                bukkitAsyncExecutor = runnable -> LoaderUtils.getPlugin().getServer().getScheduler().runTaskAsynchronously(LoaderUtils.getPlugin(), runnable);
-            });
-        }
-
-        return asyncExecutor;
+    }
+    
+    public static BukkitScheduler bukkit() {
+        return Bukkit.getScheduler();
     }
 
     /**
@@ -85,7 +124,7 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> supplySync(Supplier<T> supplier) {
         Preconditions.checkNotNull(supplier, "supplier");
-        return CompletableFuture.supplyAsync(supplier, getSyncExecutor());
+        return CompletableFuture.supplyAsync(wrapSupplier(supplier), sync());
     }
 
     /**
@@ -96,7 +135,7 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> supplyAsync(Supplier<T> supplier) {
         Preconditions.checkNotNull(supplier, "supplier");
-        return CompletableFuture.supplyAsync(supplier, getAsyncExecutor());
+        return CompletableFuture.supplyAsync(wrapSupplier(supplier), async());
     }
 
     /**
@@ -107,13 +146,7 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> callSync(Callable<T> callable) {
         Preconditions.checkNotNull(callable, "callable");
-        return supplySync(() -> {
-            try {
-                return callable.call();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        return supplySync(wrapCallable(callable));
     }
 
     /**
@@ -124,13 +157,7 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> callAsync(Callable<T> callable) {
         Preconditions.checkNotNull(callable, "callable");
-        return supplyAsync(() -> {
-            try {
-                return callable.call();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        return supplyAsync(wrapCallable(callable));
     }
 
     /**
@@ -140,7 +167,7 @@ public final class Scheduler {
      */
     public static CompletableFuture<Void> runSync(Runnable runnable) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return CompletableFuture.runAsync(runnable, getSyncExecutor());
+        return CompletableFuture.runAsync(wrapRunnable(runnable), sync());
     }
 
     /**
@@ -150,7 +177,7 @@ public final class Scheduler {
      */
     public static CompletableFuture<Void> runAsync(Runnable runnable) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return CompletableFuture.runAsync(runnable, getAsyncExecutor());
+        return CompletableFuture.runAsync(wrapRunnable(runnable), async());
     }
 
     /**
@@ -163,11 +190,16 @@ public final class Scheduler {
     public static <T> CompletableFuture<T> supplyLaterSync(Supplier<T> supplier, long delay) {
         Preconditions.checkNotNull(supplier, "supplier");
         CompletableFuture<T> fut = new CompletableFuture<>();
-        LoaderUtils.getPlugin().getServer().getScheduler().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), () -> {
-            T result = supplier.get();
-            fut.complete(result);
+        bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), () -> {
+            try {
+                T result = supplier.get();
+                fut.complete(result);
+            } catch (Throwable t) {
+                // print debug info, then pass on to future
+                EXCEPTION_CONSUMER.accept(t);
+                fut.completeExceptionally(t);
+            }
         }, delay);
-
         return fut;
     }
 
@@ -181,11 +213,16 @@ public final class Scheduler {
     public static <T> CompletableFuture<T> supplyLaterAsync(Supplier<T> supplier, long delay) {
         Preconditions.checkNotNull(supplier, "supplier");
         CompletableFuture<T> fut = new CompletableFuture<>();
-        LoaderUtils.getPlugin().getServer().getScheduler().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), () -> {
-            T result = supplier.get();
-            fut.complete(result);
+        bukkit().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), () -> {
+            try {
+                T result = supplier.get();
+                fut.complete(result);
+            } catch (Throwable t) {
+                // print debug info, then pass on to future
+                EXCEPTION_CONSUMER.accept(t);
+                fut.completeExceptionally(t);
+            }
         }, delay);
-
         return fut;
     }
 
@@ -198,13 +235,18 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> callLaterSync(Callable<T> callable, long delay) {
         Preconditions.checkNotNull(callable, "callable");
-        return supplyLaterSync(() -> {
+        CompletableFuture<T> fut = new CompletableFuture<>();
+        bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), () -> {
             try {
-                return callable.call();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+                T result = callable.call();
+                fut.complete(result);
+            } catch (Throwable t) {
+                // print debug info, then pass on to future
+                EXCEPTION_CONSUMER.accept(t);
+                fut.completeExceptionally(t);
             }
         }, delay);
+        return fut;
     }
 
     /**
@@ -216,13 +258,18 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> callLaterAsync(Callable<T> callable, long delay) {
         Preconditions.checkNotNull(callable, "callable");
-        return supplyLaterAsync(() -> {
+        CompletableFuture<T> fut = new CompletableFuture<>();
+        bukkit().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), () -> {
             try {
-                return callable.call();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+                T result = callable.call();
+                fut.complete(result);
+            } catch (Throwable t) {
+                // print debug info, then pass on to future
+                EXCEPTION_CONSUMER.accept(t);
+                fut.completeExceptionally(t);
             }
         }, delay);
+        return fut;
     }
 
     /**
@@ -351,8 +398,12 @@ public final class Scheduler {
                 return;
             }
 
-            backingTask.accept(this);
-            counter.incrementAndGet();
+            try {
+                backingTask.accept(this);
+                counter.incrementAndGet();
+            } catch (Throwable t) {
+                EXCEPTION_CONSUMER.accept(t);
+            }
 
             if (shouldStop.get()) {
                 cancel();

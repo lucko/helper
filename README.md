@@ -11,8 +11,8 @@ Events.subscribe(PlayerJoinEvent.class).handler(e -> e.setJoinMessage(""));
 It also allows for more advanced handling.
 ```java
 Events.subscribe(PlayerJoinEvent.class)
-        .expireAfter(2, TimeUnit.MINUTES)
-        .expireAfter(1)
+        .expireAfter(2, TimeUnit.MINUTES) // expire after 2 mins
+        .expireAfter(1) // or after the event has been called 1 time
         .filter(e -> !e.getPlayer().isOp())
         .handler(e -> e.getPlayer().sendMessage("Wew! You were first to join the server since it restarted!"));
 ```
@@ -32,7 +32,7 @@ You can also merge events together into the same handler.
 Events.merge(PlayerEvent.class, PlayerQuitEvent.class, PlayerKickEvent.class)
         .filter(e -> !e.getPlayer().isOp())
         .handler(e -> {
-            // Perform some I/O to save the players special data.
+            Bukkit.broadcastMessage("Player " + e.getPlayer() + " has left the server!");
         });
 ```
 
@@ -44,6 +44,24 @@ Events.merge(Player.class)
         .handler(e -> {
             // poof!
             e.getLocation().getWorld().createExplosion(e.getLocation(), 1.0f);
+        });
+```
+
+You can also use the built-in cooldown utility to limit how quickly events are listened to.
+```java
+Events.subscribe(PlayerInteractEvent.class)
+        .filter(e -> e.getAction() == Action.RIGHT_CLICK_AIR)
+        .filter(PlayerInteractEvent::hasItem)
+        .filter(e -> e.getItem().getType() == Material.BLAZE_ROD)
+        .withCooldown(
+                CooldownCollection.create(t -> t.getPlayer().getName(), Cooldown.of(10, TimeUnit.SECONDS)),
+                (cooldown, e) -> {
+                    e.getPlayer().sendMessage("This gadget is on cooldown! (" + cooldown.remainingTime(TimeUnit.SECONDS) + " seconds left)");
+                })
+        .handler(e -> {
+            // play some gadget effect
+            e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.CAT_PURR, 1.0f, 1.0f);
+            e.getPlayer().playEffect(EntityEffect.FIREWORK_EXPLODE);
         });
 ```
 
@@ -81,7 +99,7 @@ Scheduler.callAsync(() -> {
 }).thenAcceptAsync(s -> {
     // Some main thread task
     Bukkit.broadcastMessage(s);
-}, Scheduler.getSyncExecutor());
+}, Scheduler.sync());
 ```
 
 ### [`GUI`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/menu/Gui.java)
@@ -120,6 +138,12 @@ public class SimpleGui extends Gui {
 ```
 
 ItemStackBuilder provides a number of methods for creating item stacks easily, and can be used anywhere. (not just in GUIs!)
+
+The GUI class also provides a number of methods which allow you to
+* Define "fallback" menus to be opened when the current menu is closed
+* Setup ticker tasks to run whilst the menu remains open
+* Add invalidation tasks to be called when the menu is closed
+* Manipulate ClickTypes to only fire events when a certain type is used
 
 ### Menu Scheming
 There is also a menu scheming system, which allows for menus to be easily themed with border items. For example...
@@ -165,7 +189,7 @@ You can either install the standalone helper plugin your server, or shade the cl
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>1.2.14</version>
+        <version>1.3.0</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -181,6 +205,6 @@ repositories {
 }
 
 dependencies {
-    compile ("me.lucko:helper:1.2.14")
+    compile ("me.lucko:helper:1.3.0")
 }
 ```

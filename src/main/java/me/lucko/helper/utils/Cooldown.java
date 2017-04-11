@@ -26,13 +26,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
 public class Cooldown implements LongSupplier {
-    public static long now() {
-        return System.currentTimeMillis();
-    }
-
-    public static long nowUnix() {
-        return System.currentTimeMillis() / 1000L;
-    }
 
     public static Cooldown ofTicks(long ticks) {
         return new Cooldown(ticks * 50L, TimeUnit.MILLISECONDS);
@@ -52,7 +45,7 @@ public class Cooldown implements LongSupplier {
         timeout = unit.toMillis(amount);
 
         // allow #test to pass immediately.
-        lastCalled = now() - timeout;
+        lastCalled = TimeUtil.now() - timeout;
     }
 
     // returns true if the cooldown is not active, and resets the timer
@@ -71,11 +64,11 @@ public class Cooldown implements LongSupplier {
     }
 
     public long elapsed() {
-        return now() - lastCalled;
+        return TimeUtil.now() - lastCalled;
     }
 
     public void reset() {
-        lastCalled = now();
+        lastCalled = TimeUtil.now();
     }
 
     public long remainingMillis() {
@@ -90,5 +83,13 @@ public class Cooldown implements LongSupplier {
     @Override
     public long getAsLong() {
         return remainingMillis();
+    }
+
+    public long getTimeout() {
+        return timeout;
+    }
+
+    public Cooldown copy() {
+        return new Cooldown(timeout, TimeUnit.MILLISECONDS);
     }
 }
