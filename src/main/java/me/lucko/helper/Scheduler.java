@@ -31,6 +31,7 @@ import me.lucko.helper.utils.Terminable;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -47,6 +48,11 @@ import java.util.function.Supplier;
  * A utility class to help with scheduling.
  */
 public final class Scheduler {
+
+    private static final Executor SYNC_EXECUTOR = runnable -> bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), runnable);
+    private static final Executor BUKKIT_ASYNC_EXECUTOR = runnable -> bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), runnable);
+    private static final ExecutorService ASYNC_EXECUTOR = Executors.newCachedThreadPool();
+
     private static final Consumer<Throwable> EXCEPTION_CONSUMER = throwable -> {
         Log.severe("[SCHEDULER] Exception thrown whilst executing task");
         throwable.printStackTrace();
@@ -87,10 +93,6 @@ public final class Scheduler {
             }
         };
     }
-
-    private static final Executor SYNC_EXECUTOR = runnable -> bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), runnable);
-    private static final Executor BUKKIT_ASYNC_EXECUTOR = runnable -> bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), runnable);
-    private static final ExecutorService ASYNC_EXECUTOR = Executors.newCachedThreadPool();
 
     /**
      * Get an Executor instance which will execute all passed runnables on the main server thread.
@@ -189,8 +191,9 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> supplyLaterSync(Supplier<T> supplier, long delay) {
         Preconditions.checkNotNull(supplier, "supplier");
-        CompletableFuture<T> fut = new CompletableFuture<>();
-        bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), () -> {
+        HelperFuture<T> fut = new HelperFuture<>(null);
+        BukkitTask task = bukkit().runTaskLater(LoaderUtils.getPlugin(), () -> {
+            fut.setExecuting();
             try {
                 T result = supplier.get();
                 fut.complete(result);
@@ -200,6 +203,7 @@ public final class Scheduler {
                 fut.completeExceptionally(t);
             }
         }, delay);
+        fut.setCancelCallback(task::cancel);
         return fut;
     }
 
@@ -212,8 +216,9 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> supplyLaterAsync(Supplier<T> supplier, long delay) {
         Preconditions.checkNotNull(supplier, "supplier");
-        CompletableFuture<T> fut = new CompletableFuture<>();
-        bukkit().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), () -> {
+        HelperFuture<T> fut = new HelperFuture<>(null);
+        BukkitTask task = bukkit().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), () -> {
+            fut.setExecuting();
             try {
                 T result = supplier.get();
                 fut.complete(result);
@@ -223,6 +228,7 @@ public final class Scheduler {
                 fut.completeExceptionally(t);
             }
         }, delay);
+        fut.setCancelCallback(task::cancel);
         return fut;
     }
 
@@ -235,8 +241,9 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> callLaterSync(Callable<T> callable, long delay) {
         Preconditions.checkNotNull(callable, "callable");
-        CompletableFuture<T> fut = new CompletableFuture<>();
-        bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), () -> {
+        HelperFuture<T> fut = new HelperFuture<>(null);
+        BukkitTask task = bukkit().runTaskLater(LoaderUtils.getPlugin(), () -> {
+            fut.setExecuting();
             try {
                 T result = callable.call();
                 fut.complete(result);
@@ -246,6 +253,7 @@ public final class Scheduler {
                 fut.completeExceptionally(t);
             }
         }, delay);
+        fut.setCancelCallback(task::cancel);
         return fut;
     }
 
@@ -258,8 +266,9 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> callLaterAsync(Callable<T> callable, long delay) {
         Preconditions.checkNotNull(callable, "callable");
-        CompletableFuture<T> fut = new CompletableFuture<>();
-        bukkit().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), () -> {
+        HelperFuture<T> fut = new HelperFuture<>(null);
+        BukkitTask task = bukkit().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), () -> {
+            fut.setExecuting();
             try {
                 T result = callable.call();
                 fut.complete(result);
@@ -269,6 +278,7 @@ public final class Scheduler {
                 fut.completeExceptionally(t);
             }
         }, delay);
+        fut.setCancelCallback(task::cancel);
         return fut;
     }
 
@@ -423,6 +433,47 @@ public final class Scheduler {
         @Override
         public int getBukkitId() {
             return getTaskId();
+        }
+    }
+
+    private static class HelperFuture<T> extends CompletableFuture<T> implements Terminable {
+        private Runnable cancelCallback = null;
+
+        private boolean cancellable = true;
+        private boolean cancelled = false;
+
+        HelperFuture(Runnable cancelCallback) {
+            super();
+            this.cancelCallback = cancelCallback;
+        }
+
+        private void setCancelCallback(Runnable cancelCallback) {
+            this.cancelCallback = cancelCallback;
+        }
+
+        private void setExecuting() {
+            this.cancellable = false;
+        }
+
+        @Override
+        public synchronized boolean cancel(boolean mayInterruptIfRunning) {
+            if (cancelled) {
+                return true;
+            }
+            if (!cancellable) {
+                return false;
+            }
+
+            cancelled = true;
+            if (cancelCallback != null) {
+                cancelCallback.run();
+            }
+            return super.cancel(mayInterruptIfRunning);
+        }
+
+        @Override
+        public boolean terminate() {
+            return cancel(true);
         }
     }
 
