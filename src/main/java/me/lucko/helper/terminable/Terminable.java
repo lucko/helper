@@ -20,7 +20,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.terminable;
 
 import java.util.function.Consumer;
 

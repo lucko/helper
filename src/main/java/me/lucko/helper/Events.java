@@ -26,11 +26,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
+import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.utils.Cooldown;
 import me.lucko.helper.utils.CooldownCollection;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
-import me.lucko.helper.utils.Terminable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.Cancellable;
