@@ -381,7 +381,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 */
 		public Factory<T, I> setItemSlotsRange(final int floor, final int ceil) {
 			itemableSlots.clear();
-			setItemSlotsRange(floor, ceil);
+			addItemSlotsRange(floor, ceil);
 			return this;
 		}
 
