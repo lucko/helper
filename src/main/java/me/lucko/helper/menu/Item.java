@@ -60,7 +60,7 @@ public class Item {
 	public interface RunnableHandler extends Runnable, ItemClickHandler {
 
 		public static ItemClickHandler of(final Runnable runnable) {
-			return (RunnableHandler) runnable::run;
+			return runnable == null ? null : (RunnableHandler) runnable::run;
 		}
 		
 		default void handle(final InventoryClickEvent event) {
