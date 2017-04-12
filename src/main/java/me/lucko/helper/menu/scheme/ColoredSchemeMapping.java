@@ -22,14 +22,15 @@
 
 package me.lucko.helper.menu.scheme;
 
+import java.util.Map;
+
+import org.bukkit.Material;
+
 import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.item.ItemStackBuilder;
 import me.lucko.helper.menu.Item;
-
-import org.bukkit.Material;
-
-import java.util.Map;
+import me.lucko.helper.menu.Item.ItemClickHandler;
 
 class ColoredSchemeMapping implements SchemeMapping {
     private final Material material;
@@ -62,7 +63,8 @@ class ColoredSchemeMapping implements SchemeMapping {
         return mapping;
     }
 
-    private Item make(int data) {
-        return ItemStackBuilder.of(material).name("&f").data(data).build(null);
-    }
+	private Item make(int data) {
+		return ItemStackBuilder.of(material).name("&f").data(data).build((ItemClickHandler) null);
+	}
+
 }

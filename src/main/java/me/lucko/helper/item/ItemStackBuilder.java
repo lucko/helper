@@ -29,6 +29,8 @@ import org.bukkit.inventory.meta.SkullMeta;
 import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.menu.Item;
+import me.lucko.helper.menu.Item.ItemClickHandler;
+import me.lucko.helper.menu.Item.RunnableHandler;
 import me.lucko.helper.version.VersionSpecific;
 
 /**
@@ -158,6 +160,10 @@ public class ItemStackBuilder {
 	}
 
 	public Item build(Runnable handler) {
+		return build(RunnableHandler.of(handler));
+	}
+
+	public Item build(ItemClickHandler handler) {
 		if (handler == null) {
 			return new Item(ImmutableMap.of(), itemStack);
 		}
@@ -167,21 +173,29 @@ public class ItemStackBuilder {
 	}
 
 	public Item build(ClickType type, Runnable runnable) {
-		return new Item(ImmutableMap.of(type, runnable), itemStack);
+		return build(type, RunnableHandler.of(runnable));
+	}
+	
+	public Item build(ClickType type, ItemClickHandler handler) {
+		return new Item(ImmutableMap.of(type,handler), itemStack);
 	}
 
 	public Item build(Runnable rightClick, Runnable leftClick) {
-		if (rightClick != null) {
-			if (leftClick != null) {
-				return new Item(ImmutableMap.of(ClickType.RIGHT, rightClick, ClickType.LEFT, leftClick), itemStack);
+		return build(rightClick == null ? null : RunnableHandler.of(rightClick), leftClick == null ? null : RunnableHandler.of(leftClick));
+	}
+
+	public Item build(ItemClickHandler right, ItemClickHandler left) {
+		if (right != null) {
+			if (left != null) {
+				return new Item(ImmutableMap.of(ClickType.RIGHT, right, ClickType.LEFT, left), itemStack);
 			}
 			else {
-				return new Item(ImmutableMap.of(ClickType.RIGHT, rightClick), itemStack);
+				return new Item(ImmutableMap.of(ClickType.RIGHT, right), itemStack);
 			}
 		}
 		else {
-			if (leftClick != null) {
-				return new Item(ImmutableMap.of(ClickType.LEFT, leftClick), itemStack);
+			if (left != null) {
+				return new Item(ImmutableMap.of(ClickType.LEFT, left), itemStack);
 			}
 			else {
 				return new Item(ImmutableMap.of(), itemStack);
@@ -190,7 +204,13 @@ public class ItemStackBuilder {
 	}
 
 	public Item buildFromMap(Map<ClickType, Runnable> handlers) {
-		return new Item(ImmutableMap.copyOf(handlers), itemStack);
+		final ImmutableMap.Builder<ClickType, ItemClickHandler> converted = ImmutableMap.builder();
+		handlers.forEach((type, action) -> converted.put(type, RunnableHandler.of(action)));
+		return new Item(converted.build(), itemStack);
 	}
+	
+	public Item buildFromMapNew(Map<ClickType, ItemClickHandler> handlers) {
+		return new Item(ImmutableMap.copyOf(handlers), itemStack);
+	}	
 
 }

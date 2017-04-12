@@ -22,19 +22,20 @@
 
 package me.lucko.helper.menu;
 
-import com.google.common.base.Preconditions;
+import java.util.Map;
 
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Map;
+import com.google.common.base.Preconditions;
 
 public class Item {
 
-    private final Map<ClickType, Runnable> handlers;
+    private final Map<ClickType, ItemClickHandler> handlers;
     private final ItemStack itemStack;
 
-    public Item(Map<ClickType, Runnable> handlers, ItemStack itemStack) {
+    public Item(Map<ClickType, ItemClickHandler> handlers, ItemStack itemStack) {
         Preconditions.checkNotNull(handlers, "handlers");
         Preconditions.checkNotNull(itemStack, "itemStack");
 
@@ -42,11 +43,30 @@ public class Item {
         this.itemStack = itemStack;
     }
 
-    public Map<ClickType, Runnable> getHandlers() {
+    public Map<ClickType, ItemClickHandler> getHandlers() {
         return handlers;
     }
 
     public ItemStack getItemStack() {
         return itemStack;
     }
+    
+	public interface ItemClickHandler {
+		
+		void handle(final InventoryClickEvent event);
+		
+	}
+
+	public interface RunnableHandler extends Runnable, ItemClickHandler {
+
+		public static ItemClickHandler of(final Runnable runnable) {
+			return (RunnableHandler) runnable::run;
+		}
+		
+		default void handle(final InventoryClickEvent event) {
+			run();
+		}
+
+	}
+
 }

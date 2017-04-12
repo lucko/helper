@@ -222,16 +222,16 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		private final List<Integer> itemableSlots = new LinkedList<>();
 		private int defaultPage = 1;
 		private Function<Player, Collection<I>> itemables = (player) -> Lists.newArrayList();
-		private Function<PagedGui<I>, Item> emptySlotItem = (gui) -> ItemStackBuilder.of(Material.AIR).build(null);
+		private Function<PagedGui<I>, Item> emptySlotItem = (gui) -> ItemStackBuilder.of(Material.AIR).build((Runnable) null);
 
-		private BiFunction<Player, Factory<T, I>, PagedGui<I>> constructor = (player, factory) -> new PagedGui<>(player, factory);
+		private BiFunction<Player, Factory<T, I>, T> constructor;
+		private BiFunction<Player, Factory<T, I>, PagedGui<I>> constructorRaw = (player, factory) -> new PagedGui<I>(player, factory);
 
 		public static <I extends PagedItemable> Factory<PagedGui<I>, I> getNew() {
 			return new Factory<>();
 		}
 
-		public static <T extends PagedGui<I>, I extends PagedItemable> Factory<T, I> getNew(
-				final BiFunction<Player, Factory<T, I>, PagedGui<I>> constructor) {
+		public static <T extends PagedGui<I>, I extends PagedItemable> Factory<T, I> getNew(final BiFunction<Player, Factory<T, I>, T> constructor) {
 			return new Factory<T, I>().setConstructor(constructor);
 		}
 
@@ -432,13 +432,18 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param constructor The {@link BiFunction}.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T, I> setConstructor(final BiFunction<Player, Factory<T, I>, PagedGui<I>> constructor) {
+		public Factory<T, I> setConstructor(final BiFunction<Player, Factory<T, I>, T> constructor) {
 			this.constructor = constructor;
+			this.constructorRaw = (BiFunction<Player, Factory<T, I>, PagedGui<I>>) constructor;
 			return this;
 		}
 
-		public BiFunction<Player, Factory<T, I>, PagedGui<I>> getConstructor() {
+		public BiFunction<Player, Factory<T, I>, T> getConstructor() {
 			return this.constructor;
+		}
+
+		public BiFunction<Player, Factory<T, I>, PagedGui<I>> getRawConstructor() {
+			return this.constructorRaw;
 		}
 
 		/**
@@ -447,8 +452,18 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @return The {@link PagedGui}.
 		 * @throws IncompleteArgumentException If a required property has not been set.
 		 */
-		public PagedGui<I> build(final Player player) throws IncompleteArgumentException {
+		public T build(final Player player) throws IncompleteArgumentException {
 			return constructor.apply(player, this);
+		}
+
+		/**
+		 * Constructs a new {@link PagedGui} for the specified {@link Player}.
+		 * @param The {@link Player} the constructed {@link PagedGui} is for.
+		 * @return The {@link PagedGui}.
+		 * @throws IncompleteArgumentException If a required property has not been set.
+		 */
+		public PagedGui<I> buildRaw(final Player player) throws IncompleteArgumentException {
+			return constructorRaw.apply(player, this);
 		}
 
 	}

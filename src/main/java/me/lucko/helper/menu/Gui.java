@@ -24,6 +24,7 @@ package me.lucko.helper.menu;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -37,9 +38,11 @@ import org.bukkit.inventory.Inventory;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.Scheduler;
+import me.lucko.helper.menu.Item.ItemClickHandler;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableRegistry;
 import me.lucko.helper.utils.Color;
+import me.lucko.helper.utils.Cooldown;
 
 /**
  * A simple GUI abstraction
@@ -67,6 +70,8 @@ public abstract class Gui implements Consumer<Terminable> {
     private boolean firstDraw = true;
     // A function used to build a fallback page when this page is closed.
     private Function<Player, Gui> fallbackGui = null;
+    //Cooldown to prevent fast clicking
+    private Cooldown clickCooldown = Cooldown.of(250, TimeUnit.MILLISECONDS);
 
     // Callbacks to be ran when the GUI is invalidated (closed). useful for cancelling tick tasks
     // Also contains the event handlers bound to this GUI, currently listening to events
@@ -99,6 +104,10 @@ public abstract class Gui implements Consumer<Terminable> {
         return initialTitle;
     }
 
+    public Cooldown getClickCooldown() {
+    	return clickCooldown;
+    }
+    
     public Function<Player, Gui> getFallbackGui() {
         return fallbackGui;
     }
@@ -110,6 +119,10 @@ public abstract class Gui implements Consumer<Terminable> {
     public void addInvalidationCallback(Runnable r) {
         terminableRegistry.accept(Terminable.of(r));
     }
+    
+	public void setClickCooldown(final Cooldown clickCooldown) {
+		this.clickCooldown = clickCooldown;
+	}
 
     @Override
     public void accept(Terminable terminable) {
@@ -233,6 +246,8 @@ public abstract class Gui implements Consumer<Terminable> {
                 .filter(e -> e.getInventory().getHolder().equals(player))
                 .handler(e -> {
                     e.setCancelled(true);
+					if (!clickCooldown.test()) return;
+                    
                     int slot = e.getRawSlot();
 
                     // check if the click was in the top inventory
@@ -242,11 +257,11 @@ public abstract class Gui implements Consumer<Terminable> {
 
                     Item item = itemMap.get(slot);
                     if (item != null) {
-                        Map<ClickType, Runnable> handlers = item.getHandlers();
-                        Runnable handler = handlers.get(e.getClick());
+                        Map<ClickType, ItemClickHandler> handlers = item.getHandlers();
+                        ItemClickHandler handler = handlers.get(e.getClick());
                         if (handler != null) {
                             try {
-                                handler.run();
+                                handler.handle(e);
                             } catch (Exception ex) {
                                 ex.printStackTrace();
                             }
