@@ -4,8 +4,10 @@ package me.lucko.helper.menu;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang.IncompleteArgumentException;
 import org.bukkit.Material;
@@ -26,10 +28,6 @@ import me.lucko.helper.menu.PagedGui.PagedItemable;
  */
 public class PagedGui<T extends PagedItemable> extends Gui {
 
-	public static <T extends PagedItemable> Factory<T> newFactory() {
-		return new Factory<>();
-	}
-
 	private final ImmutableList<Integer> itemableSlots;
 	private ImmutableList<T> itemables;
 
@@ -39,12 +37,22 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 	private int currentPage = 1;
 	private int defaultPage = currentPage;
 
-	private PagedGui(final Player player, final int lines, final String title, final Collection<Integer> itemableSlots, final Collection<T> itemables,
-			final Function<PagedGui<T>, Item> emptySlotItem) {
+	/**
+	 * @param player The {@link Player} this {@link PagedGui} is for.
+	 * @param factory The {@link Factory} containing all properties of this {@link PagedGui}.
+	 */
+	protected PagedGui(final Player player, final Factory<?, T> factory) {
+		this(player, factory.getLines(), factory.getTitle(player), factory.getDefaultPage(), factory.getItemSlots(), factory.getItemables(player),
+				factory.getEmptySlotItem());
+	}
+
+	private PagedGui(final Player player, final int lines, final String title, final int defaultPage, final Collection<Integer> itemableSlots,
+			final Collection<T> itemables, final Function<PagedGui<T>, Item> emptySlotItem) {
 		super(player, lines, title);
 		this.itemableSlots = ImmutableList.copyOf(itemableSlots);
 		this.itemables = ImmutableList.copyOf(itemables);
 		this.emptySlotItem = emptySlotItem;
+		this.defaultPage = defaultPage;
 	}
 
 	public ImmutableList<T> getItemables() {
@@ -68,7 +76,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 	 * Sets the default page of this {@link PagedGui}.
 	 * @param defaultPage The default page.
 	 */
-	public void setDefaultPage(int defaultPage) {
+	public void setDefaultPage(final int defaultPage) {
 		this.defaultPage = defaultPage;
 	}
 
@@ -203,19 +211,33 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 	 * A factory for {@link PagedItemable}s.
 	 * <p>
 	 * Created on Apr 12, 2017.
-	 * @param <T> The type of {@link PagedItemable} to be used by {@link PagedGui}s constructed by this {@link Factory}.
+	 * @param <T> The type of {@link PagedGui} being produced by this {@link Factory}.
+	 * @param <I> The type of {@link PagedItemable} to be used by {@link PagedGui}s constructed by this {@link Factory}.
 	 * @author FakeNeth
 	 */
-	public static class Factory<T extends PagedItemable> {
+	public static class Factory<T extends PagedGui<I>, I extends PagedItemable> {
 
 		private Function<Player, String> title = (player) -> "";
 		private int lines = 3;
 		private final List<Integer> itemableSlots = new LinkedList<>();
 		private int defaultPage = 1;
-		private Function<Player, Collection<T>> itemables = (player) -> Lists.newArrayList();
-		private Function<PagedGui<T>, Item> emptySlotItem = (gui) -> ItemStackBuilder.of(Material.AIR).build(null);
+		private Function<Player, Collection<I>> itemables = (player) -> Lists.newArrayList();
+		private Function<PagedGui<I>, Item> emptySlotItem = (gui) -> ItemStackBuilder.of(Material.AIR).build(null);
 
-		public Function<PagedGui<T>, Item> getEmptySlotItem() {
+		private BiFunction<Player, Factory<T, I>, PagedGui<I>> constructor = (player, factory) -> new PagedGui<>(player, factory);
+
+		public static <I extends PagedItemable> Factory<PagedGui<I>, I> getNew() {
+			return new Factory<>();
+		}
+
+		public static <T extends PagedGui<I>, I extends PagedItemable> Factory<T, I> getNew(
+				final BiFunction<Player, Factory<T, I>, PagedGui<I>> constructor) {
+			return new Factory<T, I>().setConstructor(constructor);
+		}
+
+		private Factory() {}
+
+		public Function<PagedGui<I>, Item> getEmptySlotItem() {
 			return emptySlotItem;
 		}
 
@@ -225,7 +247,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param emptySlotItem The {@link Function}.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> withEmptySlotItem(final Function<PagedGui<T>, Item> emptySlotItem) {
+		public Factory<T, I> withEmptySlotItem(final Function<PagedGui<I>, Item> emptySlotItem) {
 			this.emptySlotItem = emptySlotItem;
 			return this;
 		}
@@ -239,7 +261,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param lines The line amount.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> withLines(final int lines) {
+		public Factory<T, I> withLines(final int lines) {
 			this.lines = lines;
 			return this;
 		}
@@ -257,7 +279,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param title The title.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> withTitle(final String title) {
+		public Factory<T, I> withTitle(final String title) {
 			this.title = (player) -> title;
 			return this;
 		}
@@ -267,7 +289,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param title The {@link Supplier} used to retrieve titles.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> withTitle(final Supplier<String> title) {
+		public Factory<T, I> withTitle(final Supplier<String> title) {
 			this.title = (player) -> title.get();
 			return this;
 		}
@@ -277,7 +299,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param title The {@link Function} used to retrieve titles for specified {@link Player}s.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> withTitle(final Function<Player, String> title) {
+		public Factory<T, I> withTitle(final Function<Player, String> title) {
 			this.title = title;
 			return this;
 		}
@@ -287,7 +309,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param defaultPage The default page. If it is larger than the total amount of pages, the final page will be the default instead.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> withDefaultPage(final int defaultPage) {
+		public Factory<T, I> withDefaultPage(final int defaultPage) {
 			this.defaultPage = defaultPage;
 			return this;
 		}
@@ -301,7 +323,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param slots The slots to add.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> addItemSlots(final int... slots) {
+		public Factory<T, I> addItemSlots(final int... slots) {
 			for (final int slot : slots) {
 				itemableSlots.add(slot);
 			}
@@ -313,17 +335,28 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param slots The slots to add.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> addItemSlots(final Collection<Integer> slots) {
+		public Factory<T, I> addItemSlots(final Collection<Integer> slots) {
 			itemableSlots.addAll(slots);
 			return this;
 		}
 
 		/**
+		 * Adds the specified range slots to the slots {@link PagedItemable}s are displayed in.
+		 * @param The floor of the range, inclusive.
+		 * @param The ceiling of the range, inclusive.
+		 * @return This {@link Factory} instance.
+		 */
+		public Factory<T, I> addItemSlotsRange(final int floor, final int ceil) {
+			setItemSlots(IntStream.range(floor, ceil + 1).toArray());
+			return this;
+		}
+
+		/**
 		 * Sets the specified slots {@link PagedItemable}s are displayed in.
 		 * @param slots The slots to set.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> setItemSlots(final int... slots) {
+		public Factory<T, I> setItemSlots(final int... slots) {
 			itemableSlots.clear();
 			addItemSlots(slots);
 			return this;
@@ -334,9 +367,21 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param slots The slots to set.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> setItemSlots(final Collection<Integer> slots) {
+		public Factory<T, I> setItemSlots(final Collection<Integer> slots) {
 			itemableSlots.clear();
 			addItemSlots(slots);
+			return this;
+		}
+
+		/**
+		 * Sets the range of specified slots {@link PagedItemable}s are displayed in.
+		 * @param The floor of the range, inclusive.
+		 * @param The ceiling of the range, inclusive.
+		 * @return This {@link Factory} instance.
+		 */
+		public Factory<T, I> setItemSlotsRange(final int floor, final int ceil) {
+			itemableSlots.clear();
+			setItemSlotsRange(floor, ceil);
 			return this;
 		}
 
@@ -349,7 +394,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param itemables The {@link Collection}.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> setItemables(final Collection<T> itemables) {
+		public Factory<T, I> setItemables(final Collection<I> itemables) {
 			this.itemables = (player) -> itemables;
 			return this;
 		}
@@ -359,7 +404,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param itemables A {@link Supplier} supplying the {@link Collection}.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> setItemables(final Supplier<Collection<T>> itemables) {
+		public Factory<T, I> setItemables(final Supplier<Collection<I>> itemables) {
 			this.itemables = (player) -> itemables.get();
 			return this;
 		}
@@ -369,17 +414,31 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @param itemables A {@link Function} used to get a player specific {@link Collection}.
 		 * @return This {@link Factory} instance.
 		 */
-		public Factory<T> setItemables(final Function<Player, Collection<T>> itemables) {
+		public Factory<T, I> setItemables(final Function<Player, Collection<I>> itemables) {
 			this.itemables = itemables;
 			return this;
 		}
 
-		public Collection<T> getItemables(final Player player) {
+		public Collection<I> getItemables(final Player player) {
 			return itemables.apply(player);
 		}
 
-		public Function<Player, Collection<T>> getItemables() {
+		public Function<Player, Collection<I>> getItemables() {
 			return itemables;
+		}
+
+		/**
+		 * Sets the {@link BiFunction} used to construct {@link PagedGui} instances.
+		 * @param constructor The {@link BiFunction}.
+		 * @return This {@link Factory} instance.
+		 */
+		public Factory<T, I> setConstructor(final BiFunction<Player, Factory<T, I>, PagedGui<I>> constructor) {
+			this.constructor = constructor;
+			return this;
+		}
+
+		public BiFunction<Player, Factory<T, I>, PagedGui<I>> getConstructor() {
+			return this.constructor;
 		}
 
 		/**
@@ -388,11 +447,8 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		 * @return The {@link PagedGui}.
 		 * @throws IncompleteArgumentException If a required property has not been set.
 		 */
-		public PagedGui<T> build(final Player player) throws IncompleteArgumentException {
-			final PagedGui<T> gui = new PagedGui<>(player, getLines(), getTitle(player), getItemSlots(), getItemables(player), getEmptySlotItem());
-			gui.defaultPage = defaultPage;
-
-			return gui;
+		public PagedGui<I> build(final Player player) throws IncompleteArgumentException {
+			return constructor.apply(player, this);
 		}
 
 	}
