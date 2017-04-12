@@ -22,11 +22,10 @@
 
 package me.lucko.helper.menu;
 
-import me.lucko.helper.Events;
-import me.lucko.helper.Scheduler;
-import me.lucko.helper.terminable.Terminable;
-import me.lucko.helper.terminable.TerminableRegistry;
-import me.lucko.helper.utils.Color;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -36,10 +35,11 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import me.lucko.helper.Events;
+import me.lucko.helper.Scheduler;
+import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.terminable.TerminableRegistry;
+import me.lucko.helper.utils.Color;
 
 /**
  * A simple GUI abstraction
