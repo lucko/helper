@@ -30,7 +30,7 @@ import java.util.function.Supplier;
 /**
  * A map which holds {@link MetadataKey}s, and maps them to persistent or transient (expiring / weak) values.
  *
- * Transient values will only be removed during map maintenance, which occurs during a housekeeping task which runs
+ * Transient values will only be removed during map maintenance, which occurs during a housekeeping task running
  * every minute. Method signatures for the {@link #has(MetadataKey)} and equivalent remain accurate though.
  *
  * @see TransientValue
