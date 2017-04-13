@@ -24,6 +24,8 @@ package me.lucko.helper.metadata;
 
 import com.google.common.reflect.TypeToken;
 
+import me.lucko.helper.utils.Cooldown;
+
 /**
  * A MetadataKey can be mapped to values in a {@link MetadataMap}.
  *
@@ -32,10 +34,26 @@ import com.google.common.reflect.TypeToken;
  */
 public interface MetadataKey<T> {
 
+    /**
+     * Creates a MetadataKey with the given id and type
+     *
+     * @param id the id of the key
+     * @param type the type of the value mapped to this key
+     * @param <T> the value type
+     * @return a new metadata key
+     */
     static <T> MetadataKey<T> create(String id, TypeToken<T> type) {
         return new SimpleMetadataKey<>(id, type);
     }
 
+    /**
+     * Creates a MetadataKey with the given id and type
+     *
+     * @param id the id of the key
+     * @param clazz the class type of the value mapped to this key
+     * @param <T> the value type
+     * @return a new metadata key
+     */
     static <T> MetadataKey<T> create(String id, Class<T> clazz) {
         return create(id, TypeToken.of(clazz));
     }
@@ -62,6 +80,18 @@ public interface MetadataKey<T> {
 
     static MetadataKey<Float> createFloatKey(String id) {
         return create(id, Float.class);
+    }
+
+    static MetadataKey<Short> createShortKey(String id) {
+        return create(id, Short.class);
+    }
+
+    static MetadataKey<Character> createCharacterKey(String id) {
+        return create(id, Character.class);
+    }
+
+    static MetadataKey<Cooldown> createCooldownKey(String id) {
+        return create(id, Cooldown.class);
     }
 
     /**

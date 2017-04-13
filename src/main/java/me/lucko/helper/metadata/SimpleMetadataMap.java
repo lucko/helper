@@ -23,11 +23,15 @@
 package me.lucko.helper.metadata;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 final class SimpleMetadataMap implements MetadataMap {
     private final Map<MetadataKey<?>, Object> map = new HashMap<>();
@@ -35,6 +39,15 @@ final class SimpleMetadataMap implements MetadataMap {
 
     @Override
     public <T> void put(MetadataKey<T> key, T value) {
+        internalPut(key, value);
+    }
+
+    @Override
+    public <T> void put(MetadataKey<T> key, TransientValue<T> value) {
+        internalPut(key, value);
+    }
+
+    private void internalPut(MetadataKey<?> key, Object value) {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(value, "value");
 
@@ -61,6 +74,15 @@ final class SimpleMetadataMap implements MetadataMap {
 
     @Override
     public <T> void forcePut(MetadataKey<T> key, T value) {
+        internalForcePut(key, value);
+    }
+
+    @Override
+    public <T> void forcePut(MetadataKey<T> key, TransientValue<T> value) {
+        internalForcePut(key, value);
+    }
+
+    private void internalForcePut(MetadataKey<?> key, Object value) {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(value, "value");
 
@@ -74,11 +96,21 @@ final class SimpleMetadataMap implements MetadataMap {
 
     @Override
     public <T> boolean putIfAbsent(MetadataKey<T> key, T value) {
+        return internalPutIfAbsent(key, value);
+    }
+
+    @Override
+    public <T> boolean putIfAbsent(MetadataKey<T> key, TransientValue<T> value) {
+        return internalPutIfAbsent(key, value);
+    }
+
+    private boolean internalPutIfAbsent(MetadataKey<?> key, Object value) {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(value, "value");
 
         lock.lock();
         try {
+            doExpire();
             return map.putIfAbsent(key, value) == null;
         } finally {
             lock.unlock();
@@ -92,10 +124,34 @@ final class SimpleMetadataMap implements MetadataMap {
         lock.lock();
         try {
             Map.Entry<MetadataKey<?>, Object> existing = null;
-            for (Map.Entry<MetadataKey<?>, Object> kv : map.entrySet()) {
-                if (kv.getKey().equals(key)) {
-                    existing = kv;
-                    break;
+
+            // try to locate an existing entry, and expire any values at the same time.
+            Iterator<Map.Entry<MetadataKey<?>, Object>> it = map.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<MetadataKey<?>, Object> kv = it.next();
+
+                if (kv.getValue() instanceof TransientValue<?>) {
+                    TransientValue<?> transientValue = ((TransientValue) kv.getValue());
+
+                    Object unboxed = transientValue.getOrNull();
+
+                    // if it has expired
+                    if (unboxed == null) {
+                        it.remove();
+                        continue;
+                    }
+
+                    // copy out the unboxed value
+                    if (kv.getKey().equals(key)) {
+                        existing = Maps.immutableEntry(kv.getKey(), unboxed);
+                        break;
+                    }
+
+                } else {
+                    if (kv.getKey().equals(key)) {
+                        existing = kv;
+                        break;
+                    }
                 }
             }
 
@@ -126,13 +182,146 @@ final class SimpleMetadataMap implements MetadataMap {
     }
 
     @Override
+    public <T> T getOrPut(MetadataKey<T> key, Supplier<T> def) {
+        Preconditions.checkNotNull(key, "key");
+        Preconditions.checkNotNull(def, "def");
+
+        lock.lock();
+        try {
+            Map.Entry<MetadataKey<?>, Object> existing = null;
+
+            // try to locate an existing entry, and expire any values at the same time.
+            Iterator<Map.Entry<MetadataKey<?>, Object>> it = map.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<MetadataKey<?>, Object> kv = it.next();
+
+                if (kv.getValue() instanceof TransientValue<?>) {
+                    TransientValue<?> transientValue = ((TransientValue) kv.getValue());
+
+                    Object unboxed = transientValue.getOrNull();
+
+                    // if it has expired
+                    if (unboxed == null) {
+                        it.remove();
+                        continue;
+                    }
+
+                    // copy out the unboxed value
+                    if (kv.getKey().equals(key)) {
+                        existing = Maps.immutableEntry(kv.getKey(), unboxed);
+                        break;
+                    }
+
+                } else {
+                    if (kv.getKey().equals(key)) {
+                        existing = kv;
+                        break;
+                    }
+                }
+            }
+
+            if (existing == null) {
+                T t = def.get();
+                Preconditions.checkNotNull(t, "supplied def");
+
+                map.put(key, t);
+                return t;
+            }
+
+            if (!existing.getKey().getType().equals(key.getType())) {
+                throw new ClassCastException("Cannot cast key with id " + key.getId() + " with type " + key.getType().getRawType() + " to existing stored type " + existing.getKey().getType().getRawType());
+            }
+
+            return key.cast(existing.getValue());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public <T> T getOrPutExpiring(MetadataKey<T> key, Supplier<TransientValue<T>> def) {
+        Preconditions.checkNotNull(key, "key");
+        Preconditions.checkNotNull(def, "def");
+
+        lock.lock();
+        try {
+            Map.Entry<MetadataKey<?>, Object> existing = null;
+
+            // try to locate an existing entry, and expire any values at the same time.
+            Iterator<Map.Entry<MetadataKey<?>, Object>> it = map.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<MetadataKey<?>, Object> kv = it.next();
+
+                if (kv.getValue() instanceof TransientValue<?>) {
+                    TransientValue<?> transientValue = ((TransientValue) kv.getValue());
+
+                    Object unboxed = transientValue.getOrNull();
+
+                    // if it has expired
+                    if (unboxed == null) {
+                        it.remove();
+                        continue;
+                    }
+
+                    // copy out the unboxed value
+                    if (kv.getKey().equals(key)) {
+                        existing = Maps.immutableEntry(kv.getKey(), unboxed);
+                        break;
+                    }
+
+                } else {
+                    if (kv.getKey().equals(key)) {
+                        existing = kv;
+                        break;
+                    }
+                }
+            }
+
+            if (existing == null) {
+                TransientValue<T> t = def.get();
+                Preconditions.checkNotNull(t, "supplied def");
+
+                T value = t.getOrNull();
+                if (value == null) {
+                    throw new IllegalArgumentException("Transient value already expired: " + t);
+                }
+
+                map.put(key, value);
+                return value;
+            }
+
+            if (!existing.getKey().getType().equals(key.getType())) {
+                throw new ClassCastException("Cannot cast key with id " + key.getId() + " with type " + key.getType().getRawType() + " to existing stored type " + existing.getKey().getType().getRawType());
+            }
+
+            return key.cast(existing.getValue());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
     public boolean has(MetadataKey<?> key) {
         Preconditions.checkNotNull(key, "key");
 
         lock.lock();
         try {
             Map.Entry<MetadataKey<?>, Object> existing = null;
-            for (Map.Entry<MetadataKey<?>, Object> kv : map.entrySet()) {
+
+            // try to locate an existing entry, and expire any values at the same time.
+            Iterator<Map.Entry<MetadataKey<?>, Object>> it = map.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<MetadataKey<?>, Object> kv = it.next();
+
+                if (kv.getValue() instanceof TransientValue<?>) {
+                    TransientValue<?> transientValue = ((TransientValue) kv.getValue());
+
+                    if (transientValue.shouldExpire()) {
+                        it.remove();
+                        continue;
+                    }
+                }
+
                 if (kv.getKey().equals(key)) {
                     existing = kv;
                     break;
@@ -162,6 +351,36 @@ final class SimpleMetadataMap implements MetadataMap {
         lock.lock();
         try {
             map.clear();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public ImmutableMap<MetadataKey<?>, Object> asMap() {
+        lock.lock();
+        try {
+            return ImmutableMap.copyOf(map);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public boolean isEmpty() {
+        lock.lock();
+        try {
+            doExpire();
+            return map.isEmpty();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void doExpire() {
+        lock.lock();
+        try {
+            map.values().removeIf(o -> o instanceof TransientValue<?> && ((TransientValue) o).shouldExpire());
         } finally {
             lock.unlock();
         }
