@@ -23,11 +23,13 @@
 package me.lucko.helper.menu.scheme;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.menu.Gui;
 import me.lucko.helper.menu.Item;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,7 +49,19 @@ public class MenuScheme {
     }
 
     public MenuScheme() {
-        this(null);
+        this((SchemeMapping) null);
+    }
+
+    private MenuScheme(MenuScheme other) {
+        this.mapping = ImmutableMap.copyOf(other.mapping);
+        this.maskRows = new ArrayList<>();
+        for (boolean[] arr : other.maskRows) {
+            maskRows.add(Arrays.copyOf(arr, arr.length));
+        }
+        this.schemeRows = new ArrayList<>();
+        for (int[] arr : other.schemeRows) {
+            schemeRows.add(Arrays.copyOf(arr, arr.length));
+        }
     }
 
     public MenuScheme mask(String s) {
@@ -161,5 +175,9 @@ public class MenuScheme {
 
     public ImmutableList<Integer> getMaskedIndexesImmutable() {
         return ImmutableList.copyOf(getMaskedIndexes());
+    }
+
+    public MenuScheme copy() {
+        return new MenuScheme(this);
     }
 }

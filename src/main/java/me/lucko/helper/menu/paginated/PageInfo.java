@@ -20,25 +20,28 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.menu.scheme;
+package me.lucko.helper.menu.paginated;
 
-import org.bukkit.Material;
+public final class PageInfo {
 
-import java.util.Collections;
+    public static PageInfo create(int current, int size) {
+        return new PageInfo(current, size);
+    }
 
-/**
- * Contains a new standard schemes for use in a {@link MenuScheme}
- */
-public final class StandardSchemeMappings {
+    private final int current;
+    private final int size;
 
-    public static final SchemeMapping STAINED_GLASS = new ColoredSchemeMapping(Material.STAINED_GLASS_PANE);
-    public static final SchemeMapping STAINED_GLASS_BLOCK = new ColoredSchemeMapping(Material.STAINED_GLASS);
-    public static final SchemeMapping HARDENED_CLAY = new ColoredSchemeMapping(Material.STAINED_CLAY);
-    public static final SchemeMapping WOOL = new ColoredSchemeMapping(Material.WOOL);
-    public static final SchemeMapping EMPTY = Collections::emptyMap;
+    private PageInfo(int current, int size) {
+        this.current = current;
+        this.size = size;
+    }
 
-    private StandardSchemeMappings() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
+    public int getCurrent() {
+        return current;
+    }
+
+    public int getSize() {
+        return size;
     }
 
 }
