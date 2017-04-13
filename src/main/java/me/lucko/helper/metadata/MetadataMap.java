@@ -20,18 +20,32 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.metadata;
 
-import org.bukkit.ChatColor;
+import java.util.Optional;
 
-public final class Color {
+public interface MetadataMap {
 
-    public static String colorize(String s) {
-        return s == null ? null : ChatColor.translateAlternateColorCodes('&', s);
+    static MetadataMap create() {
+        return new SimpleMetadataMap();
     }
 
-    private Color() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
-    }
+    <T> void put(MetadataKey<T> key, T value);
+
+    <T> void forcePut(MetadataKey<T> key, T value);
+
+    <T> boolean putIfAbsent(MetadataKey<T> key, T value);
+
+    <T> Optional<T> get(MetadataKey<T> key);
+
+    <T> T getOrNull(MetadataKey<T> key);
+
+    <T> T getOrDefault(MetadataKey<T> key, T def);
+
+    boolean has(MetadataKey<?> key);
+
+    boolean remove(MetadataKey<?> key);
+
+    void clear();
 
 }

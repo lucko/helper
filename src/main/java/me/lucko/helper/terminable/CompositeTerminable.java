@@ -25,9 +25,10 @@ package me.lucko.helper.terminable;
 import java.util.function.Consumer;
 
 /**
- * A composite terminal is a class which combines a number of {@link Terminable}s, to be easily registered as one.
+ * A composite terminable is a class which combines a number of {@link Terminable}s, to be easily registered as one.
  *
- * CompositeTerminables are registered with {@link me.lucko.helper.plugin.ExtendedJavaPlugin#bindTerminable(CompositeTerminable)}
+ * CompositeTerminables can be registered with {@link me.lucko.helper.plugin.ExtendedJavaPlugin#bindTerminable(CompositeTerminable)}
+ * or with {@link TerminableRegistry#bindTerminable(CompositeTerminable)}
  */
 public interface CompositeTerminable {
 

@@ -22,7 +22,7 @@
 
 package me.lucko.helper.utils;
 
-public class Log {
+public final class Log {
 
     public static void info(String s) {
         LoaderUtils.getPlugin().getLogger().info(s);
@@ -34,6 +34,10 @@ public class Log {
 
     public static void severe(String s) {
         LoaderUtils.getPlugin().getLogger().severe(s);
+    }
+
+    private Log() {
+        throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 
 }
