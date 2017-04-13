@@ -26,6 +26,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
+import me.lucko.helper.metadata.Metadata;
+import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.utils.Cooldown;
 import me.lucko.helper.utils.CooldownCollection;
@@ -39,6 +41,8 @@ import org.bukkit.event.EventException;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
@@ -527,10 +531,10 @@ public final class Events {
         <T extends Cancellable> Predicate<T> ignoreCancelled();
 
         /**
-         * Returns a predicate which only returns true if the player has moved over a block.
+         * Returns a predicate which only returns true if the player has moved over a block
          *
          * @param <T> the event type
-         * @return a predicate which only returns true if the player has moved over a block.
+         * @return a predicate which only returns true if the player has moved over a block
          */
         <T extends PlayerMoveEvent> Predicate<T> ignoreSameBlock();
 
@@ -544,12 +548,28 @@ public final class Events {
         <T extends PlayerMoveEvent> Predicate<T> ignoreSameBlockAndY();
 
         /**
-         * Returns a predicate which only returns true if the player has moved over a chunk border.
+         * Returns a predicate which only returns true if the player has moved over a chunk border
          *
          * @param <T> the event type
-         * @return a predicate which only returns true if the player has moved over a chunk border.
+         * @return a predicate which only returns true if the player has moved over a chunk border
          */
         <T extends PlayerMoveEvent> Predicate<T> ignoreSameChunk();
+
+        /**
+         * Returns a predicate which only returns true if the entity has a given metadata key
+         *
+         * @param <T> the event type
+         * @return a predicate which only returns true if the entity has a given metadata key
+         */
+        <T extends EntityEvent> Predicate<T> entityHasMetadata(MetadataKey<?> key);
+
+        /**
+         * Returns a predicate which only returns true if the player has a given metadata key
+         *
+         * @param <T> the event type
+         * @return a predicate which only returns true if the player has a given metadata key
+         */
+        <T extends PlayerEvent> Predicate<T> playerHasMetadata(MetadataKey<?> key);
 
     }
 
@@ -1079,6 +1099,16 @@ public final class Events {
         @Override
         public <T extends PlayerMoveEvent> Predicate<T> ignoreSameChunk() {
             return e -> (e.getFrom().getBlockX() >> 4) != (e.getTo().getBlockX() >> 4) || (e.getFrom().getBlockZ() >> 4) != (e.getTo().getBlockZ() >> 4);
+        }
+
+        @Override
+        public <T extends EntityEvent> Predicate<T> entityHasMetadata(MetadataKey<?> key) {
+            return t -> Metadata.provideForEntity(t.getEntity()).has(key);
+        }
+
+        @Override
+        public <T extends PlayerEvent> Predicate<T> playerHasMetadata(MetadataKey<?> key) {
+            return t -> Metadata.provideForPlayer(t.getPlayer()).has(key);
         }
     }
 
