@@ -20,18 +20,45 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.metadata;
 
-import org.bukkit.ChatColor;
+import com.google.common.base.Preconditions;
+import com.google.common.reflect.TypeToken;
 
-public final class Color {
+final class SimpleMetadataKey<T> implements MetadataKey<T> {
 
-    public static String colorize(String s) {
-        return s == null ? null : ChatColor.translateAlternateColorCodes('&', s);
+    private final String id;
+    private final TypeToken<T> type;
+
+    SimpleMetadataKey(String id, TypeToken<T> type) {
+        this.id = id.toLowerCase();
+        this.type = type;
     }
 
-    private Color() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
+    @Override
+    public String getId() {
+        return id;
     }
 
+    @Override
+    public TypeToken<T> getType() {
+        return type;
+    }
+
+    @Override
+    public T cast(Object object) throws ClassCastException {
+        Preconditions.checkNotNull(object, "object");
+        //noinspection unchecked
+        return (T) type.getRawType().cast(object);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof SimpleMetadataKey && ((SimpleMetadataKey) obj).getId().equals(id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

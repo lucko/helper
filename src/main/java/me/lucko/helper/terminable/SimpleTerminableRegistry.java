@@ -36,6 +36,7 @@ final class SimpleTerminableRegistry implements TerminableRegistry {
         terminables.add(terminable);
     }
 
+    @Override
     public <T extends CompositeTerminable> T bindTerminable(T terminable) {
         terminable.bind(this);
         return terminable;

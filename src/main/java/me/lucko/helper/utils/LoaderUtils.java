@@ -22,14 +22,19 @@
 
 package me.lucko.helper.utils;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class LoaderUtils {
+public final class LoaderUtils {
     private static JavaPlugin plugin = null;
 
     public static synchronized JavaPlugin getPlugin() {
         if (plugin == null) {
             plugin = JavaPlugin.getProvidingPlugin(LoaderUtils.class);
+
+            String thisClass = LoaderUtils.class.getName();
+            thisClass = thisClass.substring(0, thisClass.length() - ".utils.LoaderUtils".length());
+            Bukkit.getLogger().info("[helper] helper (" + thisClass + ") bound to plugin " + plugin.getName() + " - " + plugin.getClass().getName());
         }
         return plugin;
     }

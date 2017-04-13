@@ -24,7 +24,7 @@ package me.lucko.helper.utils;
 
 import java.time.Instant;
 
-public class TimeUtil {
+public final class TimeUtil {
 
     public static long now() {
         return Instant.now().toEpochMilli();
