@@ -42,29 +42,29 @@ import java.io.IOException;
  */
 public final class Serializers {
 
-    public static JsonPrimitive serializeItemstack(ItemStack item) throws IllegalStateException {
+    public static JsonPrimitive serializeItemstack(ItemStack item) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             try (BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
                 dataOutput.writeObject(item);
                 return new JsonPrimitive(Base64Coder.encodeLines(outputStream.toByteArray()));
             }
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to save item stacks.", e);
+            throw new RuntimeException(e);
         }
     }
 
-    public static ItemStack deserializeItemstack(JsonElement data) throws IOException {
+    public static ItemStack deserializeItemstack(JsonElement data) {
         Preconditions.checkArgument(data.isJsonPrimitive());
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data.getAsString()))) {
             try (BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream)) {
                 return (ItemStack) dataInput.readObject();
             }
-        } catch (ClassNotFoundException e) {
-            throw new IOException("Unable to decode class type.", e);
+        } catch (ClassNotFoundException | IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public static JsonPrimitive serializeItemstacks(ItemStack[] items) throws IllegalStateException {
+    public static JsonPrimitive serializeItemstacks(ItemStack[] items) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             try (BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
                 dataOutput.writeInt(items.length);
@@ -76,11 +76,11 @@ public final class Serializers {
                 return new JsonPrimitive(Base64Coder.encodeLines(outputStream.toByteArray()));
             }
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to save item stacks.", e);
+            throw new RuntimeException(e);
         }
     }
 
-    public static JsonPrimitive serializeInventory(Inventory inventory) throws IllegalStateException {
+    public static JsonPrimitive serializeInventory(Inventory inventory) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             try (BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
                 dataOutput.writeInt(inventory.getSize());
@@ -92,11 +92,11 @@ public final class Serializers {
                 return new JsonPrimitive(Base64Coder.encodeLines(outputStream.toByteArray()));
             }
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to save item stacks.", e);
+            throw new RuntimeException(e);
         }
     }
 
-    public static ItemStack[] deserializeItemstacks(JsonElement data) throws IOException {
+    public static ItemStack[] deserializeItemstacks(JsonElement data) {
         Preconditions.checkArgument(data.isJsonPrimitive());
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data.getAsString()))) {
             try (BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream)) {
@@ -108,12 +108,12 @@ public final class Serializers {
 
                 return items;
             }
-        } catch (ClassNotFoundException e) {
-            throw new IOException("Unable to decode class type.", e);
+        } catch (ClassNotFoundException | IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public static Inventory deserializeInventory(JsonElement data, String title) throws IOException {
+    public static Inventory deserializeInventory(JsonElement data, String title) {
         Preconditions.checkArgument(data.isJsonPrimitive());
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data.getAsString()))) {
             try (BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream)) {
@@ -125,8 +125,8 @@ public final class Serializers {
 
                 return inventory;
             }
-        } catch (ClassNotFoundException e) {
-            throw new IOException("Unable to decode class type.", e);
+        } catch (ClassNotFoundException | IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
