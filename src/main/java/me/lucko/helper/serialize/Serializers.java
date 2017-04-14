@@ -23,11 +23,8 @@
 package me.lucko.helper.serialize;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.reflect.TypeToken;
 
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
@@ -39,28 +36,32 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Map;
 
 /**
  * Utility methods for converting ItemStacks and Inventories to and from JSON.
  */
 public final class Serializers {
-    private static final Type MAP_TYPE = new TypeToken<Map<String, Object>>(){}.getType();
-    private static final Gson GSON = new GsonBuilder().enableComplexMapKeySerialization().create();
 
-    public static JsonElement serializeItemstack(ItemStack itemStack) {
-        Preconditions.checkNotNull(itemStack, "itemStack");
-
-        Map<String, Object> data = itemStack.serialize();
-        return GSON.toJsonTree(data, MAP_TYPE);
+    public static JsonPrimitive serializeItemstack(ItemStack item) throws IllegalStateException {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            try (BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
+                dataOutput.writeObject(item);
+                return new JsonPrimitive(Base64Coder.encodeLines(outputStream.toByteArray()));
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to save item stacks.", e);
+        }
     }
 
-    public static ItemStack deserializeItemstack(JsonElement jsonElement) {
-        Preconditions.checkNotNull(jsonElement, "jsonElement");
-
-        Map<String, Object> data = GSON.fromJson(jsonElement, MAP_TYPE);
-        return ItemStack.deserialize(data);
+    public static ItemStack deserializeItemstack(JsonElement data) throws IOException {
+        Preconditions.checkArgument(data.isJsonPrimitive());
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data.getAsString()))) {
+            try (BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream)) {
+                return (ItemStack) dataInput.readObject();
+            }
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Unable to decode class type.", e);
+        }
     }
 
     public static JsonPrimitive serializeItemstacks(ItemStack[] items) throws IllegalStateException {
