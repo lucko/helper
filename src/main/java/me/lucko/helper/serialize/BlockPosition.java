@@ -53,11 +53,11 @@ public final class BlockPosition {
     }
 
     public static BlockPosition of(int x, int y, int z, String world) {
-        return new BlockPosition(x, y, z, world, null);
+        return new BlockPosition(x, y, z, world);
     }
 
     public static BlockPosition of(Location location) {
-        return of(location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getWorld().getName()).setBukkitLocation(location);
+        return of(location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getWorld().getName());
     }
 
     public static BlockPosition of(Block block) {
@@ -69,14 +69,13 @@ public final class BlockPosition {
     private final int z;
     private final String world;
 
-    private Location bukkitLocation;
+    private Location bukkitLocation = null;
 
-    private BlockPosition(int x, int y, int z, String world, Location bukkitLocation) {
+    private BlockPosition(int x, int y, int z, String world) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.world = world;
-        this.bukkitLocation = bukkitLocation;
     }
 
     public int getX() {
@@ -100,16 +99,11 @@ public final class BlockPosition {
             bukkitLocation = new Location(Bukkit.getWorld(world), x, y, z);
         }
 
-        return bukkitLocation;
+        return bukkitLocation.clone();
     }
 
     public Block toBlock() {
         return toLocation().getBlock();
-    }
-
-    private BlockPosition setBukkitLocation(Location bukkitLocation) {
-        this.bukkitLocation = bukkitLocation;
-        return this;
     }
 
     public BlockPosition getRelative(BlockFace face) {
