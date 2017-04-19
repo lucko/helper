@@ -23,7 +23,9 @@
 package me.lucko.helper.menu;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -58,6 +60,10 @@ public abstract class Gui implements Consumer<Terminable> {
         return (count / 9 + ((count % 9 != 0) ? 1 : 0));
     }
 
+    //A set of strings used by the "transit lock system" which insures that players dont trigger asynchronous
+    //data loading (required before some menu transitions) more than once with fast clicks. 
+    private final Set<String> transitLocks = new HashSet<>();
+    
     // The player holding the GUI
     private final Player player;
     // The backing inventory instance
@@ -199,6 +205,41 @@ public abstract class Gui implements Consumer<Terminable> {
             setItem(i, item);
         }
     }
+    
+	/**
+	 * Determines whether the specified key has been marked as "locked" via {@link #lockTransit(String)}.
+	 * <p>
+	 * Useful for when asynchonous data loading is required prior to transitioning to a new menu when an {@link Item} is clicked- will prevent multiple
+	 * instances of the data loading from occuring.
+	 * @param key The unique (to this {@link Gui} instance) key or "label" to check.
+	 * @return True if the specified key has been marked as locked, false if not.
+	 */
+	public boolean isTransitLocked(final String key) {
+		return transitLocks.contains(key);
+	}
+
+	/**
+	 * Marks the specified key as "locked" so that {@link #isTransitLocked(String)} will return true when called with the specified key.
+	 * @param key The key.
+	 */
+	public void lockTransit(final String key) {
+		transitLocks.add(key);
+	}
+
+	/**
+	 * Unlocks the specified transit key.
+	 * @param key The key.
+	 */
+	public void unlockTransit(final String key) {
+		transitLocks.remove(key);
+	}
+
+	/**
+	 * Unlocks all transits.
+	 */
+	public void unlockAllTransits() {
+		transitLocks.clear();
+	}
 
     public void open() {
         try {
