@@ -227,6 +227,15 @@ public abstract class Gui implements Consumer<Terminable> {
 	}
 
 	/**
+	 * Returns true if the specified transit key is locked, or false if it wasn't locked but it is then locked prior to returning.
+	 * @param key The key.
+	 * @return True if the specified key was already locked, false if it wasn't and was just locked.
+	 */
+	public void getAndLockTransit(final String key) {
+		transitLocks.add(key);
+	}
+
+	/**
 	 * Unlocks the specified transit key.
 	 * @param key The key.
 	 */
