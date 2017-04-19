@@ -20,16 +20,28 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.plugin;
+package me.lucko.helper.scoreboard;
 
-/**
- * Dummy plugin to make the server load this lib.
- * Really just an alternative to shading it into another project.
- */
-public class DummyHelperPlugin extends ExtendedJavaPlugin {
+import me.lucko.helper.utils.LoaderUtils;
 
-    public DummyHelperPlugin() {
-        getLogger().info("Initialized helper v" + getDescription().getVersion());
+public final class Scoreboard {
+    private static PacketScoreboard scoreboard = null;
+
+    public static synchronized PacketScoreboard get() {
+        if (scoreboard == null) {
+            try {
+                Class.forName("com.comphenix.protocol.ProtocolManager");
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException("ProtocolLib not loaded");
+            }
+
+            scoreboard = new PacketScoreboard(LoaderUtils.getPlugin());
+        }
+
+        return scoreboard;
     }
 
+    private Scoreboard() {
+        throw new UnsupportedOperationException("This class cannot be instantiated");
+    }
 }
