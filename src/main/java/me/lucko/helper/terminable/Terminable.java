@@ -50,4 +50,12 @@ public interface Terminable {
         consumer.accept(this);
     }
 
+    /**
+     * Used to help cleanup held terminable instances in registries
+     * @return true if this terminable has been terminated already
+     */
+    default boolean hasTerminated() {
+        return false;
+    }
+
 }

@@ -674,6 +674,11 @@ public final class Events {
         }
 
         @Override
+        public boolean hasTerminated() {
+            return !active.get();
+        }
+
+        @Override
         public long getCallCounter() {
             return callCount.get();
         }
@@ -804,6 +809,11 @@ public final class Events {
         @Override
         public boolean isActive() {
             return active.get();
+        }
+
+        @Override
+        public boolean hasTerminated() {
+            return !active.get();
         }
 
         @Override
