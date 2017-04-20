@@ -22,6 +22,7 @@
 
 package me.lucko.helper.plugin;
 
+import me.lucko.helper.Scheduler;
 import me.lucko.helper.terminable.CompositeTerminable;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableRegistry;
@@ -64,6 +65,7 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
     private CommandMap commandMap = null;
 
     private final TerminableRegistry terminableRegistry = TerminableRegistry.create();
+    private boolean hasTask = false;
 
     @Override
     public final void onDisable() {
@@ -81,6 +83,14 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
     }
 
     public <T extends Terminable> T registerTerminable(T terminable) {
+        synchronized (terminableRegistry) {
+            if (!hasTask) {
+                hasTask = true;
+
+                Scheduler.runTaskRepeatingAsync(terminableRegistry::cleanup, 600L, 600L).register(terminableRegistry);
+            }
+        }
+
         terminableRegistry.accept(terminable);
         return terminable;
     }

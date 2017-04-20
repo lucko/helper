@@ -103,15 +103,30 @@ public final class Scheduler {
     }
 
     /**
+     * Get an Executor instance which will execute all passed runnables using the Bukkit scheduler thread pool
+     *
+     * Does not allow tasks to be posted if the backing plugin is not enabled.
+     *
+     * @return an "async" executor instance
+     */
+    public static synchronized Executor bukkitAsync() {
+        return BUKKIT_ASYNC_EXECUTOR;
+    }
+
+    /**
+     * Get an Executor instance which will execute all passed runnables using an internal thread pool
+     * @return an "async" executor instance
+     */
+    public static synchronized ExecutorService internalAsync() {
+        return ASYNC_EXECUTOR;
+    }
+
+    /**
      * Get an Executor instance which will execute all passed runnables using a thread pool
      * @return an "async" executor instance
      */
     public static synchronized Executor async() {
-        if (LoaderUtils.getPlugin().isEnabled()) {
-            return BUKKIT_ASYNC_EXECUTOR;
-        } else {
-            return ASYNC_EXECUTOR;
-        }
+        return LoaderUtils.getPlugin().isEnabled() ? bukkitAsync() : internalAsync();
     }
     
     public static BukkitScheduler bukkit() {
@@ -385,10 +400,6 @@ public final class Scheduler {
          */
         int getBukkitId();
 
-        @Override
-        default boolean terminate() {
-            return stop();
-        }
     }
 
     private static class TaskImpl extends BukkitRunnable implements Task {
@@ -434,6 +445,16 @@ public final class Scheduler {
         public int getBukkitId() {
             return getTaskId();
         }
+
+        @Override
+        public boolean terminate() {
+            return stop();
+        }
+
+        @Override
+        public boolean hasTerminated() {
+            return shouldStop.get();
+        }
     }
 
     private static class HelperFuture<T> extends CompletableFuture<T> implements Terminable {
@@ -474,6 +495,11 @@ public final class Scheduler {
         @Override
         public boolean terminate() {
             return cancel(true);
+        }
+
+        @Override
+        public boolean hasTerminated() {
+            return cancelled;
         }
     }
 

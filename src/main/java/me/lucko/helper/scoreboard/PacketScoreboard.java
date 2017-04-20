@@ -48,6 +48,8 @@ public class PacketScoreboard {
     private final ProtocolManager protocolManager;
 
     private final Map<String, PacketScoreboardTeam> teams = Collections.synchronizedMap(new HashMap<>());
+    private final Map<Player, Map<String, PacketScoreboardTeam>> playerTeams = Collections.synchronizedMap(new HashMap<>());
+
     private final Map<String, PacketScoreboardObjective> objectives = Collections.synchronizedMap(new HashMap<>());
     private final Map<Player, Map<String, PacketScoreboardObjective>> playerObjectives = Collections.synchronizedMap(new HashMap<>());
 
@@ -79,9 +81,17 @@ public class PacketScoreboard {
         });
         objectives.values().forEach(o -> o.unsubscribe(player, true));
 
-        Map<String, PacketScoreboardObjective> objectives = playerObjectives.remove(player);
-        if (objectives != null) {
-            objectives.values().forEach(o -> o.unsubscribe(player, true));
+        Map<String, PacketScoreboardObjective> playerObjectives = this.playerObjectives.remove(player);
+        if (playerObjectives != null) {
+            playerObjectives.values().forEach(o -> o.unsubscribe(player, true));
+        }
+
+        Map<String, PacketScoreboardTeam> playerTeams = this.playerTeams.remove(player);
+        if (playerTeams != null) {
+            playerTeams.values().forEach(t -> {
+                t.unsubscribe(player, true);
+                t.removePlayer(player);
+            });
         }
     }
 
@@ -95,6 +105,10 @@ public class PacketScoreboard {
 
         teams.put(id, team);
         return team;
+    }
+
+    PacketScoreboardTeam createTeam(String title) {
+        return createTeam(Long.toHexString(System.nanoTime()), title);
     }
 
     public PacketScoreboardTeam getTeam(String id) {
@@ -180,6 +194,45 @@ public class PacketScoreboard {
         return true;
     }
 
+    public PacketScoreboardTeam createPlayerTeam(Player player, String id, String title) {
+        Map<String, PacketScoreboardTeam> teams = playerTeams.computeIfAbsent(player, p -> new HashMap<>());
+        Preconditions.checkState(!teams.containsKey(id), "id already exists");
+
+        PacketScoreboardTeam team = new PacketScoreboardTeam(this, id, title);
+        team.subscribe(player);
+        teams.put(id, team);
+
+        return team;
+    }
+
+    public PacketScoreboardTeam createPlayerTeam(Player player, String title) {
+        return createPlayerTeam(player, Long.toHexString(System.nanoTime()), title);
+    }
+
+    public PacketScoreboardTeam getPlayerTeam(Player player, String id) {
+        Map<String, PacketScoreboardTeam> map = playerTeams.get(player);
+        if (map == null) {
+            return null;
+        }
+
+        return map.get(id);
+    }
+
+    public boolean removePlayerTeam(Player player, String id) {
+        Map<String, PacketScoreboardTeam> map = playerTeams.get(player);
+        if (map == null) {
+            return false;
+        }
+
+        PacketScoreboardTeam team = map.remove(id);
+        if (team == null) {
+            return false;
+        }
+
+        team.unsubscribeAll();
+        return true;
+    }
+
     void sendPacket(PacketContainer packet, Player player) {
         try {
             protocolManager.sendServerPacket(player, packet);
@@ -193,4 +246,5 @@ public class PacketScoreboard {
             sendPacket(packet, player);
         }
     }
+
 }

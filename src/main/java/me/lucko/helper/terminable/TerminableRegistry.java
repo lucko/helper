@@ -32,4 +32,6 @@ public interface TerminableRegistry extends Consumer<Terminable>, Terminable {
 
     <T extends CompositeTerminable> T bindTerminable(T terminable);
 
+    void cleanup();
+
 }

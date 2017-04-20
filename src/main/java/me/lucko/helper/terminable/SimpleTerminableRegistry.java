@@ -30,6 +30,7 @@ import java.util.List;
 
 final class SimpleTerminableRegistry implements TerminableRegistry {
     private final List<Terminable> terminables = Collections.synchronizedList(new ArrayList<>());
+    private boolean terminated = false;
 
     @Override
     public void accept(Terminable terminable) {
@@ -52,6 +53,17 @@ final class SimpleTerminableRegistry implements TerminableRegistry {
             }
         });
         terminables.clear();
+        terminated = true;
         return true;
+    }
+
+    @Override
+    public boolean hasTerminated() {
+        return terminated;
+    }
+
+    @Override
+    public void cleanup() {
+        terminables.removeIf(Terminable::hasTerminated);
     }
 }
