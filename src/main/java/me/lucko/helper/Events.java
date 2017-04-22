@@ -25,6 +25,7 @@ package me.lucko.helper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.metadata.Metadata;
 import me.lucko.helper.metadata.MetadataKey;
@@ -109,7 +110,19 @@ public final class Events {
      */
     public static <T> MergedHandlerBuilder<T> merge(Class<T> handledClass) {
         Preconditions.checkNotNull(handledClass, "handledClass");
-        return new MergedHandlerBuilderImpl<>(handledClass);
+        return new MergedHandlerBuilderImpl<>(TypeToken.of(handledClass));
+    }
+
+    /**
+     * Makes a MergedHandlerBuilder for a given super type
+     *
+     * @param type the super type of the event handler
+     * @param <T>  the super type class
+     * @return a {@link MergedHandlerBuilder} to construct the event handler
+     */
+    public static <T> MergedHandlerBuilder<T> merge(TypeToken<T> type) {
+        Preconditions.checkNotNull(type, "type");
+        return new MergedHandlerBuilderImpl<>(type);
     }
 
     /**
@@ -143,7 +156,7 @@ public final class Events {
             throw new IllegalArgumentException("merge method used for only one subclass");
         }
 
-        MergedHandlerBuilderImpl<S> h = new MergedHandlerBuilderImpl<>(superClass);
+        MergedHandlerBuilderImpl<S> h = new MergedHandlerBuilderImpl<>(TypeToken.of(superClass));
         for (Class<? extends S> clazz : eventClasses) {
             h.bindEvent(clazz, priority, e -> e);
         }
@@ -237,7 +250,7 @@ public final class Events {
          *
          * @return the handled class
          */
-        Class<T> getHandledClass();
+        Class<? super T> getHandledClass();
 
         /**
          * Gets a set of the individual event classes being listened to
@@ -709,7 +722,7 @@ public final class Events {
     }
 
     private static class MergedHandlerImpl<T> implements MergedHandler<T>, EventExecutor {
-        private final Class<T> handledClass;
+        private final TypeToken<T> handledClass;
         private final Map<Class<? extends Event>, HandlerMapping<T, ? extends Event>> mappings;
 
         private final long expiry;
@@ -848,8 +861,8 @@ public final class Events {
         }
 
         @Override
-        public Class<T> getHandledClass() {
-            return handledClass;
+        public Class<? super T> getHandledClass() {
+            return handledClass.getRawType();
         }
 
         @Override
@@ -956,7 +969,7 @@ public final class Events {
     }
 
     private static class MergedHandlerBuilderImpl<T> implements MergedHandlerBuilder<T> {
-        private final Class<T> handledClass;
+        private final TypeToken<T> handledClass;
         private final Map<Class<? extends Event>, HandlerMapping<T, ? extends Event>> mappings = new HashMap<>();
 
         private long expiry = -1;
@@ -964,7 +977,7 @@ public final class Events {
         private BiConsumer<Event, Throwable> exceptionConsumer = DEFAULT_EXCEPTION_CONSUMER;
         private List<Predicate<T>> filters = new ArrayList<>();
 
-        private MergedHandlerBuilderImpl(Class<T> handledClass) {
+        private MergedHandlerBuilderImpl(TypeToken<T> handledClass) {
             this.handledClass = handledClass;
         }
 
