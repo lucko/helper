@@ -80,6 +80,7 @@ public abstract class FileStorageHandler<T> {
     }
 
     public void saveAndBackup(T data) {
+        dataFolder.mkdirs();
         File file = new File(dataFolder, fileName + fileExtension);
         if (file.exists()) {
             File backupDir = new File(dataFolder, "backups");
