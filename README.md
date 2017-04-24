@@ -172,6 +172,62 @@ Events.subscribe(PlayerDeathEvent.class)
 
 Unlike Bukkit's system, metadata will be removed automatically when a player leaves the server, meaning you need-not worry about creating accidental memory leaks from left over metadata. The API also supports attaching metadata to blocks, worlds and other entities.
 
+### [`Commands`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/Commands.java)
+helper provides a very simple command abstraction, designed to reduce some of the boilerplate needed when writing simple commands.
+
+It doesn't have support for automatic argument parsing, sub commands, or anything like that. It's only purpose is removing the bloat from writing simple commands.
+
+Specifically:
+* Checking if the sender is a player/console sender, and then automatically casting.
+* Checking for permission status
+* Checking for argument usage
+* Checking if the sender is able to use the command.
+* Easily parsing arguments (not just a String[] like the Bukkit interface)
+
+For example, a simple /msg command condenses down into only a few lines.
+
+```java
+Commands.create()
+        .assertPermission("message.send")
+        .assertPlayer()
+        .assertUsage("<player> <message>")
+        .assertArgument(0, s -> Bukkit.getPlayerExact(s) != null, "&e{arg} is not online!")
+        .handler(c -> {
+            Player other = Bukkit.getPlayerExact(c.getArg(0));
+            Player sender = c.getSender();
+            String message = c.getArgs().subList(1, c.getArgs().size()).stream().collect(Collectors.joining(" "));
+            
+            other.sendMessage("[" + sender.getName() + " --> you] " + message);
+            other.sendMessage("[you --> " + sender.getName() + "] " + message);
+
+        })
+        .register(this, "msg");
+```
+
+All invalid usage/permission/argument messages can be altered when the command is built. Automatic casting also works for the console.
+
+```java
+Commands.create()
+        .assertConsole("&cNice try ;)")
+        .handler(c -> {
+            ConsoleCommandSender sender = c.getSender();
+            
+            sender.sendMessage("Performing graceful shutdown!");
+            Scheduler.runTaskRepeatingSync(task -> {
+                int countdown = 5 - task.getTimesRan();
+                
+                if (countdown <= 0) {
+                    Bukkit.shutdown();
+                    return;
+                }
+                
+                Players.forEach(p -> p.sendMessage("Server restarting in " + countdown + " seconds!"));
+                
+            }, 20L, 20L);
+        })
+        .register(this, "shutdown");
+```
+
 ### [`GUI`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/menu/Gui.java)
 helper provides a very simple yet functional GUI abstraction class.
 
@@ -259,7 +315,7 @@ You can either install the standalone helper plugin your server, or shade the cl
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>1.4.1</version>
+        <version>1.4.4</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -275,6 +331,6 @@ repositories {
 }
 
 dependencies {
-    compile ("me.lucko:helper:1.4.1")
+    compile ("me.lucko:helper:1.4.4")
 }
 ```
