@@ -39,9 +39,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Holds {@link MetadataMap}s bound to players.
- *
- * Maps are removed when players quit the server.
+ * Holds {@link MetadataMap}s bound to players, entities, blocks and worlds.
  */
 public final class Metadata {
 
