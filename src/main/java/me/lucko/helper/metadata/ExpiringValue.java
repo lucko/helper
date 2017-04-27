@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +29,11 @@ import com.google.common.base.Preconditions;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Represents a value which will expire in the future
+ *
+ * @param <T> the wrapped value type
+ */
 public final class ExpiringValue<T> implements TransientValue<T> {
 
     public static <T> ExpiringValue<T> of(T value, long duration, TimeUnit unit) {

@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -33,17 +36,22 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public final class Players {
 
+    public static Collection<? extends Player> all() {
+        return Bukkit.getOnlinePlayers();
+    }
+
     public static Stream<? extends Player> stream() {
-        return Bukkit.getOnlinePlayers().stream();
+        return all().stream();
     }
 
     public static void forEach(Consumer<Player> consumer) {
-        Bukkit.getOnlinePlayers().forEach(consumer);
+        all().forEach(consumer);
     }
 
     public static Stream<? extends Player> streamInRange(Location center, double radius) {

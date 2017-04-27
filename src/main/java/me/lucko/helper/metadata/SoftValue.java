@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +29,11 @@ import com.google.common.base.Preconditions;
 
 import java.lang.ref.SoftReference;
 
+/**
+ * Represents a value wrapped in a {@link SoftReference}
+ *
+ * @param <T> the wrapped value type
+ */
 public final class SoftValue<T> implements TransientValue<T> {
 
     public static <T> SoftValue<T> of(T value) {

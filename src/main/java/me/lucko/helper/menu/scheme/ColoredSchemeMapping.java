@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +34,9 @@ import org.bukkit.Material;
 
 import java.util.Map;
 
+/**
+ * Represents a scheme mapping for a set of colored blocks. (glass, wool, clay, etc)
+ */
 class ColoredSchemeMapping implements SchemeMapping {
     private final Material material;
     private final Map<Integer, Item> mapping;

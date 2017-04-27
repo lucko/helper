@@ -198,7 +198,7 @@ Commands.create()
             String message = c.getArgs().subList(1, c.getArgs().size()).stream().collect(Collectors.joining(" "));
             
             other.sendMessage("[" + sender.getName() + " --> you] " + message);
-            other.sendMessage("[you --> " + sender.getName() + "] " + message);
+            sender.sendMessage("[you --> " + sender.getName() + "] " + message);
 
         })
         .register(this, "msg");

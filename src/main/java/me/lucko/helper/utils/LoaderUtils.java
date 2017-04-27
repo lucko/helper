@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +28,9 @@ package me.lucko.helper.utils;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+/**
+ * Provides the instance which loaded the helper classes into the server
+ */
 public final class LoaderUtils {
     private static JavaPlugin plugin = null;
 

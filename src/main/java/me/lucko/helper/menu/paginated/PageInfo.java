@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +25,10 @@
 
 package me.lucko.helper.menu.paginated;
 
+/**
+ * Represents data about a currently open page in a {@link PaginatedGui}.
+ */
 public final class PageInfo {
-
     public static PageInfo create(int current, int size) {
         return new PageInfo(current, size);
     }

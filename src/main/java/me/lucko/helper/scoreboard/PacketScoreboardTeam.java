@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -48,41 +51,75 @@ public class PacketScoreboardTeam {
     private static final int MODE_ADD_PLAYERS = 3;
     private static final int MODE_REMOVE_PLAYERS = 4;
 
+    // the name value in the Teams packet is limited to 16 chars
     private static final int MAX_PREFIX_LENGTH = 16;
     private static final int MAX_SUFFIX_LENGTH = MAX_PREFIX_LENGTH;
 
+    // the parent scoreboard
+    private final PacketScoreboard scoreboard;
+    // the id of this team
+    private final String id;
+
+    // the members of this team
     private final Set<Player> players = Collections.synchronizedSet(new HashSet<>());
+    // a set of the players subscribed to & receiving updates for this team
     private final Set<Player> subscribed = Collections.synchronizedSet(new HashSet<>());
 
-    private final PacketScoreboard scoreboard;
-    private final String id;
+    // the current display name
     private String displayName;
+    // the current prefix
     private String prefix = "";
+    // the current suffix
     private String suffix = "";
+    // if friendly fire is allowed
     private boolean allowFriendlyFire = true;
+    // if members of this team can see invisible members on the same team
     private boolean canSeeFriendlyInvisibles = true;
+    // the current nametag visibility
     private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
+    // the current collision rule
     private CollisionRule collisionRule = CollisionRule.ALWAYS;
 
+    /**
+     * Creates a new scoreboard team
+     *
+     * @param scoreboard the parent scoreboard
+     * @param id the id of this team
+     * @param displayName the initial display name
+     */
     public PacketScoreboardTeam(PacketScoreboard scoreboard, String id, String displayName) {
-        Preconditions.checkNotNull(scoreboard, "scoreboard");
-        Preconditions.checkNotNull(id, "id");
-        Preconditions.checkNotNull(displayName, "displayName");
-        this.scoreboard = scoreboard;
-        this.id = id;
-        this.displayName = displayName;
+        Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
+
+        this.scoreboard = Preconditions.checkNotNull(scoreboard, "scoreboard");
+        this.id = Preconditions.checkNotNull(id, "id");
+        this.displayName = Preconditions.checkNotNull(displayName, "displayName");
     }
 
+    /**
+     * Gets the id of this team
+     *
+     * @return the id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Gets the current display name of this team
+     *
+     * @return the display name
+     */
     public String getDisplayName() {
         return displayName;
     }
 
+    /**
+     * Lazily sets the display name to a new value and updates the teams subscribers
+     *
+     * @param displayName the new display name
+     */
     public void setDisplayName(String displayName) {
-        Preconditions.checkNotNull(displayName);
+        Preconditions.checkNotNull(displayName, "displayName");
         if (this.displayName.equals(displayName)) {
             return;
         }
@@ -91,11 +128,22 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
+    /**
+     * Gets the current prefix for this team
+     *
+     * @return the prefix
+     */
     public String getPrefix() {
         return prefix;
     }
 
+    /**
+     * Lazily sets the prefix to a new value and updates the teams subscribers
+     *
+     * @param prefix the new prefix
+     */
     public void setPrefix(String prefix) {
+        Preconditions.checkNotNull(prefix, "prefix");
         if (prefix.length() > MAX_PREFIX_LENGTH) {
             prefix = prefix.substring(0, MAX_PREFIX_LENGTH);
         }
@@ -107,11 +155,22 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
+    /**
+     * Gets the current suffix for this team
+     *
+     * @return the suffix
+     */
     public String getSuffix() {
         return suffix;
     }
 
+    /**
+     * Lazily sets the suffix to a new value and updates the teams subscribers
+     *
+     * @param suffix the new suffix
+     */
     public void setSuffix(String suffix) {
+        Preconditions.checkNotNull(suffix, "suffix");
         if (suffix.length() > MAX_SUFFIX_LENGTH) {
             suffix = suffix.substring(0, MAX_SUFFIX_LENGTH);
         }
@@ -123,10 +182,20 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
+    /**
+     * Gets if friendly fire is allowed
+     *
+     * @return true if friendly fire is allowed
+     */
     public boolean isAllowFriendlyFire() {
         return allowFriendlyFire;
     }
 
+    /**
+     * Lazily sets the friendly fire setting to new value and updates the teams subscribers
+     *
+     * @param allowFriendlyFire the new setting
+     */
     public void setAllowFriendlyFire(boolean allowFriendlyFire) {
         if (this.allowFriendlyFire == allowFriendlyFire) {
             return;
@@ -136,10 +205,20 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
+    /**
+     * Gets if members of this team can see invisible members on the same team
+     *
+     * @return true if members of this team can see invisible members on the same team
+     */
     public boolean isCanSeeFriendlyInvisibles() {
         return canSeeFriendlyInvisibles;
     }
 
+    /**
+     * Lazily sets the friendly invisibility setting to new value and updates the teams subscribers
+     *
+     * @param canSeeFriendlyInvisibles the new setting
+     */
     public void setCanSeeFriendlyInvisibles(boolean canSeeFriendlyInvisibles) {
         if (this.canSeeFriendlyInvisibles == canSeeFriendlyInvisibles) {
             return;
@@ -149,12 +228,22 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
+    /**
+     * Gets the current nametag visibility setting
+     *
+     * @return the nametag visibility
+     */
     public NameTagVisibility getNameTagVisibility() {
         return nameTagVisibility;
     }
 
+    /**
+     * Lazily sets the nametag visibility setting to new value and updates the teams subscribers
+     *
+     * @param nameTagVisibility the new setting
+     */
     public void setNameTagVisibility(NameTagVisibility nameTagVisibility) {
-        Preconditions.checkNotNull(nameTagVisibility);
+        Preconditions.checkNotNull(nameTagVisibility, "nameTagVisibility");
         if (this.nameTagVisibility.equals(nameTagVisibility)) {
             return;
         }
@@ -163,12 +252,22 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
+    /**
+     * Gets the current collision rule setting
+     *
+     * @return the collision rule
+     */
     public CollisionRule getCollisionRule() {
         return collisionRule;
     }
 
+    /**
+     * Lazily sets the collision rule setting to new value and updates the teams subscribers
+     *
+     * @param collisionRule the new setting
+     */
     public void setCollisionRule(CollisionRule collisionRule) {
-        Preconditions.checkNotNull(collisionRule);
+        Preconditions.checkNotNull(collisionRule, "collisionRule");
         if (this.collisionRule.equals(collisionRule)) {
             return;
         }
@@ -177,15 +276,30 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
-    public void addPlayer(Player player) {
+    /**
+     * Adds a player to this team
+     *
+     * @param player the player to add
+     * @return true if the player was added successfully
+     */
+    public boolean addPlayer(Player player) {
+        Preconditions.checkNotNull(player, "player");
         if (!players.add(player)) {
-            return;
+            return false;
         }
 
         scoreboard.broadcastPacket(subscribed, newPlayerPacket(player, false));
+        return true;
     }
 
+    /**
+     * Removes a player from this team
+     *
+     * @param player the player to remove
+     * @return true if the player was removed successfully
+     */
     public boolean removePlayer(Player player) {
+        Preconditions.checkNotNull(player, "player");
         if (!players.remove(player)) {
             return false;
         }
@@ -194,23 +308,51 @@ public class PacketScoreboardTeam {
         return true;
     }
 
+    /**
+     * Returns true if the given player is a member of this team
+     *
+     * @param player the player to check for
+     * @return true if the player is a member
+     */
     public boolean hasPlayer(Player player) {
+        Preconditions.checkNotNull(player, "player");
         return players.contains(player);
     }
 
+    /**
+     * Gets an immutable copy of the teams members
+     *
+     * @return the team members
+     */
     public Set<Player> getPlayers() {
         return ImmutableSet.copyOf(players);
     }
-    
+
+    /**
+     * Subscribes a player to this team
+     *
+     * @param player the player to subscribe
+     */
     public void subscribe(Player player) {
         scoreboard.sendPacket(newCreatePacket(), player);
         subscribed.add(player);
     }
 
+    /**
+     * Unsubscribes a player from this team
+     *
+     * @param player the player to unsubscribe
+     */
     public void unsubscribe(Player player) {
         unsubscribe(player, false);
     }
 
+    /**
+     * Unsubscribes a player from this team
+     *
+     * @param player the player to unsubscribe
+     * @param fast if true, the removal packet will not be sent (for use when the player is leaving)
+     */
     public void unsubscribe(Player player, boolean fast) {
         if (!subscribed.remove(player) || fast) {
             return;
@@ -219,6 +361,9 @@ public class PacketScoreboardTeam {
         scoreboard.sendPacket(newRemovePacket(), player);
     }
 
+    /**
+     * Unsubscribes all players from this team
+     */
     public void unsubscribeAll() {
         scoreboard.broadcastPacket(subscribed, newRemovePacket());
         subscribed.clear();
