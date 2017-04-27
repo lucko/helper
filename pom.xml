@@ -59,6 +59,13 @@
             <version>4.2.1</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.bukkit</groupId>
+            <artifactId>craftbukkit-1.11-R0.1</artifactId>
+            <version>1.11-R0.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/craftbukkit-1.11-R0.1.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <repositories>
