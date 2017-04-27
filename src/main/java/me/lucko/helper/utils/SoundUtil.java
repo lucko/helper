@@ -1,6 +1,7 @@
 
 package me.lucko.helper.utils;
 
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -12,6 +13,36 @@ import org.bukkit.entity.Player;
  * @author FakeNeth
  */
 public class SoundUtil {
+
+	/**
+	 * Plays the specified {@link Sound} at the specified {@link Location}.
+	 * @param sound The {@link Sound}.
+	 * @param location The {@link Location} to play the {@link Sound} at.
+	 */
+	public static void play(final Sound sound, final Location location) {
+		play(sound, 1, 4, location);
+	}
+
+	/**
+	 * Plays the specified {@link Sound} at the specified {@link Location}.
+	 * @param sound The {@link Sound}.
+	 * @param pitch The pitch.
+	 * @param location The {@link Location} to play the {@link Sound} at.
+	 */
+	public static void play(final Sound sound, final Number pitch, final Location location) {
+		play(sound, pitch, 4, location);
+	}
+
+	/**
+	 * Plays the specified {@link Sound} at the specified {@link Location}.
+	 * @param sound The {@link Sound}.
+	 * @param pitch The pitch.
+	 * @param volume The volume.
+	 * @param location The {@link Location} to play the {@link Sound} at.
+	 */
+	public static void play(final Sound sound, final Number pitch, final Number volume, final Location location) {
+		location.getWorld().playSound(location, sound, volume.floatValue(), pitch.floatValue());
+	}
 
 	/**
 	 * Plays the specified {@link Sound} to the specified {@link Player}s.

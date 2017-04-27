@@ -120,7 +120,7 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 		setPage(currentPage);
 		onRedraw();
 	}
-	
+
 	/**
 	 * @return If there is a previous paged relative to the current page.
 	 */
@@ -134,7 +134,6 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 	public boolean hasNextPage() {
 		return currentPage < totalPages;
 	}
-
 
 	/**
 	 * Called at the end of {@link #redraw()} after the current page has been updated.
@@ -161,8 +160,15 @@ public class PagedGui<T extends PagedItemable> extends Gui {
 			setItem(itemableSlots.get(slotIndex), itemIndex < totalItems ? itemables.get(itemIndex).getItem(this, itemIndex) : emptySlotItem.apply(
 					this));
 		}
-		
+
 		onPageUpdate();
+	}
+
+	/**
+	 * Refreshes the current page.
+	 */
+	public void refreshPage() {
+		setPage(currentPage);
 	}
 
 	/**
