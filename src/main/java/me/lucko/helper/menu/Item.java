@@ -28,24 +28,30 @@ package me.lucko.helper.menu;
 import com.google.common.base.Preconditions;
 
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * A clickable item in a {@link Gui}
  */
 public class Item {
 
-    private final Map<ClickType, Runnable> handlers;
+    public static Consumer<InventoryClickEvent> transformRunnable(Runnable runnable) {
+        return inventoryClickEvent -> runnable.run();
+    }
+
+    private final Map<ClickType, Consumer<InventoryClickEvent>> handlers;
     private final ItemStack itemStack;
 
-    public Item(Map<ClickType, Runnable> handlers, ItemStack itemStack) {
+    public Item(Map<ClickType, Consumer<InventoryClickEvent>> handlers, ItemStack itemStack) {
         this.handlers = Preconditions.checkNotNull(handlers, "handlers");
         this.itemStack = Preconditions.checkNotNull(itemStack, "itemStack");
     }
 
-    public Map<ClickType, Runnable> getHandlers() {
+    public Map<ClickType, Consumer<InventoryClickEvent>> getHandlers() {
         return handlers;
     }
 

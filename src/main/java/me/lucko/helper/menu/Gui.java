@@ -271,11 +271,11 @@ public abstract class Gui implements Consumer<Terminable> {
 
                     Item item = itemMap.get(slot);
                     if (item != null) {
-                        Map<ClickType, Runnable> handlers = item.getHandlers();
-                        Runnable handler = handlers.get(e.getClick());
+                        Map<ClickType, Consumer<InventoryClickEvent>> handlers = item.getHandlers();
+                        Consumer<InventoryClickEvent> handler = handlers.get(e.getClick());
                         if (handler != null) {
                             try {
-                                handler.run();
+                                handler.accept(e);
                             } catch (Exception ex) {
                                 ex.printStackTrace();
                             }

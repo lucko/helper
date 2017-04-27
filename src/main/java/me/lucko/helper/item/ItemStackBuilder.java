@@ -28,12 +28,14 @@ package me.lucko.helper.item;
 import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.menu.Item;
+import me.lucko.helper.utils.ImmutableCollectors;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -158,15 +160,47 @@ public class ItemStackBuilder {
         if (handler == null) {
             return new Item(ImmutableMap.of(), itemStack);
         } else {
-            return new Item(ImmutableMap.of(ClickType.RIGHT, handler, ClickType.LEFT, handler), itemStack);
+            return new Item(ImmutableMap.of(ClickType.RIGHT, Item.transformRunnable(handler), ClickType.LEFT, Item.transformRunnable(handler)), itemStack);
         }
     }
 
     public Item build(ClickType type, Runnable runnable) {
-        return new Item(ImmutableMap.of(type, runnable), itemStack);
+        return new Item(ImmutableMap.of(type, Item.transformRunnable(runnable)), itemStack);
     }
 
     public Item build(Runnable rightClick, Runnable leftClick) {
+        if (rightClick != null) {
+            if (leftClick != null) {
+                return new Item(ImmutableMap.of(ClickType.RIGHT, Item.transformRunnable(rightClick), ClickType.LEFT, Item.transformRunnable(leftClick)), itemStack);
+            } else {
+                return new Item(ImmutableMap.of(ClickType.RIGHT, Item.transformRunnable(rightClick)), itemStack);
+            }
+        } else {
+            if (leftClick != null) {
+                return new Item(ImmutableMap.of(ClickType.LEFT, Item.transformRunnable(leftClick)), itemStack);
+            } else {
+                return new Item(ImmutableMap.of(), itemStack);
+            }
+        }
+    }
+
+    public Item buildFromMap(Map<ClickType, Runnable> handlers) {
+        return new Item(ImmutableMap.copyOf(handlers).entrySet().stream().collect(ImmutableCollectors.toMap(Map.Entry::getKey, v -> Item.transformRunnable(v.getValue()))), itemStack);
+    }
+
+    public Item buildConsumer(Consumer<InventoryClickEvent> handler) {
+        if (handler == null) {
+            return new Item(ImmutableMap.of(), itemStack);
+        } else {
+            return new Item(ImmutableMap.of(ClickType.RIGHT, handler, ClickType.LEFT, handler), itemStack);
+        }
+    }
+
+    public Item buildConsumer(ClickType type, Consumer<InventoryClickEvent> runnable) {
+        return new Item(ImmutableMap.of(type, runnable), itemStack);
+    }
+
+    public Item buildConsumer(Consumer<InventoryClickEvent> rightClick, Consumer<InventoryClickEvent> leftClick) {
         if (rightClick != null) {
             if (leftClick != null) {
                 return new Item(ImmutableMap.of(ClickType.RIGHT, rightClick, ClickType.LEFT, leftClick), itemStack);
@@ -182,7 +216,7 @@ public class ItemStackBuilder {
         }
     }
 
-    public Item buildFromMap(Map<ClickType, Runnable> handlers) {
+    public Item buildFromConsumerMap(Map<ClickType, Consumer<InventoryClickEvent>> handlers) {
         return new Item(ImmutableMap.copyOf(handlers), itemStack);
     }
 

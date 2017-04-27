@@ -40,6 +40,9 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+/**
+ * A collection of Player related utilities
+ */
 public final class Players {
 
     public static Collection<? extends Player> all() {
@@ -52,6 +55,14 @@ public final class Players {
 
     public static void forEach(Consumer<Player> consumer) {
         all().forEach(consumer);
+    }
+
+    public static void forEachIfPlayer(Iterable<Object> objects, Consumer<Player> consumer) {
+        for (Object o : objects) {
+            if (o instanceof Player) {
+                consumer.accept(((Player) o));
+            }
+        }
     }
 
     public static Stream<? extends Player> streamInRange(Location center, double radius) {
