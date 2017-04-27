@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +25,12 @@
 
 package me.lucko.helper.metadata;
 
+import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.utils.Cooldown;
+
+import java.util.UUID;
 
 /**
  * A MetadataKey can be mapped to values in a {@link MetadataMap}.
@@ -43,6 +49,8 @@ public interface MetadataKey<T> {
      * @return a new metadata key
      */
     static <T> MetadataKey<T> create(String id, TypeToken<T> type) {
+        Preconditions.checkNotNull(id, "id");
+        Preconditions.checkNotNull(type, "type");
         return new SimpleMetadataKey<>(id, type);
     }
 
@@ -92,6 +100,10 @@ public interface MetadataKey<T> {
 
     static MetadataKey<Cooldown> createCooldownKey(String id) {
         return create(id, Cooldown.class);
+    }
+
+    static MetadataKey<UUID> createUuidKey(String id) {
+        return create(id, UUID.class);
     }
 
     /**

@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +25,8 @@
 
 package me.lucko.helper.plugin;
 
+import com.google.common.base.Preconditions;
+
 import me.lucko.helper.Scheduler;
 import me.lucko.helper.terminable.CompositeTerminable;
 import me.lucko.helper.terminable.Terminable;
@@ -43,6 +48,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.function.Consumer;
 
+/**
+ * An "extended" JavaPlugin instance, providing a built in {@link TerminableRegistry}, and methods to easily register
+ * commands at runtime, and provide/retrieve services from the Bukkit ServiceManager.
+ */
 public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<Terminable> {
     private static Constructor<?> commandConstructor;
     private static Field owningPluginField;
@@ -67,22 +76,7 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
     private final TerminableRegistry terminableRegistry = TerminableRegistry.create();
     private boolean hasTask = false;
 
-    @Override
-    public final void onDisable() {
-        terminableRegistry.terminate();
-    }
-
-    public <T extends Listener> T registerListener(T listener) {
-        getServer().getPluginManager().registerEvents(listener, this);
-        return listener;
-    }
-
-    @Override
-    public void accept(Terminable terminable) {
-        registerTerminable(terminable);
-    }
-
-    public <T extends Terminable> T registerTerminable(T terminable) {
+    private void setupTerminableCleanupTask() {
         synchronized (terminableRegistry) {
             if (!hasTask) {
                 hasTask = true;
@@ -90,20 +84,73 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
                 Scheduler.runTaskRepeatingAsync(terminableRegistry::cleanup, 600L, 600L).register(terminableRegistry);
             }
         }
+    }
 
+    @Override
+    public final void onDisable() {
+        terminableRegistry.terminate();
+    }
+
+    /**
+     * Register a listener with the server.
+     *
+     * <p>{@link me.lucko.helper.Events} should be used instead of this method in most cases.</p>
+     *
+     * @param listener the listener to register
+     * @param <T> the listener class type
+     * @return the listener
+     */
+    public <T extends Listener> T registerListener(T listener) {
+        Preconditions.checkNotNull(listener, "listener");
+        getServer().getPluginManager().registerEvents(listener, this);
+        return listener;
+    }
+
+    /**
+     * Registers a terminable with this plugins {@link TerminableRegistry}
+     *
+     * @param terminable the terminable to register
+     */
+    @Override
+    public void accept(Terminable terminable) {
+        registerTerminable(terminable);
+    }
+
+    /**
+     * Registers a terminable with this plugins {@link TerminableRegistry}
+     *
+     * @param terminable the terminable to register
+     * @return the terminable
+     */
+    public <T extends Terminable> T registerTerminable(T terminable) {
+        setupTerminableCleanupTask();
         terminableRegistry.accept(terminable);
         return terminable;
     }
 
+    /**
+     * Binds a {@link CompositeTerminable} to this plugins {@link TerminableRegistry}
+     *
+     * @param terminable the composite terminable to bind
+     * @param <T> the terminable class type
+     * @return the composite terminable
+     */
     public <T extends CompositeTerminable> T bindTerminable(T terminable) {
-        terminable.bind(this);
+        setupTerminableCleanupTask();
+        terminableRegistry.bindTerminable(terminable);
         return terminable;
     }
 
+    /**
+     * Registers a CommandExecutor with the server
+     *
+     * @param command the command instance
+     * @param aliases the command aliases
+     * @param <T> the command executor class type
+     * @return the command executor
+     */
     public <T extends CommandExecutor> T registerCommand(T command, String... aliases) {
-        if (aliases.length == 0) {
-            throw new IllegalArgumentException("no aliases");
-        }
+        Preconditions.checkArgument(aliases.length != 0, "No aliases");
         for (String alias : aliases) {
             PluginCommand cmd = getServer().getPluginCommand(alias);
             if (cmd == null) {
@@ -145,25 +192,71 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
         return command;
     }
 
+    /**
+     * Gets a service provided by the ServiceManager
+     *
+     * @param service the service class
+     * @param <T> the class type
+     * @return the service
+     */
     public <T> T getService(Class<T> service) {
         return getServer().getServicesManager().load(service);
     }
 
+    /**
+     * Provides a service to the ServiceManager, bound to this plugin
+     *
+     * @param clazz the service class
+     * @param instance the instance
+     * @param priority the priority to register the service at
+     * @param <T> the service class type
+     * @return the instance
+     */
     public <T> T provideService(Class<T> clazz, T instance, ServicePriority priority) {
         getServer().getServicesManager().register(clazz, instance, this, priority);
         return instance;
     }
 
+    /**
+     * Provides a service to the ServiceManager, bound to this plugin at {@link ServicePriority#Normal}.
+     *
+     * @param clazz the service class
+     * @param instance the instance
+     * @param <T> the service class type
+     * @return the instance
+     */
     public <T> T provideService(Class<T> clazz, T instance) {
+        Preconditions.checkNotNull(clazz, "clazz");
+        Preconditions.checkNotNull(instance, "instance");
         return provideService(clazz, instance, ServicePriority.Normal);
     }
 
+    /**
+     * Gets a plugin instance for the given plugin name
+     *
+     * @param name the name of the plugin
+     * @param pluginClass the main plugin class
+     * @param <T> the main class type
+     * @return the plugin
+     */
     @SuppressWarnings("unchecked")
     public <T> T getPlugin(String name, Class<T> pluginClass) {
+        Preconditions.checkNotNull(name, "name");
+        Preconditions.checkNotNull(pluginClass, "pluginClass");
         return (T) getServer().getPluginManager().getPlugin(name);
     }
 
+    /**
+     * Gets a bundled file from the plugins resource folder.
+     *
+     * <p>If the file is not present, a version of it it copied from the jar.</p>
+     *
+     * @param name the name of the file
+     * @return the file
+     */
     public File getBundledFile(String name) {
+        Preconditions.checkNotNull(name, "name");
+        getDataFolder().mkdirs();
         File file = new File(getDataFolder(), name);
         if (!file.exists()) {
             saveResource(name, false);
@@ -171,7 +264,16 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
         return file;
     }
 
+    /**
+     * Loads a config file from a file name.
+     *
+     * <p>Behaves in the same was as {@link #getBundledFile(String)} when the file is not present.</p>
+     *
+     * @param file the name of the file
+     * @return the config instance
+     */
     public YamlConfiguration loadConfig(String file) {
+        Preconditions.checkNotNull(file, "file");
         return YamlConfiguration.loadConfiguration(getBundledFile(file));
     }
 

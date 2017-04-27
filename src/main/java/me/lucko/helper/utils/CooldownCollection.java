@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +25,7 @@
 
 package me.lucko.helper.utils;
 
+import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -29,17 +33,48 @@ import com.google.common.cache.LoadingCache;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+/**
+ * A collection of Cooldown instances
+ * @param <T> the key type
+ */
 public class CooldownCollection<T> {
 
+    /**
+     * Creates a new collection with the cooldown properties defined by the base instance
+     *
+     * @param base the cooldown to base off
+     * @return a new collection
+     */
     public static CooldownCollection<String> create(Cooldown base) {
+        Preconditions.checkNotNull(base, "base");
         return new CooldownCollection<>(s -> s, base);
     }
 
+    /**
+     * Creates a new collection with the cooldown properties defined by the base instance
+     *
+     * @param mappingFunc the mapping function from the key type --> String
+     * @param base the cooldown to base off
+     * @param <T> the key type
+     * @return a new collection
+     */
     public static <T> CooldownCollection<T> create(Function<T, String> mappingFunc, Cooldown base) {
+        Preconditions.checkNotNull(mappingFunc, "mappingFunc");
+        Preconditions.checkNotNull(base, "base");
         return new CooldownCollection<>(mappingFunc, base);
     }
 
+    /**
+     * Creates a new collection with the cooldown properties defined by the base instance
+     *
+     * <p>The mapping from key type --> string is defined by the behaviour of {@link Object#toString()}</p>
+     *
+     * @param base the cooldown to base off
+     * @param <T> the key type
+     * @return a new collection
+     */
     public static <T> CooldownCollection<T> createWithToString(Cooldown base) {
+        Preconditions.checkNotNull(base, "base");
         return new CooldownCollection<>(Object::toString, base);
     }
 
@@ -59,6 +94,15 @@ public class CooldownCollection<T> {
         this.mappingFunc = mappingFunc;
     }
 
+    /**
+     * Gets the internal cooldown instance associated with the given key
+     *
+     * <p>The inline Cooldown methods in this class should be used to access the functionality of the cooldown as opposed
+     * to calling the methods directly via the instance returned by this method.</p>
+     *
+     * @param t the key
+     * @return a cooldown instance
+     */
     public Cooldown get(T t) {
         return cache.getUnchecked(mappingFunc.apply(t));
     }

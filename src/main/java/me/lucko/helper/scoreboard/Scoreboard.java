@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +25,22 @@
 
 package me.lucko.helper.scoreboard;
 
+import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.utils.LoaderUtils;
 
+import org.bukkit.plugin.java.JavaPlugin;
+
+/**
+ * Contains a "global" scoreboard instance, lazily loaded on first request.
+ */
 public final class Scoreboard {
     private static PacketScoreboard scoreboard = null;
 
+    /**
+     * Gets the global scoreboard
+     * @return a scoreboard instance
+     * @throws IllegalStateException if ProtocolLib is not loaded
+     */
     public static synchronized PacketScoreboard get() {
         if (scoreboard == null) {
             try {
@@ -35,7 +49,12 @@ public final class Scoreboard {
                 throw new IllegalStateException("ProtocolLib not loaded");
             }
 
-            scoreboard = new PacketScoreboard(LoaderUtils.getPlugin());
+            JavaPlugin plugin = LoaderUtils.getPlugin();
+            if (plugin instanceof ExtendedJavaPlugin) {
+                scoreboard = new PacketScoreboard(((ExtendedJavaPlugin) plugin));
+            } else {
+                scoreboard = new PacketScoreboard();
+            }
         }
 
         return scoreboard;

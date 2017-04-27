@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +27,27 @@ package me.lucko.helper.terminable;
 
 import java.util.function.Consumer;
 
+/**
+ * Represents a registry for terminables
+ */
 public interface TerminableRegistry extends Consumer<Terminable>, Terminable {
 
     static TerminableRegistry create() {
         return new SimpleTerminableRegistry();
     }
 
+    /**
+     * Binds this registry to a composite terminable
+     *
+     * @param terminable the terminable to bind
+     * @param <T> the terminable class type
+     * @return the terminable instance
+     */
     <T extends CompositeTerminable> T bindTerminable(T terminable);
 
+    /**
+     * Removes instances which have already been terminated via {@link Terminable#hasTerminated()}
+     */
     void cleanup();
 
 }

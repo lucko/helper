@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +24,8 @@
  */
 
 package me.lucko.helper.menu;
+
+import com.google.common.base.Preconditions;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.Scheduler;
@@ -75,8 +80,8 @@ public abstract class Gui implements Consumer<Terminable> {
     private boolean valid = false;
 
     public Gui(Player player, int lines, String title) {
-        this.player = player;
-        this.initialTitle = Color.colorize(title);
+        this.player = Preconditions.checkNotNull(player, "player");
+        this.initialTitle = Color.colorize(Preconditions.checkNotNull(title, "title"));
         this.inventory = Bukkit.createInventory(player, lines * 9, this.initialTitle);
         this.itemMap = new HashMap<>();
     }
@@ -87,14 +92,29 @@ public abstract class Gui implements Consumer<Terminable> {
      */
     public abstract void redraw();
 
+    /**
+     * Gets the player viewing this Gui
+     *
+     * @return the player viewing this gui
+     */
     public Player getPlayer() {
         return player;
     }
 
+    /**
+     * Gets the delegate Bukkit inventory
+     *
+     * @return the bukkit inventory being wrapped by this instance
+     */
     public Inventory getHandle() {
         return inventory;
     }
 
+    /**
+     * Gets the initial title which was set when this GUI was made
+     *
+     * @return the initial title used when this GUI was made
+     */
     public String getInitialTitle() {
         return initialTitle;
     }
@@ -107,8 +127,9 @@ public abstract class Gui implements Consumer<Terminable> {
         this.fallbackGui = fallbackGui;
     }
 
-    public void addInvalidationCallback(Runnable r) {
-        terminableRegistry.accept(Terminable.of(r));
+    public void addInvalidationCallback(Runnable runnable) {
+        Preconditions.checkNotNull(runnable, "runnable");
+        terminableRegistry.accept(Terminable.of(runnable));
     }
 
     @Override
@@ -121,17 +142,21 @@ public abstract class Gui implements Consumer<Terminable> {
     }
 
     public void setItem(int slot, Item item) {
+        Preconditions.checkNotNull(item, "item");
         itemMap.put(slot, item);
         inventory.setItem(slot, item.getItemStack());
     }
 
     public void setItems(Item item, int... slots) {
+        Preconditions.checkNotNull(item, "item");
         for (int slot : slots) {
             setItem(slot, item);
         }
     }
 
     public void setItems(Iterable<Integer> slots, Item item) {
+        Preconditions.checkNotNull(item, "item");
+        Preconditions.checkNotNull(slots, "slots");
         for (int slot : slots) {
             setItem(slot, item);
         }
@@ -146,6 +171,7 @@ public abstract class Gui implements Consumer<Terminable> {
     }
 
     public void addItem(Item item) {
+        Preconditions.checkNotNull(item, "item");
         try {
             setItem(getFirstEmpty(), item);
         } catch (IndexOutOfBoundsException e) {
@@ -154,6 +180,7 @@ public abstract class Gui implements Consumer<Terminable> {
     }
 
     public void addItems(Iterable<Item> items) {
+        Preconditions.checkNotNull(items, "items");
         for (Item item : items) {
             addItem(item);
         }
@@ -171,6 +198,7 @@ public abstract class Gui implements Consumer<Terminable> {
     }
 
     public void removeItems(Iterable<Integer> slots) {
+        Preconditions.checkNotNull(slots, "slots");
         for (int slot : slots) {
             removeItem(slot);
         }
@@ -182,6 +210,7 @@ public abstract class Gui implements Consumer<Terminable> {
     }
 
     public void fillWith(Item item) {
+        Preconditions.checkNotNull(item, "item");
         for (int i = 0; i < inventory.getSize(); ++i) {
             setItem(i, item);
         }

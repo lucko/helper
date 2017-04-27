@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -29,17 +32,17 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Map;
 
+/**
+ * A clickable item in a {@link Gui}
+ */
 public class Item {
 
     private final Map<ClickType, Runnable> handlers;
     private final ItemStack itemStack;
 
     public Item(Map<ClickType, Runnable> handlers, ItemStack itemStack) {
-        Preconditions.checkNotNull(handlers, "handlers");
-        Preconditions.checkNotNull(itemStack, "itemStack");
-
-        this.handlers = handlers;
-        this.itemStack = itemStack;
+        this.handlers = Preconditions.checkNotNull(handlers, "handlers");
+        this.itemStack = Preconditions.checkNotNull(itemStack, "itemStack");
     }
 
     public Map<ClickType, Runnable> getHandlers() {

@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +40,9 @@ import org.bukkit.inventory.ItemStack;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * Specification class for a {@link PaginatedGui}.
+ */
 public class PaginatedGuiBuilder {
 
     public static final int DEFAULT_LINES = 6;
@@ -149,17 +155,17 @@ public class PaginatedGuiBuilder {
     }
 
     public PaginatedGuiBuilder scheme(MenuScheme scheme) {
-        this.scheme = scheme;
+        this.scheme = Preconditions.checkNotNull(scheme, "scheme");
         return this;
     }
 
     public PaginatedGuiBuilder nextPageItem(Function<PageInfo, ItemStack> nextPageItem) {
-        this.nextPageItem = nextPageItem;
+        this.nextPageItem = Preconditions.checkNotNull(nextPageItem, "nextPageItem");
         return this;
     }
 
     public PaginatedGuiBuilder previousPageItem(Function<PageInfo, ItemStack> previousPageItem) {
-        this.previousPageItem = previousPageItem;
+        this.previousPageItem = Preconditions.checkNotNull(previousPageItem, "previousPageItem");
         return this;
     }
 

@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +28,28 @@ package me.lucko.helper.utils;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
+/**
+ * A simple cooldown abstraction
+ */
 public class Cooldown implements LongSupplier {
 
+    /**
+     * Creates a cooldown lasting a number of game ticks
+     *
+     * @param ticks the number of ticks
+     * @return a new cooldown
+     */
     public static Cooldown ofTicks(long ticks) {
         return new Cooldown(ticks * 50L, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Creates a cooldown lasting a specified amount of time
+     *
+     * @param amount the amount of time
+     * @param unit the unit of time
+     * @return a new cooldown
+     */
     public static Cooldown of(long amount, TimeUnit unit) {
         return new Cooldown(amount, unit);
     }
@@ -48,7 +67,13 @@ public class Cooldown implements LongSupplier {
         lastCalled = TimeUtil.now() - timeout;
     }
 
-    // returns true if the cooldown is not active, and resets the timer
+    /**
+     * Returns true if the cooldown is not active, and then resets the timer
+     *
+     * <p>If the cooldown is currently active, the timer is <strong>not</strong> reset.</p>
+     *
+     * @return true if the cooldown is not active
+     */
     public boolean test() {
         if (!testSilently()) {
             return false;
@@ -58,24 +83,51 @@ public class Cooldown implements LongSupplier {
         return true;
     }
 
-    // returns true if the cooldown is not active
+    /**
+     * Returns true if the cooldown is not active
+     *
+     * @returntrue if the cooldown is not active
+     */
     public boolean testSilently() {
         return elapsed() > timeout;
     }
 
+    /**
+     * Returns the elapsed time in milliseconds since the cooldown was last reset, or since creation time
+     *
+     * @return the elapsed time
+     */
     public long elapsed() {
         return TimeUtil.now() - lastCalled;
     }
 
+    /**
+     * Resets the cooldown
+     */
     public void reset() {
         lastCalled = TimeUtil.now();
     }
 
+    /**
+     * Gets the time in milliseconds until the cooldown will become inactive.
+     *
+     * <p>If the cooldown is not active, this method returns <code>0</code>.</p>
+     *
+     * @return the time in millis until the cooldown will expire
+     */
     public long remainingMillis() {
         long diff = elapsed();
         return diff > timeout ? 0L : timeout - diff;
     }
 
+    /**
+     * Gets the time until the cooldown will become inactive.
+     *
+     * <p>If the cooldown is not active, this method returns <code>0</code>.</p>
+     *
+     * @param unit the unit to return in
+     * @return the time until the cooldown will expire
+     */
     public long remainingTime(TimeUnit unit) {
         return Math.max(0L, unit.convert(remainingMillis(), TimeUnit.MILLISECONDS));
     }
@@ -85,10 +137,20 @@ public class Cooldown implements LongSupplier {
         return remainingMillis();
     }
 
+    /**
+     * Gets the timeout in milliseconds for this cooldown
+     *
+     * @return the timeout in milliseconds
+     */
     public long getTimeout() {
         return timeout;
     }
 
+    /**
+     * Copies the properties of this cooldown to a new instance
+     *
+     * @return a cloned cooldown instance
+     */
     public Cooldown copy() {
         return new Cooldown(timeout, TimeUnit.MILLISECONDS);
     }

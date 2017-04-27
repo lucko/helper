@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -38,12 +41,14 @@ public final class TimeUtil {
         if (seconds == 0) {
             return "0s";
         }
+
         long minute = seconds / 60;
         seconds = seconds % 60;
         long hour = minute / 60;
         minute = minute % 60;
         long day = hour / 24;
         hour = hour % 24;
+
         StringBuilder time = new StringBuilder();
         if (day != 0) {
             time.append(day).append("d ");
@@ -57,6 +62,7 @@ public final class TimeUtil {
         if (seconds != 0) {
             time.append(seconds).append("s");
         }
+
         return time.toString().trim();
     }
 
@@ -64,12 +70,14 @@ public final class TimeUtil {
         if (seconds == 0) {
             return "0 seconds";
         }
+
         long minute = seconds / 60;
         seconds = seconds % 60;
         long hour = minute / 60;
         minute = minute % 60;
         long day = hour / 24;
         hour = hour % 24;
+
         StringBuilder time = new StringBuilder();
         if (day != 0) {
             time.append(day);
@@ -103,6 +111,7 @@ public final class TimeUtil {
         } else if (seconds > 1) {
             time.append(" seconds");
         }
+
         return time.toString().trim();
     }
 

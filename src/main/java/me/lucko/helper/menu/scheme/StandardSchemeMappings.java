@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +30,7 @@ import org.bukkit.Material;
 import java.util.Collections;
 
 /**
- * Contains a new standard schemes for use in a {@link MenuScheme}
+ * Contains a number of default {@link SchemeMapping}s.
  */
 public final class StandardSchemeMappings {
 

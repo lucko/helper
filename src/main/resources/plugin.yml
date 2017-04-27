@@ -5,3 +5,4 @@ description: ${project.description}
 main: me.lucko.helper.plugin.DummyHelperPlugin
 website: https://github.com/lucko/helper
 load: STARTUP
+softdepend: [ProtocolLib]

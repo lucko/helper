@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2017 Lucko (Luck) <luck@lucko.me>
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -47,8 +50,15 @@ import java.util.Set;
  * http://wiki.vg/Protocol#Display_Scoreboard
  */
 public class PacketScoreboardObjective {
+    // the objective value in the ScoreboardObjective packet is limited to 32 chars
     private static final int MAX_NAME_LENGTH = 32;
 
+    /**
+     * Trims a objective name to the max length of {@link #MAX_NAME_LENGTH}
+     *
+     * @param name the name to trim
+     * @return a trimmed version of name
+     */
     private static String trimName(String name) {
         return name.length() > MAX_NAME_LENGTH ? name.substring(0, MAX_NAME_LENGTH) : name;
     }
@@ -57,32 +67,61 @@ public class PacketScoreboardObjective {
     private static final int MODE_REMOVE = 1;
     private static final int MODE_UPDATE = 2;
 
+    // the parent scoreboard
     private final PacketScoreboard scoreboard;
+    // the id of this objective
     private final String id;
-    private String displayName;
-    private DisplaySlot displaySlot;
-    private Map<String, Integer> scores = Collections.synchronizedMap(new HashMap<>());
-    private Set<Player> subscribed = Collections.synchronizedSet(new HashSet<>());
 
+    // the current scores being shown
+    private final Map<String, Integer> scores = Collections.synchronizedMap(new HashMap<>());
+    // a set of the players subscribed to & receiving updates for this objective
+    private final Set<Player> subscribed = Collections.synchronizedSet(new HashSet<>());
+
+    // the current display name
+    private String displayName;
+    // the current display slot
+    private DisplaySlot displaySlot;
+
+    /**
+     * Creates a new scoreboard objective
+     *
+     * @param scoreboard the parent scoreboard
+     * @param id the id of this objective
+     * @param displayName the initial display name
+     * @param displaySlot the initial display slot
+     */
     public PacketScoreboardObjective(PacketScoreboard scoreboard, String id, String displayName, DisplaySlot displaySlot) {
-        Preconditions.checkNotNull(scoreboard, "scoreboard");
-        Preconditions.checkNotNull(id, "id");
-        Preconditions.checkNotNull(displayName, "displayName");
-        Preconditions.checkNotNull(displaySlot, "displaySlot");
-        this.scoreboard = scoreboard;
-        this.id = id;
-        this.displayName = displayName;
-        this.displaySlot = displaySlot;
+        Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
+
+        this.scoreboard = Preconditions.checkNotNull(scoreboard, "scoreboard");
+        this.id = Preconditions.checkNotNull(id, "id");
+        this.displayName = Preconditions.checkNotNull(displayName, "displayName");
+        this.displaySlot = Preconditions.checkNotNull(displaySlot, "displaySlot");
     }
 
+    /**
+     * Gets the id of this objective
+     *
+     * @return the id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Gets the current display name of this objective
+     *
+     * @return the display name
+     */
     public String getDisplayName() {
         return displayName;
     }
 
+    /**
+     * Lazily sets the display name to a new value and updates the objectives subscribers
+     *
+     * @param displayName the new display name
+     */
     public void setDisplayName(String displayName) {
         Preconditions.checkNotNull(displayName, "displayName");
         if (this.displayName.equals(displayName)) {
@@ -93,10 +132,20 @@ public class PacketScoreboardObjective {
         scoreboard.broadcastPacket(subscribed, newObjectivePacket(MODE_UPDATE));
     }
 
+    /**
+     * Gets the current display slot of this objective
+     *
+     * @return the display slot
+     */
     public DisplaySlot getDisplaySlot() {
         return displaySlot;
     }
 
+    /**
+     * Lazily sets the display slot to a new value and updates the objectives subscribers
+     *
+     * @param displaySlot the new display slot
+     */
     public void setDisplaySlot(DisplaySlot displaySlot) {
         Preconditions.checkNotNull(displaySlot, "displaySlot");
         if (this.displaySlot.equals(displaySlot)) {
@@ -107,21 +156,47 @@ public class PacketScoreboardObjective {
         scoreboard.broadcastPacket(subscribed, newDisplaySlotPacket(displaySlot));
     }
 
+    /**
+     * Gets an immutable copy of the current objective scores
+     *
+     * @return the current scores
+     */
     public Map<String, Integer> getScores() {
         return ImmutableMap.copyOf(scores);
     }
 
+    /**
+     * Returns true if this objective has a given score
+     *
+     * @param name the name of the score to check for
+     * @return true if the objective has the score
+     */
     public boolean hasScore(String name) {
+        Preconditions.checkNotNull(name, "name");
         name = trimName(name);
         return scores.containsKey(name);
     }
 
-    public int getScore(String name) {
+    /**
+     * Gets the value mapped to a given score, if present
+     *
+     * @param name the name of the score
+     * @return the value, or null if a mapping could not be found
+     */
+    public Integer getScore(String name) {
+        Preconditions.checkNotNull(name, "name");
         name = trimName(name);
         return scores.get(name);
     }
 
+    /**
+     * Sets a new score value
+     *
+     * @param name the name of the score
+     * @param value the value to set the score to
+     */
     public void setScore(String name, int value) {
+        Preconditions.checkNotNull(name, "name");
         name = trimName(name);
 
         Integer oldValue = scores.put(name, value);
@@ -132,7 +207,14 @@ public class PacketScoreboardObjective {
         scoreboard.broadcastPacket(subscribed, newScorePacket(name, value, false));
     }
 
+    /**
+     * Removes a score
+     *
+     * @param name the name of the score
+     * @return true if the score was removed
+     */
     public boolean removeScore(String name) {
+        Preconditions.checkNotNull(name, "name");
         name = trimName(name);
 
         if (scores.remove(name) == null) {
@@ -143,6 +225,9 @@ public class PacketScoreboardObjective {
         return true;
     }
 
+    /**
+     * Clears the scores from this objective
+     */
     public void clearScores() {
         scores.clear();
 
@@ -152,7 +237,14 @@ public class PacketScoreboardObjective {
         }
     }
 
+    /**
+     * Applies a score mapping to this objective
+     *
+     * @param scores the scores to apply
+     */
     public void applyScores(Map<String, Integer> scores) {
+        Preconditions.checkNotNull(scores, "scores");
+
         Set<String> toRemove = new HashSet<>(getScores().keySet());
         for (Map.Entry<String, Integer> score : scores.entrySet()) {
             toRemove.remove(trimName(score.getKey()));
@@ -165,11 +257,22 @@ public class PacketScoreboardObjective {
         }
     }
 
+    /**
+     * Automatically applies a set of score lines to this objective.
+     *
+     * @param lines the lines to apply
+     */
     public void applyLines(String... lines) {
         applyLines(Arrays.asList(lines));
     }
 
+    /**
+     * Automatically applies a set of score lines to this objective.
+     *
+     * @param lines the lines to apply
+     */
     public void applyLines(Collection<String> lines) {
+        Preconditions.checkNotNull(lines, "lines");
         Map<String, Integer> scores = new HashMap<>();
         int i = lines.size();
         for (String line : lines) {
@@ -178,7 +281,13 @@ public class PacketScoreboardObjective {
         applyScores(scores);
     }
 
+    /**
+     * Subscribes a player to this objective
+     *
+     * @param player the player to subscribe
+     */
     public void subscribe(Player player) {
+        Preconditions.checkNotNull(player, "player");
         scoreboard.sendPacket(newObjectivePacket(MODE_CREATE), player);
         scoreboard.sendPacket(newDisplaySlotPacket(getDisplaySlot()), player);
         for (Map.Entry<String, Integer> score : getScores().entrySet()) {
@@ -187,7 +296,23 @@ public class PacketScoreboardObjective {
         subscribed.add(player);
     }
 
+    /**
+     * Unsubscribes a player from this objective
+     *
+     * @param player the player to unsubscribe
+     */
+    public void unsubscribe(Player player) {
+        unsubscribe(player, false);
+    }
+
+    /**
+     * Unsubscribes a player from this objective
+     *
+     * @param player the player to unsubscribe
+     * @param fast if true, the removal packet will not be sent (for use when the player is leaving)
+     */
     public void unsubscribe(Player player, boolean fast) {
+        Preconditions.checkNotNull(player, "player");
         if (!subscribed.remove(player) || fast) {
             return;
         }
@@ -195,6 +320,9 @@ public class PacketScoreboardObjective {
         scoreboard.sendPacket(newObjectivePacket(MODE_REMOVE), player);
     }
 
+    /**
+     * Unsubscribes all players from this objective
+     */
     public void unsubscribeAll() {
         scoreboard.broadcastPacket(subscribed, newObjectivePacket(MODE_REMOVE));
         subscribed.clear();
@@ -266,7 +394,7 @@ public class PacketScoreboardObjective {
         return packet;
     }
 
-    public enum HealthDisplay {
+    private enum HealthDisplay {
         INTEGER, HEARTS;
     }
 }
