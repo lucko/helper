@@ -35,10 +35,10 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
 /**
- * An immutable and serializable block location object
+ * An immutable and serializable location object
  */
-public final class BlockPosition {
-    public static BlockPosition deserialize(JsonElement element) {
+public final class Position {
+    public static Position deserialize(JsonElement element) {
         Preconditions.checkArgument(element.isJsonObject());
         JsonObject object = element.getAsJsonObject();
 
@@ -47,49 +47,49 @@ public final class BlockPosition {
         Preconditions.checkArgument(object.has("z"));
         Preconditions.checkArgument(object.has("world"));
 
-        int x = object.get("x").getAsInt();
-        int y = object.get("y").getAsInt();
-        int z = object.get("z").getAsInt();
+        double x = object.get("x").getAsDouble();
+        double y = object.get("y").getAsDouble();
+        double z = object.get("z").getAsDouble();
         String world = object.get("world").getAsString();
 
         return of(x, y, z, world);
     }
 
-    public static BlockPosition of(int x, int y, int z, String world) {
-        return new BlockPosition(x, y, z, world);
+    public static Position of(double x, double y, double z, String world) {
+        return new Position(x, y, z, world);
     }
 
-    public static BlockPosition of(Location location) {
+    public static Position of(Location location) {
         return of(location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getWorld().getName());
     }
 
-    public static BlockPosition of(Block block) {
+    public static Position of(Block block) {
         return of(block.getLocation());
     }
 
-    private final int x;
-    private final int y;
-    private final int z;
+    private final double x;
+    private final double y;
+    private final double z;
     private final String world;
 
     private Location bukkitLocation = null;
 
-    private BlockPosition(int x, int y, int z, String world) {
+    private Position(double x, double y, double z, String world) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.world = world;
     }
 
-    public int getX() {
+    public double getX() {
         return this.x;
     }
 
-    public int getY() {
+    public double getY() {
         return this.y;
     }
 
-    public int getZ() {
+    public double getZ() {
         return this.z;
     }
 
@@ -105,31 +105,23 @@ public final class BlockPosition {
         return bukkitLocation.clone();
     }
 
-    public Block toBlock() {
-        return toLocation().getBlock();
+    public BlockPosition floor() {
+        return BlockPosition.of(bukkitFloor(x), bukkitFloor(y), bukkitFloor(z), world);
     }
 
-    public Position toPosition() {
-        return Position.of(x, y, z, world);
+    public Position getRelative(BlockFace face) {
+        return Position.of(x + face.getModX(), y + face.getModY(), z + face.getModZ(), world);
     }
 
-    public Position toPositionCenter() {
-        return Position.of(x + 0.5d, y + 0.5d, z + 0.5d, world);
+    public Position getRelative(BlockFace face, double distance) {
+        return Position.of(x + (face.getModX() * distance), y + (face.getModY() * distance), z + (face.getModZ() * distance), world);
     }
 
-    public BlockPosition getRelative(BlockFace face) {
-        return BlockPosition.of(x + face.getModX(), y + face.getModY(), z + face.getModZ(), world);
+    public Position add(double x, double y, double z) {
+        return Position.of(this.x + x, this.y + y, this.z + z, world);
     }
 
-    public BlockPosition getRelative(BlockFace face, int distance) {
-        return BlockPosition.of(x + (face.getModX() * distance), y + (face.getModY() * distance), z + (face.getModZ() * distance), world);
-    }
-
-    public BlockPosition add(int x, int y, int z) {
-        return BlockPosition.of(this.x + x, this.y + y, this.z + z, world);
-    }
-
-    public BlockPosition subtract(int x, int y, int z) {
+    public Position subtract(double x, double y, double z) {
         return add(-x, -y, -z);
     }
 
@@ -145,11 +137,11 @@ public final class BlockPosition {
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;
-        if (!(o instanceof BlockPosition)) return false;
-        final BlockPosition other = (BlockPosition) o;
-        return this.getX() == other.getX() &&
-                this.getY() == other.getY() &&
-                this.getZ() == other.getZ() &&
+        if (!(o instanceof Position)) return false;
+        final Position other = (Position) o;
+        return Double.compare(this.getX(), other.getX()) == 0 &&
+                Double.compare(this.getY(), other.getY()) == 0 &&
+                Double.compare(this.getZ(), other.getZ()) == 0 &&
                 (this.getWorld() == null ? other.getWorld() == null : this.getWorld().equals(other.getWorld()));
     }
 
@@ -157,16 +149,26 @@ public final class BlockPosition {
     public int hashCode() {
         final int PRIME = 59;
         int result = 1;
-        result = result * PRIME + this.getX();
-        result = result * PRIME + this.getY();
-        result = result * PRIME + this.getZ();
+
+        final long x = Double.doubleToLongBits(this.getX());
+        final long y = Double.doubleToLongBits(this.getY());
+        final long z = Double.doubleToLongBits(this.getZ());
+
+        result = result * PRIME + (int) (x >>> 32 ^ x);
+        result = result * PRIME + (int) (y >>> 32 ^ y);
+        result = result * PRIME + (int) (z >>> 32 ^ z);
         result = result * PRIME + (this.getWorld() == null ? 43 : this.getWorld().hashCode());
         return result;
     }
 
     @Override
     public String toString() {
-        return "BlockPosition(x=" + this.getX() + ", y=" + this.getY() + ", z=" + this.getZ() + ", world=" + this.getWorld() + ")";
+        return "Position(x=" + this.getX() + ", y=" + this.getY() + ", z=" + this.getZ() + ", world=" + this.getWorld() + ")";
+    }
+
+    private static int bukkitFloor(double num) {
+        final int floor = (int) num;
+        return floor == num ? floor : floor - (int) (Double.doubleToRawLongBits(num) >>> 63);
     }
 
 }
