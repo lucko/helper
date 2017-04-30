@@ -395,6 +395,6 @@ public class PacketScoreboardObjective {
     }
 
     private enum HealthDisplay {
-        INTEGER, HEARTS;
+        INTEGER, HEARTS
     }
 }

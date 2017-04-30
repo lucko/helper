@@ -58,7 +58,7 @@ public class Cooldown implements LongSupplier {
     private long lastCalled;
 
     // the cooldown duration in millis
-    private long timeout;
+    private final long timeout;
 
     private Cooldown(long amount, TimeUnit unit) {
         timeout = unit.toMillis(amount);
@@ -86,7 +86,7 @@ public class Cooldown implements LongSupplier {
     /**
      * Returns true if the cooldown is not active
      *
-     * @returntrue if the cooldown is not active
+     * @return true if the cooldown is not active
      */
     public boolean testSilently() {
         return elapsed() > timeout;
