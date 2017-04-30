@@ -109,7 +109,7 @@ class SimpleHologram implements Hologram {
                 // update existing line if necessary
                 ArmorStand as = spawnedEntities.get(i);
 
-                if (as.getCustomName().equals(line)) {
+                if (as.getCustomName() != null && as.getCustomName().equals(line)) {
                     continue;
                 }
 
@@ -142,6 +142,9 @@ class SimpleHologram implements Hologram {
     public void updateLines(List<String> lines) {
         Preconditions.checkNotNull(lines, "lines");
         Preconditions.checkArgument(!lines.isEmpty(), "lines cannot be empty");
+        for (String line : lines) {
+            Preconditions.checkArgument(line != null, "null line");
+        }
 
         List<String> ret = lines.stream().map(Color::colorize).collect(Collectors.toList());
         if (this.lines.equals(ret)) {

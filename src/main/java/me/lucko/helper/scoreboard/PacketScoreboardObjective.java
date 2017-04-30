@@ -31,6 +31,8 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
+import me.lucko.helper.utils.Color;
+
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 
@@ -95,7 +97,7 @@ public class PacketScoreboardObjective {
 
         this.scoreboard = Preconditions.checkNotNull(scoreboard, "scoreboard");
         this.id = Preconditions.checkNotNull(id, "id");
-        this.displayName = Preconditions.checkNotNull(displayName, "displayName");
+        this.displayName = Color.colorize(Preconditions.checkNotNull(displayName, "displayName"));
         this.displaySlot = Preconditions.checkNotNull(displaySlot, "displaySlot");
     }
 
@@ -124,6 +126,7 @@ public class PacketScoreboardObjective {
      */
     public void setDisplayName(String displayName) {
         Preconditions.checkNotNull(displayName, "displayName");
+        displayName = Color.colorize(displayName);
         if (this.displayName.equals(displayName)) {
             return;
         }
@@ -173,8 +176,7 @@ public class PacketScoreboardObjective {
      */
     public boolean hasScore(String name) {
         Preconditions.checkNotNull(name, "name");
-        name = trimName(name);
-        return scores.containsKey(name);
+        return scores.containsKey(Color.colorize(trimName(name)));
     }
 
     /**
@@ -185,8 +187,7 @@ public class PacketScoreboardObjective {
      */
     public Integer getScore(String name) {
         Preconditions.checkNotNull(name, "name");
-        name = trimName(name);
-        return scores.get(name);
+        return scores.get(Color.colorize(trimName(name)));
     }
 
     /**
@@ -247,13 +248,13 @@ public class PacketScoreboardObjective {
 
         Set<String> toRemove = new HashSet<>(getScores().keySet());
         for (Map.Entry<String, Integer> score : scores.entrySet()) {
-            toRemove.remove(trimName(score.getKey()));
+            toRemove.remove(Color.colorize(trimName(score.getKey())));
         }
         for (String name : toRemove) {
             removeScore(name);
         }
         for (Map.Entry<String, Integer> score : scores.entrySet()) {
-            setScore(score.getKey(), score.getValue());
+            setScore(Color.colorize(score.getKey()), score.getValue());
         }
     }
 
