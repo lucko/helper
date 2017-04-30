@@ -881,7 +881,7 @@ public final class Events {
         private long expiry = -1;
         private long maxCalls = -1;
         private BiConsumer<? super T, Throwable> exceptionConsumer = DEFAULT_EXCEPTION_CONSUMER;
-        private List<Predicate<T>> filters = new ArrayList<>();
+        private final List<Predicate<T>> filters = new ArrayList<>();
 
         private HandlerBuilderImpl(Class<T> eventClass, EventPriority priority) {
             this.eventClass = eventClass;
@@ -978,7 +978,7 @@ public final class Events {
         private long expiry = -1;
         private long maxCalls = -1;
         private BiConsumer<Event, Throwable> exceptionConsumer = DEFAULT_EXCEPTION_CONSUMER;
-        private List<Predicate<T>> filters = new ArrayList<>();
+        private final List<Predicate<T>> filters = new ArrayList<>();
 
         private MergedHandlerBuilderImpl(TypeToken<T> handledClass) {
             this.handledClass = handledClass;

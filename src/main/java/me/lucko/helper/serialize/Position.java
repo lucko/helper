@@ -60,7 +60,7 @@ public final class Position {
     }
 
     public static Position of(Location location) {
-        return of(location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getWorld().getName());
+        return of(location.getX(), location.getY(), location.getZ(), location.getWorld().getName());
     }
 
     public static Position of(Block block) {

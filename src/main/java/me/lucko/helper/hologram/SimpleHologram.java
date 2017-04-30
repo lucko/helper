@@ -66,7 +66,7 @@ class SimpleHologram implements Hologram {
         } else {
             // get the last entry
             ArmorStand last = spawnedEntities.get(spawnedEntities.size() - 1);
-            return Position.of(last.getLocation());
+            return Position.of(last.getLocation()).subtract(0.0d, 0.25d, 0.0d);
         }
     }
 

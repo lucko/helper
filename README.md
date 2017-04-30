@@ -1,5 +1,5 @@
 # helper [![Build Status](https://ci.lucko.me/job/helper/badge/icon)](https://ci.lucko.me/job/helper/)
-A utility to reduce boilerplate code in Bukkit plugins. This is just for my own use, but is open source'd on the off chance that someone else can make use of some of it.
+A utility to reduce boilerplate code in Bukkit plugins.
 
 ## Features
 ### [`Events`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/Events.java)
@@ -315,7 +315,7 @@ You can either install the standalone helper plugin your server, or shade the cl
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>1.4.6</version>
+        <version>1.4.7</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -331,6 +331,6 @@ repositories {
 }
 
 dependencies {
-    compile ("me.lucko:helper:1.4.6")
+    compile ("me.lucko:helper:1.4.7")
 }
 ```

@@ -88,7 +88,7 @@ public abstract class Gui implements Consumer<Terminable> {
 
     /**
      * Places items on the GUI. Called when the GUI is opened.
-     * Use {@link #isFirstDraw()} to determine if this is the first time {@link #redraw()} has been called.
+     * Use {@link #isFirstDraw()} to determine if this is the first time redraw has been called.
      */
     public abstract void redraw();
 
