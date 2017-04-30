@@ -6,11 +6,31 @@
 
     <groupId>me.lucko</groupId>
     <artifactId>helper</artifactId>
-    <version>1.4.7</version>
+    <version>1.5.0</version>
     <packaging>jar</packaging>
 
     <name>helper</name>
     <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
+    <url>https://github.com/lucko/helper</url>
+
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:https://github.com/lucko/helper.git</connection>
+        <developerConnection>scm:git:git@github.com:lucko/helper.git</developerConnection>
+        <url>https://github.com/lucko/helper</url>
+    </scm>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <skipTests>true</skipTests>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
 
     <distributionManagement>
         <snapshotRepository>
@@ -22,6 +42,16 @@
             <url>https://nexus.lucko.me/repository/maven-releases/</url>
         </repository>
     </distributionManagement>
+
+    <ciManagement>
+        <system>Jenkins</system>
+        <url>https://ci.lucko.me/job/helper</url>
+    </ciManagement>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/lucko/helper/issues</url>
+    </issueManagement>
 
     <build>
         <defaultGoal>clean package</defaultGoal>
@@ -44,7 +74,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.6.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>

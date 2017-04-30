@@ -30,6 +30,8 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
+import me.lucko.helper.utils.Color;
+
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -92,7 +94,7 @@ public class PacketScoreboardTeam {
 
         this.scoreboard = Preconditions.checkNotNull(scoreboard, "scoreboard");
         this.id = Preconditions.checkNotNull(id, "id");
-        this.displayName = Preconditions.checkNotNull(displayName, "displayName");
+        this.displayName = Color.colorize(Preconditions.checkNotNull(displayName, "displayName"));
     }
 
     /**
@@ -120,6 +122,7 @@ public class PacketScoreboardTeam {
      */
     public void setDisplayName(String displayName) {
         Preconditions.checkNotNull(displayName, "displayName");
+        displayName = Color.colorize(displayName);
         if (this.displayName.equals(displayName)) {
             return;
         }
@@ -144,6 +147,7 @@ public class PacketScoreboardTeam {
      */
     public void setPrefix(String prefix) {
         Preconditions.checkNotNull(prefix, "prefix");
+        prefix = Color.colorize(prefix);
         if (prefix.length() > MAX_PREFIX_LENGTH) {
             prefix = prefix.substring(0, MAX_PREFIX_LENGTH);
         }
@@ -171,6 +175,7 @@ public class PacketScoreboardTeam {
      */
     public void setSuffix(String suffix) {
         Preconditions.checkNotNull(suffix, "suffix");
+        suffix = Color.colorize(suffix);
         if (suffix.length() > MAX_SUFFIX_LENGTH) {
             suffix = suffix.substring(0, MAX_SUFFIX_LENGTH);
         }
