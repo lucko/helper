@@ -277,7 +277,7 @@ Events.subscribe(PlayerJoinEvent.class)
         .handler(e -> {
             // register a new scoreboard for the player when they join
             PacketScoreboard sb = Scoreboard.get();
-            PacketScoreboardObjective obj = sb.createPlayerObjective(e.getPlayer(), colorize("null"), DisplaySlot.SIDEBAR);
+            PacketScoreboardObjective obj = sb.createPlayerObjective(e.getPlayer(), "null", DisplaySlot.SIDEBAR);
             Metadata.provideForPlayer(e.getPlayer()).put(SCOREBOARD_KEY, obj);
 
             updater.accept(e.getPlayer(), obj);
