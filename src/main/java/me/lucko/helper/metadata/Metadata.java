@@ -25,19 +25,25 @@
 
 package me.lucko.helper.metadata;
 
+import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.Scheduler;
+import me.lucko.helper.serialize.BlockPosition;
 
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -48,7 +54,7 @@ public final class Metadata {
 
     private static LoadingCache<UUID, MetadataMap> players = null;
     private static LoadingCache<UUID, MetadataMap> entities = null;
-    private static LoadingCache<Integer, MetadataMap> blocks = null;
+    private static LoadingCache<BlockPosition, MetadataMap> blocks = null;
     private static LoadingCache<UUID, MetadataMap> worlds = null;
 
     // lazily load
@@ -113,6 +119,27 @@ public final class Metadata {
     }
 
     /**
+     * Gets a map of the players with a given metadata key
+     *
+     * @param key the key
+     * @param <T> the key type
+     * @return an immutable map of players to key value
+     */
+    public static <T> Map<Player, T> lookupPlayersWithKey(MetadataKey<T> key) {
+        Preconditions.checkNotNull("key", key);
+        setup();
+
+        ImmutableMap.Builder<Player, T> ret = ImmutableMap.builder();
+        players.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                ret.put(player, t);
+            }
+        }));
+        return ret.build();
+    }
+
+    /**
      * Gets a MetadataMap for the given entity.
      * A map will only be loaded when requested for.
      *
@@ -130,6 +157,27 @@ public final class Metadata {
     }
 
     /**
+     * Gets a map of the entities with a given metadata key
+     *
+     * @param key the key
+     * @param <T> the key type
+     * @return an immutable map of entity to key value
+     */
+    public static <T> Map<Entity, T> lookupEntitiesWithKey(MetadataKey<T> key) {
+        Preconditions.checkNotNull("key", key);
+        setup();
+
+        ImmutableMap.Builder<Entity, T> ret = ImmutableMap.builder();
+        entities.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
+            Entity entity = Bukkit.getEntity(uuid);
+            if (entity != null) {
+                ret.put(entity, t);
+            }
+        }));
+        return ret.build();
+    }
+
+    /**
      * Gets a MetadataMap for the given block.
      * A map will only be loaded when requested for.
      *
@@ -138,7 +186,56 @@ public final class Metadata {
      */
     public static MetadataMap provideForBlock(Block block) {
         setup();
-        return blocks.getUnchecked(block.hashCode());
+        return blocks.getUnchecked(BlockPosition.of(block));
+    }
+
+    /**
+     * Gets a map of the blocks with a given metadata key
+     *
+     * @param key the key
+     * @param <T> the key type
+     * @return an immutable map of block position to key value
+     */
+    public static <T> Map<BlockPosition, T> lookupBlocksWithKey(MetadataKey<T> key) {
+        Preconditions.checkNotNull("key", key);
+        setup();
+
+        ImmutableMap.Builder<BlockPosition, T> ret = ImmutableMap.builder();
+        blocks.asMap().forEach((pos, map) -> map.get(key).ifPresent(t -> ret.put(pos, t)));
+        return ret.build();
+    }
+
+    /**
+     * Gets a MetadataMap for the given world.
+     * A map will only be loaded when requested for.
+     *
+     * @param world the world
+     * @return a metadata map
+     */
+    public static MetadataMap provideForWorld(World world) {
+        setup();
+        return worlds.getUnchecked(world.getUID());
+    }
+
+    /**
+     * Gets a map of the worlds with a given metadata key
+     *
+     * @param key the key
+     * @param <T> the key type
+     * @return an immutable map of world to key value
+     */
+    public static <T> Map<World, T> lookupWorldsWithKey(MetadataKey<T> key) {
+        Preconditions.checkNotNull("key", key);
+        setup();
+
+        ImmutableMap.Builder<World, T> ret = ImmutableMap.builder();
+        worlds.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
+            World world = Bukkit.getWorld(uuid);
+            if (world != null) {
+                ret.put(world, t);
+            }
+        }));
+        return ret.build();
     }
 
     private Metadata() {
