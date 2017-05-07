@@ -6,7 +6,7 @@
 
     <groupId>me.lucko</groupId>
     <artifactId>helper</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.3</version>
     <packaging>jar</packaging>
 
     <name>helper</name>
@@ -60,6 +60,17 @@
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>
                 <filtering>true</filtering>
+                <includes>
+                    <include>*.yml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>${project.basedir}/src/main/resources/META-INF</directory>
+                <targetPath>./META-INF</targetPath>
+                <filtering>false</filtering>
+                <includes>
+                    <include>services/javax.annotation.processing.Processor</include>
+                </includes>
             </resource>
             <resource>
                 <directory>/</directory>
@@ -78,6 +89,8 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <!-- Disable annotation processing for ourselves -->
+                    <proc>none</proc>
                 </configuration>
             </plugin>
         </plugins>
