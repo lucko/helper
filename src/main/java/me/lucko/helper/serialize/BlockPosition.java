@@ -56,14 +56,17 @@ public final class BlockPosition {
     }
 
     public static BlockPosition of(int x, int y, int z, String world) {
+        Preconditions.checkNotNull(world, "world");
         return new BlockPosition(x, y, z, world);
     }
 
     public static BlockPosition of(Location location) {
+        Preconditions.checkNotNull(location, "location");
         return of(location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getWorld().getName());
     }
 
     public static BlockPosition of(Block block) {
+        Preconditions.checkNotNull(block, "block");
         return of(block.getLocation());
     }
 
@@ -118,10 +121,12 @@ public final class BlockPosition {
     }
 
     public BlockPosition getRelative(BlockFace face) {
+        Preconditions.checkNotNull(face, "face");
         return BlockPosition.of(x + face.getModX(), y + face.getModY(), z + face.getModZ(), world);
     }
 
     public BlockPosition getRelative(BlockFace face, int distance) {
+        Preconditions.checkNotNull(face, "face");
         return BlockPosition.of(x + (face.getModX() * distance), y + (face.getModY() * distance), z + (face.getModZ() * distance), world);
     }
 
@@ -131,6 +136,11 @@ public final class BlockPosition {
 
     public BlockPosition subtract(int x, int y, int z) {
         return add(-x, -y, -z);
+    }
+
+    public BlockRegion regionWith(BlockPosition other) {
+        Preconditions.checkNotNull(other, "other");
+        return BlockRegion.of(this, other);
     }
 
     public JsonObject serialize() {

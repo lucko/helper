@@ -68,7 +68,7 @@ public class MenuScheme {
     }
 
     public MenuScheme mask(String s) {
-        char[] chars = s.toCharArray();
+        char[] chars = s.replace(" ", "").toCharArray();
         if (chars.length != 9) {
             throw new IllegalArgumentException("invalid mask: " + s);
         }
@@ -77,7 +77,7 @@ public class MenuScheme {
             char c = chars[i];
             if (c == '1' || c == 't') {
                 ret[i] = true;
-            } else if (c == '0' || c == 'f') {
+            } else if (c == '0' || c == 'f' || c == 'x') {
                 ret[i] = false;
             } else {
                 throw new IllegalArgumentException("invalid mask character: " + c);
@@ -176,6 +176,10 @@ public class MenuScheme {
 
     public ImmutableList<Integer> getMaskedIndexesImmutable() {
         return ImmutableList.copyOf(getMaskedIndexes());
+    }
+
+    public MenuPopulator newPopulator(Gui gui) {
+        return new MenuPopulator(gui, this);
     }
 
     public MenuScheme copy() {
