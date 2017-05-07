@@ -23,31 +23,23 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.plugin;
-
-import me.lucko.helper.plugin.ap.Plugin;
-import me.lucko.helper.plugin.ap.PluginDependency;
-
-import org.bukkit.plugin.PluginLoadOrder;
+package me.lucko.helper.plugin.ap;
 
 /**
- * Dummy plugin to make the server load this lib.
- * Really just an alternative to shading it into another project.
+ * Represents a plugin dependency
  */
-@Plugin(
-        name = "MyPlugin",
-        version = "1.0",
-        description = "A cool plugin",
-        load = PluginLoadOrder.STARTUP,
-        authors = {"Luck", "Some other guy"},
-        website = "www.example.com",
-        depends = {@PluginDependency("Vault"), @PluginDependency(value = "ASpecialPlugin", soft = true)},
-        loadBefore = {"SomePlugin", "SomeOtherPlugin"}
-)
-public class DummyHelperPlugin extends ExtendedJavaPlugin {
+public @interface PluginDependency {
 
-    public DummyHelperPlugin() {
-        getLogger().info("Initialized helper v" + getDescription().getVersion());
-    }
+    /**
+     * The name of the plugin
+     * @return the name of the plugin
+     */
+    String value();
+
+    /**
+     * If this is a "soft" dependency
+     * @return true if this is a "soft" dependency
+     */
+    boolean soft() default false;
 
 }
