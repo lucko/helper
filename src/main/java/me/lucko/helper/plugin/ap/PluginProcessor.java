@@ -31,8 +31,10 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +82,14 @@ public class PluginProcessor extends AbstractProcessor {
         Plugin annotation = type.getAnnotation(Plugin.class);
 
         data.put("name", annotation.name());
-        data.put("version", annotation.version());
+
+        String version = annotation.version();
+        if (!version.isEmpty()) {
+            data.put("version", version);
+        } else {
+            data.put("version", new SimpleDateFormat("yyyy-MM-dd-HH-mm").format(new Date(System.currentTimeMillis())));
+        }
+
         data.put("main", type.getQualifiedName().toString());
 
         String description = annotation.description();
