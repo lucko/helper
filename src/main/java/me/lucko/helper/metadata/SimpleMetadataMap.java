@@ -289,7 +289,7 @@ final class SimpleMetadataMap implements MetadataMap {
                     throw new IllegalArgumentException("Transient value already expired: " + t);
                 }
 
-                map.put(key, value);
+                map.put(key, t);
                 return value;
             }
 

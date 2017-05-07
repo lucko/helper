@@ -56,14 +56,17 @@ public final class Position {
     }
 
     public static Position of(double x, double y, double z, String world) {
+        Preconditions.checkNotNull(world, "world");
         return new Position(x, y, z, world);
     }
 
     public static Position of(Location location) {
+        Preconditions.checkNotNull(location, "location");
         return of(location.getX(), location.getY(), location.getZ(), location.getWorld().getName());
     }
 
     public static Position of(Block block) {
+        Preconditions.checkNotNull(block, "block");
         return of(block.getLocation());
     }
 
@@ -110,10 +113,12 @@ public final class Position {
     }
 
     public Position getRelative(BlockFace face) {
+        Preconditions.checkNotNull(face, "face");
         return Position.of(x + face.getModX(), y + face.getModY(), z + face.getModZ(), world);
     }
 
     public Position getRelative(BlockFace face, double distance) {
+        Preconditions.checkNotNull(face, "face");
         return Position.of(x + (face.getModX() * distance), y + (face.getModY() * distance), z + (face.getModZ() * distance), world);
     }
 
@@ -123,6 +128,11 @@ public final class Position {
 
     public Position subtract(double x, double y, double z) {
         return add(-x, -y, -z);
+    }
+
+    public Region regionWith(Position other) {
+        Preconditions.checkNotNull(other, "other");
+        return Region.of(this, other);
     }
 
     public JsonObject serialize() {

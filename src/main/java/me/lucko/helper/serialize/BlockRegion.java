@@ -29,26 +29,26 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import org.bukkit.Location;
+import org.bukkit.block.Block;
 
 /**
- * An immutable and serializable region object
+ * An immutable and serializable block region object
  */
-public final class Region {
-    public static Region deserialize(JsonElement element) {
+public final class BlockRegion {
+    public static BlockRegion deserialize(JsonElement element) {
         Preconditions.checkArgument(element.isJsonObject());
         JsonObject object = element.getAsJsonObject();
 
         Preconditions.checkArgument(object.has("min"));
         Preconditions.checkArgument(object.has("max"));
 
-        Position a = Position.deserialize(object.get("min"));
-        Position b = Position.deserialize(object.get("max"));
+        BlockPosition a = BlockPosition.deserialize(object.get("min"));
+        BlockPosition b = BlockPosition.deserialize(object.get("max"));
 
         return of(a, b);
     }
 
-    public static Region of(Position a, Position b) {
+    public static BlockRegion of(BlockPosition a, BlockPosition b) {
         Preconditions.checkNotNull(a, "a");
         Preconditions.checkNotNull(b, "b");
 
@@ -56,58 +56,58 @@ public final class Region {
             throw new IllegalArgumentException("positions are in different worlds");
         }
 
-        return new Region(a, b);
+        return new BlockRegion(a, b);
     }
 
-    private final Position min;
-    private final Position max;
+    private final BlockPosition min;
+    private final BlockPosition max;
 
-    private final double width;
-    private final double height;
-    private final double depth;
+    private final int width;
+    private final int height;
+    private final int depth;
 
-    private Region(Position a, Position b) {
-        min = Position.of(Math.min(a.getX(), b.getX()), Math.min(a.getY(), b.getY()), Math.min(a.getZ(), b.getZ()), a.getWorld());
-        max = Position.of(Math.max(a.getX(), b.getX()), Math.max(a.getY(), b.getY()), Math.max(a.getZ(), b.getZ()), a.getWorld());
+    private BlockRegion(BlockPosition a, BlockPosition b) {
+        min = BlockPosition.of(Math.min(a.getX(), b.getX()), Math.min(a.getY(), b.getY()), Math.min(a.getZ(), b.getZ()), a.getWorld());
+        max = BlockPosition.of(Math.max(a.getX(), b.getX()), Math.max(a.getY(), b.getY()), Math.max(a.getZ(), b.getZ()), a.getWorld());
 
         width = max.getX() - min.getX();
         height = max.getY() - min.getX();
         depth = max.getZ() - min.getZ();
     }
 
-    public boolean inRegion(Position pos) {
+    public boolean inRegion(BlockPosition pos) {
         Preconditions.checkNotNull(pos, "pos");
         return pos.getWorld().equals(min.getWorld()) && inRegion(pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public boolean inRegion(Location loc) {
-        Preconditions.checkNotNull(loc, "loc");
-        return loc.getWorld().getName().equals(min.getWorld()) && inRegion(loc.getX(), loc.getY(), loc.getZ());
+    public boolean inRegion(Block block) {
+        Preconditions.checkNotNull(block, "block");
+        return block.getWorld().getName().equals(min.getWorld()) && inRegion(block.getX(), block.getY(), block.getZ());
     }
 
-    public boolean inRegion(double x, double y, double z) {
+    public boolean inRegion(int x, int y, int z) {
         return x >= min.getX() && x <= max.getX()
                 && y >= min.getY() && y <= max.getY()
                 && z >= min.getZ() && z <= max.getZ();
     }
 
-    public Position getMin() {
+    public BlockPosition getMin() {
         return this.min;
     }
 
-    public Position getMax() {
+    public BlockPosition getMax() {
         return this.max;
     }
 
-    public double getWidth() {
+    public int getWidth() {
         return this.width;
     }
 
-    public double getHeight() {
+    public int getHeight() {
         return this.height;
     }
 
-    public double getDepth() {
+    public int getDepth() {
         return this.depth;
     }
 
@@ -121,8 +121,8 @@ public final class Region {
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;
-        if (!(o instanceof Region)) return false;
-        final Region other = (Region) o;
+        if (!(o instanceof BlockRegion)) return false;
+        final BlockRegion other = (BlockRegion) o;
         return (this.getMin() == null ? other.getMin() == null : this.getMin().equals(other.getMin())) &&
                 (this.getMax() == null ? other.getMax() == null : this.getMax().equals(other.getMax()));
     }
@@ -138,7 +138,7 @@ public final class Region {
 
     @Override
     public String toString() {
-        return "Region(min=" + this.getMin() + ", max=" + this.getMax() + ")";
+        return "BlockRegion(min=" + this.getMin() + ", max=" + this.getMax() + ")";
     }
 
 }

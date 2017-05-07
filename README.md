@@ -435,7 +435,7 @@ You can either install the standalone helper plugin on your server, or shade the
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>1.5.0</version>
+        <version>1.5.2</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -451,7 +451,7 @@ repositories {
 }
 
 dependencies {
-    compile ("me.lucko:helper:1.5.0")
+    compile ("me.lucko:helper:1.5.2")
 }
 ```
 
