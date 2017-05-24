@@ -25,19 +25,24 @@
 
 package me.lucko.helper.serialize;
 
+import com.flowpowered.math.vector.Vector3i;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import me.lucko.helper.gson.GsonSerializable;
+import me.lucko.helper.gson.JsonBuilder;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
 /**
  * An immutable and serializable block location object
  */
-public final class BlockPosition {
+public final class BlockPosition implements GsonSerializable {
     public static BlockPosition deserialize(JsonElement element) {
         Preconditions.checkArgument(element.isJsonObject());
         JsonObject object = element.getAsJsonObject();
@@ -58,6 +63,21 @@ public final class BlockPosition {
     public static BlockPosition of(int x, int y, int z, String world) {
         Preconditions.checkNotNull(world, "world");
         return new BlockPosition(x, y, z, world);
+    }
+
+    public static BlockPosition of(int x, int y, int z, World world) {
+        Preconditions.checkNotNull(world, "world");
+        return of(x, y, z, world.getName());
+    }
+
+    public static BlockPosition of(Vector3i vector, String world) {
+        Preconditions.checkNotNull(world, "world");
+        return of(vector.getX(), vector.getY(), vector.getZ(), world);
+    }
+
+    public static BlockPosition of(Vector3i vector, World world) {
+        Preconditions.checkNotNull(world, "world");
+        return of(vector.getX(), vector.getY(), vector.getZ(), world);
     }
 
     public static BlockPosition of(Location location) {
@@ -108,6 +128,10 @@ public final class BlockPosition {
         return bukkitLocation.clone();
     }
 
+    public Vector3i toVector() {
+        return new Vector3i(x, y, z);
+    }
+
     public Block toBlock() {
         return toLocation().getBlock();
     }
@@ -118,6 +142,10 @@ public final class BlockPosition {
 
     public Position toPositionCenter() {
         return Position.of(x + 0.5d, y + 0.5d, z + 0.5d, world);
+    }
+
+    public ChunkPosition toChunk() {
+        return ChunkPosition.of(x >> 4, z >> 4, world);
     }
 
     public BlockPosition getRelative(BlockFace face) {
@@ -143,13 +171,14 @@ public final class BlockPosition {
         return BlockRegion.of(this, other);
     }
 
+    @Override
     public JsonObject serialize() {
-        JsonObject object = new JsonObject();
-        object.addProperty("x", x);
-        object.addProperty("y", y);
-        object.addProperty("z", z);
-        object.addProperty("world", world);
-        return object;
+        return JsonBuilder.object()
+                .add("x", x)
+                .add("y", y)
+                .add("z", z)
+                .add("world", world)
+                .build();
     }
 
     @Override

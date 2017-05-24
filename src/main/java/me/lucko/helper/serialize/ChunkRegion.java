@@ -32,26 +32,24 @@ import com.google.gson.JsonObject;
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.gson.JsonBuilder;
 
-import org.bukkit.block.Block;
-
 /**
- * An immutable and serializable block region object
+ * An immutable and serializable chunk region object
  */
-public final class BlockRegion implements GsonSerializable {
-    public static BlockRegion deserialize(JsonElement element) {
+public final class ChunkRegion implements GsonSerializable {
+    public static ChunkRegion deserialize(JsonElement element) {
         Preconditions.checkArgument(element.isJsonObject());
         JsonObject object = element.getAsJsonObject();
 
         Preconditions.checkArgument(object.has("min"));
         Preconditions.checkArgument(object.has("max"));
 
-        BlockPosition a = BlockPosition.deserialize(object.get("min"));
-        BlockPosition b = BlockPosition.deserialize(object.get("max"));
+        ChunkPosition a = ChunkPosition.deserialize(object.get("min"));
+        ChunkPosition b = ChunkPosition.deserialize(object.get("max"));
 
         return of(a, b);
     }
 
-    public static BlockRegion of(BlockPosition a, BlockPosition b) {
+    public static ChunkRegion of(ChunkPosition a, ChunkPosition b) {
         Preconditions.checkNotNull(a, "a");
         Preconditions.checkNotNull(b, "b");
 
@@ -59,55 +57,43 @@ public final class BlockRegion implements GsonSerializable {
             throw new IllegalArgumentException("positions are in different worlds");
         }
 
-        return new BlockRegion(a, b);
+        return new ChunkRegion(a, b);
     }
 
-    private final BlockPosition min;
-    private final BlockPosition max;
+    private final ChunkPosition min;
+    private final ChunkPosition max;
 
     private final int width;
-    private final int height;
     private final int depth;
 
-    private BlockRegion(BlockPosition a, BlockPosition b) {
-        min = BlockPosition.of(Math.min(a.getX(), b.getX()), Math.min(a.getY(), b.getY()), Math.min(a.getZ(), b.getZ()), a.getWorld());
-        max = BlockPosition.of(Math.max(a.getX(), b.getX()), Math.max(a.getY(), b.getY()), Math.max(a.getZ(), b.getZ()), a.getWorld());
+    private ChunkRegion(ChunkPosition a, ChunkPosition b) {
+        min = ChunkPosition.of(Math.min(a.getX(), b.getX()), Math.min(a.getZ(), b.getZ()), a.getWorld());
+        max = ChunkPosition.of(Math.max(a.getX(), b.getX()), Math.max(a.getZ(), b.getZ()), a.getWorld());
 
         width = max.getX() - min.getX();
-        height = max.getY() - min.getX();
         depth = max.getZ() - min.getZ();
     }
 
-    public boolean inRegion(BlockPosition pos) {
+    public boolean inRegion(ChunkPosition pos) {
         Preconditions.checkNotNull(pos, "pos");
-        return pos.getWorld().equals(min.getWorld()) && inRegion(pos.getX(), pos.getY(), pos.getZ());
+        return pos.getWorld().equals(min.getWorld()) && inRegion(pos.getX(), pos.getZ());
     }
 
-    public boolean inRegion(Block block) {
-        Preconditions.checkNotNull(block, "block");
-        return block.getWorld().getName().equals(min.getWorld()) && inRegion(block.getX(), block.getY(), block.getZ());
-    }
-
-    public boolean inRegion(int x, int y, int z) {
+    public boolean inRegion(int x, int z) {
         return x >= min.getX() && x <= max.getX()
-                && y >= min.getY() && y <= max.getY()
                 && z >= min.getZ() && z <= max.getZ();
     }
 
-    public BlockPosition getMin() {
+    public ChunkPosition getMin() {
         return this.min;
     }
 
-    public BlockPosition getMax() {
+    public ChunkPosition getMax() {
         return this.max;
     }
 
     public int getWidth() {
         return this.width;
-    }
-
-    public int getHeight() {
-        return this.height;
     }
 
     public int getDepth() {
@@ -125,8 +111,8 @@ public final class BlockRegion implements GsonSerializable {
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;
-        if (!(o instanceof BlockRegion)) return false;
-        final BlockRegion other = (BlockRegion) o;
+        if (!(o instanceof ChunkRegion)) return false;
+        final ChunkRegion other = (ChunkRegion) o;
         return (this.getMin() == null ? other.getMin() == null : this.getMin().equals(other.getMin())) &&
                 (this.getMax() == null ? other.getMax() == null : this.getMax().equals(other.getMax()));
     }
@@ -142,7 +128,7 @@ public final class BlockRegion implements GsonSerializable {
 
     @Override
     public String toString() {
-        return "BlockRegion(min=" + this.getMin() + ", max=" + this.getMax() + ")";
+        return "ChunkRegion(min=" + this.getMin() + ", max=" + this.getMax() + ")";
     }
 
 }

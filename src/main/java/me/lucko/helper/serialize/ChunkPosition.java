@@ -25,18 +25,23 @@
 
 package me.lucko.helper.serialize;
 
+import com.flowpowered.math.vector.Vector2i;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import me.lucko.helper.gson.GsonSerializable;
+import me.lucko.helper.gson.JsonBuilder;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 
 /**
  * An immutable and serializable chuck location object
  */
-public final class ChunkPosition {
+public final class ChunkPosition implements GsonSerializable {
     public static ChunkPosition deserialize(JsonElement element) {
         Preconditions.checkArgument(element.isJsonObject());
         JsonObject object = element.getAsJsonObject();
@@ -53,10 +58,29 @@ public final class ChunkPosition {
     }
 
     public static ChunkPosition of(int x, int z, String world) {
+        Preconditions.checkNotNull(world, "world");
         return new ChunkPosition(x, z, world);
     }
 
+    public static ChunkPosition of(int x, int z, World world) {
+        Preconditions.checkNotNull(world, "world");
+        return of(x, z, world.getName());
+    }
+
+    public static ChunkPosition of(Vector2i vector, String world) {
+        Preconditions.checkNotNull(vector, "vector");
+        Preconditions.checkNotNull(world, "world");
+        return of(vector.getX(), vector.getY(), world);
+    }
+
+    public static ChunkPosition of(Vector2i vector, World world) {
+        Preconditions.checkNotNull(vector, "vector");
+        Preconditions.checkNotNull(world, "world");
+        return of(vector.getX(), vector.getY(), world);
+    }
+
     public static ChunkPosition of(Chunk location) {
+        Preconditions.checkNotNull(location, "location");
         return of(location.getX(), location.getZ(), location.getWorld().getName());
     }
 
@@ -80,6 +104,10 @@ public final class ChunkPosition {
 
     public String getWorld() {
         return this.world;
+    }
+
+    public Vector2i toVector() {
+        return new Vector2i(x, z);
     }
 
     public synchronized Chunk toChunk() {
@@ -108,12 +136,13 @@ public final class ChunkPosition {
         return add(-x, -z);
     }
 
+    @Override
     public JsonObject serialize() {
-        JsonObject object = new JsonObject();
-        object.addProperty("x", x);
-        object.addProperty("z", z);
-        object.addProperty("world", world);
-        return object;
+        return JsonBuilder.object()
+                .add("x", x)
+                .add("z", z)
+                .add("world", world)
+                .build();
     }
 
     @Override

@@ -23,21 +23,47 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.gson;
 
-import java.util.function.Consumer;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
+import java.io.Reader;
 
 /**
- * A composite terminable is a class which combines a number of {@link Terminable}s, to be easily registered as one.
- *
- * CompositeTerminables can be registered with {@link TerminableRegistry#bindTerminable(CompositeTerminable)}
+ * Provides static instances of Gson
  */
-public interface CompositeTerminable {
+public final class GsonProvider {
 
-    /**
-     * Binds this composite terminable with a terminable consumer
-     * @param consumer the terminable consumer
-     */
-    void bind(Consumer<Terminable> consumer);
+    private static final Gson STANDARD = new Gson();
+    private static final Gson PRETTY_PRINT = new GsonBuilder().setPrettyPrinting().create();
 
+    public static Gson get() {
+        return STANDARD;
+    }
+
+    public static Gson getPrettyPrinting() {
+        return PRETTY_PRINT;
+    }
+
+    public static JsonObject readObject(Reader reader) {
+        return get().fromJson(reader, JsonObject.class);
+    }
+
+    public static JsonObject readObject(String s) {
+        return get().fromJson(s, JsonObject.class);
+    }
+
+    public static void writeObject(Appendable writer, JsonObject data) {
+        get().toJson(data, writer);
+    }
+
+    public static void writeObjectPretty(Appendable writer, JsonObject data) {
+        getPrettyPrinting().toJson(data, writer);
+    }
+
+    private GsonProvider() {
+        throw new UnsupportedOperationException("This class cannot be instantiated");
+    }
 }

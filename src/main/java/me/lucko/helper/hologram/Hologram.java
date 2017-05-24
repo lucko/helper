@@ -25,6 +25,7 @@
 
 package me.lucko.helper.hologram;
 
+import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.Terminable;
 
@@ -38,7 +39,7 @@ import java.util.function.Consumer;
  *
  * Should only be used from the server thread.
  */
-public interface Hologram extends Terminable {
+public interface Hologram extends Terminable, GsonSerializable {
 
     /**
      * Creates and returns a new hologram
