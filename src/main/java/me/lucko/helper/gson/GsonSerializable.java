@@ -23,21 +23,20 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.gson;
 
-import java.util.function.Consumer;
+import com.google.gson.JsonElement;
 
 /**
- * A composite terminable is a class which combines a number of {@link Terminable}s, to be easily registered as one.
- *
- * CompositeTerminables can be registered with {@link TerminableRegistry#bindTerminable(CompositeTerminable)}
+ * An object which can be serialized to JSON
  */
-public interface CompositeTerminable {
+public interface GsonSerializable {
 
     /**
-     * Binds this composite terminable with a terminable consumer
-     * @param consumer the terminable consumer
+     * Serializes the object to JSON
+     *
+     * @return a json form of this object
      */
-    void bind(Consumer<Terminable> consumer);
+    JsonElement serialize();
 
 }

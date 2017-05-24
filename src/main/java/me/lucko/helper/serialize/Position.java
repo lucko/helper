@@ -25,19 +25,24 @@
 
 package me.lucko.helper.serialize;
 
+import com.flowpowered.math.vector.Vector3d;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import me.lucko.helper.gson.GsonSerializable;
+import me.lucko.helper.gson.JsonBuilder;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
 /**
  * An immutable and serializable location object
  */
-public final class Position {
+public final class Position implements GsonSerializable {
     public static Position deserialize(JsonElement element) {
         Preconditions.checkArgument(element.isJsonObject());
         JsonObject object = element.getAsJsonObject();
@@ -58,6 +63,23 @@ public final class Position {
     public static Position of(double x, double y, double z, String world) {
         Preconditions.checkNotNull(world, "world");
         return new Position(x, y, z, world);
+    }
+
+    public static Position of(double x, double y, double z, World world) {
+        Preconditions.checkNotNull(world, "world");
+        return of(x, y, z, world.getName());
+    }
+
+    public static Position of(Vector3d vector, String world) {
+        Preconditions.checkNotNull(vector, "vector");
+        Preconditions.checkNotNull(world, "world");
+        return of(vector.getX(), vector.getY(), vector.getZ(), world);
+    }
+
+    public static Position of(Vector3d vector, World world) {
+        Preconditions.checkNotNull(vector, "vector");
+        Preconditions.checkNotNull(world, "world");
+        return of(vector.getX(), vector.getY(), vector.getZ(), world);
     }
 
     public static Position of(Location location) {
@@ -100,6 +122,10 @@ public final class Position {
         return this.world;
     }
 
+    public Vector3d toVector() {
+        return new Vector3d(x, y, z);
+    }
+
     public synchronized Location toLocation() {
         if (bukkitLocation == null) {
             bukkitLocation = new Location(Bukkit.getWorld(world), x, y, z);
@@ -135,13 +161,14 @@ public final class Position {
         return Region.of(this, other);
     }
 
+    @Override
     public JsonObject serialize() {
-        JsonObject object = new JsonObject();
-        object.addProperty("x", x);
-        object.addProperty("y", y);
-        object.addProperty("z", z);
-        object.addProperty("world", world);
-        return object;
+        return JsonBuilder.object()
+                .add("x", x)
+                .add("y", y)
+                .add("z", z)
+                .add("world", world)
+                .build();
     }
 
     @Override

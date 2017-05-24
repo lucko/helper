@@ -29,12 +29,15 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import me.lucko.helper.gson.GsonSerializable;
+import me.lucko.helper.gson.JsonBuilder;
+
 import org.bukkit.Location;
 
 /**
  * An immutable and serializable region object
  */
-public final class Region {
+public final class Region implements GsonSerializable {
     public static Region deserialize(JsonElement element) {
         Preconditions.checkArgument(element.isJsonObject());
         JsonObject object = element.getAsJsonObject();
@@ -111,11 +114,12 @@ public final class Region {
         return this.depth;
     }
 
+    @Override
     public JsonObject serialize() {
-        JsonObject object = new JsonObject();
-        object.add("min", min.serialize());
-        object.add("max", max.serialize());
-        return object;
+        return JsonBuilder.object()
+                .add("min", min)
+                .add("max", max)
+                .build();
     }
 
     @Override

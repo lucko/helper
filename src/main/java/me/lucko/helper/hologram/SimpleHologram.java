@@ -26,8 +26,10 @@
 package me.lucko.helper.hologram;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonObject;
 
 import me.lucko.helper.Events;
+import me.lucko.helper.gson.JsonBuilder;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.TerminableRegistry;
 import me.lucko.helper.utils.Color;
@@ -216,4 +218,11 @@ class SimpleHologram implements Hologram {
         return !spawned;
     }
 
+    @Override
+    public JsonObject serialize() {
+        return JsonBuilder.object()
+                .add("position", position)
+                .add("lines", JsonBuilder.array().addStrings(lines).build())
+                .build();
+    }
 }
