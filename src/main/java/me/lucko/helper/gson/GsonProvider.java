@@ -36,8 +36,13 @@ import java.io.Reader;
  */
 public final class GsonProvider {
 
-    private static final Gson STANDARD = new Gson();
-    private static final Gson PRETTY_PRINT = new GsonBuilder().setPrettyPrinting().create();
+    private static final Gson STANDARD = new GsonBuilder()
+            .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
+            .create();
+
+    private static final Gson PRETTY_PRINT = new GsonBuilder()
+            .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
+            .setPrettyPrinting().create();
 
     public static Gson get() {
         return STANDARD;

@@ -106,4 +106,20 @@ public abstract class FileStorageHandler<T> {
 
         saveToFile(file.toPath(), data);
     }
+
+    public void save(T data) {
+        dataFolder.mkdirs();
+        File file = new File(dataFolder, fileName + fileExtension);
+        if (file.exists()) {
+            file.delete();
+        }
+
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        saveToFile(file.toPath(), data);
+    }
 }

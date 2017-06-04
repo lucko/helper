@@ -28,7 +28,10 @@ package me.lucko.helper.gson;
 import com.google.gson.JsonElement;
 
 /**
- * An object which can be serialized to JSON
+ * An object which can be serialized to JSON.
+ *
+ * <p>Classes which implement this interface should also implement a static "deserialize" method,
+ * accepting {@link JsonElement} as the only parameter.</p>
  */
 public interface GsonSerializable {
 

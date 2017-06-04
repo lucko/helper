@@ -413,7 +413,9 @@ helper provides a few classes with are useful when trying to serialize plugin da
 * [`Position`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Position.java) - similar to Bukkit's location, but without pitch/yaw
 * [`BlockPosition`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/BlockPosition.java) - the location of a block within a world
 * [`ChunkPosition`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/ChunkPosition.java) - the location of a chunk within a world
-* [`Region`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Region.java) - the area bounded by two BlockPositions
+* [`Region`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Region.java) - the area bounded by two Positions
+* [`BlockRegion`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/BlockRegion.java) - the area bounded by two BlockPositions
+* [`ChunkRegion`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/ChunkRegion.java) - the area bounded by two ChunkPositions
 
 And finally, [`Serializers`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Serializers.java), containing serializers for ItemStacks and Inventories.
 
@@ -475,7 +477,7 @@ You can either install the standalone helper plugin on your server, or shade the
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>1.5.5</version>
+        <version>1.5.6</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -491,7 +493,7 @@ repositories {
 }
 
 dependencies {
-    compile ("me.lucko:helper:1.5.5")
+    compile ("me.lucko:helper:1.5.6")
 }
 ```
 
