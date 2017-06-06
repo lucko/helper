@@ -34,6 +34,7 @@ import me.lucko.helper.utils.Color;
 import me.lucko.helper.utils.Cooldown;
 import me.lucko.helper.utils.CooldownCollection;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -42,6 +43,7 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
@@ -59,6 +61,40 @@ public final class Commands {
     private static final String DEFAULT_INVALID_ARGUMENT_MESSAGE = "&cInvalid argument '{arg}' at index {index}.";
     private static final String DEFAULT_INVALID_SENDER_MESSAGE = "&cYou are not able to use this command.";
     private static final String DEFAULT_ON_COOLDOWN_MESSAGE = "&cPlease wait {seconds} seconds before trying again.";
+
+    // Some default assertions
+    public static final Predicate<String> ASSERTION_INTEGER = s -> {
+        try {
+            Integer.parseInt(s);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    };
+
+    public static final Predicate<String> ASSERTION_DOUBLE = s -> {
+        try {
+            Double.parseDouble(s);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    };
+
+    public static final Predicate<String> ASSERTION_UUID = s -> {
+        try {
+            UUID.fromString(s);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    };
+
+    @SuppressWarnings("deprecation")
+    public static final Predicate<String> ASSERTION_ONLINE_PLAYER = s -> Bukkit.getPlayerExact(s) != null;
+
+    @SuppressWarnings("deprecation")
+    public static final Predicate<String> ASSERTION_OFFLINE_PLAYER = s -> Bukkit.getOfflinePlayer(s) != null;
 
     /**
      * Creates and returns a new command builder

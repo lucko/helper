@@ -416,6 +416,8 @@ helper provides a few classes with are useful when trying to serialize plugin da
 * [`Region`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Region.java) - the area bounded by two Positions
 * [`BlockRegion`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/BlockRegion.java) - the area bounded by two BlockPositions
 * [`ChunkRegion`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/ChunkRegion.java) - the area bounded by two ChunkPositions
+* [`Direction`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Direction.java) - the yaw and pitch
+* [`Point`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Point.java) - a position + a direction
 
 And finally, [`Serializers`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Serializers.java), containing serializers for ItemStacks and Inventories.
 
@@ -477,7 +479,7 @@ You can either install the standalone helper plugin on your server, or shade the
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>1.5.6</version>
+        <version>1.5.8</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -493,7 +495,7 @@ repositories {
 }
 
 dependencies {
-    compile ("me.lucko:helper:1.5.6")
+    compile ("me.lucko:helper:1.5.8")
 }
 ```
 
