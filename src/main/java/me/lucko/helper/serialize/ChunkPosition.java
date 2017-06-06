@@ -128,8 +128,16 @@ public final class ChunkPosition implements GsonSerializable {
         return ChunkPosition.of(x + (face.getModX() * distance), z + (face.getModZ() * distance), world);
     }
 
+    public ChunkPosition add(Vector2i vector2i) {
+        return add(vector2i.getX(), vector2i.getY());
+    }
+
     public ChunkPosition add(int x, int z) {
         return ChunkPosition.of(this.x + x, this.z + z, world);
+    }
+
+    public ChunkPosition subtract(Vector2i vector2i) {
+        return subtract(vector2i.getX(), vector2i.getY());
     }
 
     public ChunkPosition subtract(int x, int z) {

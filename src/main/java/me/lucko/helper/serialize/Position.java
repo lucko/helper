@@ -26,6 +26,7 @@
 package me.lucko.helper.serialize;
 
 import com.flowpowered.math.vector.Vector3d;
+import com.flowpowered.math.vector.Vector3i;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -148,8 +149,24 @@ public final class Position implements GsonSerializable {
         return Position.of(x + (face.getModX() * distance), y + (face.getModY() * distance), z + (face.getModZ() * distance), world);
     }
 
+    public Position add(Vector3i vector3i) {
+        return add(vector3i.getX(), vector3i.getY(), vector3i.getZ());
+    }
+
+    public Position add(Vector3d vector3d) {
+        return add(vector3d.getX(), vector3d.getY(), vector3d.getZ());
+    }
+
     public Position add(double x, double y, double z) {
         return Position.of(this.x + x, this.y + y, this.z + z, world);
+    }
+
+    public Position subtract(Vector3i vector3i) {
+        return subtract(vector3i.getX(), vector3i.getY(), vector3i.getZ());
+    }
+
+    public Position subtract(Vector3d vector3d) {
+        return subtract(vector3d.getX(), vector3d.getY(), vector3d.getZ());
     }
 
     public Position subtract(double x, double y, double z) {
@@ -159,6 +176,10 @@ public final class Position implements GsonSerializable {
     public Region regionWith(Position other) {
         Preconditions.checkNotNull(other, "other");
         return Region.of(this, other);
+    }
+
+    public Point withDirection(Direction direction) {
+        return Point.of(this, direction);
     }
 
     @Override

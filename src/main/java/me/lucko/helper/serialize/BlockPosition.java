@@ -158,8 +158,16 @@ public final class BlockPosition implements GsonSerializable {
         return BlockPosition.of(x + (face.getModX() * distance), y + (face.getModY() * distance), z + (face.getModZ() * distance), world);
     }
 
+    public BlockPosition add(Vector3i vector3i) {
+        return add(vector3i.getX(), vector3i.getY(), vector3i.getZ());
+    }
+
     public BlockPosition add(int x, int y, int z) {
         return BlockPosition.of(this.x + x, this.y + y, this.z + z, world);
+    }
+
+    public BlockPosition subtract(Vector3i vector3i) {
+        return subtract(vector3i.getX(), vector3i.getY(), vector3i.getZ());
     }
 
     public BlockPosition subtract(int x, int y, int z) {
