@@ -6,7 +6,7 @@
 
     <groupId>me.lucko</groupId>
     <artifactId>helper</artifactId>
-    <version>1.5.8</version>
+    <version>1.5.9</version>
     <packaging>jar</packaging>
 
     <name>helper</name>
@@ -128,13 +128,13 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.11.2-R0.1-SNAPSHOT</version>
+            <version>1.12-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
-            <artifactId>ProtocolLib</artifactId>
-            <version>4.2.1</version>
+            <artifactId>ProtocolLib-API</artifactId>
+            <version>4.3.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
