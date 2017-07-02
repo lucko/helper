@@ -52,6 +52,8 @@ public interface Hologram extends Terminable, GsonSerializable {
      *
      * <p>Note: the hologram will not be spawned automatically.</p>
      *
+     * @param position the position of the hologram
+     * @param lines the initial lines to display
      * @return the new hologram.
      */
     static Hologram create(Position position, List<String> lines) {

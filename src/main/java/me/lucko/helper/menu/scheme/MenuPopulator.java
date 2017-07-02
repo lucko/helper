@@ -72,6 +72,15 @@ public class MenuPopulator {
     }
 
     /**
+     * Gets an immutable copy of the slots used by this populator.
+     *
+     * @return the slots used by this populator.
+     */
+    public ImmutableList<Integer> getSlots() {
+        return this.slots;
+    }
+
+    /**
      * Resets the slot order used by this populator to the state it was in upon construction
      */
     public void reset() {
@@ -119,6 +128,15 @@ public class MenuPopulator {
         int slot = remainingSlots.remove(0);
         gui.setItem(slot, item);
         return true;
+    }
+
+    /**
+     * Gets the number of remaining slots in the populator.
+     *
+     * @return the number of remaining slots
+     */
+    public int getRemainingSpace() {
+        return remainingSlots.size();
     }
 
     public MenuPopulator copy() {

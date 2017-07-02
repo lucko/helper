@@ -574,6 +574,7 @@ public final class Events {
         /**
          * Returns a predicate which only returns true if the entity has a given metadata key
          *
+         * @param key the metadata key
          * @param <T> the event type
          * @return a predicate which only returns true if the entity has a given metadata key
          */
@@ -582,6 +583,7 @@ public final class Events {
         /**
          * Returns a predicate which only returns true if the player has a given metadata key
          *
+         * @param key the metadata key
          * @param <T> the event type
          * @return a predicate which only returns true if the player has a given metadata key
          */

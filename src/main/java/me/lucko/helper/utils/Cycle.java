@@ -23,16 +23,57 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.plugin;
+package me.lucko.helper.utils;
+
+import com.google.common.collect.ImmutableList;
+
+import java.util.List;
 
 /**
- * Dummy plugin to make the server load this lib.
- * Really just an alternative to shading it into another project.
+ * A cycle of elements, backed by a list. All operations are thread safe.
+ *
+ * @param <E> the element type
  */
-public class DummyHelperPlugin extends ExtendedJavaPlugin {
+public class Cycle<E> {
+    private final List<E> objects;
+    private int index = 0;
 
-    public DummyHelperPlugin() {
-        getLogger().info("Initialized helper v" + getDescription().getVersion());
+    public Cycle(List<E> objects) {
+        if (objects == null || objects.isEmpty()) {
+            throw new IllegalArgumentException("List of objects cannot be null/empty.");
+        }
+        this.objects = ImmutableList.copyOf(objects);
     }
 
+    public int getIndex() {
+        return index;
+    }
+
+    public E current() {
+        synchronized (this) {
+            return objects.get(index);
+        }
+    }
+
+    public E next() {
+        synchronized (this) {
+            index++;
+            index = index > objects.size() - 1 ? 0 : index;
+
+            return objects.get(index);
+        }
+    }
+
+    public E back() {
+        synchronized (this) {
+            index--;
+            index = index == -1 ? objects.size() - 1 : index;
+
+            return objects.get(index);
+        }
+    }
+
+    public List<E> getBacking() {
+        return objects;
+    }
 }
