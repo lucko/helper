@@ -53,7 +53,7 @@ public class CooldownCollection<T> {
     /**
      * Creates a new collection with the cooldown properties defined by the base instance
      *
-     * @param mappingFunc the mapping function from the key type --> String
+     * @param mappingFunc the mapping function from the key type to String
      * @param base the cooldown to base off
      * @param <T> the key type
      * @return a new collection
@@ -67,7 +67,7 @@ public class CooldownCollection<T> {
     /**
      * Creates a new collection with the cooldown properties defined by the base instance
      *
-     * <p>The mapping from key type --> string is defined by the behaviour of {@link Object#toString()}</p>
+     * <p>The mapping from key type to string is defined by the behaviour of {@link Object#toString()}</p>
      *
      * @param base the cooldown to base off
      * @param <T> the key type

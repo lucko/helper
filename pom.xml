@@ -6,7 +6,7 @@
 
     <groupId>me.lucko</groupId>
     <artifactId>helper</artifactId>
-    <version>1.5.9</version>
+    <version>1.5.10</version>
     <packaging>jar</packaging>
 
     <name>helper</name>
@@ -118,6 +118,50 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>deployment</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.0.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <links>
+                                <link>https://google.github.io/guava/releases/21.0/api/docs/</link>
+                                <link>https://google.github.io/gson/apidocs/</link>
+                                <link>https://flowpowered.com/math/</link>
+                                <link>https://hub.spigotmc.org/javadocs/bukkit/</link>
+                            </links>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <dependencies>
         <dependency>
             <groupId>com.flowpowered</groupId>
@@ -147,10 +191,6 @@
         <repository>
             <id>luck-repo</id>
             <url>https://repo.lucko.me/</url>
-        </repository>
-        <repository>
-            <id>luck-ci-repo</id>
-            <url>https://ci.lucko.me/plugin/repository/everything/</url>
         </repository>
     </repositories>
 

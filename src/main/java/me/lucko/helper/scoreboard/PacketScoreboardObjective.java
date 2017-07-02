@@ -47,9 +47,9 @@ import java.util.Set;
 /**
  * Wrapper for PacketPlayOutScoreboardObjective, PacketPlayOutScoreboardScore and PacketPlayOutScoreboardDisplayObjective
  *
- * http://wiki.vg/Protocol#Scoreboard_Objective
- * http://wiki.vg/Protocol#Update_Score
- * http://wiki.vg/Protocol#Display_Scoreboard
+ * <p>http://wiki.vg/Protocol#Scoreboard_Objective</p>
+ * <p>http://wiki.vg/Protocol#Update_Score</p>
+ * <p>http://wiki.vg/Protocol#Display_Scoreboard</p>
  */
 public class PacketScoreboardObjective {
     // the objective value in the ScoreboardObjective packet is limited to 32 chars

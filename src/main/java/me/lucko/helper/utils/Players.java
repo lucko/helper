@@ -78,6 +78,12 @@ public final class Players {
                 .forEach(consumer);
     }
 
+    public static void msg(Player player, String... msgs) {
+        for (String s : msgs) {
+            player.sendMessage(Color.colorize(s));
+        }
+    }
+
     public static void playSound(Player player, Sound sound) {
         player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
     }

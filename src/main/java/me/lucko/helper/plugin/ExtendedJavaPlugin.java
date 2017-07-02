@@ -120,6 +120,7 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
      * Registers a terminable with this plugins {@link TerminableRegistry}
      *
      * @param terminable the terminable to register
+     * @param <T> the terminal type
      * @return the terminable
      */
     public <T extends Terminable> T registerTerminable(T terminable) {

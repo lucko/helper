@@ -1,5 +1,5 @@
 ![alt text](https://i.imgur.com/zllxTFp.png "Banner")
-# helper [![Build Status](https://ci.lucko.me/job/helper/badge/icon)](https://ci.lucko.me/job/helper/)
+# helper [![Build Status](https://ci.lucko.me/job/helper/badge/icon)](https://ci.lucko.me/job/helper/) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper/)
 A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing the same old stuff again and again. :)
 
 ## Feature Overview
@@ -479,7 +479,7 @@ You can either install the standalone helper plugin on your server, or shade the
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>1.5.9</version>
+        <version>1.5.10</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -495,7 +495,7 @@ repositories {
 }
 
 dependencies {
-    compile ("me.lucko:helper:1.5.9")
+    compile ("me.lucko:helper:1.5.10")
 }
 ```
 
