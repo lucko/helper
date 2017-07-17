@@ -1,0 +1,5 @@
+# The credentials for the global helper-redis instance.
+
+address: "localhost"
+port: 6379
+password: "passw0rd"

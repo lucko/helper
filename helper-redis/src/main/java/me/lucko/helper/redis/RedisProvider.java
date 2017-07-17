@@ -23,36 +23,36 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.sql;
+package me.lucko.helper.redis;
 
 /**
- * Provides {@link HelperDataSource} instances.
+ * Provides {@link HelperRedis} instances.
  */
-public interface SqlProvider {
+public interface RedisProvider {
 
     /**
-     * Gets the global datasource.
+     * Gets the global redis instance.
      *
-     * @return the global datasource.
+     * @return the global redis instance.
      */
-    HelperDataSource getDataSource();
+    HelperRedis getRedis();
 
     /**
-     * Constructs a new datasource using the given credentials.
+     * Constructs a new redis instance using the given credentials.
      *
-     * <p>These instances are not cached, and a new datasource is created each
+     * <p>These instances are not cached, and a new redis instance is created each
      * time this method is called.</p>
      *
-     * @param credentials the credentials for the database
-     * @return a new datasource
+     * @param credentials the credentials for the redis instance
+     * @return a new redis instance
      */
-    HelperDataSource getDataSource(DatabaseCredentials credentials);
+    HelperRedis getRedis(RedisCredentials credentials);
 
     /**
-     * Gets the global database credentials being used for the global datasource.
+     * Gets the global redis credentials being used for the global redis instance.
      *
      * @return the global credentials
      */
-    DatabaseCredentials getGlobalCredentials();
+    RedisCredentials getGlobalCredentials();
 
 }

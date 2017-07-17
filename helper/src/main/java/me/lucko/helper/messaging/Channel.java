@@ -23,36 +23,45 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.sql;
+package me.lucko.helper.messaging;
+
+import com.google.common.reflect.TypeToken;
 
 /**
- * Provides {@link HelperDataSource} instances.
+ * Represents an individual messaging channel.
+ *
+ * <p>Channels can be subscribed to through a {@link ChannelAgent}.</p>
+ *
+ * @param <T> the channel message type
  */
-public interface SqlProvider {
+public interface Channel<T> {
 
     /**
-     * Gets the global datasource.
+     * Gets the name of the channel.
      *
-     * @return the global datasource.
+     * @return the channel name
      */
-    HelperDataSource getDataSource();
+    String getName();
 
     /**
-     * Constructs a new datasource using the given credentials.
+     * Gets the channels message type.
      *
-     * <p>These instances are not cached, and a new datasource is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the database
-     * @return a new datasource
+     * @return the channels message type.
      */
-    HelperDataSource getDataSource(DatabaseCredentials credentials);
+    TypeToken<T> getType();
 
     /**
-     * Gets the global database credentials being used for the global datasource.
+     * Creates a new {@link ChannelAgent} for this channel.
      *
-     * @return the global credentials
+     * @return a new channel agent.
      */
-    DatabaseCredentials getGlobalCredentials();
+    ChannelAgent<T> newAgent();
+
+    /**
+     * Sends a new message to the channel.
+     *
+     * @param message the message to dispatch
+     */
+    void sendMessage(T message);
 
 }

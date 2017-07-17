@@ -23,36 +23,31 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.sql;
+package me.lucko.helper.redis;
+
+import me.lucko.helper.messaging.Messenger;
+import me.lucko.helper.terminable.Terminable;
+
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 /**
- * Provides {@link HelperDataSource} instances.
+ * Represents an individual redis instance, created by the library.
  */
-public interface SqlProvider {
+public interface HelperRedis extends Terminable, Messenger {
 
     /**
-     * Gets the global datasource.
+     * Gets the JedisPool instance backing the redis instance
      *
-     * @return the global datasource.
+     * @return the JedisPool instance
      */
-    HelperDataSource getDataSource();
+    JedisPool getJedisPool();
 
     /**
-     * Constructs a new datasource using the given credentials.
+     * Gets a Jedis instance from the JedisPool.
      *
-     * <p>These instances are not cached, and a new datasource is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the database
-     * @return a new datasource
+     * @return a jedis instance
      */
-    HelperDataSource getDataSource(DatabaseCredentials credentials);
-
-    /**
-     * Gets the global database credentials being used for the global datasource.
-     *
-     * @return the global credentials
-     */
-    DatabaseCredentials getGlobalCredentials();
+    Jedis getJedis();
 
 }

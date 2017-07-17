@@ -23,36 +23,46 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.sql;
+package me.lucko.helper.messaging;
+
+import com.google.common.base.Preconditions;
+import com.google.common.reflect.TypeToken;
 
 /**
- * Provides {@link HelperDataSource} instances.
+ * Represents an object which manages messaging {@link Channel}s.
  */
-public interface SqlProvider {
+public interface Messenger {
 
     /**
-     * Gets the global datasource.
+     * Gets a messaging channel by name.
      *
-     * @return the global datasource.
+     * @param name the name of the channel.
+     * @param type the channel message typetoken
+     * @param <T> the channel message type
+     * @return a channel
      */
-    HelperDataSource getDataSource();
+    <T> Channel<T> getChannel(String name, TypeToken<T> type);
 
     /**
-     * Constructs a new datasource using the given credentials.
+     * Gets a messaging channel by name.
      *
-     * <p>These instances are not cached, and a new datasource is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the database
-     * @return a new datasource
+     * @param name the name of the channel.
+     * @param clazz the channel message class
+     * @param <T> the channel message type
+     * @return a channel
      */
-    HelperDataSource getDataSource(DatabaseCredentials credentials);
+    default <T> Channel<T> getChannel(String name, Class<T> clazz) {
+        return getChannel(name, TypeToken.of(Preconditions.checkNotNull(clazz)));
+    }
 
     /**
-     * Gets the global database credentials being used for the global datasource.
+     * Gets a messaging channel by name, with the String type.
      *
-     * @return the global credentials
+     * @param name the name of the channel.
+     * @return a string channel
      */
-    DatabaseCredentials getGlobalCredentials();
+    default Channel<String> getChannel(String name) {
+        return getChannel(name, String.class);
+    }
 
 }

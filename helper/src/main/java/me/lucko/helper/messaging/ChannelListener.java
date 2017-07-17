@@ -23,36 +23,21 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.sql;
+package me.lucko.helper.messaging;
 
 /**
- * Provides {@link HelperDataSource} instances.
+ * Represents an object listening to messages sent on the channel.
+ *
+ * @param <T> the channel message type
  */
-public interface SqlProvider {
+public interface ChannelListener<T> {
 
     /**
-     * Gets the global datasource.
+     * Called when a message is posted to this listener.
      *
-     * @return the global datasource.
+     * @param agent the agent which forwarded the message.
+     * @param message the message
      */
-    HelperDataSource getDataSource();
-
-    /**
-     * Constructs a new datasource using the given credentials.
-     *
-     * <p>These instances are not cached, and a new datasource is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the database
-     * @return a new datasource
-     */
-    HelperDataSource getDataSource(DatabaseCredentials credentials);
-
-    /**
-     * Gets the global database credentials being used for the global datasource.
-     *
-     * @return the global credentials
-     */
-    DatabaseCredentials getGlobalCredentials();
+    void onMessage(ChannelAgent<T> agent, T message);
 
 }

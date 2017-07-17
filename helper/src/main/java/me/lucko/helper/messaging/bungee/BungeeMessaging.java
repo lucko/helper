@@ -23,7 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.network;
+package me.lucko.helper.messaging.bungee;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
