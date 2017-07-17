@@ -10,6 +10,7 @@
     
     <modules>
     	<module>helper</module>
+        <module>helper-sql</module>
     </modules>
 
     <name>helper-parent</name>
