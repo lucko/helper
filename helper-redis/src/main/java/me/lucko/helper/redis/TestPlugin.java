@@ -23,36 +23,29 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.sql;
+package me.lucko.helper.redis;
 
-/**
- * Provides {@link HelperDataSource} instances.
- */
-public interface SqlProvider {
+import me.lucko.helper.plugin.ExtendedJavaPlugin;
 
-    /**
-     * Gets the global datasource.
-     *
-     * @return the global datasource.
-     */
-    HelperDataSource getDataSource();
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPubSub;
 
-    /**
-     * Constructs a new datasource using the given credentials.
-     *
-     * <p>These instances are not cached, and a new datasource is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the database
-     * @return a new datasource
-     */
-    HelperDataSource getDataSource(DatabaseCredentials credentials);
+public class TestPlugin extends ExtendedJavaPlugin {
 
-    /**
-     * Gets the global database credentials being used for the global datasource.
-     *
-     * @return the global credentials
-     */
-    DatabaseCredentials getGlobalCredentials();
+    @Override
+    public void onEnable() {
 
+        HelperRedis redis = getService(HelperRedis.class);
+        try (Jedis jedis = redis.getJedis()) {
+
+        }
+
+        JedisPubSub pubsub = new JedisPubSub() {
+            @Override
+            public void onMessage(String channel, String message) {
+
+            }
+        };
+
+    }
 }

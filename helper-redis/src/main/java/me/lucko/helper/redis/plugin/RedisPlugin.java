@@ -23,36 +23,42 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.sql;
+package me.lucko.helper.redis.plugin;
 
-/**
- * Provides {@link HelperDataSource} instances.
- */
-public interface SqlProvider {
+import me.lucko.helper.messaging.Messenger;
+import me.lucko.helper.plugin.ExtendedJavaPlugin;
+import me.lucko.helper.redis.HelperRedis;
+import me.lucko.helper.redis.RedisCredentials;
+import me.lucko.helper.redis.RedisProvider;
 
-    /**
-     * Gets the global datasource.
-     *
-     * @return the global datasource.
-     */
-    HelperDataSource getDataSource();
+public class RedisPlugin extends ExtendedJavaPlugin implements RedisProvider {
+    private RedisCredentials globalCredentials;
+    private HelperRedis globalRedis;
 
-    /**
-     * Constructs a new datasource using the given credentials.
-     *
-     * <p>These instances are not cached, and a new datasource is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the database
-     * @return a new datasource
-     */
-    HelperDataSource getDataSource(DatabaseCredentials credentials);
+    @Override
+    public void onEnable() {
+        this.globalCredentials = RedisCredentials.fromConfig(loadConfig("config.yml"));
+        this.globalRedis = getRedis(this.globalCredentials);
 
-    /**
-     * Gets the global database credentials being used for the global datasource.
-     *
-     * @return the global credentials
-     */
-    DatabaseCredentials getGlobalCredentials();
+        // expose all instances as services.
+        provideService(RedisProvider.class, this);
+        provideService(RedisCredentials.class, this.globalCredentials);
+        provideService(HelperRedis.class, this.globalRedis);
+        provideService(Messenger.class, this.globalRedis);
+    }
 
+    @Override
+    public HelperRedis getRedis() {
+        return this.globalRedis;
+    }
+
+    @Override
+    public HelperRedis getRedis(RedisCredentials credentials) {
+        return new JedisWrapper(credentials);
+    }
+
+    @Override
+    public RedisCredentials getGlobalCredentials() {
+        return this.globalCredentials;
+    }
 }

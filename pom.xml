@@ -11,6 +11,7 @@
     <modules>
     	<module>helper</module>
         <module>helper-sql</module>
+        <module>helper-redis</module>
     </modules>
 
     <name>helper-parent</name>

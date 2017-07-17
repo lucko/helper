@@ -23,36 +23,54 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.sql;
+package me.lucko.helper.messaging;
+
+import me.lucko.helper.terminable.Terminable;
+
+import java.util.Set;
 
 /**
- * Provides {@link HelperDataSource} instances.
+ * Represents an agent for interacting with a {@link Channel}s message streams.
+ *
+ * @param <T> the channel message type
  */
-public interface SqlProvider {
+public interface ChannelAgent<T> extends Terminable {
 
     /**
-     * Gets the global datasource.
+     * Gets the channel this agent is acting for.
      *
-     * @return the global datasource.
+     * @return the parent channel
      */
-    HelperDataSource getDataSource();
+    Channel<T> getChannel();
 
     /**
-     * Constructs a new datasource using the given credentials.
+     * Gets an immutable copy of the listeners currently held by this agent.
      *
-     * <p>These instances are not cached, and a new datasource is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the database
-     * @return a new datasource
+     * @return the active listeners
      */
-    HelperDataSource getDataSource(DatabaseCredentials credentials);
+    Set<ChannelListener<T>> getListeners();
 
     /**
-     * Gets the global database credentials being used for the global datasource.
+     * Gets if this agent has any active listeners.
      *
-     * @return the global credentials
+     * @return true if this agent has listeners
      */
-    DatabaseCredentials getGlobalCredentials();
+    boolean hasListeners();
+
+    /**
+     * Adds a new listener to the channel;
+     *
+     * @param listener the listener to add
+     * @return true if successful
+     */
+    boolean addListener(ChannelListener<T> listener);
+
+    /**
+     * Removes a listener from the channel.
+     *
+     * @param listener the listener to remove
+     * @return true if successful
+     */
+    boolean removeListener(ChannelListener<T> listener);
 
 }
