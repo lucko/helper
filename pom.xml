@@ -5,12 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.lucko</groupId>
-    <artifactId>helper</artifactId>
-    <version>1.5.10</version>
-    <packaging>jar</packaging>
+    <artifactId>helper-parent</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    
+    <modules>
+    	<module>helper</module>
+    </modules>
 
-    <name>helper</name>
-    <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
+    <name>helper-parent</name>
+    <description>A collection of utilities to reduce boilerplate code in Bukkit plugins.</description>
     <url>https://github.com/lucko/helper</url>
 
     <licenses>
@@ -26,10 +29,19 @@
         <url>https://github.com/lucko/helper</url>
     </scm>
 
+    <packaging>pom</packaging>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skipTests>true</skipTests>
         <maven.test.skip>true</maven.test.skip>
+
+        <compiler.version>3.6.1</compiler.version>
+        <shade.version>3.0.0</shade.version>
+        <source.version>3.0.1</source.version>
+        <javadoc.version>2.10.4</javadoc.version>
+
+        <bukkit.version>1.12-R0.1-SNAPSHOT</bukkit.version>
     </properties>
 
     <distributionManagement>
@@ -53,144 +65,14 @@
         <url>https://github.com/lucko/helper/issues</url>
     </issueManagement>
 
-    <build>
-        <defaultGoal>clean package</defaultGoal>
-        <finalName>${project.name}</finalName>
-        <resources>
-            <resource>
-                <directory>${project.basedir}/src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>*.yml</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>${project.basedir}/src/main/resources/META-INF</directory>
-                <targetPath>./META-INF</targetPath>
-                <filtering>false</filtering>
-                <includes>
-                    <include>services/javax.annotation.processing.Processor</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>/</directory>
-                <filtering>false</filtering>
-                <includes>
-                    <include>LICENSE.txt</include>
-                </includes>
-            </resource>
-        </resources>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.1</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <!-- Disable annotation processing for ourselves -->
-                    <proc>none</proc>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <minimizeJar>false</minimizeJar>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <artifactSet>
-                                <includes>
-                                    <include>com.flowpowered:flow-math</include>
-                                </includes>
-                            </artifactSet>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-            <id>deployment</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <version>3.0.1</version>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.10.4</version>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <links>
-                                <link>https://google.github.io/guava/releases/21.0/api/docs/</link>
-                                <link>https://google.github.io/gson/apidocs/</link>
-                                <link>https://flowpowered.com/math/</link>
-                                <link>https://hub.spigotmc.org/javadocs/bukkit/</link>
-                            </links>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.flowpowered</groupId>
-            <artifactId>flow-math</artifactId>
-            <version>1.0.3</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>1.12-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.comphenix.protocol</groupId>
-            <artifactId>ProtocolLib-API</artifactId>
-            <version>4.3.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
-
     <repositories>
-        <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
-        </repository>
         <repository>
             <id>luck-repo</id>
             <url>https://repo.lucko.me/</url>
+        </repository>
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
         </repository>
     </repositories>
 
