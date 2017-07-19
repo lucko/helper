@@ -34,6 +34,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
@@ -78,7 +79,7 @@ public final class Players {
                 .forEach(consumer);
     }
 
-    public static void msg(Player player, String... msgs) {
+    public static void msg(CommandSender player, String... msgs) {
         for (String s : msgs) {
             player.sendMessage(Color.colorize(s));
         }
