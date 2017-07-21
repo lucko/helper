@@ -39,6 +39,8 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisPubSub;
 
+import java.util.concurrent.CountDownLatch;
+
 class JedisWrapper implements HelperRedis {
 
     private final JedisPool jedisPool;
@@ -67,9 +69,13 @@ class JedisWrapper implements HelperRedis {
             }
         };
 
+        CountDownLatch latch = new CountDownLatch(1);
+
         Scheduler.runAsync(() -> {
             try (Jedis jedis = getJedis()) {
                 jedis.subscribe(listener, "helper-redis-dummy");
+            } finally {
+                latch.countDown();
             }
         });
 
@@ -81,8 +87,22 @@ class JedisWrapper implements HelperRedis {
                         e.printStackTrace();
                     }
                 }),
-                channel -> listener.subscribe(channel),
-                channel -> listener.unsubscribe(channel)
+                channel -> Scheduler.runAsync(() -> {
+                    try {
+                        latch.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    listener.subscribe(channel);
+                }),
+                channel -> Scheduler.runAsync(() -> {
+                    try {
+                        latch.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    listener.unsubscribe(channel);
+                })
         );
     }
 
