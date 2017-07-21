@@ -71,8 +71,10 @@ public class ItemStackBuilder {
 
     public ItemStackBuilder transformMeta(Consumer<ItemMeta> meta) {
         ItemMeta m = itemStack.getItemMeta();
-        meta.accept(m);
-        itemStack.setItemMeta(m);
+        if (m != null) {
+            meta.accept(m);
+            itemStack.setItemMeta(m);
+        }
         return this;
     }
 
