@@ -12,7 +12,7 @@
 
     <artifactId>helper-redis</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>helper-redis</name>
     <description>An add-on to helper, providing Redis clients.</description>
@@ -134,7 +134,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>helper</artifactId>
-            <version>1.6.2</version>
+            <version>1.6.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

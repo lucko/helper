@@ -33,10 +33,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 
+import me.lucko.helper.Scheduler;
 import me.lucko.helper.gson.GsonProvider;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -136,15 +138,17 @@ public class AbstractMessenger implements Messenger {
                 return;
             }
 
-            try {
-                if (shouldSubscribe) {
-                    messenger.notifySub.accept(this.name);
-                } else {
-                    messenger.notifyUnsub.accept(this.name);
+            Scheduler.runAsync(() -> {
+                try {
+                    if (shouldSubscribe) {
+                        messenger.notifySub.accept(this.name);
+                    } else {
+                        messenger.notifyUnsub.accept(this.name);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            });
         }
 
         @Override
@@ -165,8 +169,17 @@ public class AbstractMessenger implements Messenger {
         }
 
         @Override
-        public void sendMessage(T message) {
-            messenger.outgoingMessages.accept(this.name, GsonProvider.get().toJson(message, this.type.getType()));
+        public CompletableFuture<Boolean> sendMessage(T message) {
+            return CompletableFuture.supplyAsync(() -> GsonProvider.get().toJson(message, this.type.getType()))
+                    .thenApply(m -> {
+                        try {
+                            messenger.outgoingMessages.accept(this.name, m);
+                            return true;
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return false;
+                        }
+                    });
         }
     }
 
@@ -180,11 +193,13 @@ public class AbstractMessenger implements Messenger {
 
         private void onIncomingMessage(T message) {
             for (ChannelListener<T> listener : listeners) {
-                try {
-                    listener.onMessage(this, message);
-                } catch (Exception e) {
-                    new RuntimeException("Unable to pass decoded message to listener: " + listener, e).printStackTrace();
-                }
+                Scheduler.runAsync(() -> {
+                    try {
+                        listener.onMessage(this, message);
+                    } catch (Exception e) {
+                        new RuntimeException("Unable to pass decoded message to listener: " + listener, e).printStackTrace();
+                    }
+                });
             }
         }
 
