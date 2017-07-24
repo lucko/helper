@@ -33,6 +33,7 @@ import me.lucko.helper.messaging.AbstractMessenger;
 import me.lucko.helper.messaging.Channel;
 import me.lucko.helper.redis.HelperRedis;
 import me.lucko.helper.redis.RedisCredentials;
+import me.lucko.helper.utils.Log;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -48,11 +49,14 @@ class JedisWrapper implements HelperRedis {
     private JedisPubSub listener = null;
 
     JedisWrapper(RedisCredentials credentials) {
+        JedisPoolConfig config = new JedisPoolConfig();
+        config.setMaxTotal(16);
+
         // setup jedis
         if (credentials.getPassword().trim().isEmpty()) {
-            jedisPool = new JedisPool(new JedisPoolConfig(), credentials.getAddress(), credentials.getPort());
+            jedisPool = new JedisPool(config, credentials.getAddress(), credentials.getPort());
         } else {
-            jedisPool = new JedisPool(new JedisPoolConfig(), credentials.getAddress(), credentials.getPort(), 0, credentials.getPassword());
+            jedisPool = new JedisPool(config, credentials.getAddress(), credentials.getPort(), 2000, credentials.getPassword());
         }
 
         try (Jedis jedis = this.jedisPool.getResource()) {
@@ -60,30 +64,46 @@ class JedisWrapper implements HelperRedis {
         }
 
         // setup the messenger
-        listener = new JedisPubSub() {
-            @Override
-            public void onMessage(String channel, String message) {
-                try {
-                    if (messenger != null) {
-                        messenger.registerIncomingMessage(channel, message);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
         CountDownLatch latch = new CountDownLatch(1);
 
-        Scheduler.runAsync(() -> {
-            try (Jedis jedis = getJedis()) {
-                jedis.subscribe(listener, "helper-redis-dummy");
-            } catch (Exception e) {
-                e.printStackTrace();
+        Scheduler.runAsync(new Runnable() {
+            private boolean broken = false;
+
+            @Override
+            public void run() {
+                if (broken) {
+                    Log.info("[helper-redis] Retrying subscription...");
+                    broken = false;
+                }
+
+                try (Jedis jedis = getJedis()) {
+                    try {
+                        JedisWrapper.this.listener = new PubSubListener();
+                        jedis.subscribe(listener, "helper-redis-dummy");
+                    } catch (Exception e) {
+                        // Attempt to unsubscribe this instance and try again.
+                        new RuntimeException("Error subscribing to listener", e).printStackTrace();
+                        try {
+                            listener.unsubscribe();
+                        } catch (Exception ignored) {
+
+                        }
+                        broken = true;
+                    }
+                }
+
+                if (broken) {
+                    run();
+                }
             }
         });
 
-        Scheduler.runLaterAsync(latch::countDown, 2L);
+        Scheduler.runTaskRepeatingAsync(task -> {
+            if (listener != null && listener.isSubscribed()) {
+                latch.countDown();
+                task.stop();
+            }
+        }, 1L, 1L);
 
         messenger = new AbstractMessenger(
                 (channel, message) -> {
@@ -133,5 +153,16 @@ class JedisWrapper implements HelperRedis {
     @Override
     public <T> Channel<T> getChannel(String name, TypeToken<T> type) {
         return messenger.getChannel(name, type);
+    }
+
+    private class PubSubListener extends JedisPubSub {
+        @Override
+        public void onMessage(String channel, String message) {
+            try {
+                messenger.registerIncomingMessage(channel, message);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

@@ -31,6 +31,8 @@ import me.lucko.helper.redis.HelperRedis;
 import me.lucko.helper.redis.RedisCredentials;
 import me.lucko.helper.redis.RedisProvider;
 
+import java.util.concurrent.CompletableFuture;
+
 public class RedisPlugin extends ExtendedJavaPlugin implements RedisProvider {
     private RedisCredentials globalCredentials;
     private HelperRedis globalRedis;
@@ -54,7 +56,7 @@ public class RedisPlugin extends ExtendedJavaPlugin implements RedisProvider {
 
     @Override
     public HelperRedis getRedis(RedisCredentials credentials) {
-        return new JedisWrapper(credentials);
+        return CompletableFuture.supplyAsync(() -> new JedisWrapper(credentials)).join();
     }
 
     @Override
