@@ -63,8 +63,12 @@ class JedisWrapper implements HelperRedis {
         listener = new JedisPubSub() {
             @Override
             public void onMessage(String channel, String message) {
-                if (messenger != null) {
-                    messenger.registerIncomingMessage(channel, message);
+                try {
+                    if (messenger != null) {
+                        messenger.registerIncomingMessage(channel, message);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         };
@@ -74,35 +78,35 @@ class JedisWrapper implements HelperRedis {
         Scheduler.runAsync(() -> {
             try (Jedis jedis = getJedis()) {
                 jedis.subscribe(listener, "helper-redis-dummy");
-            } finally {
-                latch.countDown();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
 
+        Scheduler.runLaterAsync(latch::countDown, 2L);
+
         messenger = new AbstractMessenger(
-                (channel, message) -> Scheduler.runAsync(() -> {
+                (channel, message) -> {
                     try (Jedis jedis = getJedis()) {
                         jedis.publish(channel, message);
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                }),
-                channel -> Scheduler.runAsync(() -> {
+                },
+                channel -> {
                     try {
                         latch.await();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                     listener.subscribe(channel);
-                }),
-                channel -> Scheduler.runAsync(() -> {
+                },
+                channel -> {
                     try {
                         latch.await();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                     listener.unsubscribe(channel);
-                })
+                }
         );
     }
 

@@ -27,6 +27,8 @@ package me.lucko.helper.messaging;
 
 import com.google.common.reflect.TypeToken;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Represents an individual messaging channel.
  *
@@ -60,8 +62,14 @@ public interface Channel<T> {
     /**
      * Sends a new message to the channel.
      *
+     * <p>This method will return immediately, and the future will be completed
+     * once the message has been sent.</p>
+     *
+     * <p>The future will return true if the message was sent successfully.</p>
+     *
      * @param message the message to dispatch
+     * @return a future which will complete when the message has sent.
      */
-    void sendMessage(T message);
+    CompletableFuture<Boolean> sendMessage(T message);
 
 }
