@@ -62,9 +62,7 @@ public class Cooldown implements LongSupplier {
 
     private Cooldown(long amount, TimeUnit unit) {
         timeout = unit.toMillis(amount);
-
-        // allow #test to pass immediately.
-        lastCalled = TimeUtil.now() - timeout;
+        lastCalled = 0;
     }
 
     /**
