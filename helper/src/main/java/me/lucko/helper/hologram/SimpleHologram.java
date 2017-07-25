@@ -98,6 +98,9 @@ class SimpleHologram implements Hologram {
                 Location loc = getNewLinePosition().toLocation();
                 ArmorStand as = loc.getWorld().spawn(loc, ArmorStand.class, stand -> {
                     stand.setSmall(true);
+                    stand.setMarker(true);
+                    stand.setArms(false);
+                    stand.setBasePlate(false);
                     stand.setGravity(false);
                     stand.setVisible(false);
                     stand.setAI(false);
