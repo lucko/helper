@@ -210,10 +210,10 @@ Unlike Bukkit's system, metadata will be removed automatically when a player lea
 ### [`Messenger`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/messaging)
 helper provides a Messenger abstraction utility, which consists of a few key classes.
 
-* [Messenger](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/Messenger.java) - an object which manages messaging Channels
-* [Channel](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/Channel.java) - represents an individual messaging channel. Facilitates sending a message to the channel, or creating a ChannelAgent
-* [ChannelAgent](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/ChannelAgent.java) - an agent for interacting with channel messaging streams. Allows you to add/remove ChannelListeners to a channel
-* [ChannelListener](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/ChannelListener.java) - an object listening to messages sent on a given channel
+* [`Messenger`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/Messenger.java) - an object which manages messaging Channels
+* [`Channel`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/Channel.java) - represents an individual messaging channel. Facilitates sending a message to the channel, or creating a ChannelAgent
+* [`ChannelAgent`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/ChannelAgent.java) - an agent for interacting with channel messaging streams. Allows you to add/remove ChannelListeners to a channel
+* [`ChannelListener`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/ChannelListener.java) - an object listening to messages sent on a given channel
 
 The system is very easy to use, and cuts out a lot of the boilerplate code which usually goes along with using PubSub systems.
 
@@ -265,7 +265,7 @@ public class GlobalMessengerPlugin extends ExtendedJavaPlugin {
 }
 ```
 
-You can either integrate messenger into your own existing messaging system (using `AbstractMessenger`(https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/AbstractMessenger.java)), or, use **helper-redis**, which implements Messenger using Jedis and the Redis PubSub system.
+You can either integrate messenger into your own existing messaging system (using [`AbstractMessenger`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/AbstractMessenger.java), or, use **helper-redis**, which implements Messenger using Jedis and the Redis PubSub system.
 
 
 ### [`Commands`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/Commands.java)
