@@ -7,9 +7,11 @@ A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing t
 * [`Events`](#events) - functional event handling and flexible listener registration
 * [`Scheduler`](#scheduler) - scheduler programming with CompletableFutures
 * [`Metadata`](#metadata) - metadata with generic types, automatically expiring values and more
+* [`Messenger`](#messenger) - message channel abstraction
 * [`Commands`](#commands) - create commands using the builder pattern
 * [`Scoreboard`](#scoreboard) - asynchronous scoreboard using ProtocolLib
 * [`Plugin Annotations`](#plugin-annotations) - automatically create plugin.yml files for your projects using annotations
+* [`Maven Annotations`](#maven-annotations) - download & install maven dependencies at runtime
 * [`GUI`](#gui) - lightweight by highly adaptable and flexible menu abstraction
 * [`Menu Scheming`](#menu-scheming) - easily design menu layouts without having to worry about slot ids
 * [`Serialization`](#serialization) - immutable and GSON compatible alternatives for common Bukkit objects
@@ -22,7 +24,7 @@ A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing t
 
 
 ## Features
-### [`Events`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/Events.java)
+### [`Events`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/Events.java)
 helper adds a functional event handling utility. It allows you to dynamically register event listeners on the fly, without having to break out of logic, or define listeners as their own method.
 
 Instead of *implementing Listener*, creating a *new method* annotated with *@EventHandler*, and *registering* your listener with the plugin manager, with helper, you can subscribe to an event with one simple line of code. This allows you to define multiple listeners in the same class, and register then selectively.
@@ -90,7 +92,7 @@ Events.subscribe(PlayerInteractEvent.class)
 ```
 
 
-### [`Scheduler`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/Scheduler.java)
+### [`Scheduler`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/Scheduler.java)
 The scheduler class provides easy static access to the Bukkit Scheduler. All future methods return `CompletableFuture`s, allowing for easy use of callbacks and use of the Completion Stage API.
 
 It also exposes asynchronous and synchronous `Executor` instances.
@@ -134,7 +136,7 @@ Scheduler.callAsync(() -> {
 ```
 
 
-### [`Metadata`](https://github.com/lucko/helper/tree/master/src/main/java/me/lucko/helper/metadata)
+### [`Metadata`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/metadata)
 helper provides an alternate system to the Bukkit Metadata API. The main benefits over Bukkit are the use of generic types and automatically expiring, weak or soft values.
 
 The metadata API can be easily integrated with the Event system, thanks to some default filters.
@@ -205,7 +207,68 @@ Events.subscribe(PlayerDeathEvent.class)
 Unlike Bukkit's system, metadata will be removed automatically when a player leaves the server, meaning you need-not worry about creating accidental memory leaks from left over metadata. The API also supports attaching metadata to blocks, worlds and other entities.
 
 
-### [`Commands`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/Commands.java)
+### [`Messenger`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/messaging)
+helper provides a Messenger abstraction utility, which consists of a few key classes.
+
+* [Messenger](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/Messenger.java) - an object which manages messaging Channels
+* [Channel](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/Channel.java) - represents an individual messaging channel. Facilitates sending a message to the channel, or creating a ChannelAgent
+* [ChannelAgent](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/ChannelAgent.java) - an agent for interacting with channel messaging streams. Allows you to add/remove ChannelListeners to a channel
+* [ChannelListener](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/ChannelListener.java) - an object listening to messages sent on a given channel
+
+The system is very easy to use, and cuts out a lot of the boilerplate code which usually goes along with using PubSub systems.
+
+As an example, here is a super simple global player messaging system.
+
+```java
+public class GlobalMessengerPlugin extends ExtendedJavaPlugin {
+
+    @Override
+    public void onEnable() {
+        // get the Messenger
+        Messenger messenger = getService(Messenger.class);
+
+        // Define the channel data model.
+        class PlayerMessage {
+            UUID uuid;
+            String username;
+            String message;
+
+            public PlayerMessage(UUID uuid, String username, String message) {
+                this.uuid = uuid;
+                this.username = username;
+                this.message = message;
+            }
+        }
+
+        // Get the channel
+        Channel<PlayerMessage> channel = messenger.getChannel("pms", PlayerMessage.class);
+
+        // Listen for chat events, and send a message to our channel.
+        Events.subscribe(AsyncPlayerChatEvent.class, EventPriority.HIGHEST)
+                .filter(Events.DEFAULT_FILTERS.ignoreCancelled())
+                .handler(e -> {
+                    e.setCancelled(true);
+                    channel.sendMessage(new PlayerMessage(e.getPlayer().getUniqueId(), e.getPlayer().getName(), e.getMessage()));
+                });
+
+        // Get an agent from the channel.
+        ChannelAgent<PlayerMessage> channelAgent = channel.newAgent();
+        channelAgent.register(this);
+
+        // Listen for messages sent on the channel.
+        channelAgent.addListener((agent, message) -> {
+            Scheduler.runSync(() -> {
+                Bukkit.broadcastMessage("Player " + message.username + " says " + message.message);
+            });
+        });
+    }
+}
+```
+
+You can either integrate messenger into your own existing messaging system (using `AbstractMessenger`(https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/AbstractMessenger.java)), or, use **helper-redis**, which implements Messenger using Jedis and the Redis PubSub system.
+
+
+### [`Commands`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/Commands.java)
 helper provides a very simple command abstraction, designed to reduce some of the boilerplate needed when writing simple commands.
 
 It doesn't have support for automatic argument parsing, sub commands, or anything like that. It's only purpose is removing the bloat from writing simple commands.
@@ -261,7 +324,7 @@ Commands.create()
 ```
 
 
-### [`Scoreboard`](https://github.com/lucko/helper/tree/master/src/main/java/me/lucko/helper/scoreboard)
+### [`Scoreboard`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/scoreboard)
 helper includes a thread safe scoreboard system, allowing you to easily setup & update custom teams and objectives. It is written directly at the packet level, meaning it can be safely used from asynchronous tasks.
 
 For example....
@@ -301,7 +364,7 @@ Scheduler.runTaskRepeatingAsync(() -> {
 ```
 
 
-### [`Plugin Annotations`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/plugin/ap/Plugin.java)
+### [`Plugin Annotations`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/plugin/ap/Plugin.java)
 With helper, you can automagically create the standard `plugin.yml` files at compile time using annotation processing.
 
 Simply annotate your main class with `@Plugin` and fill in the name and version. The processor will take care of the rest!
@@ -332,7 +395,27 @@ public class MyPlugin extends JavaPlugin {
 ```
 
 
-### [`GUI`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/menu/Gui.java)
+### [`Maven Annotations`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/maven/MavenLibrary.java)
+helper includes a system which allows you to magically download dependencies for your plugins at runtime.
+
+This means you don't have to shade MBs of libraries into your jar. It's as simple as adding an annotation to your plugins class.
+
+```java
+@MavenLibrary(groupId = "org.mongodb", artifactId = "mongo-java-driver", version = "3.4.2")
+@MavenLibrary(groupId = "org.postgresql", artifactId = "postgresql", version = "9.4.1212")
+public class ExamplePlugin extends ExtendedJavaPlugin {
+
+    @Override
+    public void onLoad() {
+
+        // downloads and installs all dependencies into the classloader!
+        LibraryLoader.loadAll(this);
+    }
+}
+```
+
+
+### [`GUI`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/menu/Gui.java)
 helper provides a very simple yet functional GUI abstraction class.
 
 All you have to do is extend `Gui` and override the `#redraw` method.
@@ -379,7 +462,7 @@ The GUI class also provides a number of methods which allow you to
 * Create automatically paginated views in a "dictionary" style
 
 
-### [`Menu Scheming`](https://github.com/lucko/helper/tree/master/src/main/java/me/lucko/helper/menu/scheme)
+### [`Menu Scheming`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/menu/scheme)
 MenuScheme allows you to easily apply layouts to GUIs without having to think about slot ids.
 ```java
 @Override
@@ -407,24 +490,24 @@ The above scheme translates into this menu.
 
 The mask values determine which slots in each row will be transformed. The scheme values relate to the data values of the glass panes.
 
-### [`Serialization`](https://github.com/lucko/helper/tree/master/src/main/java/me/lucko/helper/serialize)
+### [`Serialization`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/serialize)
 helper provides a few classes with are useful when trying to serialize plugin data. It makes use of Google's GSON to convert from Java Objects to JSON.
 
-* [`Position`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Position.java) - similar to Bukkit's location, but without pitch/yaw
-* [`BlockPosition`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/BlockPosition.java) - the location of a block within a world
-* [`ChunkPosition`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/ChunkPosition.java) - the location of a chunk within a world
-* [`Region`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Region.java) - the area bounded by two Positions
-* [`BlockRegion`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/BlockRegion.java) - the area bounded by two BlockPositions
-* [`ChunkRegion`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/ChunkRegion.java) - the area bounded by two ChunkPositions
-* [`Direction`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Direction.java) - the yaw and pitch
-* [`Point`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Point.java) - a position + a direction
+* [`Position`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/Position.java) - similar to Bukkit's location, but without pitch/yaw
+* [`BlockPosition`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/BlockPosition.java) - the location of a block within a world
+* [`ChunkPosition`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/ChunkPosition.java) - the location of a chunk within a world
+* [`Region`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/Region.java) - the area bounded by two Positions
+* [`BlockRegion`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/BlockRegion.java) - the area bounded by two BlockPositions
+* [`ChunkRegion`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/ChunkRegion.java) - the area bounded by two ChunkPositions
+* [`Direction`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/Direction.java) - the yaw and pitch
+* [`Point`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/Point.java) - a position + a direction
 
-And finally, [`Serializers`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/Serializers.java), containing serializers for ItemStacks and Inventories.
+And finally, [`Serializers`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/Serializers.java), containing serializers for ItemStacks and Inventories.
 
-There is also an abstraction for conducting file I/O. [`FileStorageHandler`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/serialize/FileStorageHandler.java) is capable of handling the initial creation of storage files, as well as automatically creating backups and saving when the server stops.
+There is also an abstraction for conducting file I/O. [`FileStorageHandler`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/FileStorageHandler.java) is capable of handling the initial creation of storage files, as well as automatically creating backups and saving when the server stops.
 
 
-### [`Bungee Messaging`](https://github.com/lucko/helper/blob/master/src/main/java/me/lucko/helper/network/BungeeMessaging.java)
+### [`Bungee Messaging`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/bungee/BungeeMessaging.java)
 helper provides a wrapper class for the BungeeCord Plugin Messaging API, providing callbacks to read response data.
 
 It handles the messaging channels behind the scenes and simply runs the provided callback when the data is returned.
@@ -479,7 +562,19 @@ You can either install the standalone helper plugin on your server, or shade the
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>1.6.2</version>
+        <version>1.6.4</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+        <groupId>me.lucko</groupId>
+        <artifactId>helper-sql</artifactId>
+        <version>1.0.0</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+        <groupId>me.lucko</groupId>
+        <artifactId>helper-redis</artifactId>
+        <version>1.0.1</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -495,9 +590,8 @@ repositories {
 }
 
 dependencies {
-    compile ("me.lucko:helper:1.6.2")
+    compile ("me.lucko:helper:1.6.4")
+    compile ("me.lucko:helper-sql:1.0.0")
+    compile ("me.lucko:helper-redis:1.0.1")
 }
 ```
-
-#### Ant
-Pffft, who uses that.
