@@ -64,7 +64,7 @@ class JedisWrapper implements HelperRedis {
         }
 
         // setup the messenger
-        CountDownLatch latch = new CountDownLatch(1);
+        final CountDownLatch latch = new CountDownLatch(1);
 
         Scheduler.runAsync(new Runnable() {
             private boolean broken = false;
@@ -88,12 +88,14 @@ class JedisWrapper implements HelperRedis {
                         } catch (Exception ignored) {
 
                         }
+                        JedisWrapper.this.listener = null;
                         broken = true;
                     }
                 }
 
                 if (broken) {
-                    run();
+                    // reschedule the runnable
+                    Scheduler.runLaterAsync(this, 1L);
                 }
             }
         });
@@ -103,7 +105,7 @@ class JedisWrapper implements HelperRedis {
                 latch.countDown();
                 task.stop();
             }
-        }, 1L, 1L);
+        }, 3L, 3L);
 
         messenger = new AbstractMessenger(
                 (channel, message) -> {
@@ -117,6 +119,8 @@ class JedisWrapper implements HelperRedis {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+
+                    Log.info("[helper-redis] Subscribed to channel: " + channel);
                     listener.subscribe(channel);
                 },
                 channel -> {
@@ -125,6 +129,8 @@ class JedisWrapper implements HelperRedis {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+
+                    Log.info("[helper-redis] Unsubscribed from channel: " + channel);
                     listener.unsubscribe(channel);
                 }
         );
@@ -143,6 +149,11 @@ class JedisWrapper implements HelperRedis {
 
     @Override
     public boolean terminate() {
+        if (listener != null) {
+            listener.unsubscribe();
+            listener = null;
+        }
+
         if (jedisPool != null) {
             jedisPool.close();
             return true;

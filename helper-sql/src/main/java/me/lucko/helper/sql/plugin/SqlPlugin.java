@@ -38,6 +38,7 @@ public class SqlPlugin extends ExtendedJavaPlugin implements SqlProvider {
     public void onEnable() {
         this.globalCredentials = DatabaseCredentials.fromConfig(loadConfig("config.yml"));
         this.globalDataSource = getDataSource(this.globalCredentials);
+        this.globalDataSource.register(this);
 
         // expose all instances as services.
         provideService(SqlProvider.class, this);
