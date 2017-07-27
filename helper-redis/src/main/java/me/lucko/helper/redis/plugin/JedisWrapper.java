@@ -33,6 +33,7 @@ import me.lucko.helper.messaging.AbstractMessenger;
 import me.lucko.helper.messaging.Channel;
 import me.lucko.helper.redis.HelperRedis;
 import me.lucko.helper.redis.RedisCredentials;
+import me.lucko.helper.terminable.TerminableRegistry;
 import me.lucko.helper.utils.Log;
 
 import redis.clients.jedis.Jedis;
@@ -40,13 +41,17 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisPubSub;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 class JedisWrapper implements HelperRedis {
 
     private final JedisPool jedisPool;
     private final AbstractMessenger messenger;
-    private JedisPubSub listener = null;
+    private PubSubListener listener = null;
+    private Set<String> channels = new HashSet<>();
+    private TerminableRegistry registry = TerminableRegistry.create();
 
     JedisWrapper(RedisCredentials credentials) {
         JedisPoolConfig config = new JedisPoolConfig();
@@ -63,9 +68,6 @@ class JedisWrapper implements HelperRedis {
             jedis.ping();
         }
 
-        // setup the messenger
-        final CountDownLatch latch = new CountDownLatch(1);
-
         Scheduler.runAsync(new Runnable() {
             private boolean broken = false;
 
@@ -78,7 +80,7 @@ class JedisWrapper implements HelperRedis {
 
                 try (Jedis jedis = getJedis()) {
                     try {
-                        JedisWrapper.this.listener = new PubSubListener();
+                        listener = new PubSubListener();
                         jedis.subscribe(listener, "helper-redis-dummy");
                     } catch (Exception e) {
                         // Attempt to unsubscribe this instance and try again.
@@ -88,7 +90,7 @@ class JedisWrapper implements HelperRedis {
                         } catch (Exception ignored) {
 
                         }
-                        JedisWrapper.this.listener = null;
+                        listener = null;
                         broken = true;
                     }
                 }
@@ -100,12 +102,19 @@ class JedisWrapper implements HelperRedis {
             }
         });
 
-        Scheduler.runTaskRepeatingAsync(task -> {
-            if (listener != null && listener.isSubscribed()) {
-                latch.countDown();
-                task.stop();
+        Scheduler.runTaskRepeatingAsync(() -> {
+            // ensure subscribed to all channels
+            PubSubListener listener = JedisWrapper.this.listener;
+
+            if (listener == null || !listener.isSubscribed()) {
+                return;
             }
-        }, 3L, 3L);
+
+            for (String channel : channels) {
+                listener.subscribe(channel);
+            }
+
+        }, 2L, 2L).register(registry);
 
         messenger = new AbstractMessenger(
                 (channel, message) -> {
@@ -114,24 +123,14 @@ class JedisWrapper implements HelperRedis {
                     }
                 },
                 channel -> {
-                    try {
-                        latch.await();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    Log.info("[helper-redis] Subscribed to channel: " + channel);
-                    listener.subscribe(channel);
+                    Log.info("[helper-redis] Subscribing to channel: " + channel);
+                    channels.add(channel);
+                    JedisWrapper.this.listener.subscribe(channel);
                 },
                 channel -> {
-                    try {
-                        latch.await();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    Log.info("[helper-redis] Unsubscribed from channel: " + channel);
-                    listener.unsubscribe(channel);
+                    Log.info("[helper-redis] Unsubscribing from channel: " + channel);
+                    channels.remove(channel);
+                    JedisWrapper.this.listener.unsubscribe(channel);
                 }
         );
     }
@@ -158,6 +157,7 @@ class JedisWrapper implements HelperRedis {
             jedisPool.close();
             return true;
         }
+        registry.terminate();
         return false;
     }
 
@@ -167,6 +167,28 @@ class JedisWrapper implements HelperRedis {
     }
 
     private class PubSubListener extends JedisPubSub {
+        private Set<String> subscribed = ConcurrentHashMap.newKeySet();
+
+        @Override
+        public void subscribe(String... channels) {
+            for (String channel : channels) {
+                if (subscribed.add(channel)) {
+                    super.subscribe(channel);
+                }
+            }
+        }
+
+        @Override
+        public void onSubscribe(String channel, int subscribedChannels) {
+            Log.info("[helper-redis] Subscribed to channel: " + channel);
+        }
+
+        @Override
+        public void onUnsubscribe(String channel, int subscribedChannels) {
+            Log.info("[helper-redis] Unsubscribed from channel: " + channel);
+            subscribed.remove(channel);
+        }
+
         @Override
         public void onMessage(String channel, String message) {
             try {

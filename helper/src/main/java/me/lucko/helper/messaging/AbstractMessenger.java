@@ -137,6 +137,7 @@ public class AbstractMessenger implements Messenger {
             if (shouldSubscribe == subscribed) {
                 return;
             }
+            subscribed = shouldSubscribe;
 
             Scheduler.runAsync(() -> {
                 try {
