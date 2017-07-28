@@ -37,12 +37,12 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class HikariWrapper implements HelperDataSource {
+public class HikariWrapper implements HelperDataSource {
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
     private final HikariDataSource hikari;
 
-    HikariWrapper(DatabaseCredentials credentials) {
+    public HikariWrapper(DatabaseCredentials credentials) {
         HikariConfig config = new HikariConfig();
 
         config.setMaximumPoolSize(25);

@@ -27,6 +27,7 @@ package me.lucko.helper.sql;
 
 import com.zaxxer.hikari.HikariDataSource;
 
+import me.lucko.helper.sql.plugin.HikariWrapper;
 import me.lucko.helper.terminable.Terminable;
 
 import java.sql.Connection;
@@ -36,6 +37,10 @@ import java.sql.SQLException;
  * Represents an individual datasource, created by the library.
  */
 public interface HelperDataSource extends Terminable {
+
+    static HelperDataSource usingHikari(DatabaseCredentials credentials) {
+        return new HikariWrapper(credentials);
+    }
 
     /**
      * Gets the Hikari instance backing the datasource

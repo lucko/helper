@@ -45,7 +45,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-class JedisWrapper implements HelperRedis {
+public class JedisWrapper implements HelperRedis {
 
     private final JedisPool jedisPool;
     private final AbstractMessenger messenger;
@@ -53,7 +53,7 @@ class JedisWrapper implements HelperRedis {
     private Set<String> channels = new HashSet<>();
     private TerminableRegistry registry = TerminableRegistry.create();
 
-    JedisWrapper(RedisCredentials credentials) {
+    public JedisWrapper(RedisCredentials credentials) {
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(16);
 
