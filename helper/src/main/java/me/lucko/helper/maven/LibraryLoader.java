@@ -68,12 +68,12 @@ public final class LibraryLoader {
      * @param clazz the class to load libraries for.
      */
     public static void loadAll(Class<?> clazz) {
-        MavenLibraries libs = clazz.getAnnotation(MavenLibraries.class);
+        MavenLibrary[] libs = clazz.getDeclaredAnnotationsByType(MavenLibrary.class);
         if (libs == null) {
             return;
         }
 
-        for (MavenLibrary lib : libs.value()) {
+        for (MavenLibrary lib : libs) {
             load(lib.groupId(), lib.artifactId(), lib.version(), lib.repo().url());
         }
     }

@@ -38,9 +38,12 @@ public class SqlPlugin extends ExtendedJavaPlugin implements SqlProvider {
     private HelperDataSource globalDataSource;
 
     @Override
-    public void onEnable() {
-        LibraryLoader.loadAll(this);
+    public void onLoad() {
+        LibraryLoader.loadAll(SqlPlugin.class);
+    }
 
+    @Override
+    public void onEnable() {
         this.globalCredentials = DatabaseCredentials.fromConfig(loadConfig("config.yml"));
         this.globalDataSource = getDataSource(this.globalCredentials);
         this.globalDataSource.register(this);
