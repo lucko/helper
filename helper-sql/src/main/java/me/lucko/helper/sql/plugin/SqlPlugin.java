@@ -25,17 +25,22 @@
 
 package me.lucko.helper.sql.plugin;
 
+import me.lucko.helper.maven.LibraryLoader;
+import me.lucko.helper.maven.MavenLibrary;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.sql.DatabaseCredentials;
 import me.lucko.helper.sql.HelperDataSource;
 import me.lucko.helper.sql.SqlProvider;
 
+@MavenLibrary(groupId = "org.slf4j", artifactId = "slf4j-api", version = "1.7.25")
 public class SqlPlugin extends ExtendedJavaPlugin implements SqlProvider {
     private DatabaseCredentials globalCredentials;
     private HelperDataSource globalDataSource;
 
     @Override
     public void onEnable() {
+        LibraryLoader.loadAll(this);
+
         this.globalCredentials = DatabaseCredentials.fromConfig(loadConfig("config.yml"));
         this.globalDataSource = getDataSource(this.globalCredentials);
         this.globalDataSource.register(this);
