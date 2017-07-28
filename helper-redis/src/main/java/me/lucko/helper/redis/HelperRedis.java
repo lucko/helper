@@ -26,6 +26,7 @@
 package me.lucko.helper.redis;
 
 import me.lucko.helper.messaging.Messenger;
+import me.lucko.helper.redis.plugin.JedisWrapper;
 import me.lucko.helper.terminable.Terminable;
 
 import redis.clients.jedis.Jedis;
@@ -35,6 +36,10 @@ import redis.clients.jedis.JedisPool;
  * Represents an individual redis instance, created by the library.
  */
 public interface HelperRedis extends Terminable, Messenger {
+
+    static HelperRedis usingJedis(RedisCredentials credentials) {
+        return new JedisWrapper(credentials);
+    }
 
     /**
      * Gets the JedisPool instance backing the redis instance
