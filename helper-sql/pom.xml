@@ -12,7 +12,7 @@
 
     <artifactId>helper-sql</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>helper-sql</name>
     <description>An add-on to helper, providing an SQL datasource.</description>
