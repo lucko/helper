@@ -28,6 +28,7 @@ package me.lucko.helper;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
 
@@ -35,6 +36,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
+
+import co.aikar.timings.lib.MCTiming;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -63,7 +66,7 @@ public final class Scheduler {
 
     private static <T> Supplier<T> wrapSupplier(Supplier<T> supplier) {
         return () -> {
-            try {
+            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + supplier.getClass().getName())) {
                 return supplier.get();
             } catch (Throwable t) {
                 // print debug info, then re-throw
@@ -75,7 +78,7 @@ public final class Scheduler {
 
     private static <T> Supplier<T> wrapCallable(Callable<T> callable) {
         return () -> {
-            try {
+            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + callable.getClass().getName())) {
                 return callable.call();
             } catch (Throwable t) {
                 // print debug info, then re-throw
@@ -87,7 +90,7 @@ public final class Scheduler {
 
     private static Runnable wrapRunnable(Runnable runnable) {
         return () -> {
-            try {
+            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + runnable.getClass().getName())) {
                 runnable.run();
             } catch (Throwable t) {
                 // print debug info, then re-throw
@@ -166,7 +169,7 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> callSync(Callable<T> callable) {
         Preconditions.checkNotNull(callable, "callable");
-        return supplySync(wrapCallable(callable));
+        return CompletableFuture.supplyAsync(wrapCallable(callable), sync());
     }
 
     /**
@@ -177,7 +180,7 @@ public final class Scheduler {
      */
     public static <T> CompletableFuture<T> callAsync(Callable<T> callable) {
         Preconditions.checkNotNull(callable, "callable");
-        return supplyAsync(wrapCallable(callable));
+        return CompletableFuture.supplyAsync(wrapCallable(callable), async());
     }
 
     /**
@@ -212,7 +215,7 @@ public final class Scheduler {
         HelperFuture<T> fut = new HelperFuture<>(null);
         BukkitTask task = bukkit().runTaskLater(LoaderUtils.getPlugin(), () -> {
             fut.setExecuting();
-            try {
+            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + supplier.getClass().getName())) {
                 T result = supplier.get();
                 fut.complete(result);
             } catch (Throwable t) {
@@ -262,7 +265,7 @@ public final class Scheduler {
         HelperFuture<T> fut = new HelperFuture<>(null);
         BukkitTask task = bukkit().runTaskLater(LoaderUtils.getPlugin(), () -> {
             fut.setExecuting();
-            try {
+            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + callable.getClass().getName())) {
                 T result = callable.call();
                 fut.complete(result);
             } catch (Throwable t) {
@@ -308,10 +311,20 @@ public final class Scheduler {
      */
     public static CompletableFuture<Void> runLaterSync(Runnable runnable, long delay) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return supplyLaterSync(() -> {
-            runnable.run();
-            return null;
+        HelperFuture<Void> fut = new HelperFuture<>(null);
+        BukkitTask task = bukkit().runTaskLater(LoaderUtils.getPlugin(), () -> {
+            fut.setExecuting();
+            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + runnable.getClass().getName())) {
+                runnable.run();
+                fut.complete(null);
+            } catch (Throwable t) {
+                // print debug info, then pass on to future
+                EXCEPTION_CONSUMER.accept(t);
+                fut.completeExceptionally(t);
+            }
         }, delay);
+        fut.setCancelCallback(task::cancel);
+        return fut;
     }
 
     /**
@@ -322,10 +335,20 @@ public final class Scheduler {
      */
     public static CompletableFuture<Void> runLaterAsync(Runnable runnable, long delay) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return supplyLaterAsync(() -> {
-            runnable.run();
-            return null;
+        HelperFuture<Void> fut = new HelperFuture<>(null);
+        BukkitTask task = bukkit().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), () -> {
+            fut.setExecuting();
+            try {
+                runnable.run();
+                fut.complete(null);
+            } catch (Throwable t) {
+                // print debug info, then pass on to future
+                EXCEPTION_CONSUMER.accept(t);
+                fut.completeExceptionally(t);
+            }
         }, delay);
+        fut.setCancelCallback(task::cancel);
+        return fut;
     }
 
     /**
@@ -365,7 +388,7 @@ public final class Scheduler {
      */
     public static Task runTaskRepeatingSync(Runnable runnable, long delay, long interval) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return runTaskRepeatingSync(task -> runnable.run(), delay, interval);
+        return runTaskRepeatingSync(new DelegateConsumer<>(runnable), delay, interval);
     }
 
     /**
@@ -377,7 +400,7 @@ public final class Scheduler {
      */
     public static Task runTaskRepeatingAsync(Runnable runnable, long delay, long interval) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return runTaskRepeatingAsync(task -> runnable.run(), delay, interval);
+        return runTaskRepeatingAsync(new DelegateConsumer<>(runnable), delay, interval);
     }
 
     /**
@@ -405,14 +428,24 @@ public final class Scheduler {
 
     }
 
+    private static String getHandlerName(Consumer consumer) {
+        if (consumer instanceof DelegateConsumer) {
+            return ((DelegateConsumer) consumer).getDelegate().getClass().getName();
+        } else {
+            return consumer.getClass().getName();
+        }
+    }
+
     private static class TaskImpl extends BukkitRunnable implements Task {
         private final Consumer<Task> backingTask;
+        private final MCTiming timing;
 
         private final AtomicInteger counter = new AtomicInteger(0);
         private final AtomicBoolean shouldStop = new AtomicBoolean(false);
 
         private TaskImpl(Consumer<Task> backingTask) {
             this.backingTask = backingTask;
+            this.timing = Timings.get().of("helper-scheduler: " + getHandlerName(backingTask));
         }
 
         @Override
@@ -423,7 +456,10 @@ public final class Scheduler {
             }
 
             try {
-                backingTask.accept(this);
+                try (MCTiming t = timing.startTiming()) {
+                    backingTask.accept(this);
+                }
+
                 counter.incrementAndGet();
             } catch (Throwable t) {
                 EXCEPTION_CONSUMER.accept(t);
@@ -503,6 +539,23 @@ public final class Scheduler {
         @Override
         public boolean hasTerminated() {
             return cancelled;
+        }
+    }
+
+    private static final class DelegateConsumer<T> implements Consumer<T> {
+        private final Runnable delegate;
+
+        private DelegateConsumer(Runnable delegate) {
+            this.delegate = delegate;
+        }
+
+        public Runnable getDelegate() {
+            return delegate;
+        }
+
+        @Override
+        public void accept(T t) {
+            delegate.run();
         }
     }
 

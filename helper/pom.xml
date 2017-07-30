@@ -12,7 +12,7 @@
 
     <artifactId>helper</artifactId>
     <packaging>jar</packaging>
-    <version>1.6.4</version>
+    <version>1.6.5</version>
 
     <name>helper</name>
     <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
@@ -74,8 +74,15 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.flowpowered:flow-math</include>
+                                    <include>co.aikar:minecraft-timings</include>
                                 </includes>
                             </artifactSet>
+                            <relocations>
+                                <relocation>
+                                    <pattern>co.aikar.timings.lib</pattern>
+                                    <shadedPattern>me.lucko.helper.timings</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -132,6 +139,12 @@
             <groupId>com.flowpowered</groupId>
             <artifactId>flow-math</artifactId>
             <version>1.0.3</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>co.aikar</groupId>
+            <artifactId>minecraft-timings</artifactId>
+            <version>1.0.4</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

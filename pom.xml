@@ -76,6 +76,10 @@
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
         </repository>
+        <repository>
+            <id>aikar-repo</id>
+            <url>http://repo.aikar.co/nexus/content/groups/aikar/</url>
+        </repository>
     </repositories>
 
 </project>
