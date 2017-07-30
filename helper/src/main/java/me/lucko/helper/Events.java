@@ -33,6 +33,7 @@ import com.google.common.reflect.TypeToken;
 import me.lucko.helper.metadata.Metadata;
 import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Cooldown;
 import me.lucko.helper.utils.CooldownCollection;
 import me.lucko.helper.utils.LoaderUtils;
@@ -50,6 +51,8 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
+
+import co.aikar.timings.lib.MCTiming;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -389,7 +392,7 @@ public final class Events {
          * @throws NullPointerException if the handler is null
          */
         default Handler<T> handler(Consumer<? super T> handler) {
-            return handler((h, t) -> handler.accept(t));
+            return handler(new DelegateBiConsumer<>(handler));
         }
 
         /**
@@ -518,7 +521,7 @@ public final class Events {
          * @throws IllegalStateException if no events have been bound to
          */
         default MergedHandler<T> handler(Consumer<? super T> handler) {
-            return handler((h, t) -> handler.accept(t));
+            return handler(new DelegateBiConsumer<>(handler));
         }
 
         /**
@@ -591,6 +594,14 @@ public final class Events {
 
     }
 
+    private static String getHandlerName(BiConsumer consumer) {
+        if (consumer instanceof DelegateBiConsumer) {
+            return ((DelegateBiConsumer) consumer).getDelegate().getClass().getName();
+        } else {
+            return consumer.getClass().getName();
+        }
+    }
+
     private static class HandlerImpl<T extends Event> implements Handler<T>, EventExecutor {
         private final Class<T> eventClass;
         private final EventPriority priority;
@@ -600,6 +611,7 @@ public final class Events {
         private final BiConsumer<? super T, Throwable> exceptionConsumer;
         private final List<Predicate<T>> filters;
         private final BiConsumer<Handler<T>, ? super T> handler;
+        private final MCTiming timing;
 
         private final Listener listener = new Listener() {};
         private final AtomicLong callCount = new AtomicLong(0);
@@ -613,6 +625,7 @@ public final class Events {
             this.exceptionConsumer = builder.exceptionConsumer;
             this.filters = ImmutableList.copyOf(builder.filters);
             this.handler = handler;
+            this.timing = Timings.get().of("helper-events: " + getHandlerName(handler));
         }
 
         private void register(Plugin plugin) {
@@ -674,7 +687,10 @@ public final class Events {
 
         private void handle(T e) {
             try {
-                handler.accept(this, e);
+                try (MCTiming t = timing.startTiming()) {
+                    handler.accept(this, e);
+                }
+
                 callCount.incrementAndGet();
             } catch (Throwable t) {
                 exceptionConsumer.accept(e, t);
@@ -735,6 +751,7 @@ public final class Events {
         private final BiConsumer<Event, Throwable> exceptionConsumer;
         private final List<Predicate<T>> filters;
         private final BiConsumer<MergedHandler<T>, ? super T> handler;
+        private final MCTiming timing;
 
         private final Listener listener = new Listener() {};
         private final AtomicLong callCount = new AtomicLong(0);
@@ -748,6 +765,7 @@ public final class Events {
             this.exceptionConsumer = builder.exceptionConsumer;
             this.filters = ImmutableList.copyOf(builder.filters);
             this.handler = handler;
+            this.timing = Timings.get().of("helper-events: " + getHandlerName(handler));
         }
 
         private void register(Plugin plugin) {
@@ -817,7 +835,10 @@ public final class Events {
 
         private void handle(Event event, T e) {
             try {
-                handler.accept(this, e);
+                try (MCTiming t = timing.startTiming()) {
+                    handler.accept(this, e);
+                }
+
                 callCount.incrementAndGet();
             } catch (Throwable t) {
                 exceptionConsumer.accept(event, t);
@@ -1137,6 +1158,23 @@ public final class Events {
         @Override
         public <T extends PlayerEvent> Predicate<T> playerHasMetadata(MetadataKey<?> key) {
             return t -> Metadata.provideForPlayer(t.getPlayer()).has(key);
+        }
+    }
+
+    private static final class DelegateBiConsumer<T, U> implements BiConsumer<T, U> {
+        private final Consumer<U> delegate;
+
+        private DelegateBiConsumer(Consumer<U> delegate) {
+            this.delegate = delegate;
+        }
+
+        public Consumer<U> getDelegate() {
+            return delegate;
+        }
+
+        @Override
+        public void accept(T t, U u) {
+            delegate.accept(u);
         }
     }
 

@@ -30,6 +30,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
+import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Color;
 import me.lucko.helper.utils.Cooldown;
 import me.lucko.helper.utils.CooldownCollection;
@@ -41,6 +42,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
+import co.aikar.timings.lib.MCTiming;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -586,6 +590,7 @@ public final class Commands {
     private static final class FunctionalCommandImpl implements FunctionalCommand, CommandExecutor {
         private final ImmutableList<Predicate<CommandContext<?>>> predicates;
         private final CommandHandler handler;
+        private MCTiming timing = null;
 
         private FunctionalCommandImpl(ImmutableList<Predicate<CommandContext<?>>> predicates, CommandHandler handler) {
             this.predicates = predicates;
@@ -607,13 +612,25 @@ public final class Commands {
         @Override
         public void register(ExtendedJavaPlugin plugin, String... aliases) {
             plugin.registerCommand(this, aliases);
+            timing = Timings.get().of("helper-commands: " + plugin.getName() + " - " + Arrays.toString(aliases));
         }
 
         @Override
         public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-            CommandContext<CommandSender> context = new ImmutableCommandContext<>(sender, label, args);
-            handle(context);
-            return true;
+            try {
+                if (timing != null) {
+                    timing.startTiming();
+                }
+
+                CommandContext<CommandSender> context = new ImmutableCommandContext<>(sender, label, args);
+                handle(context);
+                return true;
+
+            } finally {
+                if (timing != null) {
+                    timing.stopTiming();
+                }
+            }
         }
     }
 
