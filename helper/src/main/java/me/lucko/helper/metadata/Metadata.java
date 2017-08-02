@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableMap;
 import me.lucko.helper.Events;
 import me.lucko.helper.Scheduler;
 import me.lucko.helper.serialize.BlockPosition;
+import me.lucko.helper.utils.Players;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -95,6 +96,31 @@ public final class Metadata {
     }
 
     /**
+     * Gets a metadata map for the given object.
+     *
+     * A map will only be returned if the object is an instance of
+     * {@link Player}, {@link UUID}, {@link Entity}, {@link Block} or {@link World}.
+     *
+     * @param obj the object
+     * @return a metadata map
+     */
+    public static MetadataMap provide(Object obj) {
+        if (obj instanceof Player) {
+            return provideForPlayer(((Player) obj));
+        } else if (obj instanceof UUID) {
+            return provideForPlayer(((UUID) obj));
+        } else if (obj instanceof Entity) {
+            return provideForEntity(((Entity) obj));
+        } else if (obj instanceof Block) {
+            return provideForBlock(((Block) obj));
+        } else if (obj instanceof World) {
+            return provideForWorld(((World) obj));
+        } else {
+            throw new IllegalArgumentException("Unknown object type: " + obj.getClass());
+        }
+    }
+
+    /**
      * Gets a MetadataMap for the given player.
      * A map will only be loaded when requested for.
      *
@@ -131,7 +157,7 @@ public final class Metadata {
 
         ImmutableMap.Builder<Player, T> ret = ImmutableMap.builder();
         players.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
-            Player player = Bukkit.getPlayer(uuid);
+            Player player = Players.getNullable(uuid);
             if (player != null) {
                 ret.put(player, t);
             }

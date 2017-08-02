@@ -39,7 +39,6 @@ import me.lucko.helper.utils.CooldownCollection;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
 
-import org.bukkit.Bukkit;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventException;
@@ -175,7 +174,7 @@ public final class Events {
      * @param event the event to call
      */
     public static void call(Event event) {
-        Bukkit.getPluginManager().callEvent(event);
+        Helper.plugins().callEvent(event);
     }
 
     /**
@@ -629,7 +628,7 @@ public final class Events {
         }
 
         private void register(Plugin plugin) {
-            plugin.getServer().getPluginManager().registerEvent(eventClass, listener, priority, this, plugin, false);
+            Helper.plugins().registerEvent(eventClass, listener, priority, this, plugin, false);
         }
 
         @Override
@@ -770,7 +769,7 @@ public final class Events {
 
         private void register(Plugin plugin) {
             for (Map.Entry<Class<? extends Event>, HandlerMapping<T, ? extends Event>> ent : mappings.entrySet()) {
-                plugin.getServer().getPluginManager().registerEvent(ent.getKey(), listener, ent.getValue().getPriority(), this, plugin, false);
+                Helper.plugins().registerEvent(ent.getKey(), listener, ent.getValue().getPriority(), this, plugin, false);
             }
         }
 

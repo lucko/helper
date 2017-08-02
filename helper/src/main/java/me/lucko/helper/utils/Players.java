@@ -26,18 +26,25 @@
 package me.lucko.helper.utils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+
+import me.lucko.helper.Helper;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -46,18 +53,81 @@ import java.util.stream.Stream;
  */
 public final class Players {
 
-    public static Collection<? extends Player> all() {
-        return Bukkit.getOnlinePlayers();
+    /**
+     * Gets a player by uuid.
+     *
+     * @param uuid the uuid
+     * @return a player, or null
+     */
+    public static Player getNullable(UUID uuid) {
+        return Helper.server().getPlayer(uuid);
     }
 
-    public static Stream<? extends Player> stream() {
+    /**
+     * Gets a player by uuid.
+     *
+     * @param uuid the uuid
+     * @return an optional player
+     */
+    public static Optional<Player> get(UUID uuid) {
+        return Optional.ofNullable(getNullable(uuid));
+    }
+
+    /**
+     * Gets a player by username.
+     *
+     * @param username the players username
+     * @return the player, or null
+     */
+    public static Player getNullable(String username) {
+        //noinspection deprecation
+        return Helper.server().getPlayerExact(username);
+    }
+
+    /**
+     * Gets a player by username.
+     *
+     * @param username the players username
+     * @return an optional player
+     */
+    public static Optional<Player> get(String username) {
+        return Optional.ofNullable(getNullable(username));
+    }
+
+    /**
+     * Gets all players on the server.
+     *
+     * @return all players on the server
+     */
+    public static Collection<Player> all() {
+        //noinspection unchecked
+        return (Collection<Player>) Bukkit.getOnlinePlayers();
+    }
+
+    /**
+     * Gets a stream of all players on the server.
+     *
+     * @return a stream of all players on the server
+     */
+    public static Stream<Player> stream() {
         return all().stream();
     }
 
+    /**
+     * Applies a given action to all players on the server
+     *
+     * @param consumer the action to apply
+     */
     public static void forEach(Consumer<Player> consumer) {
         all().forEach(consumer);
     }
 
+    /**
+     * Applies an action to each object in the iterable, if it is a player.
+     *
+     * @param objects the objects to iterate
+     * @param consumer the action to apply
+     */
     public static void forEachIfPlayer(Iterable<Object> objects, Consumer<Player> consumer) {
         for (Object o : objects) {
             if (o instanceof Player) {
@@ -66,12 +136,26 @@ public final class Players {
         }
     }
 
-    public static Stream<? extends Player> streamInRange(Location center, double radius) {
+    /**
+     * Gets a stream of all players within a given radius of a point
+     *
+     * @param center the point
+     * @param radius the radius
+     * @return a stream of players
+     */
+    public static Stream<Player> streamInRange(Location center, double radius) {
         return center.getWorld().getNearbyEntities(center, radius, radius, radius).stream()
                 .filter(e -> e instanceof Player)
                 .map(e -> ((Player) e));
     }
 
+    /**
+     * Applies an action to all players within a given radius of a point
+     *
+     * @param center the point
+     * @param radius the radius
+     * @param consumer the action to apply
+     */
     public static void forEachInRange(Location center, double radius, Consumer<Player> consumer) {
         center.getWorld().getNearbyEntities(center, radius, radius, radius).stream()
                 .filter(e -> e instanceof Player)
@@ -79,9 +163,46 @@ public final class Players {
                 .forEach(consumer);
     }
 
-    public static void msg(CommandSender player, String... msgs) {
+    /**
+     * Messages a sender a set of messages.
+     *
+     * @param sender the sender
+     * @param msgs the messages to send
+     */
+    public static void msg(CommandSender sender, String... msgs) {
         for (String s : msgs) {
-            player.sendMessage(Color.colorize(s));
+            sender.sendMessage(Color.colorize(s));
+        }
+    }
+
+    public static OfflinePlayer getOfflineNullable(UUID uuid) {
+        return Helper.server().getOfflinePlayer(uuid);
+    }
+
+    public static Optional<OfflinePlayer> getOffline(UUID uuid) {
+        return Optional.ofNullable(getOfflineNullable(uuid));
+    }
+
+    public static OfflinePlayer getOfflineNullable(String username) {
+        //noinspection deprecation
+        return Helper.server().getOfflinePlayer(username);
+    }
+
+    public static Optional<OfflinePlayer> getOffline(String username) {
+        return Optional.ofNullable(getOfflineNullable(username));
+    }
+
+    public static Collection<OfflinePlayer> allOffline() {
+        return ImmutableList.copyOf(Bukkit.getOfflinePlayers());
+    }
+
+    public static Stream<OfflinePlayer> streamOffline() {
+        return Arrays.stream(Bukkit.getOfflinePlayers());
+    }
+
+    public static void forEachOffline(Consumer<OfflinePlayer> consumer) {
+        for (OfflinePlayer player : Bukkit.getOfflinePlayers()) {
+            consumer.accept(player);
         }
     }
 

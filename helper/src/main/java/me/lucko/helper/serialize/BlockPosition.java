@@ -30,10 +30,10 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import me.lucko.helper.Helper;
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.gson.JsonBuilder;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -122,7 +122,7 @@ public final class BlockPosition implements GsonSerializable {
 
     public synchronized Location toLocation() {
         if (bukkitLocation == null) {
-            bukkitLocation = new Location(Bukkit.getWorld(world), x, y, z);
+            bukkitLocation = new Location(Helper.worldNullable(world), x, y, z);
         }
 
         return bukkitLocation.clone();

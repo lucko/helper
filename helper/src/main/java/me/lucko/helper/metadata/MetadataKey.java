@@ -66,6 +66,10 @@ public interface MetadataKey<T> {
         return create(id, TypeToken.of(clazz));
     }
 
+    static MetadataKey<Empty> createEmptyKey(String id) {
+        return create(id, Empty.class);
+    }
+
     static MetadataKey<String> createStringKey(String id) {
         return create(id, String.class);
     }

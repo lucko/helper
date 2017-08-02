@@ -63,7 +63,6 @@ class SimpleHologram implements Hologram {
 
     private Position getNewLinePosition() {
         if (spawnedEntities.isEmpty()) {
-            // initial position has to be adjusted to account for the size of the armor stand
             return position;
         } else {
             // get the last entry
