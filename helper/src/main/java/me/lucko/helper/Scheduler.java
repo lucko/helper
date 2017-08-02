@@ -32,7 +32,6 @@ import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
 
-import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
@@ -136,7 +135,7 @@ public final class Scheduler {
     }
     
     public static BukkitScheduler bukkit() {
-        return Bukkit.getScheduler();
+        return Helper.bukkitScheduler();
     }
 
     /**

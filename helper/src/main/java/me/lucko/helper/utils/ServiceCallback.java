@@ -26,9 +26,9 @@
 package me.lucko.helper.utils;
 
 import me.lucko.helper.Events;
+import me.lucko.helper.Helper;
 import me.lucko.helper.terminable.Terminable;
 
-import org.bukkit.Bukkit;
 import org.bukkit.event.server.ServiceEvent;
 import org.bukkit.event.server.ServiceRegisterEvent;
 import org.bukkit.event.server.ServiceUnregisterEvent;
@@ -71,7 +71,7 @@ public final class ServiceCallback<T> implements Terminable {
      * Refreshes the backing instance of the service
      */
     public void refresh() {
-        instance = Bukkit.getServicesManager().load(serviceClass);
+        instance = Helper.serviceNullable(serviceClass);
     }
 
     /**

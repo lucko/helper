@@ -34,6 +34,7 @@ import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Color;
 import me.lucko.helper.utils.Cooldown;
 import me.lucko.helper.utils.CooldownCollection;
+import me.lucko.helper.utils.Players;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -95,7 +96,7 @@ public final class Commands {
     };
 
     @SuppressWarnings("deprecation")
-    public static final Predicate<String> ASSERTION_ONLINE_PLAYER = s -> Bukkit.getPlayerExact(s) != null;
+    public static final Predicate<String> ASSERTION_ONLINE_PLAYER = s -> Players.get(s).isPresent();
 
     @SuppressWarnings("deprecation")
     public static final Predicate<String> ASSERTION_OFFLINE_PLAYER = s -> Bukkit.getOfflinePlayer(s) != null;

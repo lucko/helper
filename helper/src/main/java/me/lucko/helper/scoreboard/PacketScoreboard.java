@@ -34,7 +34,6 @@ import me.lucko.helper.Events;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.utils.Players;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -176,7 +175,7 @@ public class PacketScoreboard {
         Preconditions.checkState(!objectives.containsKey(id), "id already exists");
 
         PacketScoreboardObjective objective = new PacketScoreboardObjective(this, id, title, displaySlot);
-        for (Player player : Bukkit.getOnlinePlayers()) {
+        for (Player player : Players.all()) {
             objective.subscribe(player);
         }
 

@@ -30,10 +30,10 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import me.lucko.helper.Helper;
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.gson.JsonBuilder;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -111,7 +111,7 @@ public final class ChunkPosition implements GsonSerializable {
     }
 
     public synchronized Chunk toChunk() {
-        return Bukkit.getWorld(world).getChunkAt(x, z);
+        return Helper.world(world).get().getChunkAt(x, z);
     }
 
     public BlockPosition getBlock(int x, int y, int z) {

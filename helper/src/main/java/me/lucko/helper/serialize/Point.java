@@ -29,10 +29,10 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import me.lucko.helper.Helper;
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.gson.JsonBuilder;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 /**
@@ -77,7 +77,7 @@ public final class Point implements GsonSerializable {
 
     public synchronized Location toLocation() {
         if (bukkitLocation == null) {
-            bukkitLocation = new Location(Bukkit.getWorld(position.getWorld()), position.getX(), position.getY(), position.getZ(), direction.getYaw(), direction.getPitch());
+            bukkitLocation = new Location(Helper.worldNullable(position.getWorld()), position.getX(), position.getY(), position.getZ(), direction.getYaw(), direction.getPitch());
         }
 
         return bukkitLocation.clone();

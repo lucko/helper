@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 /**
  * Easily construct {@link ItemStack} instances
  */
-public class ItemStackBuilder {
+public final class ItemStackBuilder {
     private final ItemStack itemStack;
 
     public static ItemStackBuilder of(Material material) {

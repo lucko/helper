@@ -25,6 +25,8 @@
 
 package me.lucko.helper.plugin;
 
+import me.lucko.helper.utils.LoaderUtils;
+
 /**
  * Dummy plugin to make the server load this lib.
  * Really just an alternative to shading it into another project.
@@ -33,6 +35,7 @@ public class DummyHelperPlugin extends ExtendedJavaPlugin {
 
     public DummyHelperPlugin() {
         getLogger().info("Initialized helper v" + getDescription().getVersion());
+        LoaderUtils.getPlugin();
     }
 
 }

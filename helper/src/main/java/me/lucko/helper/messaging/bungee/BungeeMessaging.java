@@ -39,8 +39,8 @@ import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableRegistry;
 import me.lucko.helper.utils.LoaderUtils;
+import me.lucko.helper.utils.Players;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -322,7 +322,7 @@ public final class BungeeMessaging implements PluginMessageListener {
                 return;
             }
 
-            Player p = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
+            Player p = Iterables.getFirst(Players.all(), null);
             if (p != null) {
                 queuedMessages.removeIf(ma -> {
                     sendToChannel(ma, p);
@@ -387,7 +387,7 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
 
         // try to find a player
-        player = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
+        player = Iterables.getFirst(Players.all(), null);
         if (player != null) {
             sendToChannel(agent, player);
         } else {

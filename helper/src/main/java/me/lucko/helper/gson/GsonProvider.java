@@ -27,6 +27,7 @@ package me.lucko.helper.gson;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.Reader;
@@ -60,12 +61,28 @@ public final class GsonProvider {
         return get().fromJson(s, JsonObject.class);
     }
 
-    public static void writeObject(Appendable writer, JsonObject data) {
-        get().toJson(data, writer);
+    public static void writeObject(Appendable writer, JsonObject object) {
+        get().toJson(object, writer);
     }
 
     public static void writeObjectPretty(Appendable writer, JsonObject data) {
         getPrettyPrinting().toJson(data, writer);
+    }
+
+    public static void writeElement(Appendable writer, JsonElement element) {
+        get().toJson(element, writer);
+    }
+
+    public static void writeElementPretty(Appendable writer, JsonElement element) {
+        getPrettyPrinting().toJson(element, writer);
+    }
+
+    public static String toString(JsonElement element) {
+        return get().toJson(element);
+    }
+
+    public static String toStringPretty(JsonElement element) {
+        return getPrettyPrinting().toJson(element);
     }
 
     private GsonProvider() {

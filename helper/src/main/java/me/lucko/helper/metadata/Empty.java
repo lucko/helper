@@ -23,34 +23,34 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.timings;
-
-import me.lucko.helper.utils.LoaderUtils;
-
-import org.bukkit.plugin.java.JavaPlugin;
-
-import co.aikar.timings.lib.TimingManager;
+package me.lucko.helper.metadata;
 
 /**
- * Provides access to a {@link TimingManager}
+ * An object which represents nothing.
+ *
+ * <p>Used mostly by {@link MetadataKey}s, where the presence of the key in the map
+ * is enough for a behaviour to apply. In other words, the value is not significant.</p>
+ *
+ * <p>Very similar to {@link Void}, except this class also provides an instance of the "empty" object.</p>
  */
-public final class Timings {
-    private static TimingManager timingManager = null;
+public final class Empty {
+    private static final Empty INSTANCE = new Empty();
 
-    /**
-     * Gets the TimingManager
-     * @return a timingmanager instance
-     */
-    public static synchronized TimingManager get() {
-        if (timingManager == null) {
-            JavaPlugin plugin = LoaderUtils.getPlugin();
-            timingManager = TimingManager.of(plugin);
-        }
-
-        return timingManager;
+    public static Empty instance() {
+        return INSTANCE;
     }
 
-    private Timings() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
+    private Empty() {
+
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj == this;
+    }
+
+    @Override
+    public String toString() {
+        return "Empty";
     }
 }
