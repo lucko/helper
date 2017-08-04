@@ -47,20 +47,9 @@ public final class GsonSerializableAdapterFactory implements TypeAdapterFactory 
     public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
         Class<? super T> clazz = type.getRawType();
 
-        // we're only trying to provide adapters for classes which implement the helper GsonSerializable interface
-        if (!GsonSerializable.class.isAssignableFrom(clazz)) {
-            return null;
-        }
-
-        // make sure they also implement the static deserialize method
-        Method deserializeMethod;
-        try {
-            deserializeMethod = clazz.getDeclaredMethod("deserialize", JsonElement.class);
-        } catch (NoSuchMethodException e) {
-            return null;
-        }
-
-        if (!Modifier.isStatic(deserializeMethod.getModifiers())) {
+        // also checks if the class can be casted to GsonSerializable
+        Method deserializeMethod = GsonSerializable.getDeserializeMethod(clazz);
+        if (deserializeMethod == null) {
             return null;
         }
 
