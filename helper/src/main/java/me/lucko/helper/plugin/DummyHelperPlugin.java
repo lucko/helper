@@ -35,7 +35,10 @@ public class DummyHelperPlugin extends ExtendedJavaPlugin {
 
     public DummyHelperPlugin() {
         getLogger().info("Initialized helper v" + getDescription().getVersion());
-        LoaderUtils.getPlugin();
     }
 
+    @Override
+    public void onEnable() {
+        LoaderUtils.getPlugin();
+    }
 }

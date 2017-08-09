@@ -262,6 +262,11 @@ public abstract class Gui implements Consumer<Terminable> {
                 .filter(e -> e.getInventory().getHolder().equals(player))
                 .handler(e -> {
                     e.setCancelled(true);
+
+                    if (!isValid()) {
+                        close();
+                    }
+
                     int slot = e.getRawSlot();
 
                     // check if the click was in the top inventory
@@ -286,12 +291,14 @@ public abstract class Gui implements Consumer<Terminable> {
 
         Events.subscribe(PlayerQuitEvent.class)
                 .filter(e -> e.getPlayer().equals(player))
+                .filter(e -> isValid())
                 .handler(e -> invalidate())
                 .register(this);
 
         Events.subscribe(InventoryCloseEvent.class)
                 .filter(e -> e.getPlayer().equals(player))
                 .filter(e -> e.getInventory().equals(inventory))
+                .filter(e -> isValid())
                 .handler(e -> {
                     invalidate();
 
