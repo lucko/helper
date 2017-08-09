@@ -37,6 +37,7 @@ import me.lucko.helper.utils.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
@@ -95,6 +96,14 @@ class SimpleHologram implements Hologram {
             if (i >= spawnedEntities.size()) {
                 // add a new line
                 Location loc = getNewLinePosition().toLocation();
+
+                // remove any armorstands already at this location. (leftover from a server restart)
+                loc.getWorld().getNearbyEntities(loc, 1.0, 1.0, 1.0).forEach(e -> {
+                    if (e.getType() == EntityType.ARMOR_STAND && locationsEqual(e.getLocation(), loc)) {
+                        e.remove();
+                    }
+                });
+
                 ArmorStand as = loc.getWorld().spawn(loc, ArmorStand.class, stand -> {
                     stand.setSmall(true);
                     stand.setMarker(true);
@@ -108,6 +117,7 @@ class SimpleHologram implements Hologram {
                     stand.setCustomName(line);
                     stand.setCustomNameVisible(true);
                 });
+
                 spawnedEntities.add(as);
             } else {
                 // update existing line if necessary
@@ -226,5 +236,11 @@ class SimpleHologram implements Hologram {
                 .add("position", position)
                 .add("lines", JsonBuilder.array().addStrings(lines).build())
                 .build();
+    }
+
+    private static boolean locationsEqual(Location l1, Location l2) {
+        return Double.doubleToLongBits(l1.getX()) == Double.doubleToLongBits(l2.getX()) &&
+                Double.doubleToLongBits(l1.getY()) == Double.doubleToLongBits(l2.getY()) &&
+                Double.doubleToLongBits(l1.getZ()) == Double.doubleToLongBits(l2.getZ());
     }
 }

@@ -41,12 +41,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Helps to populate a menu with border items
  */
 public class MenuScheme {
-    private final Map<Integer, Item> mapping;
+    private final SchemeMapping mapping;
     private final List<boolean[]> maskRows;
     private final List<int[]> schemeRows;
 
     public MenuScheme(SchemeMapping mapping) {
-        this.mapping = mapping == null ? StandardSchemeMappings.EMPTY.getMapping() : mapping.getMapping();
+        this.mapping = mapping == null ? StandardSchemeMappings.EMPTY : mapping;
         this.maskRows = new ArrayList<>();
         this.schemeRows = new ArrayList<>();
     }
@@ -56,7 +56,7 @@ public class MenuScheme {
     }
 
     private MenuScheme(MenuScheme other) {
-        this.mapping = ImmutableMap.copyOf(other.mapping);
+        this.mapping = other.mapping.copy();
         this.maskRows = new ArrayList<>();
         for (boolean[] arr : other.maskRows) {
             maskRows.add(Arrays.copyOf(arr, arr.length));
@@ -104,7 +104,7 @@ public class MenuScheme {
 
     public MenuScheme scheme(int... schemeIds) {
         for (int schemeId : schemeIds) {
-            if (!mapping.containsKey(schemeId)) {
+            if (!mapping.hasMappingFor(schemeId)) {
                 throw new IllegalArgumentException("mapping does not contain value for id: " + schemeId);
             }
         }
@@ -139,7 +139,7 @@ public class MenuScheme {
                         int schemeMappingId = scheme[schemeId];
 
                         // lookup the value for this location, and apply it to the gui
-                        gui.setItem(index, mapping.get(schemeMappingId));
+                        gui.setItem(index, mapping.getNullable(schemeMappingId));
                     }
                 }
             }
