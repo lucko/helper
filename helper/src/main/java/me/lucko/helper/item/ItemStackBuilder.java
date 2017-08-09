@@ -25,10 +25,7 @@
 
 package me.lucko.helper.item;
 
-import com.google.common.collect.ImmutableMap;
-
 import me.lucko.helper.menu.Item;
-import me.lucko.helper.utils.ImmutableCollectors;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -158,68 +155,40 @@ public final class ItemStackBuilder {
         return itemStack;
     }
 
-    public Item build(Runnable handler) {
-        if (handler == null) {
-            return new Item(ImmutableMap.of(), itemStack);
-        } else {
-            return new Item(ImmutableMap.of(ClickType.RIGHT, Item.transformRunnable(handler), ClickType.LEFT, Item.transformRunnable(handler)), itemStack);
-        }
+    public Item.Builder buildItem() {
+        return Item.builder(build());
     }
 
-    public Item build(ClickType type, Runnable runnable) {
-        return new Item(ImmutableMap.of(type, Item.transformRunnable(runnable)), itemStack);
+    public Item build(Runnable handler) {
+        return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT).build();
+    }
+
+    public Item build(ClickType type, Runnable handler) {
+        return buildItem().bind(type, handler).build();
     }
 
     public Item build(Runnable rightClick, Runnable leftClick) {
-        if (rightClick != null) {
-            if (leftClick != null) {
-                return new Item(ImmutableMap.of(ClickType.RIGHT, Item.transformRunnable(rightClick), ClickType.LEFT, Item.transformRunnable(leftClick)), itemStack);
-            } else {
-                return new Item(ImmutableMap.of(ClickType.RIGHT, Item.transformRunnable(rightClick)), itemStack);
-            }
-        } else {
-            if (leftClick != null) {
-                return new Item(ImmutableMap.of(ClickType.LEFT, Item.transformRunnable(leftClick)), itemStack);
-            } else {
-                return new Item(ImmutableMap.of(), itemStack);
-            }
-        }
+        return buildItem().bind(ClickType.RIGHT, rightClick).bind(ClickType.LEFT, leftClick).build();
     }
 
     public Item buildFromMap(Map<ClickType, Runnable> handlers) {
-        return new Item(ImmutableMap.copyOf(handlers).entrySet().stream().collect(ImmutableCollectors.toMap(Map.Entry::getKey, v -> Item.transformRunnable(v.getValue()))), itemStack);
+        return buildItem().bindAllRunnables(handlers.entrySet()).build();
     }
 
     public Item buildConsumer(Consumer<InventoryClickEvent> handler) {
-        if (handler == null) {
-            return new Item(ImmutableMap.of(), itemStack);
-        } else {
-            return new Item(ImmutableMap.of(ClickType.RIGHT, handler, ClickType.LEFT, handler), itemStack);
-        }
+        return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT).build();
     }
 
-    public Item buildConsumer(ClickType type, Consumer<InventoryClickEvent> runnable) {
-        return new Item(ImmutableMap.of(type, runnable), itemStack);
+    public Item buildConsumer(ClickType type, Consumer<InventoryClickEvent> handler) {
+        return buildItem().bind(type, handler).build();
     }
 
     public Item buildConsumer(Consumer<InventoryClickEvent> rightClick, Consumer<InventoryClickEvent> leftClick) {
-        if (rightClick != null) {
-            if (leftClick != null) {
-                return new Item(ImmutableMap.of(ClickType.RIGHT, rightClick, ClickType.LEFT, leftClick), itemStack);
-            } else {
-                return new Item(ImmutableMap.of(ClickType.RIGHT, rightClick), itemStack);
-            }
-        } else {
-            if (leftClick != null) {
-                return new Item(ImmutableMap.of(ClickType.LEFT, leftClick), itemStack);
-            } else {
-                return new Item(ImmutableMap.of(), itemStack);
-            }
-        }
+        return buildItem().bind(ClickType.RIGHT, rightClick).bind(ClickType.LEFT, leftClick).build();
     }
 
     public Item buildFromConsumerMap(Map<ClickType, Consumer<InventoryClickEvent>> handlers) {
-        return new Item(ImmutableMap.copyOf(handlers), itemStack);
+        return buildItem().bindAllConsumers(handlers.entrySet()).build();
     }
 
 }
