@@ -129,7 +129,7 @@ public class Item {
         }
     }
 
-    private static final class DelegateConsumer<T> implements Consumer<T> {
+    static final class DelegateConsumer<T> implements Consumer<T> {
         private final Runnable delegate;
 
         private DelegateConsumer(Runnable delegate) {

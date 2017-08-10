@@ -31,6 +31,7 @@ import me.lucko.helper.Events;
 import me.lucko.helper.Scheduler;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableRegistry;
+import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Color;
 
 import org.bukkit.Bukkit;
@@ -40,6 +41,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
+
+import co.aikar.timings.lib.MCTiming;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -284,7 +287,7 @@ public abstract class Gui implements Consumer<Terminable> {
                         Map<ClickType, Consumer<InventoryClickEvent>> handlers = item.getHandlers();
                         Consumer<InventoryClickEvent> handler = handlers.get(e.getClick());
                         if (handler != null) {
-                            try {
+                            try (MCTiming t = Timings.get().ofStart("helper-gui: " + getClass().getSimpleName() + " : " + getHandlerName(handler))) {
                                 handler.accept(e);
                             } catch (Exception ex) {
                                 ex.printStackTrace();
@@ -322,6 +325,14 @@ public abstract class Gui implements Consumer<Terminable> {
                     }, 1L);
                 })
                 .register(this);
+    }
+
+    private static String getHandlerName(Consumer consumer) {
+        if (consumer instanceof Item.DelegateConsumer) {
+            return ((Item.DelegateConsumer) consumer).getDelegate().getClass().getName();
+        } else {
+            return consumer.getClass().getName();
+        }
     }
 
 }
