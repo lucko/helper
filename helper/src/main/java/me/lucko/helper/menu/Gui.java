@@ -217,6 +217,11 @@ public abstract class Gui implements Consumer<Terminable> {
     }
 
     public void open() {
+        if (valid) {
+            throw new IllegalStateException("Gui is already opened.");
+        }
+
+        firstDraw = true;
         try {
             redraw();
         } catch (Exception e) {
