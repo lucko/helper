@@ -31,6 +31,7 @@ import java.util.function.Consumer;
  * Represents an object that can be unregistered, stopped, or gracefully halted.
  */
 public interface Terminable {
+    Terminable EMPTY = () -> true;
 
     static Terminable of(Runnable r) {
         return () -> {
