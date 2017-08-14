@@ -1,6 +1,16 @@
 ![alt text](https://i.imgur.com/zllxTFp.png "Banner")
-# helper [![Build Status](https://ci.lucko.me/job/helper/badge/icon)](https://ci.lucko.me/job/helper/) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper/)
+# helper [![Build Status](https://ci.lucko.me/job/helper/badge/icon)](https://ci.lucko.me/job/helper/)
 A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing the same old stuff again and again. :)
+
+### Modules
+##### [`helper`](https://github.com/lucko/helper/tree/master/helper): The main helper project
+[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper/target/helper.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](#helper) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper/)
+
+##### [`helper-sql`](https://github.com/lucko/helper/tree/master/helper-sql): Provides SQL datasources using HikariCP.
+[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-sql/target/helper-sql.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](#helper-sql) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper-sql/)
+
+##### [`helper-redis`](https://github.com/lucko/helper/tree/master/helper-redis): Provides Redis clients and implements the helper Messaging interface using Jedis.
+[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-redis/target/helper-redis.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](#helper-redis) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper-redis/)
 
 ## Feature Overview
 
@@ -549,6 +559,7 @@ BungeeMessaging.registerForwardCallback("my-special-channel", buf -> {
 ## Using helper in your project
 You can either install the standalone helper plugin on your server, or shade the classes into your project.
 
+You will need to add my maven repository to your build script, or install helper locally.
 #### Maven
 ```xml
 <repositories>
@@ -557,7 +568,23 @@ You can either install the standalone helper plugin on your server, or shade the
         <url>http://repo.lucko.me/</url>
     </repository>
 </repositories>
+```
 
+#### Gradle
+```gradle
+repositories {
+    maven {
+        name "luck-repo"
+        url "http://repo.lucko.me/"
+    }
+}
+```
+
+Then, you can add dependencies for each helper module.
+
+### helper
+#### Maven
+```xml
 <dependencies>
     <dependency>
         <groupId>me.lucko</groupId>
@@ -565,12 +592,40 @@ You can either install the standalone helper plugin on your server, or shade the
         <version>1.6.8</version>
         <scope>provided</scope>
     </dependency>
+</dependencies>
+```
+
+#### Gradle
+```gradle
+dependencies {
+    compile ("me.lucko:helper:1.6.8")
+}
+```
+
+### helper-sql
+#### Maven
+```xml
+<dependencies>
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper-sql</artifactId>
         <version>1.0.1</version>
         <scope>provided</scope>
     </dependency>
+</dependencies>
+```
+
+#### Gradle
+```gradle
+dependencies {
+    compile ("me.lucko:helper-sql:1.0.1")
+}
+```
+
+### helper-redis
+#### Maven
+```xml
+<dependencies>
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper-redis</artifactId>
@@ -582,16 +637,7 @@ You can either install the standalone helper plugin on your server, or shade the
 
 #### Gradle
 ```gradle
-repositories {
-    maven {
-        name "luck-repo"
-        url "http://repo.lucko.me/"
-    }
-}
-
 dependencies {
-    compile ("me.lucko:helper:1.6.8")
-    compile ("me.lucko:helper-sql:1.0.1")
     compile ("me.lucko:helper-redis:1.0.2")
 }
 ```

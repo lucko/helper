@@ -15,7 +15,7 @@
     <version>1.0.1</version>
 
     <name>helper-sql</name>
-    <description>An add-on to helper, providing an SQL datasource.</description>
+    <description>Provides SQL datasources using HikariCP.</description>
     <url>https://github.com/lucko/helper</url>
 
     <properties>
