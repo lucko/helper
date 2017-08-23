@@ -47,7 +47,7 @@ import java.util.UUID;
 /**
  * A thread-safe scoreboard using ProtocolLib
  */
-public class PacketScoreboard {
+public class PacketScoreboard implements Scoreboard {
     private final ProtocolManager protocolManager;
 
     // teams & objectives shared by all players.
@@ -131,7 +131,7 @@ public class PacketScoreboard {
      * @param title the initial title for the team
      * @return the new team
      */
-    PacketScoreboardTeam createTeam(String title) {
+    public PacketScoreboardTeam createTeam(String title) {
         return createTeam(Long.toHexString(System.nanoTime()), title);
     }
 

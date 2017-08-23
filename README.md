@@ -589,7 +589,7 @@ Then, you can add dependencies for each helper module.
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>1.6.8</version>
+        <version>1.7.0</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -598,7 +598,7 @@ Then, you can add dependencies for each helper module.
 #### Gradle
 ```gradle
 dependencies {
-    compile ("me.lucko:helper:1.6.8")
+    compile ("me.lucko:helper:1.7.0")
 }
 ```
 

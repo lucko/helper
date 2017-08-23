@@ -51,7 +51,7 @@ import java.util.Set;
  * <p>http://wiki.vg/Protocol#Update_Score</p>
  * <p>http://wiki.vg/Protocol#Display_Scoreboard</p>
  */
-public class PacketScoreboardObjective {
+public class PacketScoreboardObjective implements ScoreboardObjective {
     // the objective value in the ScoreboardObjective packet is limited to 32 chars
     private static final int MAX_NAME_LENGTH = 32;
 
@@ -101,29 +101,17 @@ public class PacketScoreboardObjective {
         this.displaySlot = Preconditions.checkNotNull(displaySlot, "displaySlot");
     }
 
-    /**
-     * Gets the id of this objective
-     *
-     * @return the id
-     */
+    @Override
     public String getId() {
         return id;
     }
 
-    /**
-     * Gets the current display name of this objective
-     *
-     * @return the display name
-     */
+    @Override
     public String getDisplayName() {
         return displayName;
     }
 
-    /**
-     * Lazily sets the display name to a new value and updates the objectives subscribers
-     *
-     * @param displayName the new display name
-     */
+    @Override
     public void setDisplayName(String displayName) {
         Preconditions.checkNotNull(displayName, "displayName");
         displayName = Color.colorize(displayName);
@@ -135,20 +123,12 @@ public class PacketScoreboardObjective {
         scoreboard.broadcastPacket(subscribed, newObjectivePacket(MODE_UPDATE));
     }
 
-    /**
-     * Gets the current display slot of this objective
-     *
-     * @return the display slot
-     */
+    @Override
     public DisplaySlot getDisplaySlot() {
         return displaySlot;
     }
 
-    /**
-     * Lazily sets the display slot to a new value and updates the objectives subscribers
-     *
-     * @param displaySlot the new display slot
-     */
+    @Override
     public void setDisplaySlot(DisplaySlot displaySlot) {
         Preconditions.checkNotNull(displaySlot, "displaySlot");
         if (this.displaySlot.equals(displaySlot)) {
@@ -159,43 +139,24 @@ public class PacketScoreboardObjective {
         scoreboard.broadcastPacket(subscribed, newDisplaySlotPacket(displaySlot));
     }
 
-    /**
-     * Gets an immutable copy of the current objective scores
-     *
-     * @return the current scores
-     */
+    @Override
     public Map<String, Integer> getScores() {
         return ImmutableMap.copyOf(scores);
     }
 
-    /**
-     * Returns true if this objective has a given score
-     *
-     * @param name the name of the score to check for
-     * @return true if the objective has the score
-     */
+    @Override
     public boolean hasScore(String name) {
         Preconditions.checkNotNull(name, "name");
         return scores.containsKey(Color.colorize(trimName(name)));
     }
 
-    /**
-     * Gets the value mapped to a given score, if present
-     *
-     * @param name the name of the score
-     * @return the value, or null if a mapping could not be found
-     */
+    @Override
     public Integer getScore(String name) {
         Preconditions.checkNotNull(name, "name");
         return scores.get(Color.colorize(trimName(name)));
     }
 
-    /**
-     * Sets a new score value
-     *
-     * @param name the name of the score
-     * @param value the value to set the score to
-     */
+    @Override
     public void setScore(String name, int value) {
         Preconditions.checkNotNull(name, "name");
         name = trimName(name);
@@ -208,12 +169,7 @@ public class PacketScoreboardObjective {
         scoreboard.broadcastPacket(subscribed, newScorePacket(name, value, false));
     }
 
-    /**
-     * Removes a score
-     *
-     * @param name the name of the score
-     * @return true if the score was removed
-     */
+    @Override
     public boolean removeScore(String name) {
         Preconditions.checkNotNull(name, "name");
         name = trimName(name);
@@ -226,9 +182,7 @@ public class PacketScoreboardObjective {
         return true;
     }
 
-    /**
-     * Clears the scores from this objective
-     */
+    @Override
     public void clearScores() {
         scores.clear();
 
@@ -238,11 +192,7 @@ public class PacketScoreboardObjective {
         }
     }
 
-    /**
-     * Applies a score mapping to this objective
-     *
-     * @param scores the scores to apply
-     */
+    @Override
     public void applyScores(Map<String, Integer> scores) {
         Preconditions.checkNotNull(scores, "scores");
 
@@ -258,20 +208,12 @@ public class PacketScoreboardObjective {
         }
     }
 
-    /**
-     * Automatically applies a set of score lines to this objective.
-     *
-     * @param lines the lines to apply
-     */
+    @Override
     public void applyLines(String... lines) {
         applyLines(Arrays.asList(lines));
     }
 
-    /**
-     * Automatically applies a set of score lines to this objective.
-     *
-     * @param lines the lines to apply
-     */
+    @Override
     public void applyLines(Collection<String> lines) {
         Preconditions.checkNotNull(lines, "lines");
         Map<String, Integer> scores = new HashMap<>();
@@ -282,11 +224,7 @@ public class PacketScoreboardObjective {
         applyScores(scores);
     }
 
-    /**
-     * Subscribes a player to this objective
-     *
-     * @param player the player to subscribe
-     */
+    @Override
     public void subscribe(Player player) {
         Preconditions.checkNotNull(player, "player");
         scoreboard.sendPacket(newObjectivePacket(MODE_CREATE), player);
@@ -297,21 +235,12 @@ public class PacketScoreboardObjective {
         subscribed.add(player);
     }
 
-    /**
-     * Unsubscribes a player from this objective
-     *
-     * @param player the player to unsubscribe
-     */
+    @Override
     public void unsubscribe(Player player) {
         unsubscribe(player, false);
     }
 
-    /**
-     * Unsubscribes a player from this objective
-     *
-     * @param player the player to unsubscribe
-     * @param fast if true, the removal packet will not be sent (for use when the player is leaving)
-     */
+    @Override
     public void unsubscribe(Player player, boolean fast) {
         Preconditions.checkNotNull(player, "player");
         if (!subscribed.remove(player) || fast) {
@@ -321,9 +250,7 @@ public class PacketScoreboardObjective {
         scoreboard.sendPacket(newObjectivePacket(MODE_REMOVE), player);
     }
 
-    /**
-     * Unsubscribes all players from this objective
-     */
+    @Override
     public void unsubscribeAll() {
         scoreboard.broadcastPacket(subscribed, newObjectivePacket(MODE_REMOVE));
         subscribed.clear();
