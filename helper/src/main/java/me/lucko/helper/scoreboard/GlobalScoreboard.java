@@ -23,48 +23,44 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.menu.scheme;
+package me.lucko.helper.scoreboard;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
+import me.lucko.helper.plugin.ExtendedJavaPlugin;
+import me.lucko.helper.utils.LoaderUtils;
 
-import me.lucko.helper.menu.Item;
-
-import java.util.Map;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * Implements {@link SchemeMapping} using an immutable map.
+ * Contains a "global" scoreboard instance, lazily loaded on first request.
  */
-public class AbstractSchemeMapping implements SchemeMapping {
-    private final Map<Integer, Item> mapping;
+public final class GlobalScoreboard {
+    private static PacketScoreboard scoreboard = null;
 
-    public AbstractSchemeMapping(Map<Integer, Item> mapping) {
-        Preconditions.checkNotNull(mapping, "mapping");
-        this.mapping = ImmutableMap.copyOf(mapping);
+    /**
+     * Gets the global scoreboard
+     * @return a scoreboard instance
+     * @throws IllegalStateException if ProtocolLib is not loaded
+     */
+    public static synchronized PacketScoreboard get() {
+        if (scoreboard == null) {
+            try {
+                Class.forName("com.comphenix.protocol.ProtocolManager");
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException("ProtocolLib not loaded");
+            }
+
+            JavaPlugin plugin = LoaderUtils.getPlugin();
+            if (plugin instanceof ExtendedJavaPlugin) {
+                scoreboard = new PacketScoreboard(((ExtendedJavaPlugin) plugin));
+            } else {
+                scoreboard = new PacketScoreboard();
+            }
+        }
+
+        return scoreboard;
     }
 
-    @Override
-    public Item getNullable(int key) {
-        return mapping.get(key);
-    }
-
-    @Override
-    public boolean hasMappingFor(int key) {
-        return mapping.containsKey(key);
-    }
-
-    @Override
-    public SchemeMapping copy() {
-        return this; // no need to make a copy, the backing data is immutable
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof AbstractSchemeMapping && ((AbstractSchemeMapping) obj).mapping.equals(mapping);
-    }
-
-    @Override
-    public int hashCode() {
-        return mapping.hashCode();
+    private GlobalScoreboard() {
+        throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 }

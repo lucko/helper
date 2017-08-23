@@ -46,7 +46,7 @@ import java.util.Set;
  *
  * http://wiki.vg/Protocol#Teams
  */
-public class PacketScoreboardTeam {
+public class PacketScoreboardTeam implements ScoreboardTeam {
     private static final int MODE_CREATE = 0;
     private static final int MODE_REMOVE = 1;
     private static final int MODE_UPDATE = 2;
@@ -97,29 +97,17 @@ public class PacketScoreboardTeam {
         this.displayName = Color.colorize(Preconditions.checkNotNull(displayName, "displayName"));
     }
 
-    /**
-     * Gets the id of this team
-     *
-     * @return the id
-     */
+    @Override
     public String getId() {
         return id;
     }
 
-    /**
-     * Gets the current display name of this team
-     *
-     * @return the display name
-     */
+    @Override
     public String getDisplayName() {
         return displayName;
     }
 
-    /**
-     * Lazily sets the display name to a new value and updates the teams subscribers
-     *
-     * @param displayName the new display name
-     */
+    @Override
     public void setDisplayName(String displayName) {
         Preconditions.checkNotNull(displayName, "displayName");
         displayName = Color.colorize(displayName);
@@ -131,20 +119,12 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
-    /**
-     * Gets the current prefix for this team
-     *
-     * @return the prefix
-     */
+    @Override
     public String getPrefix() {
         return prefix;
     }
 
-    /**
-     * Lazily sets the prefix to a new value and updates the teams subscribers
-     *
-     * @param prefix the new prefix
-     */
+    @Override
     public void setPrefix(String prefix) {
         Preconditions.checkNotNull(prefix, "prefix");
         prefix = Color.colorize(prefix);
@@ -159,20 +139,12 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
-    /**
-     * Gets the current suffix for this team
-     *
-     * @return the suffix
-     */
+    @Override
     public String getSuffix() {
         return suffix;
     }
 
-    /**
-     * Lazily sets the suffix to a new value and updates the teams subscribers
-     *
-     * @param suffix the new suffix
-     */
+    @Override
     public void setSuffix(String suffix) {
         Preconditions.checkNotNull(suffix, "suffix");
         suffix = Color.colorize(suffix);
@@ -187,20 +159,12 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
-    /**
-     * Gets if friendly fire is allowed
-     *
-     * @return true if friendly fire is allowed
-     */
+    @Override
     public boolean isAllowFriendlyFire() {
         return allowFriendlyFire;
     }
 
-    /**
-     * Lazily sets the friendly fire setting to new value and updates the teams subscribers
-     *
-     * @param allowFriendlyFire the new setting
-     */
+    @Override
     public void setAllowFriendlyFire(boolean allowFriendlyFire) {
         if (this.allowFriendlyFire == allowFriendlyFire) {
             return;
@@ -210,20 +174,12 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
-    /**
-     * Gets if members of this team can see invisible members on the same team
-     *
-     * @return true if members of this team can see invisible members on the same team
-     */
+    @Override
     public boolean isCanSeeFriendlyInvisibles() {
         return canSeeFriendlyInvisibles;
     }
 
-    /**
-     * Lazily sets the friendly invisibility setting to new value and updates the teams subscribers
-     *
-     * @param canSeeFriendlyInvisibles the new setting
-     */
+    @Override
     public void setCanSeeFriendlyInvisibles(boolean canSeeFriendlyInvisibles) {
         if (this.canSeeFriendlyInvisibles == canSeeFriendlyInvisibles) {
             return;
@@ -233,20 +189,12 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
-    /**
-     * Gets the current nametag visibility setting
-     *
-     * @return the nametag visibility
-     */
+    @Override
     public NameTagVisibility getNameTagVisibility() {
         return nameTagVisibility;
     }
 
-    /**
-     * Lazily sets the nametag visibility setting to new value and updates the teams subscribers
-     *
-     * @param nameTagVisibility the new setting
-     */
+    @Override
     public void setNameTagVisibility(NameTagVisibility nameTagVisibility) {
         Preconditions.checkNotNull(nameTagVisibility, "nameTagVisibility");
         if (this.nameTagVisibility.equals(nameTagVisibility)) {
@@ -257,20 +205,12 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
-    /**
-     * Gets the current collision rule setting
-     *
-     * @return the collision rule
-     */
+    @Override
     public CollisionRule getCollisionRule() {
         return collisionRule;
     }
 
-    /**
-     * Lazily sets the collision rule setting to new value and updates the teams subscribers
-     *
-     * @param collisionRule the new setting
-     */
+    @Override
     public void setCollisionRule(CollisionRule collisionRule) {
         Preconditions.checkNotNull(collisionRule, "collisionRule");
         if (this.collisionRule.equals(collisionRule)) {
@@ -281,12 +221,7 @@ public class PacketScoreboardTeam {
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
-    /**
-     * Adds a player to this team
-     *
-     * @param player the player to add
-     * @return true if the player was added successfully
-     */
+    @Override
     public boolean addPlayer(Player player) {
         Preconditions.checkNotNull(player, "player");
         if (!players.add(player)) {
@@ -297,12 +232,7 @@ public class PacketScoreboardTeam {
         return true;
     }
 
-    /**
-     * Removes a player from this team
-     *
-     * @param player the player to remove
-     * @return true if the player was removed successfully
-     */
+    @Override
     public boolean removePlayer(Player player) {
         Preconditions.checkNotNull(player, "player");
         if (!players.remove(player)) {
@@ -313,51 +243,29 @@ public class PacketScoreboardTeam {
         return true;
     }
 
-    /**
-     * Returns true if the given player is a member of this team
-     *
-     * @param player the player to check for
-     * @return true if the player is a member
-     */
+    @Override
     public boolean hasPlayer(Player player) {
         Preconditions.checkNotNull(player, "player");
         return players.contains(player);
     }
 
-    /**
-     * Gets an immutable copy of the teams members
-     *
-     * @return the team members
-     */
+    @Override
     public Set<Player> getPlayers() {
         return ImmutableSet.copyOf(players);
     }
 
-    /**
-     * Subscribes a player to this team
-     *
-     * @param player the player to subscribe
-     */
+    @Override
     public void subscribe(Player player) {
         scoreboard.sendPacket(newCreatePacket(), player);
         subscribed.add(player);
     }
 
-    /**
-     * Unsubscribes a player from this team
-     *
-     * @param player the player to unsubscribe
-     */
+    @Override
     public void unsubscribe(Player player) {
         unsubscribe(player, false);
     }
 
-    /**
-     * Unsubscribes a player from this team
-     *
-     * @param player the player to unsubscribe
-     * @param fast if true, the removal packet will not be sent (for use when the player is leaving)
-     */
+    @Override
     public void unsubscribe(Player player, boolean fast) {
         if (!subscribed.remove(player) || fast) {
             return;
@@ -366,9 +274,7 @@ public class PacketScoreboardTeam {
         scoreboard.sendPacket(newRemovePacket(), player);
     }
 
-    /**
-     * Unsubscribes all players from this team
-     */
+    @Override
     public void unsubscribeAll() {
         scoreboard.broadcastPacket(subscribed, newRemovePacket());
         subscribed.clear();
@@ -463,40 +369,6 @@ public class PacketScoreboardTeam {
         }
         
         return packet;
-    }
-
-    public enum CollisionRule {
-        ALWAYS("always"),
-        NEVER("never"),
-        HIDE_FOR_OTHER_TEAMS("pushOtherTeams"),
-        HIDE_FOR_OWN_TEAM("pushOwnTeam");
-
-        private final String protocolName;
-
-        CollisionRule(String protocolName) {
-            this.protocolName = protocolName;
-        }
-
-        public String getProtocolName() {
-            return protocolName;
-        }
-    }
-
-    public enum NameTagVisibility {
-        ALWAYS("always"),
-        NEVER("never"),
-        HIDE_FOR_OTHER_TEAMS("hideForOtherTeams"),
-        HIDE_FOR_OWN_TEAM("hideForOwnTeam");
-
-        private final String protocolName;
-
-        NameTagVisibility(String protocolName) {
-            this.protocolName = protocolName;
-        }
-
-        public String getProtocolName() {
-            return protocolName;
-        }
     }
 
 }
