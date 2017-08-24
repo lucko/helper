@@ -43,7 +43,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -54,9 +56,16 @@ import java.util.function.Supplier;
  */
 public final class Scheduler {
 
-    private static final Executor SYNC_EXECUTOR = runnable -> bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), runnable);
-    private static final Executor BUKKIT_ASYNC_EXECUTOR = runnable -> bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), runnable);
-    private static final ExecutorService ASYNC_EXECUTOR = Executors.newCachedThreadPool();
+    private static final Executor SYNC_EXECUTOR = runnable -> bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), wrapRunnableNoTimings(runnable));
+    private static final Executor BUKKIT_ASYNC_EXECUTOR = runnable -> bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), wrapRunnableNoTimings(runnable));
+
+    // equivalent to calling Executors.newCachedThreadPool()
+    private static final ExecutorService ASYNC_EXECUTOR = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>()) {
+        @Override
+        public void execute(Runnable command) {
+            super.execute(wrapRunnableNoTimings(command));
+        }
+    };
 
     private static final Consumer<Throwable> EXCEPTION_CONSUMER = throwable -> {
         Log.severe("[SCHEDULER] Exception thrown whilst executing task");
@@ -90,6 +99,18 @@ public final class Scheduler {
     private static Runnable wrapRunnable(Runnable runnable) {
         return () -> {
             try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + runnable.getClass().getName())) {
+                runnable.run();
+            } catch (Throwable t) {
+                // print debug info, then re-throw
+                EXCEPTION_CONSUMER.accept(t);
+                throw new CompletionException(t);
+            }
+        };
+    }
+
+    private static Runnable wrapRunnableNoTimings(Runnable runnable) {
+        return () -> {
+            try {
                 runnable.run();
             } catch (Throwable t) {
                 // print debug info, then re-throw
