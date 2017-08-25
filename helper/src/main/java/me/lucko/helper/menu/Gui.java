@@ -29,6 +29,9 @@ import com.google.common.base.Preconditions;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.Scheduler;
+import me.lucko.helper.metadata.Metadata;
+import me.lucko.helper.metadata.MetadataKey;
+import me.lucko.helper.metadata.MetadataMap;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableRegistry;
 import me.lucko.helper.timings.Timings;
@@ -53,6 +56,7 @@ import java.util.function.Function;
  * A simple GUI abstraction
  */
 public abstract class Gui implements Consumer<Terminable> {
+    private static final MetadataKey<Gui> OPEN_GUI_KEY = MetadataKey.create("open-gui", Gui.class);
 
     /**
      * Utility method to get the number of lines needed for x items
@@ -236,6 +240,7 @@ public abstract class Gui implements Consumer<Terminable> {
         firstDraw = false;
         startListening();
         player.openInventory(inventory);
+        Metadata.provideForPlayer(player).put(OPEN_GUI_KEY, this);
         valid = true;
     }
 
@@ -245,6 +250,12 @@ public abstract class Gui implements Consumer<Terminable> {
 
     private void invalidate() {
         valid = false;
+
+        MetadataMap metadataMap = Metadata.provideForPlayer(player);
+        Gui existing = metadataMap.getOrNull(OPEN_GUI_KEY);
+        if (existing == this) {
+            metadataMap.remove(OPEN_GUI_KEY);
+        }
 
         // stop listening
         terminableRegistry.terminate();
@@ -287,7 +298,7 @@ public abstract class Gui implements Consumer<Terminable> {
                         Map<ClickType, Consumer<InventoryClickEvent>> handlers = item.getHandlers();
                         Consumer<InventoryClickEvent> handler = handlers.get(e.getClick());
                         if (handler != null) {
-                            try (MCTiming t = Timings.get().ofStart("helper-gui: " + getClass().getSimpleName() + " : " + getHandlerName(handler))) {
+                            try (MCTiming t = Timings.ofStart("helper-gui: " + getClass().getSimpleName() + " : " + getHandlerName(handler))) {
                                 handler.accept(e);
                             } catch (Exception ex) {
                                 ex.printStackTrace();

@@ -613,7 +613,7 @@ public final class Commands {
         @Override
         public void register(ExtendedJavaPlugin plugin, String... aliases) {
             plugin.registerCommand(this, aliases);
-            timing = Timings.get().of("helper-commands: " + plugin.getName() + " - " + Arrays.toString(aliases));
+            timing = Timings.of("helper-commands: " + plugin.getName() + " - " + Arrays.toString(aliases));
         }
 
         @Override

@@ -23,57 +23,17 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.interfaces;
 
-import com.google.common.collect.ImmutableList;
-
-import java.util.List;
+import com.google.common.reflect.TypeToken;
 
 /**
- * A cycle of elements, backed by a list. All operations are thread safe.
+ * Represents an object that knows it's own type parameter.
  *
- * @param <E> the element type
+ * @param <T> the type
  */
-public class Cycle<E> {
-    protected final List<E> objects;
-    protected int index = 0;
+public interface TypeAware<T> {
 
-    public Cycle(List<E> objects) {
-        if (objects == null || objects.isEmpty()) {
-            throw new IllegalArgumentException("List of objects cannot be null/empty.");
-        }
-        this.objects = ImmutableList.copyOf(objects);
-    }
+    TypeToken<T> getType();
 
-    public int getIndex() {
-        return index;
-    }
-
-    public E current() {
-        synchronized (this) {
-            return objects.get(index);
-        }
-    }
-
-    public E next() {
-        synchronized (this) {
-            index++;
-            index = index > objects.size() - 1 ? 0 : index;
-
-            return objects.get(index);
-        }
-    }
-
-    public E back() {
-        synchronized (this) {
-            index--;
-            index = index == -1 ? objects.size() - 1 : index;
-
-            return objects.get(index);
-        }
-    }
-
-    public List<E> getBacking() {
-        return objects;
-    }
 }
