@@ -624,7 +624,7 @@ public final class Events {
             this.exceptionConsumer = builder.exceptionConsumer;
             this.filters = ImmutableList.copyOf(builder.filters);
             this.handler = handler;
-            this.timing = Timings.get().of("helper-events: " + getHandlerName(handler));
+            this.timing = Timings.of("helper-events: " + getHandlerName(handler));
         }
 
         private void register(Plugin plugin) {
@@ -764,7 +764,7 @@ public final class Events {
             this.exceptionConsumer = builder.exceptionConsumer;
             this.filters = ImmutableList.copyOf(builder.filters);
             this.handler = handler;
-            this.timing = Timings.get().of("helper-events: " + getHandlerName(handler));
+            this.timing = Timings.of("helper-events: " + getHandlerName(handler));
         }
 
         private void register(Plugin plugin) {

@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 final class SimpleMetadataMap implements MetadataMap {
@@ -170,6 +171,19 @@ final class SimpleMetadataMap implements MetadataMap {
         } finally {
             lock.unlock();
         }
+    }
+
+    @Override
+    public <T> boolean ifPresent(MetadataKey<T> key, Consumer<? super T> action) {
+        Preconditions.checkNotNull(key, "key");
+        Preconditions.checkNotNull(action, "action");
+        Optional<T> opt = get(key);
+        if (!opt.isPresent()) {
+            return false;
+        }
+
+        action.accept(opt.get());
+        return true;
     }
 
     @Override

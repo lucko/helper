@@ -28,6 +28,7 @@ package me.lucko.helper.metadata;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -121,6 +122,17 @@ public interface MetadataMap {
      * @throws ClassCastException if there is a key held in the map with the same id but differing type to the given key.
      */
     <T> Optional<T> get(MetadataKey<T> key);
+
+    /**
+     * Attempts to get a value for the given key, and applies the action is present.
+     *
+     * @param key the metadata key to lookup
+     * @param action the action to apply
+     * @param <T> the value type
+     * @return true if the action was applied
+     * @throws ClassCastException if there is a key held in the map with the same id but differing type to the given key.
+     */
+    <T> boolean ifPresent(MetadataKey<T> key, Consumer<? super T> action);
 
     /**
      * Gets a value for the given key, or null if one isn't present.

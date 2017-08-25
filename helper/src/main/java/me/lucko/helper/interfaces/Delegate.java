@@ -23,7 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.interfaces;
 
 /**
  * Represents a class which delegates called to a different object.
@@ -38,4 +38,5 @@ public interface Delegate<T> {
      * @return the delegate object
      */
     T getDelegate();
+
 }

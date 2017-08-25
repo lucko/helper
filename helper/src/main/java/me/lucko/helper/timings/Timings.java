@@ -29,6 +29,7 @@ import me.lucko.helper.utils.LoaderUtils;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import co.aikar.timings.lib.MCTiming;
 import co.aikar.timings.lib.TimingManager;
 
 /**
@@ -48,6 +49,22 @@ public final class Timings {
         }
 
         return timingManager;
+    }
+
+    public static MCTiming ofStart(String name) {
+        return get().ofStart(name);
+    }
+
+    public static MCTiming ofStart(String name, MCTiming parent) {
+        return get().ofStart(name, parent);
+    }
+
+    public static MCTiming of(String name) {
+        return get().of(name);
+    }
+
+    public static MCTiming of(String name, MCTiming parent) {
+        return get().of(name, parent);
     }
 
     private Timings() {

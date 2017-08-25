@@ -78,8 +78,8 @@ public class CooldownCollection<T> {
         return new CooldownCollection<>(Object::toString, base);
     }
 
-    private final LoadingCache<String, Cooldown> cache;
-    private final Function<T, String> mappingFunc;
+    protected final LoadingCache<String, Cooldown> cache;
+    protected final Function<T, String> mappingFunc;
 
     private CooldownCollection(Function<T, String> mappingFunc, Cooldown base) {
         cache = CacheBuilder.newBuilder()

@@ -55,10 +55,10 @@ public class Cooldown implements LongSupplier {
     }
 
     // when the last test occurred.
-    private long lastCalled;
+    protected long lastCalled;
 
     // the cooldown duration in millis
-    private final long timeout;
+    protected final long timeout;
 
     private Cooldown(long amount, TimeUnit unit) {
         timeout = unit.toMillis(amount);

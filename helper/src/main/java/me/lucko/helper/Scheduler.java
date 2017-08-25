@@ -27,6 +27,7 @@ package me.lucko.helper;
 
 import com.google.common.base.Preconditions;
 
+import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.LoaderUtils;
@@ -56,69 +57,14 @@ import java.util.function.Supplier;
  */
 public final class Scheduler {
 
-    private static final Executor SYNC_EXECUTOR = runnable -> bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), wrapRunnableNoTimings(runnable));
-    private static final Executor BUKKIT_ASYNC_EXECUTOR = runnable -> bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), wrapRunnableNoTimings(runnable));
-
-    // equivalent to calling Executors.newCachedThreadPool()
-    private static final ExecutorService ASYNC_EXECUTOR = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>()) {
-        @Override
-        public void execute(Runnable command) {
-            super.execute(wrapRunnableNoTimings(command));
-        }
-    };
+    private static final Executor SYNC_EXECUTOR = new SyncExecutor();
+    private static final Executor BUKKIT_ASYNC_EXECUTOR = new AsyncExecutor();
+    private static final ExecutorService ASYNC_EXECUTOR = new FallbackAsyncExecutor();
 
     private static final Consumer<Throwable> EXCEPTION_CONSUMER = throwable -> {
         Log.severe("[SCHEDULER] Exception thrown whilst executing task");
         throwable.printStackTrace();
     };
-
-    private static <T> Supplier<T> wrapSupplier(Supplier<T> supplier) {
-        return () -> {
-            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + supplier.getClass().getName())) {
-                return supplier.get();
-            } catch (Throwable t) {
-                // print debug info, then re-throw
-                EXCEPTION_CONSUMER.accept(t);
-                throw new CompletionException(t);
-            }
-        };
-    }
-
-    private static <T> Supplier<T> wrapCallable(Callable<T> callable) {
-        return () -> {
-            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + callable.getClass().getName())) {
-                return callable.call();
-            } catch (Throwable t) {
-                // print debug info, then re-throw
-                EXCEPTION_CONSUMER.accept(t);
-                throw new CompletionException(t);
-            }
-        };
-    }
-
-    private static Runnable wrapRunnable(Runnable runnable) {
-        return () -> {
-            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + runnable.getClass().getName())) {
-                runnable.run();
-            } catch (Throwable t) {
-                // print debug info, then re-throw
-                EXCEPTION_CONSUMER.accept(t);
-                throw new CompletionException(t);
-            }
-        };
-    }
-
-    private static Runnable wrapRunnableNoTimings(Runnable runnable) {
-        return () -> {
-            try {
-                runnable.run();
-            } catch (Throwable t) {
-                // print debug info, then re-throw
-                EXCEPTION_CONSUMER.accept(t);
-                throw new CompletionException(t);
-            }
-        };
-    }
 
     /**
      * Get an Executor instance which will execute all passed runnables on the main server thread.
@@ -141,6 +87,7 @@ public final class Scheduler {
 
     /**
      * Get an Executor instance which will execute all passed runnables using an internal thread pool
+     *
      * @return an "async" executor instance
      */
     public static synchronized ExecutorService internalAsync() {
@@ -149,6 +96,7 @@ public final class Scheduler {
 
     /**
      * Get an Executor instance which will execute all passed runnables using a thread pool
+     *
      * @return an "async" executor instance
      */
     public static synchronized Executor async() {
@@ -235,7 +183,7 @@ public final class Scheduler {
         HelperFuture<T> fut = new HelperFuture<>(null);
         BukkitTask task = bukkit().runTaskLater(LoaderUtils.getPlugin(), () -> {
             fut.setExecuting();
-            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + supplier.getClass().getName())) {
+            try (MCTiming t = Timings.ofStart("helper-scheduler: " + supplier.getClass().getName())) {
                 T result = supplier.get();
                 fut.complete(result);
             } catch (Throwable t) {
@@ -285,7 +233,7 @@ public final class Scheduler {
         HelperFuture<T> fut = new HelperFuture<>(null);
         BukkitTask task = bukkit().runTaskLater(LoaderUtils.getPlugin(), () -> {
             fut.setExecuting();
-            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + callable.getClass().getName())) {
+            try (MCTiming t = Timings.ofStart("helper-scheduler: " + callable.getClass().getName())) {
                 T result = callable.call();
                 fut.complete(result);
             } catch (Throwable t) {
@@ -334,7 +282,7 @@ public final class Scheduler {
         HelperFuture<Void> fut = new HelperFuture<>(null);
         BukkitTask task = bukkit().runTaskLater(LoaderUtils.getPlugin(), () -> {
             fut.setExecuting();
-            try (MCTiming t = Timings.get().ofStart("helper-scheduler: " + runnable.getClass().getName())) {
+            try (MCTiming t = Timings.ofStart("helper-scheduler: " + runnable.getClass().getName())) {
                 runnable.run();
                 fut.complete(null);
             } catch (Throwable t) {
@@ -448,6 +396,51 @@ public final class Scheduler {
 
     }
 
+    private static <T> Supplier<T> wrapSupplier(Supplier<T> supplier) {
+        return new TimingWrappedSupplier<>(supplier);
+    }
+
+    private static <T> Supplier<T> wrapCallable(Callable<T> callable) {
+        return new TimingWrappedCallable<>(callable);
+    }
+
+    private static Runnable wrapRunnable(Runnable runnable) {
+        // already wrapped
+        if (runnable instanceof TimingWrappedRunnable) {
+            return runnable;
+        }
+        if (runnable instanceof CompletableFuture.AsynchronousCompletionTask) {
+            return new WrappedRunnable(runnable);
+        }
+        return new TimingWrappedRunnable(runnable);
+    }
+
+    private static final class SyncExecutor implements Executor {
+        @Override
+        public void execute(Runnable runnable) {
+            bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), wrapRunnable(runnable));
+        }
+    }
+
+    private static final class AsyncExecutor implements Executor {
+        @Override
+        public void execute(Runnable runnable) {
+            bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), wrapRunnable(runnable));
+        }
+    }
+
+    private static final class FallbackAsyncExecutor extends ThreadPoolExecutor {
+        private FallbackAsyncExecutor() {
+            // equivalent to calling Executors.newCachedThreadPool()
+            super(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>());
+        }
+
+        @Override
+        public void execute(Runnable runnable) {
+            super.execute(wrapRunnable(runnable));
+        }
+    }
+
     private static String getHandlerName(Consumer consumer) {
         if (consumer instanceof DelegateConsumer) {
             return ((DelegateConsumer) consumer).getDelegate().getClass().getName();
@@ -465,7 +458,7 @@ public final class Scheduler {
 
         private TaskImpl(Consumer<Task> backingTask) {
             this.backingTask = backingTask;
-            this.timing = Timings.get().of("helper-scheduler: " + getHandlerName(backingTask));
+            this.timing = Timings.of("helper-scheduler: " + getHandlerName(backingTask));
         }
 
         @Override
@@ -562,20 +555,116 @@ public final class Scheduler {
         }
     }
 
-    private static final class DelegateConsumer<T> implements Consumer<T> {
+    private static final class DelegateConsumer<T> implements Consumer<T>, Delegate<Runnable> {
         private final Runnable delegate;
 
         private DelegateConsumer(Runnable delegate) {
             this.delegate = delegate;
         }
 
-        public Runnable getDelegate() {
-            return delegate;
-        }
-
         @Override
         public void accept(T t) {
             delegate.run();
+        }
+
+        @Override
+        public Runnable getDelegate() {
+            return delegate;
+        }
+    }
+
+    private static final class TimingWrappedSupplier<T> implements Supplier<T>, Delegate<Supplier<T>> {
+        private final Supplier<T> delegate;
+
+        private TimingWrappedSupplier(Supplier<T> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public T get() {
+            try (MCTiming t = Timings.ofStart("helper-scheduler: " + delegate.getClass().getName())) {
+                return delegate.get();
+            } catch (Throwable t) {
+                throw new CompletionException(t);
+            }
+        }
+
+        @Override
+        public Supplier<T> getDelegate() {
+            return delegate;
+        }
+    }
+
+    private static final class TimingWrappedCallable<T> implements Supplier<T>, Delegate<Callable<T>> {
+        private final Callable<T> delegate;
+
+        private TimingWrappedCallable(Callable<T> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public T get() {
+            try (MCTiming t = Timings.ofStart("helper-scheduler: " + delegate.getClass().getName())) {
+                return delegate.call();
+            } catch (Throwable t) {
+                throw new CompletionException(t);
+            }
+        }
+
+        @Override
+        public Callable<T> getDelegate() {
+            return delegate;
+        }
+    }
+
+    private static final class TimingWrappedRunnable implements Runnable, Delegate<Runnable> {
+        private final Runnable delegate;
+
+        private TimingWrappedRunnable(Runnable delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void run() {
+            try (MCTiming t = Timings.ofStart("helper-scheduler: " + delegate.getClass().getName())) {
+                delegate.run();
+            } catch (Throwable t) {
+                throw new CompletionException(t);
+            }
+        }
+
+        @Override
+        public Runnable getDelegate() {
+            return delegate;
+        }
+    }
+
+    private static final class WrappedRunnable implements Runnable, Delegate<Runnable> {
+        private final Runnable delegate;
+
+        private WrappedRunnable(Runnable delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void run() {
+            try {
+                delegate.run();
+            } catch (Throwable t) {
+                // print debug info, then re-throw
+                EXCEPTION_CONSUMER.accept(t);
+
+                if (t instanceof CompletionException) {
+                    throw t;
+                } else {
+                    throw new CompletionException(t);
+                }
+            }
+        }
+
+        @Override
+        public Runnable getDelegate() {
+            return delegate;
         }
     }
 
