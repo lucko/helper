@@ -56,7 +56,7 @@ import java.util.function.Function;
  * A simple GUI abstraction
  */
 public abstract class Gui implements Consumer<Terminable> {
-    private static final MetadataKey<Gui> OPEN_GUI_KEY = MetadataKey.create("open-gui", Gui.class);
+    public static final MetadataKey<Gui> OPEN_GUI_KEY = MetadataKey.create("open-gui", Gui.class);
 
     /**
      * Utility method to get the number of lines needed for x items
