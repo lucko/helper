@@ -12,7 +12,7 @@
 
     <artifactId>helper-sql</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <name>helper-sql</name>
     <description>Provides SQL datasources using HikariCP.</description>
@@ -139,7 +139,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>helper</artifactId>
-            <version>1.7.1</version>
+            <version>2.0.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

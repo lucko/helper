@@ -23,28 +23,24 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.terminable.registry;
 
-import me.lucko.helper.terminable.registry.TerminableRegistry;
+import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.terminable.TerminableConsumer;
+import me.lucko.helper.terminable.composite.CompositeTerminableConsumer;
 
-public final class Terminables {
+/**
+ * Represents a registry of {@link Terminable}s.
+ */
+public interface TerminableRegistry extends Terminable, TerminableConsumer, CompositeTerminableConsumer {
 
-    public static Terminable combine(Terminable... terminables) {
-        if (terminables.length == 0) {
-            return Terminable.EMPTY;
-        }
-        if (terminables.length == 1) {
-            return terminables[0];
-        }
-
-        TerminableRegistry registry = TerminableRegistry.create();
-        for (Terminable terminable : terminables) {
-            terminable.bindWith(registry);
-        }
-        return registry;
+    static TerminableRegistry create() {
+        return new SimpleTerminableRegistry();
     }
 
-    private Terminables() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
-    }
+    /**
+     * Removes instances which have already been terminated via {@link Terminable#hasTerminated()}
+     */
+    default void cleanup() {}
+
 }

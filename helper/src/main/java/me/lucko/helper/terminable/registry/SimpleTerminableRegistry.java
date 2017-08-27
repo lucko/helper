@@ -23,34 +23,38 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.terminable.registry;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+
+import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.terminable.composite.CompositeTerminable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-final class SimpleTerminableRegistry implements TerminableRegistry {
+public class SimpleTerminableRegistry implements TerminableRegistry {
     private final List<Terminable> terminables = Collections.synchronizedList(new ArrayList<>());
     private boolean terminated = false;
 
     @Override
-    public void accept(Terminable terminable) {
+    public final <T extends Terminable> T bind(T terminable) {
         Preconditions.checkNotNull(terminable, "terminable");
         terminables.add(terminable);
-    }
-
-    @Override
-    public <T extends CompositeTerminable> T bindTerminable(T terminable) {
-        Preconditions.checkNotNull(terminable, "terminable");
-        terminable.bind(this);
         return terminable;
     }
 
     @Override
-    public boolean terminate() {
+    public <T extends CompositeTerminable> T bindComposite(T terminable) {
+        Preconditions.checkNotNull(terminable, "terminable");
+        terminable.setup(this);
+        return terminable;
+    }
+
+    @Override
+    public final boolean terminate() {
         Lists.reverse(terminables).forEach((terminable) -> {
             try {
                 terminable.terminate();
@@ -64,12 +68,12 @@ final class SimpleTerminableRegistry implements TerminableRegistry {
     }
 
     @Override
-    public boolean hasTerminated() {
+    public final boolean hasTerminated() {
         return terminated;
     }
 
     @Override
-    public void cleanup() {
+    public final void cleanup() {
         terminables.removeIf(Terminable::hasTerminated);
     }
 }

@@ -25,7 +25,12 @@
 
 package me.lucko.helper.plugin;
 
+import me.lucko.helper.Commands;
+import me.lucko.helper.Helper;
 import me.lucko.helper.utils.LoaderUtils;
+import me.lucko.helper.utils.Players;
+
+import org.bukkit.plugin.Plugin;
 
 /**
  * Dummy plugin to make the server load this lib.
@@ -38,7 +43,23 @@ public class DummyHelperPlugin extends ExtendedJavaPlugin {
     }
 
     @Override
-    public void onEnable() {
+    protected void enable() {
+        // cache the loader plugin
         LoaderUtils.getPlugin();
+
+        // provide an info command
+        Commands.create()
+                .handler(c -> {
+                    Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6helper v" + getDescription().getVersion() + "&7.");
+                    if (Helper.plugins().isPluginEnabled("helper-sql")) {
+                        Plugin sqlPlugin = getPlugin("helper-sql", Plugin.class);
+                        Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6helper-sql v" + sqlPlugin.getDescription().getVersion() + "&7.");
+                    }
+                    if (Helper.plugins().isPluginEnabled("helper-redis")) {
+                        Plugin sqlPlugin = getPlugin("helper-redis", Plugin.class);
+                        Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6helper-redis " + sqlPlugin.getDescription().getVersion() + "&7.");
+                    }
+                })
+                .register(this, "helper");
     }
 }

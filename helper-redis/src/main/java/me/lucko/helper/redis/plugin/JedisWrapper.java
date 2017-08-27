@@ -33,7 +33,7 @@ import me.lucko.helper.messaging.AbstractMessenger;
 import me.lucko.helper.messaging.Channel;
 import me.lucko.helper.redis.HelperRedis;
 import me.lucko.helper.redis.RedisCredentials;
-import me.lucko.helper.terminable.TerminableRegistry;
+import me.lucko.helper.terminable.registry.TerminableRegistry;
 import me.lucko.helper.utils.Log;
 
 import redis.clients.jedis.Jedis;
@@ -114,7 +114,7 @@ public class JedisWrapper implements HelperRedis {
                 listener.subscribe(channel);
             }
 
-        }, 2L, 2L).register(registry);
+        }, 2L, 2L).bindWith(registry);
 
         messenger = new AbstractMessenger(
                 (channel, message) -> {

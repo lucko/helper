@@ -25,7 +25,6 @@
 
 package me.lucko.helper.sql.plugin;
 
-import me.lucko.helper.maven.LibraryLoader;
 import me.lucko.helper.maven.MavenLibrary;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.sql.DatabaseCredentials;
@@ -38,15 +37,10 @@ public class SqlPlugin extends ExtendedJavaPlugin implements SqlProvider {
     private HelperDataSource globalDataSource;
 
     @Override
-    public void onLoad() {
-        LibraryLoader.loadAll(SqlPlugin.class);
-    }
-
-    @Override
-    public void onEnable() {
+    protected void enable() {
         this.globalCredentials = DatabaseCredentials.fromConfig(loadConfig("config.yml"));
         this.globalDataSource = getDataSource(this.globalCredentials);
-        this.globalDataSource.register(this);
+        this.globalDataSource.bindWith(this);
 
         // expose all instances as services.
         provideService(SqlProvider.class, this);
