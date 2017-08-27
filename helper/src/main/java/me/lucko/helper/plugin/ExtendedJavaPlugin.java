@@ -28,67 +28,77 @@ package me.lucko.helper.plugin;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.Scheduler;
-import me.lucko.helper.terminable.CompositeTerminable;
+import me.lucko.helper.maven.LibraryLoader;
 import me.lucko.helper.terminable.Terminable;
-import me.lucko.helper.terminable.TerminableRegistry;
+import me.lucko.helper.terminable.TerminableConsumer;
+import me.lucko.helper.terminable.composite.CompositeTerminable;
+import me.lucko.helper.terminable.composite.CompositeTerminableConsumer;
+import me.lucko.helper.terminable.registry.TerminableRegistry;
+import me.lucko.helper.utils.CommandMapUtil;
 
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandMap;
-import org.bukkit.command.PluginCommand;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.util.function.Consumer;
 
 /**
- * An "extended" JavaPlugin instance, providing a built in {@link TerminableRegistry}, and methods to easily register
- * commands at runtime, and provide/retrieve services from the Bukkit ServiceManager.
+ * An "extended" JavaPlugin class.
  */
-public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<Terminable> {
-    private static Constructor<?> commandConstructor;
-    private static Field owningPluginField;
-    static {
-        try {
-            commandConstructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
-            commandConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            owningPluginField = PluginCommand.class.getDeclaredField("owningPlugin");
-            owningPluginField.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer, CompositeTerminableConsumer {
+
+    // the backing terminable registry
+    private TerminableRegistry terminableRegistry;
+
+    // Used by subclasses to perform logic for plugin load/enable/disable.
+    protected void load() {}
+    protected void enable() {}
+    protected void disable() {}
+
+    @Override
+    public final void onLoad() {
+        terminableRegistry = TerminableRegistry.create();
+
+        LibraryLoader.loadAll(getClass());
+
+        // call subclass
+        load();
     }
 
-    // Cached CommandMap instance
-    private CommandMap commandMap = null;
+    @Override
+    public final void onEnable() {
+        // schedule cleanup of the registry
+        Scheduler.runTaskRepeatingAsync(terminableRegistry::cleanup, 600L, 600L).bindWith(terminableRegistry);
 
-    private final TerminableRegistry terminableRegistry = TerminableRegistry.create();
-    private boolean hasTask = false;
-
-    private void setupTerminableCleanupTask() {
-        synchronized (terminableRegistry) {
-            if (!hasTask) {
-                hasTask = true;
-
-                Scheduler.runTaskRepeatingAsync(terminableRegistry::cleanup, 600L, 600L).register(terminableRegistry);
-            }
-        }
+        // call subclass
+        enable();
     }
 
     @Override
     public final void onDisable() {
+
+        // call subclass
+        disable();
+
+        // terminate the registry
         terminableRegistry.terminate();
+    }
+
+    @Override
+    public <T extends Terminable> T bind(T terminable) {
+        return terminableRegistry.bind(terminable);
+    }
+
+    @Override
+    public <T extends Runnable> T bindRunnable(T runnable) {
+        return terminableRegistry.bindRunnable(runnable);
+    }
+
+    @Override
+    public <T extends CompositeTerminable> T bindComposite(T terminable) {
+        return terminableRegistry.bindComposite(terminable);
     }
 
     /**
@@ -107,42 +117,6 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
     }
 
     /**
-     * Registers a terminable with this plugins {@link TerminableRegistry}
-     *
-     * @param terminable the terminable to register
-     */
-    @Override
-    public void accept(Terminable terminable) {
-        registerTerminable(terminable);
-    }
-
-    /**
-     * Registers a terminable with this plugins {@link TerminableRegistry}
-     *
-     * @param terminable the terminable to register
-     * @param <T> the terminal type
-     * @return the terminable
-     */
-    public <T extends Terminable> T registerTerminable(T terminable) {
-        setupTerminableCleanupTask();
-        terminableRegistry.accept(terminable);
-        return terminable;
-    }
-
-    /**
-     * Binds a {@link CompositeTerminable} to this plugins {@link TerminableRegistry}
-     *
-     * @param terminable the composite terminable to bind
-     * @param <T> the terminable class type
-     * @return the composite terminable
-     */
-    public <T extends CompositeTerminable> T bindTerminable(T terminable) {
-        setupTerminableCleanupTask();
-        terminableRegistry.bindTerminable(terminable);
-        return terminable;
-    }
-
-    /**
      * Registers a CommandExecutor with the server
      *
      * @param command the command instance
@@ -151,46 +125,7 @@ public abstract class ExtendedJavaPlugin extends JavaPlugin implements Consumer<
      * @return the command executor
      */
     public <T extends CommandExecutor> T registerCommand(T command, String... aliases) {
-        Preconditions.checkArgument(aliases.length != 0, "No aliases");
-        for (String alias : aliases) {
-            PluginCommand cmd = getServer().getPluginCommand(alias);
-            if (cmd == null) {
-                try {
-                    cmd = (PluginCommand) commandConstructor.newInstance(alias, this);
-                } catch (Exception ex) {
-                    throw new RuntimeException("Could not register command: " + alias);
-                }
-
-                // Get the command map to register the command to
-                if (commandMap == null) {
-                    try {
-                        PluginManager pluginManager = getServer().getPluginManager();
-                        Field commandMapField = pluginManager.getClass().getDeclaredField("commandMap");
-                        commandMapField.setAccessible(true);
-                        commandMap = (CommandMap) commandMapField.get(pluginManager);
-                    } catch (Exception ex) {
-                        throw new RuntimeException("Could not register command: " + alias);
-                    }
-                }
-
-                commandMap.register(this.getDescription().getName(), cmd);
-            } else {
-                // we may need to change the owningPlugin, since this was already registered
-                try {
-                    owningPluginField.set(cmd, this);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            cmd.setExecutor(command);
-            if (command instanceof TabCompleter) {
-                cmd.setTabCompleter((TabCompleter) command);
-            } else {
-                cmd.setTabCompleter(null);
-            }
-        }
-        return command;
+        return CommandMapUtil.registerCommand(this, command, aliases);
     }
 
     /**

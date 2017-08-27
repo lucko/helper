@@ -25,11 +25,10 @@
 
 package me.lucko.helper.terminable;
 
-import java.util.function.Consumer;
-
 /**
  * Represents an object that can be unregistered, stopped, or gracefully halted.
  */
+@FunctionalInterface
 public interface Terminable {
     Terminable EMPTY = () -> true;
 
@@ -42,20 +41,23 @@ public interface Terminable {
 
     /**
      * Terminate this instance
-     * @return true if the object wasn't already terminated
+     *
+     * @return true if the termination was successful
      */
     boolean terminate();
 
     /**
      * Registers this terminable with a terminable consumer (usually the plugin instance)
+     *
      * @param consumer the terminable consumer
      */
-    default void register(Consumer<Terminable> consumer) {
-        consumer.accept(this);
+    default void bindWith(TerminableConsumer consumer) {
+        consumer.bind(this);
     }
 
     /**
      * Used to help cleanup held terminable instances in registries
+     *
      * @return true if this terminable has been terminated already
      */
     default boolean hasTerminated() {

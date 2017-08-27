@@ -23,21 +23,33 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.terminable.composite;
 
-import java.util.function.Consumer;
+import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.terminable.TerminableConsumer;
 
 /**
- * A composite terminable is a class which combines a number of {@link Terminable}s, to be easily registered as one.
+ * A composite terminable is a class which combines a number
+ * of {@link Terminable}s, to be easily registered as one.
  *
- * CompositeTerminables can be registered with {@link TerminableRegistry#bindTerminable(CompositeTerminable)}
+ * {@link CompositeTerminable}s can be registered with {@link CompositeTerminableConsumer#bindComposite(CompositeTerminable)}
  */
 public interface CompositeTerminable {
 
     /**
      * Binds this composite terminable with a terminable consumer
+     *
      * @param consumer the terminable consumer
      */
-    void bind(Consumer<Terminable> consumer);
+    void setup(TerminableConsumer consumer);
+
+    /**
+     * Registers this terminable with a terminable consumer (usually the plugin instance)
+     *
+     * @param consumer the terminable consumer
+     */
+    default void bindWith(CompositeTerminableConsumer consumer) {
+        consumer.bindComposite(this);
+    }
 
 }

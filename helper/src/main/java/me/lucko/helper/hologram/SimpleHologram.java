@@ -31,7 +31,7 @@ import com.google.gson.JsonObject;
 import me.lucko.helper.Events;
 import me.lucko.helper.gson.JsonBuilder;
 import me.lucko.helper.serialize.Position;
-import me.lucko.helper.terminable.TerminableRegistry;
+import me.lucko.helper.terminable.registry.TerminableRegistry;
 import me.lucko.helper.utils.Color;
 
 import org.bukkit.Location;
@@ -198,7 +198,7 @@ class SimpleHologram implements Hologram {
                             }
                         }
                     })
-                    .register(this.listeners);
+                    .bindWith(this.listeners);
 
             Events.subscribe(EntityDamageByEntityEvent.class)
                     .filter(e -> e.getEntity() instanceof ArmorStand)
@@ -215,7 +215,7 @@ class SimpleHologram implements Hologram {
                             }
                         }
                     })
-                    .register(this.listeners);
+                    .bindWith(this.listeners);
         }
     }
 

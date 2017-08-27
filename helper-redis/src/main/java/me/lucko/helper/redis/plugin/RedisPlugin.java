@@ -38,10 +38,10 @@ public class RedisPlugin extends ExtendedJavaPlugin implements RedisProvider {
     private HelperRedis globalRedis;
 
     @Override
-    public void onEnable() {
+    protected void enable() {
         this.globalCredentials = RedisCredentials.fromConfig(loadConfig("config.yml"));
         this.globalRedis = getRedis(this.globalCredentials);
-        this.globalRedis.register(this);
+        this.globalRedis.bindWith(this);
 
         // expose all instances as services.
         provideService(RedisProvider.class, this);

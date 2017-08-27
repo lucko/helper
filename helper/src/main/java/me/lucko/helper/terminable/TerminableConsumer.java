@@ -25,26 +25,31 @@
 
 package me.lucko.helper.terminable;
 
-import me.lucko.helper.terminable.registry.TerminableRegistry;
+/**
+ * Accepts {@link Terminable}s.
+ */
+@FunctionalInterface
+public interface TerminableConsumer {
 
-public final class Terminables {
+    /**
+     * Binds with the given terminable.
+     *
+     * @param terminable the terminable to bind with
+     * @param <T> the terminable type
+     * @return the same terminable
+     */
+    <T extends Terminable> T bind(T terminable);
 
-    public static Terminable combine(Terminable... terminables) {
-        if (terminables.length == 0) {
-            return Terminable.EMPTY;
-        }
-        if (terminables.length == 1) {
-            return terminables[0];
-        }
-
-        TerminableRegistry registry = TerminableRegistry.create();
-        for (Terminable terminable : terminables) {
-            terminable.bindWith(registry);
-        }
-        return registry;
+    /**
+     * Binds with the given runnable.
+     *
+     * @param runnable the runnable to bind with
+     * @param <T> the terminable type
+     * @return the same terminable
+     */
+    default <T extends Runnable> T bindRunnable(T runnable) {
+        bind(Terminable.of(runnable));
+        return runnable;
     }
 
-    private Terminables() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
-    }
 }

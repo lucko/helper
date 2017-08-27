@@ -33,7 +33,8 @@ import me.lucko.helper.metadata.Metadata;
 import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.metadata.MetadataMap;
 import me.lucko.helper.terminable.Terminable;
-import me.lucko.helper.terminable.TerminableRegistry;
+import me.lucko.helper.terminable.TerminableConsumer;
+import me.lucko.helper.terminable.registry.TerminableRegistry;
 import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Color;
 
@@ -55,7 +56,7 @@ import java.util.function.Function;
 /**
  * A simple GUI abstraction
  */
-public abstract class Gui implements Consumer<Terminable> {
+public abstract class Gui implements TerminableConsumer {
     public static final MetadataKey<Gui> OPEN_GUI_KEY = MetadataKey.create("open-gui", Gui.class);
 
     /**
@@ -134,14 +135,14 @@ public abstract class Gui implements Consumer<Terminable> {
         this.fallbackGui = fallbackGui;
     }
 
-    public void addInvalidationCallback(Runnable runnable) {
-        Preconditions.checkNotNull(runnable, "runnable");
-        terminableRegistry.accept(Terminable.of(runnable));
+    @Override
+    public <T extends Terminable> T bind(T terminable) {
+        return terminableRegistry.bind(terminable);
     }
 
     @Override
-    public void accept(Terminable terminable) {
-        terminableRegistry.accept(terminable);
+    public <T extends Runnable> T bindRunnable(T runnable) {
+        return terminableRegistry.bindRunnable(runnable);
     }
 
     public boolean isFirstDraw() {
@@ -306,13 +307,13 @@ public abstract class Gui implements Consumer<Terminable> {
                         }
                     }
                 })
-                .register(this);
+                .bindWith(this);
 
         Events.subscribe(PlayerQuitEvent.class)
                 .filter(e -> e.getPlayer().equals(player))
                 .filter(e -> isValid())
                 .handler(e -> invalidate())
-                .register(this);
+                .bindWith(this);
 
         Events.subscribe(InventoryCloseEvent.class)
                 .filter(e -> e.getPlayer().equals(player))
@@ -335,7 +336,7 @@ public abstract class Gui implements Consumer<Terminable> {
                         fallback.apply(player).open();
                     }, 1L);
                 })
-                .register(this);
+                .bindWith(this);
     }
 
     private static String getHandlerName(Consumer consumer) {

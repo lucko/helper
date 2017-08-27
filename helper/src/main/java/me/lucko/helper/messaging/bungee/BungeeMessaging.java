@@ -36,8 +36,7 @@ import com.google.common.io.ByteStreams;
 
 import me.lucko.helper.Scheduler;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
-import me.lucko.helper.terminable.Terminable;
-import me.lucko.helper.terminable.TerminableRegistry;
+import me.lucko.helper.terminable.registry.TerminableRegistry;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Players;
 
@@ -305,17 +304,17 @@ public final class BungeeMessaging implements PluginMessageListener {
         
         if (plugin instanceof ExtendedJavaPlugin) {
             ExtendedJavaPlugin ejp = (ExtendedJavaPlugin) plugin;
-            ejp.registerTerminable(Terminable.of(() -> {
+            ejp.bindRunnable(() -> {
                 BungeeMessaging.instance = null;
                 terminableRegistry.terminate();
-            }));
+            });
         }
 
         plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, CHANNEL);
-        terminableRegistry.accept(Terminable.of(() -> plugin.getServer().getMessenger().unregisterOutgoingPluginChannel(plugin, CHANNEL)));
+        terminableRegistry.bindRunnable(() -> plugin.getServer().getMessenger().unregisterOutgoingPluginChannel(plugin, CHANNEL));
 
         plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, CHANNEL, this);
-        terminableRegistry.accept(Terminable.of(() -> plugin.getServer().getMessenger().unregisterIncomingPluginChannel(plugin, CHANNEL, this)));
+        terminableRegistry.bindRunnable(() -> plugin.getServer().getMessenger().unregisterIncomingPluginChannel(plugin, CHANNEL, this));
 
         Scheduler.runTaskRepeatingSync(() -> {
             if (queuedMessages.isEmpty()) {
@@ -329,7 +328,7 @@ public final class BungeeMessaging implements PluginMessageListener {
                    return true;
                 });
             }
-        }, 60L, 60L).register(terminableRegistry);
+        }, 60L, 60L).bindWith(terminableRegistry);
     }
 
     @Override

@@ -67,8 +67,8 @@ public class PacketScoreboard implements Scoreboard {
         this.protocolManager = ProtocolLibrary.getProtocolManager();
 
         if (plugin != null) {
-            Events.subscribe(PlayerJoinEvent.class).handler(this::handlePlayerJoin).register(plugin);
-            Events.subscribe(PlayerQuitEvent.class).handler(this::handlePlayerQuit).register(plugin);
+            Events.subscribe(PlayerJoinEvent.class).handler(this::handlePlayerJoin).bindWith(plugin);
+            Events.subscribe(PlayerQuitEvent.class).handler(this::handlePlayerQuit).bindWith(plugin);
         } else {
             Events.subscribe(PlayerJoinEvent.class).handler(this::handlePlayerJoin);
             Events.subscribe(PlayerQuitEvent.class).handler(this::handlePlayerQuit);

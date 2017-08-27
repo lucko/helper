@@ -23,31 +23,21 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
-
-import java.util.function.Consumer;
+package me.lucko.helper.terminable.composite;
 
 /**
- * Represents a registry for terminables
+ * Accepts {@link CompositeTerminable}s.
  */
-public interface TerminableRegistry extends Consumer<Terminable>, Terminable {
-
-    static TerminableRegistry create() {
-        return new SimpleTerminableRegistry();
-    }
+@FunctionalInterface
+public interface CompositeTerminableConsumer {
 
     /**
-     * Binds this registry to a composite terminable
+     * Binds a composite terminable to this consumer
      *
      * @param terminable the terminable to bind
      * @param <T> the terminable class type
      * @return the terminable instance
      */
-    <T extends CompositeTerminable> T bindTerminable(T terminable);
-
-    /**
-     * Removes instances which have already been terminated via {@link Terminable#hasTerminated()}
-     */
-    void cleanup();
+    <T extends CompositeTerminable> T bindComposite(T terminable);
 
 }
