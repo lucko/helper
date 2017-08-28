@@ -144,8 +144,10 @@ class SimpleHologram implements Hologram {
         spawnedEntities.clear();
         spawned = false;
 
-        this.listeners.terminate();
-        this.listeners = null;
+        if (listeners != null) {
+            listeners.terminate();
+        }
+        listeners = null;
     }
 
     @Override
