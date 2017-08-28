@@ -131,13 +131,21 @@ class SimpleHologram implements Hologram {
             }
         }
 
+        if (this.listeners == null && this.clickCallback != null) {
+            setClickCallback(this.clickCallback);
+        }
+
         spawned = true;
     }
 
     @Override
     public void despawn() {
         spawnedEntities.forEach(Entity::remove);
+        spawnedEntities.clear();
         spawned = false;
+
+        this.listeners.terminate();
+        this.listeners = null;
     }
 
     @Override
