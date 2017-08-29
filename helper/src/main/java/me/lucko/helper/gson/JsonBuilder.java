@@ -32,13 +32,18 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collector;
 
+import javax.annotation.Nullable;
+
 /**
  * Builder utilities for creating GSON Objects/Arrays.
  */
+@NonnullByDefault
 public final class JsonBuilder {
 
     /**
@@ -131,7 +136,7 @@ public final class JsonBuilder {
      * @param value the value
      * @return a json primitive for the value
      */
-    public static JsonElement primitive(String value) {
+    public static JsonElement primitive(@Nullable String value) {
         return value == null ? nullValue() : new JsonPrimitive(value);
     }
 
@@ -143,7 +148,7 @@ public final class JsonBuilder {
      * @param value the value
      * @return a json primitive for the value
      */
-    public static JsonElement primitive(Number value) {
+    public static JsonElement primitive(@Nullable Number value) {
         return value == null ? nullValue() : new JsonPrimitive(value);
     }
 
@@ -155,7 +160,7 @@ public final class JsonBuilder {
      * @param value the value
      * @return a json primitive for the value
      */
-    public static JsonElement primitive(Boolean value) {
+    public static JsonElement primitive(@Nullable Boolean value) {
         return value == null ? nullValue() : new JsonPrimitive(value);
     }
 
@@ -167,7 +172,7 @@ public final class JsonBuilder {
      * @param value the value
      * @return a json primitive for the value
      */
-    public static JsonElement primitive(Character value) {
+    public static JsonElement primitive(@Nullable Character value) {
         return value == null ? nullValue() : new JsonPrimitive(value);
     }
 
@@ -300,57 +305,58 @@ public final class JsonBuilder {
     /**
      * A {@link JsonObject} builder utility
      */
+    @SuppressWarnings("UnusedReturnValue")
     public interface JsonObjectBuilder {
 
-        JsonObjectBuilder add(String property, JsonElement value, boolean copy);
+        JsonObjectBuilder add(String property, @Nullable JsonElement value, boolean copy);
 
-        default JsonObjectBuilder add(String property, JsonElement value) {
+        default JsonObjectBuilder add(String property, @Nullable JsonElement value) {
             return add(property, value, false);
         }
 
-        default JsonObjectBuilder add(String property, GsonSerializable serializable) {
+        default JsonObjectBuilder add(String property, @Nullable GsonSerializable serializable) {
             return serializable == null ? add(property, nullValue()) : add(property, serializable.serialize());
         }
 
-        default JsonObjectBuilder add(String property, String value) {
+        default JsonObjectBuilder add(String property, @Nullable String value) {
             return add(property, primitive(value));
         }
 
-        default JsonObjectBuilder add(String property, Number value) {
+        default JsonObjectBuilder add(String property, @Nullable Number value) {
             return add(property, primitive(value));
         }
 
-        default JsonObjectBuilder add(String property, Boolean value) {
+        default JsonObjectBuilder add(String property, @Nullable Boolean value) {
             return add(property, primitive(value));
         }
 
-        default JsonObjectBuilder add(String property, Character value) {
+        default JsonObjectBuilder add(String property, @Nullable Character value) {
             return add(property, primitive(value));
         }
 
-        JsonObjectBuilder addIfAbsent(String property, JsonElement value, boolean copy);
+        JsonObjectBuilder addIfAbsent(String property, @Nullable JsonElement value, boolean copy);
 
-        default JsonObjectBuilder addIfAbsent(String property, JsonElement value) {
+        default JsonObjectBuilder addIfAbsent(String property, @Nullable JsonElement value) {
             return addIfAbsent(property, value, false);
         }
 
-        default JsonObjectBuilder addIfAbsent(String property, GsonSerializable serializable) {
+        default JsonObjectBuilder addIfAbsent(String property, @Nullable GsonSerializable serializable) {
             return serializable == null ? addIfAbsent(property, nullValue()) : addIfAbsent(property, serializable.serialize());
         }
 
-        default JsonObjectBuilder addIfAbsent(String property, String value) {
+        default JsonObjectBuilder addIfAbsent(String property, @Nullable String value) {
             return addIfAbsent(property, primitive(value));
         }
 
-        default JsonObjectBuilder addIfAbsent(String property, Number value) {
+        default JsonObjectBuilder addIfAbsent(String property, @Nullable Number value) {
             return addIfAbsent(property, primitive(value));
         }
 
-        default JsonObjectBuilder addIfAbsent(String property, Boolean value) {
+        default JsonObjectBuilder addIfAbsent(String property, @Nullable Boolean value) {
             return addIfAbsent(property, primitive(value));
         }
 
-        default JsonObjectBuilder addIfAbsent(String property, Character value) {
+        default JsonObjectBuilder addIfAbsent(String property, @Nullable Character value) {
             return addIfAbsent(property, primitive(value));
         }
 
@@ -503,29 +509,29 @@ public final class JsonBuilder {
      */
     public interface JsonArrayBuilder {
 
-        JsonArrayBuilder add(JsonElement value, boolean copy);
+        JsonArrayBuilder add(@Nullable JsonElement value, boolean copy);
 
-        default JsonArrayBuilder add(JsonElement value) {
+        default JsonArrayBuilder add(@Nullable JsonElement value) {
             return add(value, false);
         }
 
-        default JsonArrayBuilder add(GsonSerializable serializable) {
+        default JsonArrayBuilder add(@Nullable GsonSerializable serializable) {
             return serializable == null ? add(nullValue()) : add(serializable.serialize());
         }
 
-        default JsonArrayBuilder add(String value) {
+        default JsonArrayBuilder add(@Nullable String value) {
             return add(primitive(value));
         }
 
-        default JsonArrayBuilder add(Number value) {
+        default JsonArrayBuilder add(@Nullable Number value) {
             return add(primitive(value));
         }
 
-        default JsonArrayBuilder add(Boolean value) {
+        default JsonArrayBuilder add(@Nullable Boolean value) {
             return add(primitive(value));
         }
 
-        default JsonArrayBuilder add(Character value) {
+        default JsonArrayBuilder add(@Nullable Character value) {
             return add(primitive(value));
         }
 
@@ -587,7 +593,7 @@ public final class JsonBuilder {
         }
 
         @Override
-        public JsonObjectBuilder add(String property, JsonElement value, boolean copy) {
+        public JsonObjectBuilder add(String property, @Nullable JsonElement value, boolean copy) {
             Preconditions.checkNotNull(property, "property");
             if (value == null) {
                 value = nullValue();
@@ -604,7 +610,7 @@ public final class JsonBuilder {
         }
 
         @Override
-        public JsonObjectBuilder addIfAbsent(String property, JsonElement value, boolean copy) {
+        public JsonObjectBuilder addIfAbsent(String property, @Nullable JsonElement value, boolean copy) {
             Preconditions.checkNotNull(property, "property");
             if (handle.has(property)) {
                 return this;
@@ -650,7 +656,7 @@ public final class JsonBuilder {
         }
 
         @Override
-        public JsonArrayBuilder add(JsonElement value, boolean copy) {
+        public JsonArrayBuilder add(@Nullable JsonElement value, boolean copy) {
             if (value == null) {
                 value = nullValue();
             }

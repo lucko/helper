@@ -35,6 +35,7 @@ import me.lucko.helper.utils.Color;
 import me.lucko.helper.utils.Cooldown;
 import me.lucko.helper.utils.CooldownCollection;
 import me.lucko.helper.utils.Players;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -52,9 +53,12 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
+import javax.annotation.Nullable;
+
 /**
  * A functional command handling utility.
  */
+@NonnullByDefault
 public final class Commands {
 
     // Default failure messages
@@ -115,6 +119,7 @@ public final class Commands {
      *
      * @param <T> the sender type
      */
+    @NonnullByDefault
     public interface CommandBuilder<T extends CommandSender> {
 
         /**
@@ -335,6 +340,7 @@ public final class Commands {
     /**
      * Represents a command built from functional predicate calls
      */
+    @NonnullByDefault
     public interface FunctionalCommand {
 
         /**
@@ -360,6 +366,7 @@ public final class Commands {
      * @param <T> the sender type
      */
     @FunctionalInterface
+    @NonnullByDefault
     public interface CommandHandler<T extends CommandSender> {
 
         /**
@@ -374,6 +381,7 @@ public final class Commands {
      * Represents the context for a command call
      * @param <T> the sender type
      */
+    @NonnullByDefault
     public interface CommandContext<T extends CommandSender> {
 
         /**
@@ -396,6 +404,7 @@ public final class Commands {
          * @param index the index
          * @return the argument, or null if one was not present
          */
+        @Nullable
         String getArg(int index);
 
         /**
@@ -591,6 +600,8 @@ public final class Commands {
     private static final class FunctionalCommandImpl implements FunctionalCommand, CommandExecutor {
         private final ImmutableList<Predicate<CommandContext<?>>> predicates;
         private final CommandHandler handler;
+
+        @Nullable
         private MCTiming timing = null;
 
         private FunctionalCommandImpl(ImmutableList<Predicate<CommandContext<?>>> predicates, CommandHandler handler) {

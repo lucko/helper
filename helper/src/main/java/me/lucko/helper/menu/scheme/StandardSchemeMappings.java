@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.item.ItemStackBuilder;
 import me.lucko.helper.menu.Item;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Material;
 
@@ -38,6 +39,7 @@ import java.util.function.IntFunction;
 /**
  * Contains a number of default {@link SchemeMapping}s.
  */
+@NonnullByDefault
 public final class StandardSchemeMappings {
 
     public static final SchemeMapping STAINED_GLASS = forColoredMaterial(Material.STAINED_GLASS_PANE);
@@ -68,7 +70,7 @@ public final class StandardSchemeMappings {
                 .put(15, func.apply(15))
                 .build();
 
-        return new AbstractSchemeMapping(map);
+        return AbstractSchemeMapping.of(map);
     }
 
     private StandardSchemeMappings() {

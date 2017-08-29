@@ -29,11 +29,14 @@ import me.lucko.helper.menu.Item;
 
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 /**
  * An empty menu scheme.
  */
 final class EmptySchemeMapping implements SchemeMapping {
 
+    @Nonnull
     @Override
     public Optional<Item> get(int key) {
         return Optional.empty();
@@ -49,6 +52,7 @@ final class EmptySchemeMapping implements SchemeMapping {
         return false;
     }
 
+    @Nonnull
     @Override
     public SchemeMapping copy() {
         return this; // no need to make a copy, this class is a singleton

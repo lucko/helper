@@ -25,6 +25,8 @@
 
 package me.lucko.helper.terminable.composite;
 
+import javax.annotation.Nonnull;
+
 /**
  * Accepts {@link CompositeTerminable}s.
  */
@@ -38,6 +40,7 @@ public interface CompositeTerminableConsumer {
      * @param <T> the terminable class type
      * @return the terminable instance
      */
-    <T extends CompositeTerminable> T bindComposite(T terminable);
+    @Nonnull
+    <T extends CompositeTerminable> T bindComposite(@Nonnull T terminable);
 
 }

@@ -44,6 +44,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * An "extended" JavaPlugin class.
  */
@@ -86,18 +89,21 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
         terminableRegistry.terminate();
     }
 
+    @Nonnull
     @Override
-    public <T extends Terminable> T bind(T terminable) {
+    public <T extends Terminable> T bind(@Nonnull T terminable) {
         return terminableRegistry.bind(terminable);
     }
 
+    @Nonnull
     @Override
-    public <T extends Runnable> T bindRunnable(T runnable) {
+    public <T extends Runnable> T bindRunnable(@Nonnull T runnable) {
         return terminableRegistry.bindRunnable(runnable);
     }
 
+    @Nonnull
     @Override
-    public <T extends CompositeTerminable> T bindComposite(T terminable) {
+    public <T extends CompositeTerminable> T bindComposite(@Nonnull T terminable) {
         return terminableRegistry.bindComposite(terminable);
     }
 
@@ -110,7 +116,8 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
      * @param <T> the listener class type
      * @return the listener
      */
-    public <T extends Listener> T registerListener(T listener) {
+    @Nonnull
+    public <T extends Listener> T registerListener(@Nonnull T listener) {
         Preconditions.checkNotNull(listener, "listener");
         getServer().getPluginManager().registerEvents(listener, this);
         return listener;
@@ -124,7 +131,8 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
      * @param <T> the command executor class type
      * @return the command executor
      */
-    public <T extends CommandExecutor> T registerCommand(T command, String... aliases) {
+    @Nonnull
+    public <T extends CommandExecutor> T registerCommand(@Nonnull T command, @Nonnull String... aliases) {
         return CommandMapUtil.registerCommand(this, command, aliases);
     }
 
@@ -135,7 +143,8 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
      * @param <T> the class type
      * @return the service
      */
-    public <T> T getService(Class<T> service) {
+    @Nullable
+    public <T> T getService(@Nonnull Class<T> service) {
         return getServer().getServicesManager().load(service);
     }
 
@@ -148,7 +157,8 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
      * @param <T> the service class type
      * @return the instance
      */
-    public <T> T provideService(Class<T> clazz, T instance, ServicePriority priority) {
+    @Nonnull
+    public <T> T provideService(@Nonnull Class<T> clazz, @Nonnull T instance, @Nonnull ServicePriority priority) {
         getServer().getServicesManager().register(clazz, instance, this, priority);
         return instance;
     }
@@ -161,7 +171,8 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
      * @param <T> the service class type
      * @return the instance
      */
-    public <T> T provideService(Class<T> clazz, T instance) {
+    @Nonnull
+    public <T> T provideService(@Nonnull Class<T> clazz, @Nonnull T instance) {
         Preconditions.checkNotNull(clazz, "clazz");
         Preconditions.checkNotNull(instance, "instance");
         return provideService(clazz, instance, ServicePriority.Normal);
@@ -176,7 +187,8 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
      * @return the plugin
      */
     @SuppressWarnings("unchecked")
-    public <T> T getPlugin(String name, Class<T> pluginClass) {
+    @Nullable
+    public <T> T getPlugin(@Nonnull String name, @Nonnull Class<T> pluginClass) {
         Preconditions.checkNotNull(name, "name");
         Preconditions.checkNotNull(pluginClass, "pluginClass");
         return (T) getServer().getPluginManager().getPlugin(name);
@@ -190,7 +202,8 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
      * @param name the name of the file
      * @return the file
      */
-    public File getBundledFile(String name) {
+    @Nonnull
+    public File getBundledFile(@Nonnull String name) {
         Preconditions.checkNotNull(name, "name");
         getDataFolder().mkdirs();
         File file = new File(getDataFolder(), name);
@@ -208,7 +221,8 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
      * @param file the name of the file
      * @return the config instance
      */
-    public YamlConfiguration loadConfig(String file) {
+    @Nonnull
+    public YamlConfiguration loadConfig(@Nonnull String file) {
         Preconditions.checkNotNull(file, "file");
         return YamlConfiguration.loadConfiguration(getBundledFile(file));
     }

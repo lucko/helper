@@ -29,6 +29,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,6 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@NonnullByDefault
 final class SimpleMetadataMap implements MetadataMap {
     private final Map<MetadataKey<?>, Object> map = new HashMap<>();
     private final ReentrantLock lock = new ReentrantLock();

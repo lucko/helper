@@ -31,6 +31,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * An object which can be serialized to JSON.
  *
@@ -48,7 +51,8 @@ public interface GsonSerializable {
      * @return the deserialized object
      * @throws IllegalStateException if the clazz does not have a deserialization method
      */
-    static <T extends GsonSerializable> T deserialize(Class<T> clazz, JsonElement element) {
+    @Nonnull
+    static <T extends GsonSerializable> T deserialize(@Nonnull Class<T> clazz, @Nonnull JsonElement element) {
         Method deserializeMethod = getDeserializeMethod(clazz);
         if (deserializeMethod == null) {
             throw new IllegalStateException("Class does not have a deserialize method accessible.");
@@ -68,7 +72,8 @@ public interface GsonSerializable {
      * @param clazz the class
      * @return the deserialization method, if the class has one
      */
-    static Method getDeserializeMethod(Class<?> clazz) {
+    @Nullable
+    static Method getDeserializeMethod(@Nonnull Class<?> clazz) {
         if (!GsonSerializable.class.isAssignableFrom(clazz)) {
             return null;
         }
@@ -94,6 +99,7 @@ public interface GsonSerializable {
      *
      * @return a json form of this object
      */
+    @Nonnull
     JsonElement serialize();
 
 }

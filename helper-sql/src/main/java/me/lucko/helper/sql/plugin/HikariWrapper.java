@@ -37,12 +37,14 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.Nonnull;
+
 public class HikariWrapper implements HelperDataSource {
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
     private final HikariDataSource hikari;
 
-    public HikariWrapper(DatabaseCredentials credentials) {
+    public HikariWrapper(@Nonnull DatabaseCredentials credentials) {
         HikariConfig config = new HikariConfig();
 
         config.setMaximumPoolSize(25);
@@ -68,14 +70,16 @@ public class HikariWrapper implements HelperDataSource {
         hikari = new HikariDataSource(config);
     }
 
+    @Nonnull
     @Override
     public HikariDataSource getHikari() {
         return Preconditions.checkNotNull(hikari, "hikari");
     }
 
+    @Nonnull
     @Override
     public Connection getConnection() throws SQLException {
-        return getHikari().getConnection();
+        return Preconditions.checkNotNull(getHikari().getConnection(), "connection is null");
     }
 
     @Override

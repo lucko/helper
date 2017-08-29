@@ -23,41 +23,28 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.redis;
+package me.lucko.helper.utils;
 
-import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-/**
- * Provides {@link HelperRedis} instances.
- */
-public interface RedisProvider {
+public final class CollectionUtils {
 
-    /**
-     * Gets the global redis instance.
-     *
-     * @return the global redis instance.
-     */
-    @Nonnull
-    HelperRedis getRedis();
+    public static <T> List<List<T>> divideIterable(Iterable<T> source, int subListSize) {
+        List<List<T>> lists = new ArrayList<>();
+        Iterator<T> it = source.iterator();
+        while (it.hasNext()) {
+            List<T> subList = new ArrayList<>();
+            for (int i = 0; it.hasNext() && i < subListSize; i++) {
+                subList.add(it.next());
+            }
+            lists.add(subList);
+        }
+        return lists;
+    }
 
-    /**
-     * Constructs a new redis instance using the given credentials.
-     *
-     * <p>These instances are not cached, and a new redis instance is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the redis instance
-     * @return a new redis instance
-     */
-    @Nonnull
-    HelperRedis getRedis(@Nonnull RedisCredentials credentials);
-
-    /**
-     * Gets the global redis credentials being used for the global redis instance.
-     *
-     * @return the global credentials
-     */
-    @Nonnull
-    RedisCredentials getGlobalCredentials();
-
+    private CollectionUtils() {
+        throw new UnsupportedOperationException("This class cannot be instantiated");
+    }
 }

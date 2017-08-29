@@ -34,6 +34,8 @@ import me.lucko.helper.gson.JsonBuilder;
 
 import org.bukkit.Location;
 
+import javax.annotation.Nonnull;
+
 /**
  * An immutable and serializable direction object
  */
@@ -78,6 +80,7 @@ public final class Direction implements GsonSerializable {
         return pitch;
     }
 
+    @Nonnull
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()

@@ -39,6 +39,7 @@ import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.terminable.registry.TerminableRegistry;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Players;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -56,14 +57,18 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import javax.annotation.Nullable;
+
 /**
  * Wrapper class for the BungeeCord Plugin Messaging API, providing callbacks to read response data
  *
  * <p>See: https://www.spigotmc.org/wiki/bukkit-bungee-plugin-messaging-channel and
  * https://github.com/SpigotMC/BungeeCord/blob/master/proxy/src/main/java/net/md_5/bungee/connection/DownstreamBridge.java#L223</p>
  */
+@NonnullByDefault
 public final class BungeeMessaging implements PluginMessageListener {
 
+    @Nullable
     private static BungeeMessaging instance = null;
     private static synchronized BungeeMessaging get() {
         if (instance == null) {

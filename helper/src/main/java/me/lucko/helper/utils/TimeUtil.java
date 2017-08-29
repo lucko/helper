@@ -27,6 +27,8 @@ package me.lucko.helper.utils;
 
 import java.time.Instant;
 
+import javax.annotation.Nonnull;
+
 public final class TimeUtil {
 
     public static long now() {
@@ -37,6 +39,7 @@ public final class TimeUtil {
         return Instant.now().getEpochSecond();
     }
 
+    @Nonnull
     public static String toShortForm(long seconds) {
         if (seconds == 0) {
             return "0s";
@@ -66,6 +69,7 @@ public final class TimeUtil {
         return time.toString().trim();
     }
 
+    @Nonnull
     public static String toLongForm(long seconds) {
         if (seconds == 0) {
             return "0 seconds";

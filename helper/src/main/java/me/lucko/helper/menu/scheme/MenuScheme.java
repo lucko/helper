@@ -26,26 +26,27 @@
 package me.lucko.helper.menu.scheme;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.menu.Gui;
-import me.lucko.helper.menu.Item;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.annotation.Nullable;
 
 /**
  * Helps to populate a menu with border items
  */
+@NonnullByDefault
 public class MenuScheme {
     private final SchemeMapping mapping;
     private final List<boolean[]> maskRows;
     private final List<int[]> schemeRows;
 
-    public MenuScheme(SchemeMapping mapping) {
+    public MenuScheme(@Nullable SchemeMapping mapping) {
         this.mapping = mapping == null ? StandardSchemeMappings.EMPTY : mapping;
         this.maskRows = new ArrayList<>();
         this.schemeRows = new ArrayList<>();

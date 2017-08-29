@@ -29,6 +29,8 @@ import com.google.common.base.Preconditions;
 
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents a value which will expire in the future
  *
@@ -55,6 +57,7 @@ public final class ExpiringValue<T> implements TransientValue<T> {
         this.expireAt = expireAt;
     }
 
+    @Nullable
     @Override
     public T getOrNull() {
         return shouldExpire() ? null : value;

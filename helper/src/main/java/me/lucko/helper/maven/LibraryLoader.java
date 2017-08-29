@@ -29,6 +29,7 @@ import com.google.common.base.Preconditions;
 
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.io.File;
 import java.io.InputStream;
@@ -42,6 +43,7 @@ import java.nio.file.Files;
  * Resolves {@link MavenLibrary} annotations for a class, and loads the dependency
  * into the classloader.
  */
+@NonnullByDefault
 public final class LibraryLoader {
     private static Method ADD_URL_METHOD;
     static {
@@ -132,6 +134,7 @@ public final class LibraryLoader {
         return libs;
     }
 
+    @NonnullByDefault
     public static final class Dependency {
         private final String groupId;
         private final String artifactId;
@@ -172,6 +175,7 @@ public final class LibraryLoader {
             return new URL(url);
         }
 
+        @Override
         public boolean equals(Object o) {
             if (o == this) return true;
             if (!(o instanceof Dependency)) return false;
@@ -182,6 +186,7 @@ public final class LibraryLoader {
                     this.getRepoUrl().equals(other.getRepoUrl());
         }
 
+        @Override
         public int hashCode() {
             final int PRIME = 59;
             int result = 1;
@@ -192,6 +197,7 @@ public final class LibraryLoader {
             return result;
         }
 
+        @Override
         public String toString() {
             return "LibraryLoader.Dependency(" +
                     "groupId=" + this.getGroupId() + ", " +

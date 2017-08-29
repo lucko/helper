@@ -48,6 +48,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.annotation.Nonnull;
+
 /**
  * Holds {@link MetadataMap}s bound to players, entities, blocks and worlds.
  */
@@ -104,7 +106,9 @@ public final class Metadata {
      * @param obj the object
      * @return a metadata map
      */
-    public static MetadataMap provide(Object obj) {
+    @Nonnull
+    public static MetadataMap provide(@Nonnull Object obj) {
+        Preconditions.checkNotNull(obj, "obj");
         if (obj instanceof Player) {
             return provideForPlayer(((Player) obj));
         } else if (obj instanceof UUID) {
@@ -127,7 +131,9 @@ public final class Metadata {
      * @param player the player
      * @return a metadata map
      */
-    public static MetadataMap provideForPlayer(Player player) {
+    @Nonnull
+    public static MetadataMap provideForPlayer(@Nonnull Player player) {
+        Preconditions.checkNotNull(player, "player");
         setup();
         return players.getUnchecked(player.getUniqueId());
     }
@@ -139,7 +145,9 @@ public final class Metadata {
      * @param uuid the players uuid
      * @return a metadata map
      */
-    public static MetadataMap provideForPlayer(UUID uuid) {
+    @Nonnull
+    public static MetadataMap provideForPlayer(@Nonnull UUID uuid) {
+        Preconditions.checkNotNull(uuid, "uuid");
         setup();
         return players.getUnchecked(uuid);
     }
@@ -151,8 +159,9 @@ public final class Metadata {
      * @param <T> the key type
      * @return an immutable map of players to key value
      */
-    public static <T> Map<Player, T> lookupPlayersWithKey(MetadataKey<T> key) {
-        Preconditions.checkNotNull("key", key);
+    @Nonnull
+    public static <T> Map<Player, T> lookupPlayersWithKey(@Nonnull MetadataKey<T> key) {
+        Preconditions.checkNotNull(key, "key");
         setup();
 
         ImmutableMap.Builder<Player, T> ret = ImmutableMap.builder();
@@ -172,7 +181,9 @@ public final class Metadata {
      * @param entity the entity
      * @return a metadata map
      */
-    public static MetadataMap provideForEntity(Entity entity) {
+    @Nonnull
+    public static MetadataMap provideForEntity(@Nonnull Entity entity) {
+        Preconditions.checkNotNull(entity, "entity");
         setup();
 
         if (entity instanceof Player) {
@@ -189,8 +200,9 @@ public final class Metadata {
      * @param <T> the key type
      * @return an immutable map of entity to key value
      */
-    public static <T> Map<Entity, T> lookupEntitiesWithKey(MetadataKey<T> key) {
-        Preconditions.checkNotNull("key", key);
+    @Nonnull
+    public static <T> Map<Entity, T> lookupEntitiesWithKey(@Nonnull MetadataKey<T> key) {
+        Preconditions.checkNotNull(key, "key");
         setup();
 
         ImmutableMap.Builder<Entity, T> ret = ImmutableMap.builder();
@@ -210,7 +222,9 @@ public final class Metadata {
      * @param block the block
      * @return a metadata map
      */
-    public static MetadataMap provideForBlock(Block block) {
+    @Nonnull
+    public static MetadataMap provideForBlock(@Nonnull Block block) {
+        Preconditions.checkNotNull(block, "block");
         setup();
         return blocks.getUnchecked(BlockPosition.of(block));
     }
@@ -222,8 +236,9 @@ public final class Metadata {
      * @param <T> the key type
      * @return an immutable map of block position to key value
      */
-    public static <T> Map<BlockPosition, T> lookupBlocksWithKey(MetadataKey<T> key) {
-        Preconditions.checkNotNull("key", key);
+    @Nonnull
+    public static <T> Map<BlockPosition, T> lookupBlocksWithKey(@Nonnull MetadataKey<T> key) {
+        Preconditions.checkNotNull(key, "key");
         setup();
 
         ImmutableMap.Builder<BlockPosition, T> ret = ImmutableMap.builder();
@@ -238,7 +253,9 @@ public final class Metadata {
      * @param world the world
      * @return a metadata map
      */
-    public static MetadataMap provideForWorld(World world) {
+    @Nonnull
+    public static MetadataMap provideForWorld(@Nonnull World world) {
+        Preconditions.checkNotNull(world, "world");
         setup();
         return worlds.getUnchecked(world.getUID());
     }
@@ -250,8 +267,9 @@ public final class Metadata {
      * @param <T> the key type
      * @return an immutable map of world to key value
      */
-    public static <T> Map<World, T> lookupWorldsWithKey(MetadataKey<T> key) {
-        Preconditions.checkNotNull("key", key);
+    @Nonnull
+    public static <T> Map<World, T> lookupWorldsWithKey(@Nonnull MetadataKey<T> key) {
+        Preconditions.checkNotNull(key, "key");
         setup();
 
         ImmutableMap.Builder<World, T> ret = ImmutableMap.builder();

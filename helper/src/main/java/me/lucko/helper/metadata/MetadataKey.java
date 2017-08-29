@@ -28,17 +28,21 @@ package me.lucko.helper.metadata;
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
+import me.lucko.helper.interfaces.TypeAware;
 import me.lucko.helper.utils.Cooldown;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.UUID;
 
 /**
  * A MetadataKey can be mapped to values in a {@link MetadataMap}.
  *
- * Unlike a normal map key, a MetadataKey also holds the type of the values mapped to it.
+ * <p>Unlike a normal map key, a MetadataKey also holds the type of the values mapped to it.</p>
+ *
  * @param <T> the value type
  */
-public interface MetadataKey<T> {
+@NonnullByDefault
+public interface MetadataKey<T> extends TypeAware<T> {
 
     /**
      * Creates a MetadataKey with the given id and type
@@ -112,18 +116,22 @@ public interface MetadataKey<T> {
 
     /**
      * Gets the id of this key. May be automatically lowercase'd
+     *
      * @return the id of this key
      */
     String getId();
 
     /**
      * Get the type of the value mapped to this key
+     *
      * @return the type of the value
      */
+    @Override
     TypeToken<T> getType();
 
     /**
      * Attempts to cast the given object to the return type of the key
+     *
      * @param object the object to be casted
      * @return a casted object
      * @throws ClassCastException if the object cannot be casted

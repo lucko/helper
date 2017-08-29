@@ -25,12 +25,17 @@
 
 package me.lucko.helper.scoreboard;
 
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
+
+import javax.annotation.Nonnull;
 
 /**
  * Represents a Scoreboard on the server
  */
+@NonnullByDefault
 public interface Scoreboard {
 
     /**
@@ -38,6 +43,7 @@ public interface Scoreboard {
      *
      * @return the global scoreboard instance
      */
+    @Nonnull
     static PacketScoreboard get() {
         return GlobalScoreboard.get();
     }

@@ -32,6 +32,7 @@ import me.lucko.helper.item.ItemStackBuilder;
 import me.lucko.helper.menu.Item;
 import me.lucko.helper.menu.scheme.MenuScheme;
 import me.lucko.helper.menu.scheme.StandardSchemeMappings;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -43,6 +44,7 @@ import java.util.function.Function;
 /**
  * Specification class for a {@link PaginatedGui}.
  */
+@NonnullByDefault
 public class PaginatedGuiBuilder {
 
     public static final int DEFAULT_LINES = 6;

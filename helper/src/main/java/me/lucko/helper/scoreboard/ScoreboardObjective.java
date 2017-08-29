@@ -25,15 +25,20 @@
 
 package me.lucko.helper.scoreboard;
 
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 
 import java.util.Collection;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents a specific objective on a {@link Scoreboard}.
  */
+@NonnullByDefault
 public interface ScoreboardObjective {
 
     /**
@@ -92,6 +97,7 @@ public interface ScoreboardObjective {
      * @param name the name of the score
      * @return the value, or null if a mapping could not be found
      */
+    @Nullable
     Integer getScore(String name);
 
     /**

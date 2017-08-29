@@ -26,16 +26,21 @@
 package me.lucko.helper.timings;
 
 import me.lucko.helper.utils.LoaderUtils;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
 import co.aikar.timings.lib.MCTiming;
 import co.aikar.timings.lib.TimingManager;
 
+import javax.annotation.Nullable;
+
 /**
  * Provides access to a {@link TimingManager}
  */
+@NonnullByDefault
 public final class Timings {
+    @Nullable
     private static TimingManager timingManager = null;
 
     /**

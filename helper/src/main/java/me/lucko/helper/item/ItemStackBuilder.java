@@ -25,7 +25,10 @@
 
 package me.lucko.helper.item;
 
+import com.google.common.base.Preconditions;
+
 import me.lucko.helper.menu.Item;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -43,9 +46,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import javax.annotation.Nullable;
+
 /**
  * Easily construct {@link ItemStack} instances
  */
+@NonnullByDefault
 public final class ItemStackBuilder {
     private final ItemStack itemStack;
 
@@ -58,7 +64,7 @@ public final class ItemStackBuilder {
     }
 
     private ItemStackBuilder(ItemStack itemStack) {
-        this.itemStack = itemStack;
+        this.itemStack = Preconditions.checkNotNull(itemStack, "itemStack");
     }
 
     public ItemStackBuilder transform(Consumer<ItemStack> is) {
@@ -83,10 +89,10 @@ public final class ItemStackBuilder {
         return transform(itemStack -> itemStack.setType(material));
     }
 
-    public ItemStackBuilder lore(String name) {
+    public ItemStackBuilder lore(String line) {
         return transformMeta(meta -> {
             List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
-            lore.add(ChatColor.translateAlternateColorCodes('&', name));
+            lore.add(me.lucko.helper.utils.Color.colorize(line));
             meta.setLore(lore);
         });
     }
@@ -159,15 +165,15 @@ public final class ItemStackBuilder {
         return Item.builder(build());
     }
 
-    public Item build(Runnable handler) {
+    public Item build(@Nullable Runnable handler) {
         return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT).build();
     }
 
-    public Item build(ClickType type, Runnable handler) {
+    public Item build(ClickType type, @Nullable Runnable handler) {
         return buildItem().bind(type, handler).build();
     }
 
-    public Item build(Runnable rightClick, Runnable leftClick) {
+    public Item build(@Nullable Runnable rightClick, @Nullable Runnable leftClick) {
         return buildItem().bind(ClickType.RIGHT, rightClick).bind(ClickType.LEFT, leftClick).build();
     }
 
@@ -175,15 +181,15 @@ public final class ItemStackBuilder {
         return buildItem().bindAllRunnables(handlers.entrySet()).build();
     }
 
-    public Item buildConsumer(Consumer<InventoryClickEvent> handler) {
+    public Item buildConsumer(@Nullable Consumer<InventoryClickEvent> handler) {
         return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT).build();
     }
 
-    public Item buildConsumer(ClickType type, Consumer<InventoryClickEvent> handler) {
+    public Item buildConsumer(ClickType type, @Nullable Consumer<InventoryClickEvent> handler) {
         return buildItem().bind(type, handler).build();
     }
 
-    public Item buildConsumer(Consumer<InventoryClickEvent> rightClick, Consumer<InventoryClickEvent> leftClick) {
+    public Item buildConsumer(@Nullable Consumer<InventoryClickEvent> rightClick, @Nullable Consumer<InventoryClickEvent> leftClick) {
         return buildItem().bind(ClickType.RIGHT, rightClick).bind(ClickType.LEFT, leftClick).build();
     }
 

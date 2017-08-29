@@ -25,6 +25,8 @@
 
 package me.lucko.helper.metadata;
 
+import javax.annotation.Nonnull;
+
 /**
  * An object which represents nothing.
  *
@@ -36,6 +38,7 @@ package me.lucko.helper.metadata;
 public final class Empty {
     private static final Empty INSTANCE = new Empty();
 
+    @Nonnull
     public static Empty instance() {
         return INSTANCE;
     }

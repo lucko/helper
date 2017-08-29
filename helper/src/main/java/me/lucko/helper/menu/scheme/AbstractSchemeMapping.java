@@ -32,18 +32,27 @@ import me.lucko.helper.menu.Item;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Implements {@link SchemeMapping} using an immutable map.
  */
 public class AbstractSchemeMapping implements SchemeMapping {
     private final Map<Integer, Item> mapping;
 
-    public AbstractSchemeMapping(Map<Integer, Item> mapping) {
+    @Nonnull
+    public static SchemeMapping of(@Nonnull Map<Integer, Item> mapping) {
+        return new AbstractSchemeMapping(mapping);
+    }
+
+    private AbstractSchemeMapping(@Nonnull Map<Integer, Item> mapping) {
         Preconditions.checkNotNull(mapping, "mapping");
         this.mapping = ImmutableMap.copyOf(mapping);
     }
 
     @Override
+    @Nullable
     public Item getNullable(int key) {
         return mapping.get(key);
     }
@@ -53,6 +62,7 @@ public class AbstractSchemeMapping implements SchemeMapping {
         return mapping.containsKey(key);
     }
 
+    @Nonnull
     @Override
     public SchemeMapping copy() {
         return this; // no need to make a copy, the backing data is immutable

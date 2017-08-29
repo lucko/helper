@@ -23,41 +23,37 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.redis;
+package me.lucko.helper.terminable;
 
-import javax.annotation.Nonnull;
+import me.lucko.helper.interfaces.Delegate;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
-/**
- * Provides {@link HelperRedis} instances.
- */
-public interface RedisProvider {
+@NonnullByDefault
+class DelegateTerminable implements Terminable, Delegate<Runnable> {
+    private final Runnable delegate;
 
-    /**
-     * Gets the global redis instance.
-     *
-     * @return the global redis instance.
-     */
-    @Nonnull
-    HelperRedis getRedis();
+    DelegateTerminable(Runnable delegate) {
+        this.delegate = delegate;
+    }
 
-    /**
-     * Constructs a new redis instance using the given credentials.
-     *
-     * <p>These instances are not cached, and a new redis instance is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the redis instance
-     * @return a new redis instance
-     */
-    @Nonnull
-    HelperRedis getRedis(@Nonnull RedisCredentials credentials);
+    @Override
+    public boolean terminate() {
+        delegate.run();
+        return true;
+    }
 
-    /**
-     * Gets the global redis credentials being used for the global redis instance.
-     *
-     * @return the global credentials
-     */
-    @Nonnull
-    RedisCredentials getGlobalCredentials();
+    @Override
+    public Runnable getDelegate() {
+        return delegate;
+    }
 
+    @Override
+    public int hashCode() {
+        return delegate.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Delegate && ((Delegate) obj).getDelegate().equals(delegate);
+    }
 }

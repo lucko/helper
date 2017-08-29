@@ -29,6 +29,8 @@ import me.lucko.helper.terminable.Terminable;
 
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents an agent for interacting with a {@link Channel}s message streams.
  *
@@ -41,6 +43,7 @@ public interface ChannelAgent<T> extends Terminable {
      *
      * @return the parent channel
      */
+    @Nonnull
     Channel<T> getChannel();
 
     /**
@@ -48,6 +51,7 @@ public interface ChannelAgent<T> extends Terminable {
      *
      * @return the active listeners
      */
+    @Nonnull
     Set<ChannelListener<T>> getListeners();
 
     /**
@@ -63,7 +67,7 @@ public interface ChannelAgent<T> extends Terminable {
      * @param listener the listener to add
      * @return true if successful
      */
-    boolean addListener(ChannelListener<T> listener);
+    boolean addListener(@Nonnull ChannelListener<T> listener);
 
     /**
      * Removes a listener from the channel.
@@ -71,6 +75,6 @@ public interface ChannelAgent<T> extends Terminable {
      * @param listener the listener to remove
      * @return true if successful
      */
-    boolean removeListener(ChannelListener<T> listener);
+    boolean removeListener(@Nonnull ChannelListener<T> listener);
 
 }

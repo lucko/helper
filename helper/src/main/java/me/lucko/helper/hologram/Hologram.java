@@ -40,6 +40,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * A simple hologram utility.
  *
@@ -56,7 +59,8 @@ public interface Hologram extends Terminable, GsonSerializable {
      * @param lines the initial lines to display
      * @return the new hologram.
      */
-    static Hologram create(Position position, List<String> lines) {
+    @Nonnull
+    static Hologram create(@Nonnull Position position, @Nonnull List<String> lines) {
         return new SimpleHologram(position, lines);
     }
 
@@ -92,7 +96,7 @@ public interface Hologram extends Terminable, GsonSerializable {
      *
      * @param position the new position
      */
-    void updatePosition(Position position);
+    void updatePosition(@Nonnull Position position);
 
     /**
      * Updates the lines displayed by this hologram
@@ -102,13 +106,13 @@ public interface Hologram extends Terminable, GsonSerializable {
      *
      * @param lines the new lines
      */
-    void updateLines(List<String> lines);
+    void updateLines(@Nonnull List<String> lines);
 
     /**
      * Sets a click callback for this hologram
      *
      * @param clickCallback the click callback, or null to unregister any existing callback
      */
-    void setClickCallback(Consumer<Player> clickCallback);
+    void setClickCallback(@Nullable  Consumer<Player> clickCallback);
 
 }

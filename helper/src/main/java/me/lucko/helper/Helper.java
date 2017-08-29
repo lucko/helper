@@ -26,6 +26,7 @@
 package me.lucko.helper;
 
 import me.lucko.helper.utils.LoaderUtils;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -38,9 +39,12 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * Base class for helper, which mainly just proxies calls to {@link Bukkit#getServer()} for convenience.
  */
+@NonnullByDefault
 public final class Helper {
 
     /**
@@ -72,6 +76,7 @@ public final class Helper {
         return server().getScheduler();
     }
 
+    @Nullable
     public static <T> T serviceNullable(Class<T> clazz) {
         return services().load(clazz);
     }
@@ -84,6 +89,7 @@ public final class Helper {
         server().dispatchCommand(console(), command);
     }
 
+    @Nullable
     public static World worldNullable(String name) {
         return server().getWorld(name);
     }

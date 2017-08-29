@@ -31,6 +31,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
 import me.lucko.helper.utils.Color;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.entity.Player;
 
@@ -46,6 +47,7 @@ import java.util.Set;
  *
  * http://wiki.vg/Protocol#Teams
  */
+@NonnullByDefault
 public class PacketScoreboardTeam implements ScoreboardTeam {
     private static final int MODE_CREATE = 0;
     private static final int MODE_REMOVE = 1;

@@ -25,6 +25,8 @@
 
 package me.lucko.helper.terminable;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents an object that can be unregistered, stopped, or gracefully halted.
  */
@@ -32,11 +34,9 @@ package me.lucko.helper.terminable;
 public interface Terminable {
     Terminable EMPTY = () -> true;
 
-    static Terminable of(Runnable r) {
-        return () -> {
-            r.run();
-            return true;
-        };
+    @Nonnull
+    static Terminable of(@Nonnull Runnable r) {
+        return new DelegateTerminable(r);
     }
 
     /**
@@ -51,7 +51,7 @@ public interface Terminable {
      *
      * @param consumer the terminable consumer
      */
-    default void bindWith(TerminableConsumer consumer) {
+    default void bindWith(@Nonnull TerminableConsumer consumer) {
         consumer.bind(this);
     }
 

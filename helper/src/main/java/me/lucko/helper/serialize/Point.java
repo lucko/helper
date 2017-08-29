@@ -35,6 +35,9 @@ import me.lucko.helper.gson.JsonBuilder;
 
 import org.bukkit.Location;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * An immutable and serializable position + direction object
  */
@@ -60,6 +63,7 @@ public final class Point implements GsonSerializable {
     private final Position position;
     private final Direction direction;
 
+    @Nullable
     private Location bukkitLocation = null;
 
     private Point(Position position, Direction direction) {
@@ -91,6 +95,7 @@ public final class Point implements GsonSerializable {
         return position.subtract(x, y, z).withDirection(direction);
     }
 
+    @Nonnull
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()

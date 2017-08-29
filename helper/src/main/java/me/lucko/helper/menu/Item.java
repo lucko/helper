@@ -28,6 +28,8 @@ package me.lucko.helper.menu;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
+import me.lucko.helper.interfaces.Delegate;
+
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -36,31 +38,38 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * A clickable item in a {@link Gui}
  */
 public class Item {
 
-    public static Consumer<InventoryClickEvent> transformRunnable(Runnable runnable) {
+    @Nonnull
+    public static Consumer<InventoryClickEvent> transformRunnable(@Nonnull Runnable runnable) {
         return new DelegateConsumer<>(runnable);
     }
 
-    public static Item.Builder builder(ItemStack itemStack) {
+    @Nonnull
+    public static Item.Builder builder(@Nonnull ItemStack itemStack) {
         return new Builder(itemStack);
     }
 
     private final Map<ClickType, Consumer<InventoryClickEvent>> handlers;
     private final ItemStack itemStack;
 
-    public Item(Map<ClickType, Consumer<InventoryClickEvent>> handlers, ItemStack itemStack) {
+    public Item(@Nonnull Map<ClickType, Consumer<InventoryClickEvent>> handlers, @Nonnull ItemStack itemStack) {
         this.handlers = Preconditions.checkNotNull(handlers, "handlers");
         this.itemStack = Preconditions.checkNotNull(itemStack, "itemStack");
     }
 
+    @Nonnull
     public Map<ClickType, Consumer<InventoryClickEvent>> getHandlers() {
         return handlers;
     }
 
+    @Nonnull
     public ItemStack getItemStack() {
         return itemStack;
     }
@@ -69,12 +78,13 @@ public class Item {
         private final ItemStack itemStack;
         private final Map<ClickType, Consumer<InventoryClickEvent>> handlers;
 
-        private Builder(ItemStack itemStack) {
+        private Builder(@Nonnull ItemStack itemStack) {
             this.itemStack = Preconditions.checkNotNull(itemStack, "itemStack");
             this.handlers = new HashMap<>();
         }
 
-        public Builder bind(ClickType type, Consumer<InventoryClickEvent> handler) {
+        @Nonnull
+        public Builder bind(@Nonnull ClickType type, @Nullable Consumer<InventoryClickEvent> handler) {
             Preconditions.checkNotNull(type, "type");
             if (handler != null) {
                 handlers.put(type, handler);
@@ -84,7 +94,8 @@ public class Item {
             return this;
         }
 
-        public Builder bind(ClickType type, Runnable handler) {
+        @Nonnull
+        public Builder bind(@Nonnull ClickType type, @Nullable Runnable handler) {
             Preconditions.checkNotNull(type, "type");
             if (handler != null) {
                 handlers.put(type, transformRunnable(handler));
@@ -94,21 +105,24 @@ public class Item {
             return this;
         }
 
-        public Builder bind(Consumer<InventoryClickEvent> handler, ClickType... types) {
+        @Nonnull
+        public Builder bind(@Nullable Consumer<InventoryClickEvent> handler, @Nonnull ClickType... types) {
             for (ClickType type : types) {
                 bind(type, handler);
             }
             return this;
         }
 
-        public Builder bind(Runnable handler, ClickType... types) {
+        @Nonnull
+        public Builder bind(@Nullable Runnable handler, @Nonnull ClickType... types) {
             for (ClickType type : types) {
                 bind(type, handler);
             }
             return this;
         }
 
-        public <T extends Runnable> Builder bindAllRunnables(Iterable<Map.Entry<ClickType, T>> handlers) {
+        @Nonnull
+        public <T extends Runnable> Builder bindAllRunnables(@Nonnull Iterable<Map.Entry<ClickType, T>> handlers) {
             Preconditions.checkNotNull(handlers, "handlers");
             for (Map.Entry<ClickType, T> handler : handlers) {
                 bind(handler.getKey(), handler.getValue());
@@ -116,7 +130,8 @@ public class Item {
             return this;
         }
 
-        public <T extends Consumer<InventoryClickEvent>> Builder bindAllConsumers(Iterable<Map.Entry<ClickType, T>> handlers) {
+        @Nonnull
+        public <T extends Consumer<InventoryClickEvent>> Builder bindAllConsumers(@Nonnull Iterable<Map.Entry<ClickType, T>> handlers) {
             Preconditions.checkNotNull(handlers, "handlers");
             for (Map.Entry<ClickType, T> handler : handlers) {
                 bind(handler.getKey(), handler.getValue());
@@ -124,18 +139,20 @@ public class Item {
             return this;
         }
 
+        @Nonnull
         public Item build() {
             return new Item(ImmutableMap.copyOf(handlers), itemStack);
         }
     }
 
-    static final class DelegateConsumer<T> implements Consumer<T> {
+    static final class DelegateConsumer<T> implements Consumer<T>, Delegate<Runnable> {
         private final Runnable delegate;
 
         private DelegateConsumer(Runnable delegate) {
             this.delegate = delegate;
         }
 
+        @Override
         public Runnable getDelegate() {
             return delegate;
         }

@@ -27,7 +27,11 @@ package me.lucko.helper.messaging;
 
 import com.google.common.reflect.TypeToken;
 
+import me.lucko.helper.interfaces.TypeAware;
+
 import java.util.concurrent.CompletableFuture;
+
+import javax.annotation.Nonnull;
 
 /**
  * Represents an individual messaging channel.
@@ -36,13 +40,14 @@ import java.util.concurrent.CompletableFuture;
  *
  * @param <T> the channel message type
  */
-public interface Channel<T> {
+public interface Channel<T> extends TypeAware<T> {
 
     /**
      * Gets the name of the channel.
      *
      * @return the channel name
      */
+    @Nonnull
     String getName();
 
     /**
@@ -50,6 +55,8 @@ public interface Channel<T> {
      *
      * @return the channels message type.
      */
+    @Override
+    @Nonnull
     TypeToken<T> getType();
 
     /**
@@ -57,6 +64,7 @@ public interface Channel<T> {
      *
      * @return a new channel agent.
      */
+    @Nonnull
     ChannelAgent<T> newAgent();
 
     /**
@@ -70,6 +78,7 @@ public interface Channel<T> {
      * @param message the message to dispatch
      * @return a future which will complete when the message has sent.
      */
-    CompletableFuture<Boolean> sendMessage(T message);
+    @Nonnull
+    CompletableFuture<Boolean> sendMessage(@Nonnull T message);
 
 }

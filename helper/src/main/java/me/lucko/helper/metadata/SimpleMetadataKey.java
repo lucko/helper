@@ -28,6 +28,9 @@ package me.lucko.helper.metadata;
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
+@NonnullByDefault
 final class SimpleMetadataKey<T> implements MetadataKey<T> {
 
     private final String id;

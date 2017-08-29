@@ -27,6 +27,8 @@ package me.lucko.helper.interfaces;
 
 import com.google.common.reflect.TypeToken;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents an object that knows it's own type parameter.
  *
@@ -34,6 +36,7 @@ import com.google.common.reflect.TypeToken;
  */
 public interface TypeAware<T> {
 
+    @Nonnull
     TypeToken<T> getType();
 
 }

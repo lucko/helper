@@ -26,7 +26,7 @@
 package me.lucko.helper.interfaces;
 
 /**
- * Represents a class which delegates called to a different object.
+ * Represents a class which delegates calls to a different object.
  *
  * @param <T> the delegate type
  */

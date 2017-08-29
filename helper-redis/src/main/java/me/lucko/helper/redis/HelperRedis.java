@@ -32,12 +32,15 @@ import me.lucko.helper.terminable.Terminable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents an individual redis instance, created by the library.
  */
 public interface HelperRedis extends Terminable, Messenger {
 
-    static HelperRedis usingJedis(RedisCredentials credentials) {
+    @Nonnull
+    static HelperRedis usingJedis(@Nonnull RedisCredentials credentials) {
         return new JedisWrapper(credentials);
     }
 
@@ -46,6 +49,7 @@ public interface HelperRedis extends Terminable, Messenger {
      *
      * @return the JedisPool instance
      */
+    @Nonnull
     JedisPool getJedisPool();
 
     /**
@@ -53,6 +57,7 @@ public interface HelperRedis extends Terminable, Messenger {
      *
      * @return a jedis instance
      */
+    @Nonnull
     Jedis getJedis();
 
 }

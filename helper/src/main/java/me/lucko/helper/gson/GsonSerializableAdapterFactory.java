@@ -35,9 +35,12 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+
+import javax.annotation.Nonnull;
 
 public final class GsonSerializableAdapterFactory implements TypeAdapterFactory {
+
+    @Nonnull
     public static final GsonSerializableAdapterFactory INSTANCE = new GsonSerializableAdapterFactory();
 
     private GsonSerializableAdapterFactory() {

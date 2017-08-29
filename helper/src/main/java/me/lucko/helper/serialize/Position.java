@@ -40,6 +40,9 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * An immutable and serializable location object
  */
@@ -98,6 +101,7 @@ public final class Position implements GsonSerializable {
     private final double z;
     private final String world;
 
+    @Nullable
     private Location bukkitLocation = null;
 
     private Position(double x, double y, double z, String world) {
@@ -182,6 +186,7 @@ public final class Position implements GsonSerializable {
         return Point.of(this, direction);
     }
 
+    @Nonnull
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()

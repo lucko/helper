@@ -27,9 +27,12 @@ package me.lucko.helper.terminable;
 
 import me.lucko.helper.terminable.registry.TerminableRegistry;
 
+import javax.annotation.Nonnull;
+
 public final class Terminables {
 
-    public static Terminable combine(Terminable... terminables) {
+    @Nonnull
+    public static Terminable combine(@Nonnull Terminable... terminables) {
         if (terminables.length == 0) {
             return Terminable.EMPTY;
         }

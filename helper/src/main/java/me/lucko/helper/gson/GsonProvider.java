@@ -25,12 +25,15 @@
 
 package me.lucko.helper.gson;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.Reader;
+
+import javax.annotation.Nonnull;
 
 /**
  * Provides static instances of Gson
@@ -45,44 +48,50 @@ public final class GsonProvider {
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
             .setPrettyPrinting().create();
 
+    @Nonnull
     public static Gson get() {
         return STANDARD;
     }
 
+    @Nonnull
     public static Gson getPrettyPrinting() {
         return PRETTY_PRINT;
     }
 
-    public static JsonObject readObject(Reader reader) {
-        return get().fromJson(reader, JsonObject.class);
+    @Nonnull
+    public static JsonObject readObject(@Nonnull Reader reader) {
+        return Preconditions.checkNotNull(get().fromJson(reader, JsonObject.class));
     }
 
-    public static JsonObject readObject(String s) {
-        return get().fromJson(s, JsonObject.class);
+    @Nonnull
+    public static JsonObject readObject(@Nonnull String s) {
+        return Preconditions.checkNotNull(get().fromJson(s, JsonObject.class));
     }
 
-    public static void writeObject(Appendable writer, JsonObject object) {
+    public static void writeObject(@Nonnull Appendable writer, @Nonnull JsonObject object) {
         get().toJson(object, writer);
     }
 
-    public static void writeObjectPretty(Appendable writer, JsonObject data) {
+    public static void writeObjectPretty(@Nonnull Appendable writer, @Nonnull JsonObject data) {
         getPrettyPrinting().toJson(data, writer);
     }
 
-    public static void writeElement(Appendable writer, JsonElement element) {
+    public static void writeElement(@Nonnull Appendable writer, @Nonnull JsonElement element) {
         get().toJson(element, writer);
     }
 
-    public static void writeElementPretty(Appendable writer, JsonElement element) {
+    public static void writeElementPretty(@Nonnull Appendable writer, @Nonnull JsonElement element) {
         getPrettyPrinting().toJson(element, writer);
     }
 
-    public static String toString(JsonElement element) {
-        return get().toJson(element);
+    @Nonnull
+    public static String toString(@Nonnull JsonElement element) {
+        return Preconditions.checkNotNull(get().toJson(element));
     }
 
-    public static String toStringPretty(JsonElement element) {
-        return getPrettyPrinting().toJson(element);
+    @Nonnull
+    public static String toStringPretty(@Nonnull JsonElement element) {
+        return Preconditions.checkNotNull(getPrettyPrinting().toJson(element));
     }
 
     private GsonProvider() {

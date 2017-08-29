@@ -25,12 +25,15 @@
 
 package me.lucko.helper.utils;
 
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
 /**
  * A simple cooldown abstraction
  */
+@NonnullByDefault
 public class Cooldown implements LongSupplier {
 
     /**

@@ -25,6 +25,8 @@
 
 package me.lucko.helper.terminable;
 
+import javax.annotation.Nonnull;
+
 /**
  * Accepts {@link Terminable}s.
  */
@@ -38,7 +40,8 @@ public interface TerminableConsumer {
      * @param <T> the terminable type
      * @return the same terminable
      */
-    <T extends Terminable> T bind(T terminable);
+    @Nonnull
+    <T extends Terminable> T bind(@Nonnull T terminable);
 
     /**
      * Binds with the given runnable.
@@ -47,7 +50,8 @@ public interface TerminableConsumer {
      * @param <T> the terminable type
      * @return the same terminable
      */
-    default <T extends Runnable> T bindRunnable(T runnable) {
+    @Nonnull
+    default <T extends Runnable> T bindRunnable(@Nonnull T runnable) {
         bind(Terminable.of(runnable));
         return runnable;
     }

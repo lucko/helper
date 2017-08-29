@@ -23,41 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.redis;
+@NonnullByDefault
+package me.lucko.helper.serialize;
 
-import javax.annotation.Nonnull;
-
-/**
- * Provides {@link HelperRedis} instances.
- */
-public interface RedisProvider {
-
-    /**
-     * Gets the global redis instance.
-     *
-     * @return the global redis instance.
-     */
-    @Nonnull
-    HelperRedis getRedis();
-
-    /**
-     * Constructs a new redis instance using the given credentials.
-     *
-     * <p>These instances are not cached, and a new redis instance is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the redis instance
-     * @return a new redis instance
-     */
-    @Nonnull
-    HelperRedis getRedis(@Nonnull RedisCredentials credentials);
-
-    /**
-     * Gets the global redis credentials being used for the global redis instance.
-     *
-     * @return the global credentials
-     */
-    @Nonnull
-    RedisCredentials getGlobalCredentials();
-
-}
+import me.lucko.helper.utils.annotation.NonnullByDefault;

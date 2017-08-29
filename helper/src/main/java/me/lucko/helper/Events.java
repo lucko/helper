@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 
+import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.metadata.Metadata;
 import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.terminable.Terminable;
@@ -38,6 +39,7 @@ import me.lucko.helper.utils.Cooldown;
 import me.lucko.helper.utils.CooldownCollection;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -71,6 +73,7 @@ import java.util.function.Predicate;
 /**
  * A functional event listening utility.
  */
+@NonnullByDefault
 public final class Events {
     private static final BiConsumer<Event, Throwable> DEFAULT_EXCEPTION_CONSUMER = (event, throwable) -> {
         Log.severe("[EVENTS] Exception thrown whilst handling event: " + event.getClass().getName());
@@ -200,6 +203,7 @@ public final class Events {
      *
      * @param <T> the event type
      */
+    @NonnullByDefault
     public interface Handler<T> extends Terminable {
 
         /**
@@ -248,6 +252,7 @@ public final class Events {
      *
      * @param <T> the event type
      */
+    @NonnullByDefault
     public interface MergedHandler<T> extends Terminable {
 
         /**
@@ -303,6 +308,7 @@ public final class Events {
      *
      * @param <T> the event type
      */
+    @NonnullByDefault
     public interface HandlerBuilder<T extends Event> {
 
         /**
@@ -410,6 +416,7 @@ public final class Events {
      *
      * @param <T> the super event type
      */
+    @NonnullByDefault
     public interface MergedHandlerBuilder<T> {
 
         /**
@@ -538,6 +545,7 @@ public final class Events {
     /**
      * Provides a set of useful default filters for passing to {@link HandlerBuilder#filter(Predicate)}.
      */
+    @NonnullByDefault
     public interface DefaultFilters {
 
         /**
@@ -1160,13 +1168,14 @@ public final class Events {
         }
     }
 
-    private static final class DelegateBiConsumer<T, U> implements BiConsumer<T, U> {
+    private static final class DelegateBiConsumer<T, U> implements BiConsumer<T, U>, Delegate<Consumer<U>> {
         private final Consumer<U> delegate;
 
         private DelegateBiConsumer(Consumer<U> delegate) {
             this.delegate = delegate;
         }
 
+        @Override
         public Consumer<U> getDelegate() {
             return delegate;
         }

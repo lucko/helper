@@ -27,6 +27,8 @@ package me.lucko.helper.metadata;
 
 import com.google.common.collect.ImmutableMap;
 
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -39,6 +41,7 @@ import java.util.function.Supplier;
  *
  * @see TransientValue
  */
+@NonnullByDefault
 public interface MetadataMap {
 
     static MetadataMap create() {

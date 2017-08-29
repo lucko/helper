@@ -28,12 +28,15 @@ package me.lucko.helper.utils;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nonnull;
+
 /**
  * Provides the instance which loaded the helper classes into the server
  */
 public final class LoaderUtils {
     private static JavaPlugin plugin = null;
 
+    @Nonnull
     public static synchronized JavaPlugin getPlugin() {
         if (plugin == null) {
             plugin = JavaPlugin.getProvidingPlugin(LoaderUtils.class);

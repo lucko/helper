@@ -29,6 +29,8 @@ import com.google.common.base.Preconditions;
 
 import java.lang.ref.WeakReference;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents a value wrapped in a {@link WeakReference}
  *
@@ -47,6 +49,7 @@ public final class WeakValue<T> implements TransientValue<T> {
         this.value = new WeakReference<>(value);
     }
 
+    @Nullable
     @Override
     public T getOrNull() {
         return value.get();

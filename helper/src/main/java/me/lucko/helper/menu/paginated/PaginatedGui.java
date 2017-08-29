@@ -31,18 +31,20 @@ import me.lucko.helper.item.ItemStackBuilder;
 import me.lucko.helper.menu.Gui;
 import me.lucko.helper.menu.Item;
 import me.lucko.helper.menu.scheme.MenuScheme;
+import me.lucko.helper.utils.CollectionUtils;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 
 /**
  * Extension of {@link Gui} which automatically paginates {@link Item}s.
  */
+@NonnullByDefault
 public class PaginatedGui extends Gui {
 
     private final MenuScheme scheme;
@@ -82,7 +84,7 @@ public class PaginatedGui extends Gui {
         List<Integer> slots = new ArrayList<>(itemSlots);
 
         // work out the items to display on this page
-        List<List<Item>> pages = divideList(content, slots.size());
+        List<List<Item>> pages = CollectionUtils.divideIterable(content, slots.size());
         List<Item> page = pages.isEmpty() ? new ArrayList<>() : pages.get(this.page - 1);
 
         // place prev/next page buttons
@@ -118,19 +120,6 @@ public class PaginatedGui extends Gui {
             int index = slots.remove(0);
             setItem(index, item);
         }
-    }
-
-    private static <T> List<List<T>> divideList(List<T> source, int size) {
-        List<List<T>> lists = new ArrayList<>();
-        Iterator<T> it = source.iterator();
-        while (it.hasNext()) {
-            List<T> subList = new ArrayList<>();
-            for (int i = 0; it.hasNext() && i < size; i++) {
-                subList.add(it.next());
-            }
-            lists.add(subList);
-        }
-        return lists;
     }
 
     public void updateContent(List<Item> content) {

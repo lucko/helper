@@ -29,6 +29,8 @@ import com.google.common.base.Preconditions;
 
 import java.lang.ref.SoftReference;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents a value wrapped in a {@link SoftReference}
  *
@@ -47,6 +49,7 @@ public final class SoftValue<T> implements TransientValue<T> {
         this.value = new SoftReference<>(value);
     }
 
+    @Nullable
     @Override
     public T getOrNull() {
         return value.get();

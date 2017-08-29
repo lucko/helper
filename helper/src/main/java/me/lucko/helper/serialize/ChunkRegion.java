@@ -32,6 +32,8 @@ import com.google.gson.JsonObject;
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.gson.JsonBuilder;
 
+import javax.annotation.Nonnull;
+
 /**
  * An immutable and serializable chunk region object
  */
@@ -100,6 +102,7 @@ public final class ChunkRegion implements GsonSerializable {
         return this.depth;
     }
 
+    @Nonnull
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()

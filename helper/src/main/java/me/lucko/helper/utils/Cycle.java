@@ -29,6 +29,8 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 /**
  * A cycle of elements, backed by a list. All operations are thread safe.
  *
@@ -38,7 +40,7 @@ public class Cycle<E> {
     protected final List<E> objects;
     protected int index = 0;
 
-    public Cycle(List<E> objects) {
+    public Cycle(@Nonnull List<E> objects) {
         if (objects == null || objects.isEmpty()) {
             throw new IllegalArgumentException("List of objects cannot be null/empty.");
         }
@@ -49,12 +51,14 @@ public class Cycle<E> {
         return index;
     }
 
+    @Nonnull
     public E current() {
         synchronized (this) {
             return objects.get(index);
         }
     }
 
+    @Nonnull
     public E next() {
         synchronized (this) {
             index++;
@@ -64,6 +68,7 @@ public class Cycle<E> {
         }
     }
 
+    @Nonnull
     public E back() {
         synchronized (this) {
             index--;
@@ -73,6 +78,7 @@ public class Cycle<E> {
         }
     }
 
+    @Nonnull
     public List<E> getBacking() {
         return objects;
     }
