@@ -31,6 +31,8 @@ import me.lucko.helper.sql.DatabaseCredentials;
 import me.lucko.helper.sql.HelperDataSource;
 import me.lucko.helper.sql.SqlProvider;
 
+import javax.annotation.Nonnull;
+
 @MavenLibrary(groupId = "org.slf4j", artifactId = "slf4j-api", version = "1.7.25")
 public class SqlPlugin extends ExtendedJavaPlugin implements SqlProvider {
     private DatabaseCredentials globalCredentials;
@@ -48,16 +50,19 @@ public class SqlPlugin extends ExtendedJavaPlugin implements SqlProvider {
         provideService(HelperDataSource.class, this.globalDataSource);
     }
 
+    @Nonnull
     @Override
     public HelperDataSource getDataSource() {
         return this.globalDataSource;
     }
 
+    @Nonnull
     @Override
-    public HelperDataSource getDataSource(DatabaseCredentials credentials) {
+    public HelperDataSource getDataSource(@Nonnull DatabaseCredentials credentials) {
         return new HikariWrapper(credentials);
     }
 
+    @Nonnull
     @Override
     public DatabaseCredentials getGlobalCredentials() {
         return this.globalCredentials;

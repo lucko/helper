@@ -32,6 +32,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import javax.annotation.Nonnull;
+
 /**
  * Annotation to indicate a required library for a class.
  */
@@ -46,6 +48,7 @@ public @interface MavenLibrary {
      *
      * @return the group id of the library
      */
+    @Nonnull
     String groupId();
 
     /**
@@ -53,6 +56,7 @@ public @interface MavenLibrary {
      *
      * @return the artifact id of the library
      */
+    @Nonnull
     String artifactId();
 
     /**
@@ -60,6 +64,7 @@ public @interface MavenLibrary {
      *
      * @return the version of the library
      */
+    @Nonnull
     String version();
 
     /**
@@ -67,6 +72,7 @@ public @interface MavenLibrary {
      *
      * @return the repo where the library can be obtained from
      */
+    @Nonnull
     Repository repo() default @Repository(url = "http://repo1.maven.org/maven2");
 
 }

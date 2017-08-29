@@ -32,6 +32,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.utils.Color;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -44,6 +45,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 /**
  * Wrapper for PacketPlayOutScoreboardObjective, PacketPlayOutScoreboardScore and PacketPlayOutScoreboardDisplayObjective
  *
@@ -51,6 +54,7 @@ import java.util.Set;
  * <p>http://wiki.vg/Protocol#Update_Score</p>
  * <p>http://wiki.vg/Protocol#Display_Scoreboard</p>
  */
+@NonnullByDefault
 public class PacketScoreboardObjective implements ScoreboardObjective {
     // the objective value in the ScoreboardObjective packet is limited to 32 chars
     private static final int MAX_NAME_LENGTH = 32;
@@ -150,6 +154,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
         return scores.containsKey(Color.colorize(trimName(name)));
     }
 
+    @Nullable
     @Override
     public Integer getScore(String name) {
         Preconditions.checkNotNull(name, "name");

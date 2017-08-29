@@ -29,6 +29,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.Helper;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
@@ -48,9 +49,12 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
 /**
  * A collection of Player related utilities
  */
+@NonnullByDefault
 public final class Players {
 
     /**
@@ -59,6 +63,7 @@ public final class Players {
      * @param uuid the uuid
      * @return a player, or null
      */
+    @Nullable
     public static Player getNullable(UUID uuid) {
         return Helper.server().getPlayer(uuid);
     }
@@ -79,6 +84,7 @@ public final class Players {
      * @param username the players username
      * @return the player, or null
      */
+    @Nullable
     public static Player getNullable(String username) {
         //noinspection deprecation
         return Helper.server().getPlayerExact(username);
@@ -175,6 +181,7 @@ public final class Players {
         }
     }
 
+    @Nullable
     public static OfflinePlayer getOfflineNullable(UUID uuid) {
         return Helper.server().getOfflinePlayer(uuid);
     }
@@ -183,6 +190,7 @@ public final class Players {
         return Optional.ofNullable(getOfflineNullable(uuid));
     }
 
+    @Nullable
     public static OfflinePlayer getOfflineNullable(String username) {
         //noinspection deprecation
         return Helper.server().getOfflinePlayer(username);

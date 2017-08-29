@@ -32,6 +32,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
 import java.util.Comparator;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -39,6 +41,7 @@ import java.util.stream.Collector;
 /**
  * Immutable implementations of {@link Collector} using Guava's immutable collections.
  */
+@NonnullByDefault
 public final class ImmutableCollectors {
 
     private static final Collector<Object, ImmutableList.Builder<Object>, ImmutableList<Object>> LIST = Collector.of(

@@ -45,6 +45,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.Nonnull;
+
 public class JedisWrapper implements HelperRedis {
 
     private final JedisPool jedisPool;
@@ -53,7 +55,7 @@ public class JedisWrapper implements HelperRedis {
     private Set<String> channels = new HashSet<>();
     private TerminableRegistry registry = TerminableRegistry.create();
 
-    public JedisWrapper(RedisCredentials credentials) {
+    public JedisWrapper(@Nonnull RedisCredentials credentials) {
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(16);
 
@@ -135,12 +137,14 @@ public class JedisWrapper implements HelperRedis {
         );
     }
 
+    @Nonnull
     @Override
     public JedisPool getJedisPool() {
         Preconditions.checkNotNull(jedisPool, "jedisPool");
         return this.jedisPool;
     }
 
+    @Nonnull
     @Override
     public Jedis getJedis() {
         return getJedisPool().getResource();
@@ -161,12 +165,13 @@ public class JedisWrapper implements HelperRedis {
         return false;
     }
 
+    @Nonnull
     @Override
-    public <T> Channel<T> getChannel(String name, TypeToken<T> type) {
+    public <T> Channel<T> getChannel(@Nonnull String name, @Nonnull TypeToken<T> type) {
         return messenger.getChannel(name, type);
     }
 
-    private class PubSubListener extends JedisPubSub {
+    private final class PubSubListener extends JedisPubSub {
         private Set<String> subscribed = ConcurrentHashMap.newKeySet();
 
         @Override

@@ -28,6 +28,7 @@ package me.lucko.helper.utils;
 import me.lucko.helper.Events;
 import me.lucko.helper.Helper;
 import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.event.server.ServiceEvent;
 import org.bukkit.event.server.ServiceRegisterEvent;
@@ -35,11 +36,14 @@ import org.bukkit.event.server.ServiceUnregisterEvent;
 
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * A wrapper to always provide the latest instance of a service.
  *
  * @param <T> the service class type
  */
+@NonnullByDefault
 public final class ServiceCallback<T> implements Terminable {
 
     /**
@@ -79,6 +83,7 @@ public final class ServiceCallback<T> implements Terminable {
      *
      * @return the service provider
      */
+    @Nullable
     public T getNullable() {
         return this.instance;
     }

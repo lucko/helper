@@ -29,20 +29,23 @@ import com.google.common.base.Preconditions;
 
 import org.bukkit.configuration.ConfigurationSection;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Represents the credentials for a remote redis instance.
  */
 public final class RedisCredentials {
 
-    public static RedisCredentials of(String address, int port, String password) {
+    public static RedisCredentials of(@Nonnull String address, int port, @Nullable String password) {
         return new RedisCredentials(address, port, password);
     }
 
-    public static RedisCredentials of(String address, int port) {
+    public static RedisCredentials of(@Nonnull String address, int port) {
         return new RedisCredentials(address, port, null);
     }
 
-    public static RedisCredentials fromConfig(ConfigurationSection config) {
+    public static RedisCredentials fromConfig(@Nonnull ConfigurationSection config) {
         return of(
                 config.getString("address", "localhost"),
                 config.getInt("port", 6379),
@@ -54,12 +57,13 @@ public final class RedisCredentials {
     private final int port;
     private final String password;
 
-    private RedisCredentials(String address, int port, String password) {
+    private RedisCredentials(@Nonnull String address, int port, @Nullable String password) {
         this.address = Preconditions.checkNotNull(address);
         this.port = port;
         this.password = password == null ? "" : password;
     }
 
+    @Nonnull
     public String getAddress() {
         return this.address;
     }
@@ -68,10 +72,12 @@ public final class RedisCredentials {
         return this.port;
     }
 
+    @Nonnull
     public String getPassword() {
         return this.password;
     }
 
+    @Override
     public boolean equals(Object o) {
         if (o == this) return true;
         if (!(o instanceof RedisCredentials)) return false;
@@ -82,6 +88,7 @@ public final class RedisCredentials {
                 this.getPassword().equals(other.getPassword());
     }
 
+    @Override
     public int hashCode() {
         final int PRIME = 59;
         int result = 1;
@@ -91,6 +98,7 @@ public final class RedisCredentials {
         return result;
     }
 
+    @Override
     public String toString() {
         return "RedisCredentials(" +
                 "address=" + this.getAddress() + ", " +

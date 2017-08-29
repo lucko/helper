@@ -127,6 +127,9 @@ public class PluginProcessor extends AbstractProcessor {
             }
         }
 
+        hard.addAll(Arrays.asList(annotation.hardDepends()));
+        soft.addAll(Arrays.asList(annotation.softDepends()));
+
         if (!hard.isEmpty()) {
             data.put("depend", hard);
         }

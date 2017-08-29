@@ -33,6 +33,7 @@ import com.google.common.base.Preconditions;
 import me.lucko.helper.Events;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.utils.Players;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -47,6 +48,7 @@ import java.util.UUID;
 /**
  * A thread-safe scoreboard using ProtocolLib
  */
+@NonnullByDefault
 public class PacketScoreboard implements Scoreboard {
     private final ProtocolManager protocolManager;
 

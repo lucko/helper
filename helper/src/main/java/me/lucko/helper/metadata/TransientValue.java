@@ -25,6 +25,8 @@
 
 package me.lucko.helper.metadata;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents a value in a {@link MetadataMap} which will automatically expire at some point.
  *
@@ -37,6 +39,7 @@ public interface TransientValue<T> {
      *
      * @return the underlying value, or null if it has expired
      */
+    @Nullable
     T getOrNull();
 
     /**

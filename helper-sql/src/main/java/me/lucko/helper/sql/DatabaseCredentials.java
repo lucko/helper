@@ -29,16 +29,20 @@ import com.google.common.base.Preconditions;
 
 import org.bukkit.configuration.ConfigurationSection;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents the credentials for a remote database.
  */
 public final class DatabaseCredentials {
 
-    public static DatabaseCredentials of(String address, int port, String database, String username, String password) {
+    @Nonnull
+    public static DatabaseCredentials of(@Nonnull String address, int port, @Nonnull String database, @Nonnull String username, @Nonnull String password) {
         return new DatabaseCredentials(address, port, database, username, password);
     }
 
-    public static DatabaseCredentials fromConfig(ConfigurationSection config) {
+    @Nonnull
+    public static DatabaseCredentials fromConfig(@Nonnull ConfigurationSection config) {
         return of(
                 config.getString("address", "localhost"),
                 config.getInt("port", 3306),
@@ -54,7 +58,7 @@ public final class DatabaseCredentials {
     private final String username;
     private final String password;
 
-    private DatabaseCredentials(String address, int port, String database, String username, String password) {
+    private DatabaseCredentials(@Nonnull String address, int port, @Nonnull String database, @Nonnull String username, @Nonnull String password) {
         this.address = Preconditions.checkNotNull(address);
         this.port = port;
         this.database = Preconditions.checkNotNull(database);
@@ -62,6 +66,7 @@ public final class DatabaseCredentials {
         this.password = Preconditions.checkNotNull(password);
     }
 
+    @Nonnull
     public String getAddress() {
         return this.address;
     }
@@ -70,18 +75,22 @@ public final class DatabaseCredentials {
         return this.port;
     }
 
+    @Nonnull
     public String getDatabase() {
         return this.database;
     }
 
+    @Nonnull
     public String getUsername() {
         return this.username;
     }
 
+    @Nonnull
     public String getPassword() {
         return this.password;
     }
 
+    @Override
     public boolean equals(Object o) {
         if (o == this) return true;
         if (!(o instanceof DatabaseCredentials)) return false;
@@ -94,6 +103,7 @@ public final class DatabaseCredentials {
                 this.getPassword().equals(other.getPassword());
     }
 
+    @Override
     public int hashCode() {
         final int PRIME = 59;
         int result = 1;
@@ -105,6 +115,7 @@ public final class DatabaseCredentials {
         return result;
     }
 
+    @Override
     public String toString() {
         return "DatabaseCredentials(" +
                 "address=" + this.getAddress() + ", " +

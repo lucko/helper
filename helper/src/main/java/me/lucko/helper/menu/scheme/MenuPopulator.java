@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.menu.Gui;
 import me.lucko.helper.menu.Item;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.List;
 /**
  * A utility to help place items into a {@link Gui}
  */
+@NonnullByDefault
 public class MenuPopulator {
 
     private final Gui gui;

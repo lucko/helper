@@ -35,6 +35,7 @@ import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.Scheduler;
 import me.lucko.helper.gson.GsonProvider;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.Map;
 import java.util.Set;
@@ -43,12 +44,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+
 /**
  * An abstract implementation of {@link Messenger}.
  *
  * <p>Outgoing messages are passed to a {@link BiConsumer} to be passed on.</p>
  * <p>Incoming messages can be distributed using {@link #registerIncomingMessage(String, String)}.</p>
  */
+@NonnullByDefault
 public class AbstractMessenger implements Messenger {
 
     @SuppressWarnings("unchecked")
@@ -91,9 +95,10 @@ public class AbstractMessenger implements Messenger {
         }
     }
 
+    @Nonnull
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Channel<T> getChannel(String name, TypeToken<T> type) {
+    public <T> Channel<T> getChannel(@Nonnull String name, @Nonnull TypeToken<T> type) {
         Preconditions.checkNotNull(name, "name");
         Preconditions.checkArgument(!name.trim().isEmpty(), "name cannot be empty");
         Preconditions.checkNotNull(type, "type");

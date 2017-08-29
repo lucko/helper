@@ -31,6 +31,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents a maven repository.
  */
@@ -44,6 +46,7 @@ public @interface Repository {
      *
      * @return the base url of the repository
      */
+    @Nonnull
     String url();
 
 }

@@ -30,13 +30,17 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
- * A collection of Cooldown instances
+ * A collection of mapped Cooldown instances
+ *
  * @param <T> the key type
  */
+@NonnullByDefault
 public class CooldownCollection<T> {
 
     /**

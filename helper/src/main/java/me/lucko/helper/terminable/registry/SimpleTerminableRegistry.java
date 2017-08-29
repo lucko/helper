@@ -35,19 +35,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 public class SimpleTerminableRegistry implements TerminableRegistry {
     private final List<Terminable> terminables = Collections.synchronizedList(new ArrayList<>());
     private boolean terminated = false;
 
+    @Nonnull
     @Override
-    public final <T extends Terminable> T bind(T terminable) {
+    public final <T extends Terminable> T bind(@Nonnull T terminable) {
         Preconditions.checkNotNull(terminable, "terminable");
         terminables.add(terminable);
         return terminable;
     }
 
+    @Nonnull
     @Override
-    public <T extends CompositeTerminable> T bindComposite(T terminable) {
+    public <T extends CompositeTerminable> T bindComposite(@Nonnull T terminable) {
         Preconditions.checkNotNull(terminable, "terminable");
         terminable.setup(this);
         return terminable;

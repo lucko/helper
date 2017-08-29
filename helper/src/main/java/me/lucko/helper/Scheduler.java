@@ -32,6 +32,7 @@ import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -52,9 +53,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
+
 /**
  * A utility class to help with scheduling.
  */
+@NonnullByDefault
 public final class Scheduler {
 
     private static final Executor SYNC_EXECUTOR = new SyncExecutor();
@@ -374,6 +378,7 @@ public final class Scheduler {
     /**
      * Represents a scheduled repeating task
      */
+    @NonnullByDefault
     public interface Task extends Terminable {
 
         /**
@@ -510,12 +515,13 @@ public final class Scheduler {
     }
 
     private static class HelperFuture<T> extends CompletableFuture<T> implements Terminable {
+        @Nullable
         private Runnable cancelCallback = null;
 
         private boolean cancellable = true;
         private boolean cancelled = false;
 
-        HelperFuture(Runnable cancelCallback) {
+        HelperFuture(@Nullable Runnable cancelCallback) {
             super();
             this.cancelCallback = cancelCallback;
         }

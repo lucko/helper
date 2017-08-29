@@ -28,6 +28,8 @@ package me.lucko.helper.terminable.composite;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableConsumer;
 
+import javax.annotation.Nonnull;
+
 /**
  * A composite terminable is a class which combines a number
  * of {@link Terminable}s, to be easily registered as one.
@@ -41,14 +43,14 @@ public interface CompositeTerminable {
      *
      * @param consumer the terminable consumer
      */
-    void setup(TerminableConsumer consumer);
+    void setup(@Nonnull TerminableConsumer consumer);
 
     /**
      * Registers this terminable with a terminable consumer (usually the plugin instance)
      *
      * @param consumer the terminable consumer
      */
-    default void bindWith(CompositeTerminableConsumer consumer) {
+    default void bindWith(@Nonnull CompositeTerminableConsumer consumer) {
         consumer.bindComposite(this);
     }
 

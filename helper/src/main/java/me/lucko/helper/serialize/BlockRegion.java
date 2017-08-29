@@ -34,6 +34,8 @@ import me.lucko.helper.gson.JsonBuilder;
 
 import org.bukkit.block.Block;
 
+import javax.annotation.Nonnull;
+
 /**
  * An immutable and serializable block region object
  */
@@ -114,6 +116,7 @@ public final class BlockRegion implements GsonSerializable {
         return this.depth;
     }
 
+    @Nonnull
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()

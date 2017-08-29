@@ -33,12 +33,15 @@ import me.lucko.helper.terminable.Terminable;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents an individual datasource, created by the library.
  */
 public interface HelperDataSource extends Terminable {
 
-    static HelperDataSource usingHikari(DatabaseCredentials credentials) {
+    @Nonnull
+    static HelperDataSource usingHikari(@Nonnull DatabaseCredentials credentials) {
         return new HikariWrapper(credentials);
     }
 
@@ -47,6 +50,7 @@ public interface HelperDataSource extends Terminable {
      *
      * @return the hikari instance
      */
+    @Nonnull
     HikariDataSource getHikari();
 
     /**
@@ -56,6 +60,7 @@ public interface HelperDataSource extends Terminable {
      *
      * @return a connection
      */
+    @Nonnull
     Connection getConnection() throws SQLException;
 
 }

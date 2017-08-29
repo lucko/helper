@@ -53,6 +53,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.annotation.Nonnull;
+
 /**
  * A simple GUI abstraction
  */
@@ -135,13 +137,15 @@ public abstract class Gui implements TerminableConsumer {
         this.fallbackGui = fallbackGui;
     }
 
+    @Nonnull
     @Override
-    public <T extends Terminable> T bind(T terminable) {
+    public <T extends Terminable> T bind(@Nonnull T terminable) {
         return terminableRegistry.bind(terminable);
     }
 
+    @Nonnull
     @Override
-    public <T extends Runnable> T bindRunnable(T runnable) {
+    public <T extends Runnable> T bindRunnable(@Nonnull T runnable) {
         return terminableRegistry.bindRunnable(runnable);
     }
 

@@ -27,6 +27,8 @@ package me.lucko.helper.messaging;
 
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 /**
  * Provides information about the current server instance.
  */
@@ -37,6 +39,7 @@ public interface InstanceData {
      *
      * @return the id of the server
      */
+    @Nonnull
     String getId();
 
     /**
@@ -44,6 +47,7 @@ public interface InstanceData {
      *
      * @return this instance's groups
      */
+    @Nonnull
     Set<String> getGroups();
 
 }

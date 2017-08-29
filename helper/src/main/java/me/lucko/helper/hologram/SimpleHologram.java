@@ -47,6 +47,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 class SimpleHologram implements Hologram {
 
     private Position position;
@@ -151,7 +154,7 @@ class SimpleHologram implements Hologram {
     }
 
     @Override
-    public void updatePosition(Position position) {
+    public void updatePosition(@Nonnull Position position) {
         Preconditions.checkNotNull(position, "position");
         if (this.position.equals(position)) {
             return;
@@ -163,7 +166,7 @@ class SimpleHologram implements Hologram {
     }
 
     @Override
-    public void updateLines(List<String> lines) {
+    public void updateLines(@Nonnull List<String> lines) {
         Preconditions.checkNotNull(lines, "lines");
         Preconditions.checkArgument(!lines.isEmpty(), "lines cannot be empty");
         for (String line : lines) {
@@ -179,7 +182,7 @@ class SimpleHologram implements Hologram {
         this.lines.addAll(ret);
     }
 
-    public void setClickCallback(Consumer<Player> clickCallback) {
+    public void setClickCallback(@Nullable Consumer<Player> clickCallback) {
         // unregister any existing listeners
         if (clickCallback == null) {
             if (this.listeners != null) {
@@ -240,6 +243,7 @@ class SimpleHologram implements Hologram {
         return !spawned;
     }
 
+    @Nonnull
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()

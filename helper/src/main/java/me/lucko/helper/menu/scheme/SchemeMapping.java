@@ -29,6 +29,9 @@ import me.lucko.helper.menu.Item;
 
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Represents a mapping to be used in a {@link MenuScheme}
  */
@@ -40,6 +43,7 @@ public interface SchemeMapping {
      * @param key the mapping key
      * @return an item if present, otherwise an empty optional
      */
+    @Nonnull
     default Optional<Item> get(int key) {
         return Optional.ofNullable(getNullable(key));
     }
@@ -50,6 +54,7 @@ public interface SchemeMapping {
      * @param key the mapping key
      * @return an item if present, otherwise null
      */
+    @Nullable
     Item getNullable(int key);
 
     /**
@@ -65,6 +70,7 @@ public interface SchemeMapping {
      *
      * @return a copy of this mapping.
      */
+    @Nonnull
     SchemeMapping copy();
 
 }

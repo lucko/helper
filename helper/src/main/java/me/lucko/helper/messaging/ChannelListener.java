@@ -25,11 +25,14 @@
 
 package me.lucko.helper.messaging;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents an object listening to messages sent on the channel.
  *
  * @param <T> the channel message type
  */
+@FunctionalInterface
 public interface ChannelListener<T> {
 
     /**
@@ -40,6 +43,6 @@ public interface ChannelListener<T> {
      * @param agent the agent which forwarded the message.
      * @param message the message
      */
-    void onMessage(ChannelAgent<T> agent, T message);
+    void onMessage(@Nonnull ChannelAgent<T> agent, @Nonnull T message);
 
 }

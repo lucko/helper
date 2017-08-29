@@ -25,6 +25,8 @@
 
 package me.lucko.helper.scoreboard;
 
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
 import org.bukkit.entity.Player;
 
 import java.util.Set;
@@ -32,6 +34,7 @@ import java.util.Set;
 /**
  * Represents a specific team on a {@link Scoreboard}.
  */
+@NonnullByDefault
 public interface ScoreboardTeam {
 
     /**

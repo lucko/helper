@@ -29,11 +29,14 @@ import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.composite.CompositeTerminableConsumer;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents a registry of {@link Terminable}s.
  */
 public interface TerminableRegistry extends Terminable, TerminableConsumer, CompositeTerminableConsumer {
 
+    @Nonnull
     static TerminableRegistry create() {
         return new SimpleTerminableRegistry();
     }

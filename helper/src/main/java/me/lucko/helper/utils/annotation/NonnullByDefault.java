@@ -23,41 +23,24 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.redis;
+package me.lucko.helper.utils.annotation;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 import javax.annotation.Nonnull;
+import javax.annotation.meta.TypeQualifierDefault;
 
-/**
- * Provides {@link HelperRedis} instances.
- */
-public interface RedisProvider {
-
-    /**
-     * Gets the global redis instance.
-     *
-     * @return the global redis instance.
-     */
-    @Nonnull
-    HelperRedis getRedis();
-
-    /**
-     * Constructs a new redis instance using the given credentials.
-     *
-     * <p>These instances are not cached, and a new redis instance is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the redis instance
-     * @return a new redis instance
-     */
-    @Nonnull
-    HelperRedis getRedis(@Nonnull RedisCredentials credentials);
-
-    /**
-     * Gets the global redis credentials being used for the global redis instance.
-     *
-     * @return the global credentials
-     */
-    @Nonnull
-    RedisCredentials getGlobalCredentials();
+@Nonnull
+@Documented
+@TypeQualifierDefault({
+        ElementType.FIELD,
+        ElementType.METHOD,
+        ElementType.PARAMETER
+})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface NonnullByDefault {
 
 }

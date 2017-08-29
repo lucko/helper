@@ -31,6 +31,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import javax.annotation.Nonnull;
+
 /**
  * Annotation to indicate the required libraries for a class.
  */
@@ -39,6 +41,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MavenLibraries {
 
+    @Nonnull
     MavenLibrary[] value() default {};
 
 }

@@ -38,6 +38,8 @@ import org.bukkit.plugin.PluginManager;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
+import javax.annotation.Nonnull;
+
 public final class CommandMapUtil {
 
     // Cached CommandMap instance
@@ -68,7 +70,8 @@ public final class CommandMapUtil {
      * @param <T> the command executor class type
      * @return the command executor
      */
-    public static <T extends CommandExecutor> T registerCommand(Plugin plugin, T command, String... aliases) {
+    @Nonnull
+    public static <T extends CommandExecutor> T registerCommand(@Nonnull Plugin plugin, @Nonnull T command, @Nonnull String... aliases) {
         Preconditions.checkArgument(aliases.length != 0, "No aliases");
         for (String alias : aliases) {
             PluginCommand cmd = Bukkit.getServer().getPluginCommand(alias);

@@ -28,6 +28,8 @@ package me.lucko.helper.messaging;
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents an object which manages messaging {@link Channel}s.
  */
@@ -41,7 +43,8 @@ public interface Messenger {
      * @param <T> the channel message type
      * @return a channel
      */
-    <T> Channel<T> getChannel(String name, TypeToken<T> type);
+    @Nonnull
+    <T> Channel<T> getChannel(@Nonnull String name, @Nonnull TypeToken<T> type);
 
     /**
      * Gets a messaging channel by name.
@@ -51,7 +54,8 @@ public interface Messenger {
      * @param <T> the channel message type
      * @return a channel
      */
-    default <T> Channel<T> getChannel(String name, Class<T> clazz) {
+    @Nonnull
+    default <T> Channel<T> getChannel(@Nonnull String name, @Nonnull Class<T> clazz) {
         return getChannel(name, TypeToken.of(Preconditions.checkNotNull(clazz)));
     }
 
@@ -61,7 +65,8 @@ public interface Messenger {
      * @param name the name of the channel.
      * @return a string channel
      */
-    default Channel<String> getChannel(String name) {
+    @Nonnull
+    default Channel<String> getChannel(@Nonnull String name) {
         return getChannel(name, String.class);
     }
 

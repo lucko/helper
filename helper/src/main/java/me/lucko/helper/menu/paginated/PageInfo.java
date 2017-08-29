@@ -25,10 +25,14 @@
 
 package me.lucko.helper.menu.paginated;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents data about a currently open page in a {@link PaginatedGui}.
  */
 public final class PageInfo {
+
+    @Nonnull
     public static PageInfo create(int current, int size) {
         return new PageInfo(current, size);
     }
