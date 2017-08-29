@@ -15,7 +15,7 @@
     <version>1.0.3</version>
 
     <name>helper-redis</name>
-    <description>Provides Redis clients and implements the helper Messaging interface using Jedis.</description>
+    <description>Provides Redis clients and implements the helper Messaging system using Jedis.</description>
     <url>https://github.com/lucko/helper</url>
 
     <properties>
