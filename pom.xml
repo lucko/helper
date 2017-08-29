@@ -12,6 +12,7 @@
     	<module>helper</module>
         <module>helper-sql</module>
         <module>helper-redis</module>
+        <module>helper-lilypad</module>
     </modules>
 
     <name>helper-parent</name>

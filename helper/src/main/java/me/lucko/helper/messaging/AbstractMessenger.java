@@ -45,6 +45,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * An abstract implementation of {@link Messenger}.
@@ -190,6 +191,7 @@ public class AbstractMessenger implements Messenger {
     }
 
     private static class AbstractChannelAgent<T> implements ChannelAgent<T> {
+        @Nullable
         private AbstractChannel<T> channel;
         private final Set<ChannelListener<T>> listeners = ConcurrentHashMap.newKeySet();
 
