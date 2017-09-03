@@ -35,29 +35,28 @@ import me.lucko.helper.metadata.MetadataMap;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.registry.TerminableRegistry;
-import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Color;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 
-import co.aikar.timings.lib.MCTiming;
-
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.Optional;
 import java.util.function.Function;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * A simple GUI abstraction
  */
+@NonnullByDefault
 public abstract class Gui implements TerminableConsumer {
     public static final MetadataKey<Gui> OPEN_GUI_KEY = MetadataKey.create("open-gui", Gui.class);
 
@@ -76,11 +75,12 @@ public abstract class Gui implements TerminableConsumer {
     private final Inventory inventory;
     // The initial title set when the inventory was made.
     private final String initialTitle;
-    // The clickable items in the gui
-    private final Map<Integer, Item> itemMap;
+    // The slots in the gui, lazily loaded
+    private final Map<Integer, Slot> slots;
     // This remains true until after #redraw is called for the first time
     private boolean firstDraw = true;
     // A function used to build a fallback page when this page is closed.
+    @Nullable
     private Function<Player, Gui> fallbackGui = null;
 
     // Callbacks to be ran when the GUI is invalidated (closed). useful for cancelling tick tasks
@@ -93,7 +93,7 @@ public abstract class Gui implements TerminableConsumer {
         this.player = Preconditions.checkNotNull(player, "player");
         this.initialTitle = Color.colorize(Preconditions.checkNotNull(title, "title"));
         this.inventory = Bukkit.createInventory(player, lines * 9, this.initialTitle);
-        this.itemMap = new HashMap<>();
+        this.slots = new HashMap<>();
     }
 
     /**
@@ -129,11 +129,12 @@ public abstract class Gui implements TerminableConsumer {
         return initialTitle;
     }
 
+    @Nullable
     public Function<Player, Gui> getFallbackGui() {
         return fallbackGui;
     }
 
-    public void setFallbackGui(Function<Player, Gui> fallbackGui) {
+    public void setFallbackGui(@Nullable Function<Player, Gui> fallbackGui) {
         this.fallbackGui = fallbackGui;
     }
 
@@ -153,10 +154,16 @@ public abstract class Gui implements TerminableConsumer {
         return firstDraw;
     }
 
+    public Slot getSlot(int slot) {
+        if (slot < 0 || slot >= inventory.getSize()) {
+            throw new IllegalArgumentException("Invalid slot id: " + slot);
+        }
+
+        return slots.computeIfAbsent(slot, i -> new Slot(this, i));
+    }
+
     public void setItem(int slot, Item item) {
-        Preconditions.checkNotNull(item, "item");
-        itemMap.put(slot, item);
-        inventory.setItem(slot, item.getItemStack());
+        getSlot(slot).applyFromItem(item);
     }
 
     public void setItems(Item item, int... slots) {
@@ -182,13 +189,17 @@ public abstract class Gui implements TerminableConsumer {
         return ret;
     }
 
+    public Optional<Slot> getFirstEmptySlot() {
+        int ret = inventory.firstEmpty();
+        if (ret < 0) {
+            return Optional.empty();
+        }
+        return Optional.of(getSlot(ret));
+    }
+
     public void addItem(Item item) {
         Preconditions.checkNotNull(item, "item");
-        try {
-            setItem(getFirstEmpty(), item);
-        } catch (IndexOutOfBoundsException e) {
-            // ignore
-        }
+        getFirstEmptySlot().ifPresent(s -> s.applyFromItem(item));
     }
 
     public void addItems(Iterable<Item> items) {
@@ -198,9 +209,15 @@ public abstract class Gui implements TerminableConsumer {
         }
     }
 
+    public void fillWith(Item item) {
+        Preconditions.checkNotNull(item, "item");
+        for (int i = 0; i < inventory.getSize(); ++i) {
+            setItem(i, item);
+        }
+    }
+
     public void removeItem(int slot) {
-        itemMap.remove(slot);
-        inventory.setItem(slot, null);
+        getSlot(slot).clear();
     }
 
     public void removeItems(int... slots) {
@@ -217,15 +234,8 @@ public abstract class Gui implements TerminableConsumer {
     }
 
     public void clearItems() {
-        itemMap.clear();
         inventory.clear();
-    }
-
-    public void fillWith(Item item) {
-        Preconditions.checkNotNull(item, "item");
-        for (int i = 0; i < inventory.getSize(); ++i) {
-            setItem(i, item);
-        }
+        slots.values().forEach(Slot::clearBindings);
     }
 
     public void open() {
@@ -291,24 +301,16 @@ public abstract class Gui implements TerminableConsumer {
                         close();
                     }
 
-                    int slot = e.getRawSlot();
+                    int slotId = e.getRawSlot();
 
                     // check if the click was in the top inventory
-                    if (slot != e.getSlot()) {
+                    if (slotId != e.getSlot()) {
                         return;
                     }
 
-                    Item item = itemMap.get(slot);
-                    if (item != null) {
-                        Map<ClickType, Consumer<InventoryClickEvent>> handlers = item.getHandlers();
-                        Consumer<InventoryClickEvent> handler = handlers.get(e.getClick());
-                        if (handler != null) {
-                            try (MCTiming t = Timings.ofStart("helper-gui: " + getClass().getSimpleName() + " : " + getHandlerName(handler))) {
-                                handler.accept(e);
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
-                        }
+                    Slot slot = slots.get(slotId);
+                    if (slot != null) {
+                        slot.handle(e);
                     }
                 })
                 .bindWith(this);
@@ -341,14 +343,6 @@ public abstract class Gui implements TerminableConsumer {
                     }, 1L);
                 })
                 .bindWith(this);
-    }
-
-    private static String getHandlerName(Consumer consumer) {
-        if (consumer instanceof Item.DelegateConsumer) {
-            return ((Item.DelegateConsumer) consumer).getDelegate().getClass().getName();
-        } else {
-            return consumer.getClass().getName();
-        }
     }
 
 }

@@ -30,10 +30,12 @@ import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.menu.Gui;
 import me.lucko.helper.menu.Item;
+import me.lucko.helper.menu.Slot;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * A utility to help place items into a {@link Gui}
@@ -89,6 +91,30 @@ public class MenuPopulator {
         this.remainingSlots = new ArrayList<>(this.slots);
     }
 
+    public MenuPopulator consume(Consumer<Slot> action) {
+        if (tryConsume(action)) {
+            return this;
+        } else {
+            throw new IllegalStateException("No more slots");
+        }
+    }
+
+    public MenuPopulator consumeIfSpace(Consumer<Slot> action) {
+        tryConsume(action);
+        return this;
+    }
+
+    public boolean tryConsume(Consumer<Slot> action) {
+        Preconditions.checkNotNull(action, "action");
+        if (remainingSlots.size() == 0) {
+            return false;
+        }
+
+        int slot = remainingSlots.remove(0);
+        action.accept(gui.getSlot(slot));
+        return true;
+    }
+
     /**
      * Places an item onto the {@link Gui} using the next available slot in the populator
      *
@@ -97,11 +123,7 @@ public class MenuPopulator {
      * @throws IllegalStateException if there are not more slots
      */
     public MenuPopulator accept(Item item) {
-        if (placeIfSpace(item)) {
-            return this;
-        } else {
-            throw new IllegalStateException("No more slots");
-        }
+        return consume(s -> s.applyFromItem(item));
     }
 
     /**
@@ -111,8 +133,7 @@ public class MenuPopulator {
      * @return the populator
      */
     public MenuPopulator acceptIfSpace(Item item) {
-        placeIfSpace(item);
-        return this;
+        return consumeIfSpace(s -> s.applyFromItem(item));
     }
 
     /**
@@ -122,14 +143,7 @@ public class MenuPopulator {
      * @return true if there was a slot left in the populator to place this item onto, false otherwise
      */
     public boolean placeIfSpace(Item item) {
-        Preconditions.checkNotNull(item, "item");
-        if (remainingSlots.size() == 0) {
-            return false;
-        }
-
-        int slot = remainingSlots.remove(0);
-        gui.setItem(slot, item);
-        return true;
+        return tryConsume(s -> s.applyFromItem(item));
     }
 
     /**

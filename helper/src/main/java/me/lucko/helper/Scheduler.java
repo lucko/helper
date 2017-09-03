@@ -446,14 +446,6 @@ public final class Scheduler {
         }
     }
 
-    private static String getHandlerName(Consumer consumer) {
-        if (consumer instanceof DelegateConsumer) {
-            return ((DelegateConsumer) consumer).getDelegate().getClass().getName();
-        } else {
-            return consumer.getClass().getName();
-        }
-    }
-
     private static class TaskImpl extends BukkitRunnable implements Task {
         private final Consumer<Task> backingTask;
         private final MCTiming timing;
@@ -463,7 +455,7 @@ public final class Scheduler {
 
         private TaskImpl(Consumer<Task> backingTask) {
             this.backingTask = backingTask;
-            this.timing = Timings.of("helper-scheduler: " + getHandlerName(backingTask));
+            this.timing = Timings.of("helper-scheduler: " + Delegate.resolve(backingTask).getClass().getName());
         }
 
         @Override
