@@ -23,10 +23,11 @@ A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing t
 * [`Messenger`](#messenger) - message channel abstraction
 * [`Commands`](#commands) - create commands using the builder pattern
 * [`Scoreboard`](#scoreboard) - asynchronous scoreboard using ProtocolLib
-* [`Plugin Annotations`](#plugin-annotations) - automatically create plugin.yml files for your projects using annotations
-* [`Maven Annotations`](#maven-annotations) - download & install maven dependencies at runtime
 * [`GUI`](#gui) - lightweight by highly adaptable and flexible menu abstraction
 * [`Menu Scheming`](#menu-scheming) - easily design menu layouts without having to worry about slot ids
+* [`Plugin Annotations`](#plugin-annotations) - automatically create plugin.yml files for your projects using annotations
+* [`Maven Annotations`](#maven-annotations) - download & install maven dependencies at runtime
+* [`Terminables`](#terminables) - a family of interfaces to help easily manipulate objects which can be unregistered, stopped, or gracefully halted
 * [`Serialization`](#serialization) - immutable and GSON compatible alternatives for common Bukkit objects
 * [`Bungee Messaging`](#bungee-messaging) - wrapper for BungeeCord's plugin messaging API
 
@@ -342,9 +343,9 @@ helper includes a thread safe scoreboard system, allowing you to easily setup & 
 
 For example....
 ```java
-MetadataKey<PacketScoreboardObjective> SCOREBOARD_KEY = MetadataKey.create("scoreboard", PacketScoreboardObjective.class);
+MetadataKey<ScoreboardObjective> SCOREBOARD_KEY = MetadataKey.create("scoreboard", ScoreboardObjective.class);
 
-BiConsumer<Player, PacketScoreboardObjective> updater = (p, obj) -> {
+BiConsumer<Player, ScoreboardObjective> updater = (p, obj) -> {
     obj.setDisplayName("&e&lMy Server &7(" + Bukkit.getOnlinePlayers().size() + "&7)");
     obj.applyLines(
             "&7Hi and welcome",
@@ -358,8 +359,8 @@ BiConsumer<Player, PacketScoreboardObjective> updater = (p, obj) -> {
 Events.subscribe(PlayerJoinEvent.class)
         .handler(e -> {
             // register a new scoreboard for the player when they join
-            PacketScoreboard sb = Scoreboard.get();
-            PacketScoreboardObjective obj = sb.createPlayerObjective(e.getPlayer(), "null", DisplaySlot.SIDEBAR);
+            Scoreboard sb = GlobalScoreboard.get();
+            ScoreboardObjective obj = sb.createPlayerObjective(e.getPlayer(), "null", DisplaySlot.SIDEBAR);
             Metadata.provideForPlayer(e.getPlayer()).put(SCOREBOARD_KEY, obj);
 
             updater.accept(e.getPlayer(), obj);
@@ -368,7 +369,7 @@ Events.subscribe(PlayerJoinEvent.class)
 Scheduler.runTaskRepeatingAsync(() -> {
     for (Player player : Bukkit.getOnlinePlayers()) {
         MetadataMap metadata = Metadata.provideForPlayer(player);
-        PacketScoreboardObjective obj = metadata.getOrNull(SCOREBOARD_KEY);
+        ScoreboardObjective obj = metadata.getOrNull(SCOREBOARD_KEY);
         if (obj != null) {
             updater.accept(player, obj);
         }
@@ -377,88 +378,76 @@ Scheduler.runTaskRepeatingAsync(() -> {
 ```
 
 
-### [`Plugin Annotations`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/plugin/ap/Plugin.java)
-With helper, you can automagically create the standard `plugin.yml` files at compile time using annotation processing.
-
-Simply annotate your main class with `@Plugin` and fill in the name and version. The processor will take care of the rest!
-
-```java
-@Plugin(name = "MyPlugin", version = "1.0.0")
-public class MyPlugin extends JavaPlugin {
-    
-}
-```
-
-The annotation also supports defining load order, setting a description and website, and defining (soft) dependencies. Registering commands and permissions is not necessary with helper, as `ExtendedJavaPlugin` provides a method for registering these at runtime.
-
-```java
-@Plugin(
-        name = "MyPlugin", 
-        version = "1.0",
-        description = "A cool plugin",
-        load = PluginLoadOrder.STARTUP,
-        authors = {"Luck", "Some other guy"},
-        website = "www.example.com",
-        depends = {@PluginDependency("Vault"), @PluginDependency(value = "ASpecialPlugin", soft = true)},
-        loadBefore = {"SomePlugin", "SomeOtherPlugin"}
-)
-public class MyPlugin extends JavaPlugin {
-
-}
-```
-
-
-### [`Maven Annotations`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/maven/MavenLibrary.java)
-helper includes a system which allows you to magically download dependencies for your plugins at runtime.
-
-This means you don't have to shade MBs of libraries into your jar. It's as simple as adding an annotation to your plugins class.
-
-```java
-@MavenLibrary(groupId = "org.mongodb", artifactId = "mongo-java-driver", version = "3.4.2")
-@MavenLibrary(groupId = "org.postgresql", artifactId = "postgresql", version = "9.4.1212")
-public class ExamplePlugin extends ExtendedJavaPlugin {
-
-    @Override
-    public void onLoad() {
-
-        // downloads and installs all dependencies into the classloader!
-        LibraryLoader.loadAll(this);
-    }
-}
-```
-
-
 ### [`GUI`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/menu/Gui.java)
-helper provides a very simple yet functional GUI abstraction class.
+helper provides a highly adaptable and flexible GUI abstraction class.
 
 All you have to do is extend `Gui` and override the `#redraw` method.
+
+To demonstrate how the class works, I wrote a simple typewriter menu.
 ```java
-public class SimpleGui extends Gui {
-    public SimpleGui(Player player) {
-        super(player, 1, "&eSome simple gamemode GUI");
+public class TypewriterGui extends Gui {
+
+    // the display book
+    private static final MenuScheme DISPLAY = new MenuScheme().mask("000010000");
+
+    // the keyboard buttons
+    private static final MenuScheme BUTTONS = new MenuScheme()
+            .mask("000000000")
+            .mask("000000001")
+            .mask("111111111")
+            .mask("111111111")
+            .mask("011111110")
+            .mask("000010000");
+
+    // we're limited to 9 keys per line, so add 'P' one line above.
+    private static final String KEYS = "PQWERTYUIOASDFGHJKLZXCVBNM";
+
+    private StringBuilder message = new StringBuilder();
+
+    public TypewriterGui(Player player) {
+        super(player, 6, "&7Typewriter");
     }
 
     @Override
     public void redraw() {
-        addItem(ItemStackBuilder.of(Material.STONE_SWORD)
-                .name("&eChange to survival!")
-                .enchant(Enchantment.FIRE_ASPECT, 2)
-                .lore("")
-                .lore("&7Change your gamemode to &dsurvival!")
-                .build(() -> getPlayer().setGameMode(GameMode.SURVIVAL)));
 
-        addItem(ItemStackBuilder.of(Material.GRASS)
-                .name("&eChange to creative!")
-                .lore("")
-                .lore("&7Change your gamemode to &dcreative!")
-                .build(() -> getPlayer().setGameMode(GameMode.CREATIVE)));
+        // perform initial setup.
+        if (isFirstDraw()) {
 
-        addItem(ItemStackBuilder.of(Material.GOLD_BOOTS)
-                .name("&eChange to adventure!")
-                .enchant(Enchantment.PROTECTION_FALL, 3)
+            // when the GUI closes, send the resultant message to the player
+            bindRunnable(() -> getPlayer().sendMessage("Your typed message was: " + message.toString()));
+
+            // place the buttons
+            MenuPopulator populator = BUTTONS.newPopulator(this);
+            for (char keyChar : KEYS.toCharArray()) {
+                populator.accept(ItemStackBuilder.of(Material.CLAY_BALL)
+                        .name("&f&l" + keyChar)
+                        .lore("")
+                        .lore("&7Click to type this character")
+                        .build(() -> {
+                            message.append(keyChar);
+                            redraw();
+                        }));
+            }
+
+            // space key
+            populator.accept(ItemStackBuilder.of(Material.CLAY_BALL)
+                    .name("&f&lSPACE")
+                    .lore("")
+                    .lore("&7Click to type this character")
+                    .build(() -> {
+                        message.append(" ");
+                        redraw();
+                    }));
+        }
+
+        // update the display every time the GUI is redrawn.
+        DISPLAY.newPopulator(this).accept(ItemStackBuilder.of(Material.BOOK)
+                .name("&f" + message.toString() + "&7_")
                 .lore("")
-                .lore("&7Change your gamemode to &dadventure!")
-                .build(() -> getPlayer().setGameMode(GameMode.ADVENTURE)));
+                .lore("&f> &7Use the buttons below to type your message.")
+                .lore("&f> &7Hit ESC when you're done!")
+                .buildItem().build());
     }
 }
 ```
@@ -503,6 +492,128 @@ The above scheme translates into this menu.
 
 The mask values determine which slots in each row will be transformed. The scheme values relate to the data values of the glass panes.
 
+The scheming system can also be used alongside a `MenuPopulator`, which uses the scheme to add items to the Gui programatically.
+
+```java
+@Override
+public void redraw() {
+    MenuScheme scheme = new MenuScheme().mask("000111000");
+    MenuPopulator populator = scheme.newPopulator(this);
+
+    populator.accept(ItemStackBuilder.of(Material.PAPER).name("Item 1").buildItem().build());
+    populator.accept(ItemStackBuilder.of(Material.PAPER).name("Item 2").buildItem().build());
+    populator.accept(ItemStackBuilder.of(Material.PAPER).name("Item 3").buildItem().build());
+}
+```
+
+
+### [`Plugin Annotations`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/plugin/ap/Plugin.java)
+With helper, you can automagically create the standard `plugin.yml` files at compile time using annotation processing.
+
+Simply annotate your main class with `@Plugin` and fill in the name and version. The processor will take care of the rest!
+
+```java
+@Plugin(name = "MyPlugin", version = "1.0.0")
+public class MyPlugin extends JavaPlugin {
+
+}
+```
+
+The annotation also supports defining load order, setting a description and website, and defining (soft) dependencies. Registering commands and permissions is not necessary with helper, as `ExtendedJavaPlugin` provides a method for registering these at runtime.
+
+```java
+@Plugin(
+        name = "MyPlugin",
+        version = "1.0",
+        description = "A cool plugin",
+        load = PluginLoadOrder.STARTUP,
+        authors = {"Luck", "Some other guy"},
+        website = "www.example.com",
+        depends = {@PluginDependency("Vault"), @PluginDependency(value = "ASpecialPlugin", soft = true)},
+        loadBefore = {"SomePlugin", "SomeOtherPlugin"}
+)
+public class MyPlugin extends JavaPlugin {
+
+}
+```
+
+
+### [`Maven Annotations`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/maven/MavenLibrary.java)
+helper includes a system which allows you to magically download dependencies for your plugins at runtime.
+
+This means you don't have to shade MBs of libraries into your jar. It's as simple as adding an annotation to your plugins class.
+
+```java
+@MavenLibrary(groupId = "org.mongodb", artifactId = "mongo-java-driver", version = "3.4.2")
+@MavenLibrary(groupId = "org.postgresql", artifactId = "postgresql", version = "9.4.1212")
+public class ExamplePlugin extends JavaPlugin {
+
+    @Override
+    public void onLoad() {
+
+        // Downloads and installs all dependencies into the classloader!
+        // Not necessary if you extend helper's "ExtendedJavaPlugin" instead of "JavaPlugin"
+        LibraryLoader.loadAll(this);
+    }
+}
+```
+
+
+### [`Terminables`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/terminable)
+Terminables are a way to easily cleanup active objects in plugins when a shutdown or reset is needed.
+
+The system consists of a few key interfaces.
+
+* [`Terminable`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/terminable/Terminable.java) - The main interface. An object that can be unregistered, stopped, or gracefully halted.
+* [`TerminableConsumer`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/terminable/TerminableConsumer.java) - An object which binds with and registers Terminables.
+* [`CompositeTerminable`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/terminable/composite/CompositeTerminable.java) - An object which itself contains/has a number of Terminables, but does not register them internally.
+* [`CompositeTerminableConsumer`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/terminable/composite/CompositeTerminableConsumer.java) - A bit like a TerminableConsumer, just for CompositeTerminables
+* [`TerminableRegistry`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/terminable/registry/TerminableRegistry.java) - An object which is a Terminable itself, but also a TerminableConsumer & CompositeTerminableConsumer, all in one!
+
+Terminables are a really important part of helper, as so much of the utility is accessible from a static context. Terminables are a way to tame these floating, globally built handlers, and register them with the plugin instance.
+
+`ExtendedJavaPlugin` implements TerminableConsumer & CompositeTerminableConsumer, which lets you register Terminables and CompositeTerminables to the plugin. These are all terminated automagically when the plugin disables.
+
+To demonstrate, I'll first define a new CompositeTerminable. Think of this as a conventional Listener class in a regular plugin.
+```java
+public class DemoListener implements CompositeTerminable {
+
+    @Override
+    public void setup(@Nonnull TerminableConsumer consumer) {
+
+        Events.subscribe(PlayerJoinEvent.class)
+                .filter(e -> e.getPlayer().hasPermission("silentjoin"))
+                .handler(e -> e.setJoinMessage(null))
+                .bindWith(consumer);
+
+        Events.subscribe(PlayerQuitEvent.class)
+                .filter(e -> e.getPlayer().hasPermission("silentquit"))
+                .handler(e -> e.setQuitMessage(null))
+                .bindWith(consumer);
+
+    }
+}
+```
+
+Notice the `.bindWith(...)` calls? All Terminables have this method added via default in the interface. It lets you register that specific terminable with a consumer.
+
+In order to setup our DemoListener, we need a CompositeTerminableConsumer. Luckily, ExtendedJavaPlugin implements this for us!
+
+```java
+public class DemoPlugin extends ExtendedJavaPlugin {
+
+    @Override
+    protected void enable() {
+
+        // either of these is fine (but don't use both!)
+        new DemoListener().bindWith(this);
+
+        bindComposite(new DemoListener());
+
+    }
+}
+```
+
 ### [`Serialization`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/serialize)
 helper provides a few classes with are useful when trying to serialize plugin data. It makes use of Google's GSON to convert from Java Objects to JSON.
 
@@ -518,6 +629,62 @@ helper provides a few classes with are useful when trying to serialize plugin da
 And finally, [`Serializers`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/Serializers.java), containing serializers for ItemStacks and Inventories.
 
 There is also an abstraction for conducting file I/O. [`FileStorageHandler`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/FileStorageHandler.java) is capable of handling the initial creation of storage files, as well as automatically creating backups and saving when the server stops.
+
+It's as simple as creating a class to handle serialization/deserialization, and then calling a method when you want to load/save data.
+
+```java
+public class DemoStorageHandler extends FileStorageHandler<Map<String, String>> {
+    private static final Splitter SPLITTER = Splitter.on('=');
+
+    public DemoStorageHandler(JavaPlugin plugin) {
+        super("demo", ",json", plugin.getDataFolder());
+    }
+
+    @Override
+    protected Map<String, String> readFromFile(Path path) {
+        Map<String, String> data = new HashMap<>();
+
+        try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+            // read all the data from the file.
+            reader.lines().forEach(line -> {
+                Iterator<String> it = SPLITTER.split(line).iterator();
+                data.put(it.next(), it.next());
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return data;
+    }
+
+    @Override
+    protected void saveToFile(Path path, Map<String, String> data) {
+        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+            for (Map.Entry<String, String> e : data.entrySet()) {
+                writer.write(e.getKey() + "=" + e.getValue());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+Then, to save/load, just create an instance of the handler, and use the provided methods.
+```java
+DemoStorageHandler handler = new DemoStorageHandler(this);
+handler.save(ImmutableMap.of("some key", "some value"));
+
+// or, to save a backup of the previous file too
+handler.saveAndBackup(ImmutableMap.of("some key", "some value"));
+```
+
+helper also provides a handler which uses Gson to serialize the data.
+```java
+GsonStorageHandler<List<String>> gsonHandler = new GsonStorageHandler<>("data", ".json", getDataFolder(), new TypeToken<List<String>>(){});
+gsonHandler.save(ImmutableList.of("some key", "some value"));
+```
 
 
 ### [`Bungee Messaging`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/bungee/BungeeMessaging.java)
@@ -592,7 +759,7 @@ Then, you can add dependencies for each helper module.
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper</artifactId>
-        <version>2.0.2</version>
+        <version>2.1.0</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -601,7 +768,7 @@ Then, you can add dependencies for each helper module.
 #### Gradle
 ```gradle
 dependencies {
-    compile ("me.lucko:helper:2.0.2")
+    compile ("me.lucko:helper:2.1.0")
 }
 ```
 

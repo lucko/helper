@@ -601,14 +601,6 @@ public final class Events {
 
     }
 
-    private static String getHandlerName(BiConsumer consumer) {
-        if (consumer instanceof DelegateBiConsumer) {
-            return ((DelegateBiConsumer) consumer).getDelegate().getClass().getName();
-        } else {
-            return consumer.getClass().getName();
-        }
-    }
-
     private static class HandlerImpl<T extends Event> implements Handler<T>, EventExecutor {
         private final Class<T> eventClass;
         private final EventPriority priority;
@@ -632,7 +624,7 @@ public final class Events {
             this.exceptionConsumer = builder.exceptionConsumer;
             this.filters = ImmutableList.copyOf(builder.filters);
             this.handler = handler;
-            this.timing = Timings.of("helper-events: " + getHandlerName(handler));
+            this.timing = Timings.of("helper-events: " + Delegate.resolve(handler).getClass().getName());
         }
 
         private void register(Plugin plugin) {
@@ -772,7 +764,7 @@ public final class Events {
             this.exceptionConsumer = builder.exceptionConsumer;
             this.filters = ImmutableList.copyOf(builder.filters);
             this.handler = handler;
-            this.timing = Timings.of("helper-events: " + getHandlerName(handler));
+            this.timing = Timings.of("helper-events: " + Delegate.resolve(handler).getClass().getName());
         }
 
         private void register(Plugin plugin) {

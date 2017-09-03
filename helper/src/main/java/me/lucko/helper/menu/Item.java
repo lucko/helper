@@ -42,38 +42,48 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * A clickable item in a {@link Gui}
+ * The initial model of a clickable item in a {@link Gui}. Immutable.
  */
 public class Item {
-
-    @Nonnull
-    public static Consumer<InventoryClickEvent> transformRunnable(@Nonnull Runnable runnable) {
-        return new DelegateConsumer<>(runnable);
-    }
 
     @Nonnull
     public static Item.Builder builder(@Nonnull ItemStack itemStack) {
         return new Builder(itemStack);
     }
 
+    // the click handlers for this item
     private final Map<ClickType, Consumer<InventoryClickEvent>> handlers;
+    // the backing itemstack
     private final ItemStack itemStack;
 
     public Item(@Nonnull Map<ClickType, Consumer<InventoryClickEvent>> handlers, @Nonnull ItemStack itemStack) {
-        this.handlers = Preconditions.checkNotNull(handlers, "handlers");
+        this.handlers = ImmutableMap.copyOf(Preconditions.checkNotNull(handlers, "handlers"));
         this.itemStack = Preconditions.checkNotNull(itemStack, "itemStack");
     }
 
+    /**
+     * Gets the click handlers for this Item.
+     *
+     * @return the click handlers
+     */
     @Nonnull
     public Map<ClickType, Consumer<InventoryClickEvent>> getHandlers() {
         return handlers;
     }
 
+    /**
+     * Gets the ItemStack backing this Item.
+     *
+     * @return the backing itemstack
+     */
     @Nonnull
     public ItemStack getItemStack() {
         return itemStack;
     }
 
+    /**
+     * Aids creation of {@link Item} instances.
+     */
     public static final class Builder {
         private final ItemStack itemStack;
         private final Map<ClickType, Consumer<InventoryClickEvent>> handlers;
@@ -141,8 +151,13 @@ public class Item {
 
         @Nonnull
         public Item build() {
-            return new Item(ImmutableMap.copyOf(handlers), itemStack);
+            return new Item(handlers, itemStack);
         }
+    }
+
+    @Nonnull
+    public static Consumer<InventoryClickEvent> transformRunnable(@Nonnull Runnable runnable) {
+        return new DelegateConsumer<>(runnable);
     }
 
     static final class DelegateConsumer<T> implements Consumer<T>, Delegate<Runnable> {
