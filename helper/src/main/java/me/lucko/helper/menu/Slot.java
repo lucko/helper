@@ -26,8 +26,6 @@
 package me.lucko.helper.menu;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.SetMultimap;
 
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.timings.Timings;
@@ -38,8 +36,11 @@ import org.bukkit.inventory.ItemStack;
 
 import co.aikar.timings.lib.MCTiming;
 
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
@@ -59,12 +60,12 @@ public class Slot {
     private final int id;
 
     // the click handlers for this slot
-    protected final SetMultimap<ClickType, Consumer<InventoryClickEvent>> handlers;
+    protected final Map<ClickType, Set<Consumer<InventoryClickEvent>>> handlers;
 
     public Slot(@Nonnull Gui gui, int id) {
         this.gui = gui;
         this.id = id;
-        this.handlers = MultimapBuilder.enumKeys(ClickType.class).hashSetValues().build();
+        this.handlers = Collections.synchronizedMap(new EnumMap<>(ClickType.class));
     }
 
     /**
@@ -172,7 +173,7 @@ public class Slot {
      */
     @Nonnull
     public Slot clearBindings(ClickType type) {
-        handlers.removeAll(type);
+        handlers.remove(type);
         return this;
     }
 
@@ -191,7 +192,7 @@ public class Slot {
     public Slot bind(@Nonnull ClickType type, @Nonnull Consumer<InventoryClickEvent> handler) {
         Preconditions.checkNotNull(type, "type");
         Preconditions.checkNotNull(handler, "handler");
-        handlers.put(type, handler);
+        handlers.computeIfAbsent(type, t -> ConcurrentHashMap.newKeySet()).add(handler);
         return this;
     }
 
@@ -199,7 +200,7 @@ public class Slot {
     public Slot bind(@Nonnull ClickType type, @Nonnull Runnable handler) {
         Preconditions.checkNotNull(type, "type");
         Preconditions.checkNotNull(handler, "handler");
-        handlers.put(type, Item.transformRunnable(handler));
+        handlers.computeIfAbsent(type, t -> ConcurrentHashMap.newKeySet()).add(Item.transformRunnable(handler));
         return this;
     }
 
