@@ -152,6 +152,10 @@ public final class ItemStackBuilder {
         });
     }
 
+    public ItemStackBuilder breakable(boolean flag) {
+        return transformMeta(meta -> meta.setUnbreakable(flag));
+    }
+
     public ItemStackBuilder apply(Consumer<ItemStackBuilder> consumer) {
         consumer.accept(this);
         return this;
