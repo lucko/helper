@@ -152,12 +152,8 @@ public final class ItemStackBuilder {
         });
     }
 
-    public ItemStackBuilder unbreakable() {
-        return transformMeta(itemMeta -> itemMeta.setUnbreakable(true));
-    }
-
-    public ItemStackBuilder clearUnbreakable() {
-        return transformMeta(itemMeta -> itemMeta.setUnbreakable(false));
+    public ItemStackBuilder breakable(boolean flag) {
+        return transformMeta(meta -> meta.setUnbreakable(flag));
     }
 
     public ItemStackBuilder apply(Consumer<ItemStackBuilder> consumer) {
