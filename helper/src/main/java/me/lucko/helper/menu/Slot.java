@@ -179,6 +179,9 @@ public class Slot {
 
     public void handle(@Nonnull InventoryClickEvent event) {
         Set<Consumer<InventoryClickEvent>> handlers = this.handlers.get(event.getClick());
+        if (handlers == null) {
+            return;
+        }
         for (Consumer<InventoryClickEvent> handler : handlers) {
             try (MCTiming t = Timings.ofStart("helper-gui: " + getClass().getSimpleName() + " : " + Delegate.resolve(handler).getClass().getName())) {
                 handler.accept(event);
