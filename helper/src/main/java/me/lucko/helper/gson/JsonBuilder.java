@@ -35,8 +35,11 @@ import com.google.gson.JsonPrimitive;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -305,8 +308,18 @@ public final class JsonBuilder {
     /**
      * A {@link JsonObject} builder utility
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public interface JsonObjectBuilder {
+    public interface JsonObjectBuilder extends BiConsumer<String, JsonElement>, Consumer<Map.Entry<String, JsonElement>> {
+
+        @Override
+        default void accept(Map.Entry<String, JsonElement> entry) {
+            Preconditions.checkNotNull(entry, "entry");
+            add(entry.getKey(), entry.getValue());
+        }
+
+        @Override
+        default void accept(String property, JsonElement value) {
+            add(property, value);
+        }
 
         JsonObjectBuilder add(String property, @Nullable JsonElement value, boolean copy);
 
@@ -360,10 +373,34 @@ public final class JsonBuilder {
             return addIfAbsent(property, primitive(value));
         }
 
-        <T extends JsonElement> JsonObjectBuilder addAll(Iterable<Map.Entry<String, T>> iterable, boolean deepCopy);
+        default <T extends JsonElement> JsonObjectBuilder addAll(Iterable<Map.Entry<String, T>> iterable, boolean deepCopy) {
+            Preconditions.checkNotNull(iterable, "iterable");
+            for (Map.Entry<String, T> e : iterable) {
+                if (e == null || e.getKey() == null) {
+                    continue;
+                }
+                add(e.getKey(), e.getValue(), deepCopy);
+            }
+            return this;
+        }
 
         default <T extends JsonElement> JsonObjectBuilder addAll(Iterable<Map.Entry<String, T>> iterable) {
             return addAll(iterable, false);
+        }
+
+        default <T extends JsonElement> JsonObjectBuilder addAll(Stream<Map.Entry<String, T>> stream, boolean deepCopy) {
+            Preconditions.checkNotNull(stream, "stream");
+            stream.forEach(e -> {
+                if (e == null || e.getKey() == null) {
+                    return;
+                }
+                add(e.getKey(), e.getValue(), deepCopy);
+            });
+            return this;
+        }
+
+        default <T extends JsonElement> JsonObjectBuilder addAll(Stream<Map.Entry<String, T>> stream) {
+            return addAll(stream, false);
         }
 
         default JsonObjectBuilder addAll(JsonObject object, boolean deepCopy) {
@@ -430,10 +467,34 @@ public final class JsonBuilder {
             return this;
         }
 
-        <T extends JsonElement> JsonObjectBuilder addAllIfAbsent(Iterable<Map.Entry<String, T>> iterable, boolean deepCopy);
+        default <T extends JsonElement> JsonObjectBuilder addAllIfAbsent(Iterable<Map.Entry<String, T>> iterable, boolean deepCopy) {
+            Preconditions.checkNotNull(iterable, "iterable");
+            for (Map.Entry<String, T> e : iterable) {
+                if (e == null || e.getKey() == null) {
+                    continue;
+                }
+                addIfAbsent(e.getKey(), e.getValue(), deepCopy);
+            }
+            return this;
+        }
 
         default <T extends JsonElement> JsonObjectBuilder addAllIfAbsent(Iterable<Map.Entry<String, T>> iterable) {
             return addAllIfAbsent(iterable, false);
+        }
+
+        default <T extends JsonElement> JsonObjectBuilder addAllIfAbsent(Stream<Map.Entry<String, T>> stream, boolean deepCopy) {
+            Preconditions.checkNotNull(stream, "stream");
+            stream.forEach(e -> {
+                if (e == null || e.getKey() == null) {
+                    return;
+                }
+                addIfAbsent(e.getKey(), e.getValue(), deepCopy);
+            });
+            return this;
+        }
+
+        default <T extends JsonElement> JsonObjectBuilder addAllIfAbsent(Stream<Map.Entry<String, T>> stream) {
+            return addAllIfAbsent(stream, false);
         }
 
         default JsonObjectBuilder addAllIfAbsent(JsonObject object, boolean deepCopy) {
@@ -507,7 +568,12 @@ public final class JsonBuilder {
     /**
      * A {@link JsonArray} builder utility
      */
-    public interface JsonArrayBuilder {
+    public interface JsonArrayBuilder extends Consumer<JsonElement> {
+
+        @Override
+        default void accept(JsonElement value) {
+            add(value);
+        }
 
         JsonArrayBuilder add(@Nullable JsonElement value, boolean copy);
 
@@ -535,10 +601,26 @@ public final class JsonBuilder {
             return add(primitive(value));
         }
 
-        <T extends JsonElement> JsonArrayBuilder addAll(Iterable<T> iterable, boolean copy);
+        default <T extends JsonElement> JsonArrayBuilder addAll(Iterable<T> iterable, boolean copy) {
+            Preconditions.checkNotNull(iterable, "iterable");
+            for (T e : iterable) {
+                add(e, copy);
+            }
+            return this;
+        }
 
         default <T extends JsonElement> JsonArrayBuilder addAll(Iterable<T> iterable) {
             return addAll(iterable, false);
+        }
+
+        default <T extends JsonElement> JsonArrayBuilder addAll(Stream<T> stream, boolean copy) {
+            Preconditions.checkNotNull(stream, "iterable");
+            stream.forEach(e -> add(e, copy));
+            return this;
+        }
+
+        default <T extends JsonElement> JsonArrayBuilder addAll(Stream<T> stream) {
+            return addAll(stream, false);
         }
 
         default <T extends GsonSerializable> JsonArrayBuilder addSerializables(Iterable<T> iterable) {
@@ -619,30 +701,6 @@ public final class JsonBuilder {
         }
 
         @Override
-        public <T extends JsonElement> JsonObjectBuilder addAll(Iterable<Map.Entry<String, T>> iterable, boolean deepCopy) {
-            Preconditions.checkNotNull(iterable, "iterable");
-            for (Map.Entry<String, T> e : iterable) {
-                if (e == null || e.getKey() == null) {
-                    continue;
-                }
-                add(e.getKey(), e.getValue(), deepCopy);
-            }
-            return this;
-        }
-
-        @Override
-        public <T extends JsonElement> JsonObjectBuilder addAllIfAbsent(Iterable<Map.Entry<String, T>> iterable, boolean deepCopy) {
-            Preconditions.checkNotNull(iterable, "iterable");
-            for (Map.Entry<String, T> e : iterable) {
-                if (e == null || e.getKey() == null) {
-                    continue;
-                }
-                addIfAbsent(e.getKey(), e.getValue(), deepCopy);
-            }
-            return this;
-        }
-
-        @Override
         public JsonObject build() {
             return handle;
         }
@@ -669,15 +727,6 @@ public final class JsonBuilder {
                 handle.add(value);
             }
 
-            return this;
-        }
-
-        @Override
-        public <T extends JsonElement> JsonArrayBuilder addAll(Iterable<T> iterable, boolean copy) {
-            Preconditions.checkNotNull(iterable, "iterable");
-            for (T e : iterable) {
-                add(e, copy);
-            }
             return this;
         }
 

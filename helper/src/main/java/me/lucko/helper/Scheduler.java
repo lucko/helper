@@ -332,7 +332,7 @@ public final class Scheduler {
      */
     public static Task runTaskRepeatingSync(Consumer<Task> consumer, long delay, long interval) {
         Preconditions.checkNotNull(consumer, "consumer");
-        TaskImpl task = new TaskImpl(consumer);
+        HelperTask task = new HelperTask(consumer);
         task.runTaskTimer(LoaderUtils.getPlugin(), delay, interval);
         return task;
     }
@@ -346,7 +346,7 @@ public final class Scheduler {
      */
     public static Task runTaskRepeatingAsync(Consumer<Task> consumer, long delay, long interval) {
         Preconditions.checkNotNull(consumer, "consumer");
-        TaskImpl task = new TaskImpl(consumer);
+        HelperTask task = new HelperTask(consumer);
         task.runTaskTimerAsynchronously(LoaderUtils.getPlugin(), delay, interval);
         return task;
     }
@@ -446,14 +446,14 @@ public final class Scheduler {
         }
     }
 
-    private static class TaskImpl extends BukkitRunnable implements Task {
+    private static class HelperTask extends BukkitRunnable implements Task {
         private final Consumer<Task> backingTask;
         private final MCTiming timing;
 
         private final AtomicInteger counter = new AtomicInteger(0);
         private final AtomicBoolean shouldStop = new AtomicBoolean(false);
 
-        private TaskImpl(Consumer<Task> backingTask) {
+        private HelperTask(Consumer<Task> backingTask) {
             this.backingTask = backingTask;
             this.timing = Timings.of("helper-scheduler: " + Delegate.resolve(backingTask).getClass().getName());
         }
