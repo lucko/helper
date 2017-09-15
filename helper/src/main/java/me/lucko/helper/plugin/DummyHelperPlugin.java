@@ -56,8 +56,8 @@ public class DummyHelperPlugin extends ExtendedJavaPlugin {
                         Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6helper-sql v" + sqlPlugin.getDescription().getVersion() + "&7.");
                     }
                     if (Helper.plugins().isPluginEnabled("helper-redis")) {
-                        Plugin sqlPlugin = getPlugin("helper-redis", Plugin.class);
-                        Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6helper-redis v" + sqlPlugin.getDescription().getVersion() + "&7.");
+                        Plugin redisPlugin = getPlugin("helper-redis", Plugin.class);
+                        Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6helper-redis v" + redisPlugin.getDescription().getVersion() + "&7.");
                     }
                 })
                 .register(this, "helper");

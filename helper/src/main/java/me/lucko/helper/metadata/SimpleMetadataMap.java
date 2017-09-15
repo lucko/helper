@@ -29,8 +29,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
-import me.lucko.helper.utils.annotation.NonnullByDefault;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,18 +37,19 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-@NonnullByDefault
+import javax.annotation.Nonnull;
+
 final class SimpleMetadataMap implements MetadataMap {
     private final Map<MetadataKey<?>, Object> map = new HashMap<>();
     private final ReentrantLock lock = new ReentrantLock();
 
     @Override
-    public <T> void put(MetadataKey<T> key, T value) {
+    public <T> void put(@Nonnull MetadataKey<T> key, @Nonnull T value) {
         internalPut(key, value);
     }
 
     @Override
-    public <T> void put(MetadataKey<T> key, TransientValue<T> value) {
+    public <T> void put(@Nonnull MetadataKey<T> key, @Nonnull TransientValue<T> value) {
         internalPut(key, value);
     }
 
@@ -80,12 +79,12 @@ final class SimpleMetadataMap implements MetadataMap {
     }
 
     @Override
-    public <T> void forcePut(MetadataKey<T> key, T value) {
+    public <T> void forcePut(@Nonnull MetadataKey<T> key, @Nonnull T value) {
         internalForcePut(key, value);
     }
 
     @Override
-    public <T> void forcePut(MetadataKey<T> key, TransientValue<T> value) {
+    public <T> void forcePut(@Nonnull MetadataKey<T> key, @Nonnull TransientValue<T> value) {
         internalForcePut(key, value);
     }
 
@@ -102,12 +101,12 @@ final class SimpleMetadataMap implements MetadataMap {
     }
 
     @Override
-    public <T> boolean putIfAbsent(MetadataKey<T> key, T value) {
+    public <T> boolean putIfAbsent(@Nonnull MetadataKey<T> key, @Nonnull T value) {
         return internalPutIfAbsent(key, value);
     }
 
     @Override
-    public <T> boolean putIfAbsent(MetadataKey<T> key, TransientValue<T> value) {
+    public <T> boolean putIfAbsent(@Nonnull MetadataKey<T> key, @Nonnull TransientValue<T> value) {
         return internalPutIfAbsent(key, value);
     }
 
@@ -124,8 +123,9 @@ final class SimpleMetadataMap implements MetadataMap {
         }
     }
 
+    @Nonnull
     @Override
-    public <T> Optional<T> get(MetadataKey<T> key) {
+    public <T> Optional<T> get(@Nonnull MetadataKey<T> key) {
         Preconditions.checkNotNull(key, "key");
 
         lock.lock();
@@ -176,8 +176,9 @@ final class SimpleMetadataMap implements MetadataMap {
         }
     }
 
+    @Nonnull
     @Override
-    public <T> boolean ifPresent(MetadataKey<T> key, Consumer<? super T> action) {
+    public <T> boolean ifPresent(@Nonnull MetadataKey<T> key, @Nonnull Consumer<? super T> action) {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(action, "action");
         Optional<T> opt = get(key);
@@ -190,19 +191,21 @@ final class SimpleMetadataMap implements MetadataMap {
     }
 
     @Override
-    public <T> T getOrNull(MetadataKey<T> key) {
+    public <T> T getOrNull(@Nonnull MetadataKey<T> key) {
         Preconditions.checkNotNull(key, "key");
         return get(key).orElse(null);
     }
 
+    @Nonnull
     @Override
-    public <T> T getOrDefault(MetadataKey<T> key, T def) {
+    public <T> T getOrDefault(@Nonnull MetadataKey<T> key, T def) {
         Preconditions.checkNotNull(key, "key");
         return get(key).orElse(def);
     }
 
+    @Nonnull
     @Override
-    public <T> T getOrPut(MetadataKey<T> key, Supplier<T> def) {
+    public <T> T getOrPut(@Nonnull MetadataKey<T> key, @Nonnull Supplier<T> def) {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(def, "def");
 
@@ -258,8 +261,9 @@ final class SimpleMetadataMap implements MetadataMap {
         }
     }
 
+    @Nonnull
     @Override
-    public <T> T getOrPutExpiring(MetadataKey<T> key, Supplier<TransientValue<T>> def) {
+    public <T> T getOrPutExpiring(@Nonnull MetadataKey<T> key, @Nonnull Supplier<TransientValue<T>> def) {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(def, "def");
 
@@ -321,7 +325,7 @@ final class SimpleMetadataMap implements MetadataMap {
     }
 
     @Override
-    public boolean has(MetadataKey<?> key) {
+    public boolean has(@Nonnull MetadataKey<?> key) {
         Preconditions.checkNotNull(key, "key");
 
         lock.lock();
@@ -355,7 +359,7 @@ final class SimpleMetadataMap implements MetadataMap {
     }
 
     @Override
-    public boolean remove(MetadataKey<?> key) {
+    public boolean remove(@Nonnull MetadataKey<?> key) {
         Preconditions.checkNotNull(key, "key");
 
         lock.lock();
@@ -376,6 +380,7 @@ final class SimpleMetadataMap implements MetadataMap {
         }
     }
 
+    @Nonnull
     @Override
     public ImmutableMap<MetadataKey<?>, Object> asMap() {
         lock.lock();

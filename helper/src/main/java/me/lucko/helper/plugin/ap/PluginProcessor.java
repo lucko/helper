@@ -61,7 +61,7 @@ public class PluginProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
         Set<? extends Element> annotatedElements = env.getElementsAnnotatedWith(Plugin.class);
-        if (annotatedElements.size() == 0) {
+        if (annotatedElements.isEmpty()) {
             return false;
         }
 
@@ -106,8 +106,7 @@ public class PluginProcessor extends AbstractProcessor {
         if (authors.length == 1) {
             data.put("author", authors[0]);
         } else if (authors.length > 1) {
-            List<String> author = new ArrayList<>(Arrays.asList(authors));
-            data.put("authors", author);
+            data.put("authors", new ArrayList<>(Arrays.asList(authors)));
         }
 
         String website = annotation.website();
@@ -120,10 +119,10 @@ public class PluginProcessor extends AbstractProcessor {
         List<String> soft = new ArrayList<>();
 
         for (PluginDependency depend : depends) {
-            if (!depend.soft()) {
-                hard.add(depend.value());
-            } else {
+            if (depend.soft()) {
                 soft.add(depend.value());
+            } else {
+                hard.add(depend.value());
             }
         }
 
