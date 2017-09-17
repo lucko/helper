@@ -114,7 +114,7 @@ public final class LibraryLoader {
             throw new RuntimeException("Unable to download dependency: " + d.toString());
         }
 
-        URLClassLoader classLoader = (URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader().getParent();
+        URLClassLoader classLoader = (URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader();
         try {
             ADD_URL_METHOD.invoke(classLoader, saveLocation.toURI().toURL());
         } catch (Exception e) {
