@@ -45,7 +45,7 @@ import java.nio.file.Files;
  */
 @NonnullByDefault
 public final class LibraryLoader {
-    private static Method ADD_URL_METHOD;
+    private static final Method ADD_URL_METHOD;
     static {
         try {
             ADD_URL_METHOD = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);

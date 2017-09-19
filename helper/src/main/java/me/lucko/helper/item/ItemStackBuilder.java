@@ -103,6 +103,26 @@ public final class ItemStackBuilder {
         });
     }
 
+    public ItemStackBuilder lore(String... lines) {
+        return transformMeta(meta -> {
+            List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
+            for (String line : lines) {
+                lore.add(me.lucko.helper.utils.Color.colorize(line));
+            }
+            meta.setLore(lore);
+        });
+    }
+
+    public ItemStackBuilder lore(Iterable<String> lines) {
+        return transformMeta(meta -> {
+            List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
+            for (String line : lines) {
+                lore.add(me.lucko.helper.utils.Color.colorize(line));
+            }
+            meta.setLore(lore);
+        });
+    }
+
     public ItemStackBuilder clearLore() {
         return transformMeta(meta -> meta.setLore(new ArrayList<>()));
     }

@@ -599,6 +599,15 @@ public final class Events {
          */
         <T extends PlayerEvent> Predicate<T> playerHasMetadata(MetadataKey<?> key);
 
+        /**
+         * Returns a predicate which only returns true if the player has the given permission
+         *
+         * @param permission the permission
+         * @param <T> the event type
+         * @return a predicate which only returns true if the player has the given permission
+         */
+        <T extends PlayerEvent> Predicate<T> playerHasPermission(String permission);
+
     }
 
     private static class HandlerImpl<T extends Event> implements Handler<T>, EventExecutor {
@@ -1128,35 +1137,44 @@ public final class Events {
     }
 
     private static class DefaultFiltersImpl implements DefaultFilters {
+        private static final Predicate<? extends Cancellable> IGNORE_CANCELLED = e -> !e.isCancelled();
+        private static final Predicate<? extends PlayerMoveEvent> IGNORE_SAME_BLOCK = e -> e.getFrom().getBlockX() != e.getTo().getBlockX() || e.getFrom().getBlockZ() != e.getTo().getBlockZ() || e.getFrom().getBlockY() != e.getTo().getBlockY();
+        private static final Predicate<? extends PlayerMoveEvent> IGNORE_SAME_BLOCK_AND_Y = e -> e.getFrom().getBlockX() != e.getTo().getBlockX() || e.getFrom().getBlockZ() != e.getTo().getBlockZ();
+        private static final Predicate<? extends PlayerMoveEvent> IGNORE_SAME_CHUNK = e -> (e.getFrom().getBlockX() >> 4) != (e.getTo().getBlockX() >> 4) || (e.getFrom().getBlockZ() >> 4) != (e.getTo().getBlockZ() >> 4);
 
         @Override
         public <T extends Cancellable> Predicate<T> ignoreCancelled() {
-            return e -> !e.isCancelled();
+            return (Predicate<T>) IGNORE_CANCELLED;
         }
 
         @Override
         public <T extends PlayerMoveEvent> Predicate<T> ignoreSameBlock() {
-            return e -> e.getFrom().getBlockX() != e.getTo().getBlockX() || e.getFrom().getBlockZ() != e.getTo().getBlockZ() || e.getFrom().getBlockY() != e.getTo().getBlockY();
+            return (Predicate<T>) IGNORE_SAME_BLOCK;
         }
 
         @Override
         public <T extends PlayerMoveEvent> Predicate<T> ignoreSameBlockAndY() {
-            return e -> e.getFrom().getBlockX() != e.getTo().getBlockX() || e.getFrom().getBlockZ() != e.getTo().getBlockZ();
+            return (Predicate<T>) IGNORE_SAME_BLOCK_AND_Y;
         }
 
         @Override
         public <T extends PlayerMoveEvent> Predicate<T> ignoreSameChunk() {
-            return e -> (e.getFrom().getBlockX() >> 4) != (e.getTo().getBlockX() >> 4) || (e.getFrom().getBlockZ() >> 4) != (e.getTo().getBlockZ() >> 4);
+            return (Predicate<T>) IGNORE_SAME_CHUNK;
         }
 
         @Override
         public <T extends EntityEvent> Predicate<T> entityHasMetadata(MetadataKey<?> key) {
-            return t -> Metadata.provideForEntity(t.getEntity()).has(key);
+            return e -> Metadata.provideForEntity(e.getEntity()).has(key);
         }
 
         @Override
         public <T extends PlayerEvent> Predicate<T> playerHasMetadata(MetadataKey<?> key) {
-            return t -> Metadata.provideForPlayer(t.getPlayer()).has(key);
+            return e -> Metadata.provideForPlayer(e.getPlayer()).has(key);
+        }
+
+        @Override
+        public <T extends PlayerEvent> Predicate<T> playerHasPermission(String permission) {
+            return e -> e.getPlayer().hasPermission(permission);
         }
     }
 
