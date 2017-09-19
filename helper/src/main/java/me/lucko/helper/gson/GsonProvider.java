@@ -42,11 +42,14 @@ public final class GsonProvider {
 
     private static final Gson STANDARD = new GsonBuilder()
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
+            .serializeNulls()
             .create();
 
     private static final Gson PRETTY_PRINT = new GsonBuilder()
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
-            .setPrettyPrinting().create();
+            .serializeNulls()
+            .setPrettyPrinting()
+            .create();
 
     @Nonnull
     public static Gson get() {
