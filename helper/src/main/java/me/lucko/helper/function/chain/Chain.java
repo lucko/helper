@@ -33,6 +33,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -57,6 +58,18 @@ public interface Chain<T> {
      */
     static <T> Chain<T> start(@Nullable T object) {
         return new SimpleChain<>(object);
+    }
+
+    /**
+     * Creates a new chain
+     *
+     * @param optional the initial object
+     * @param <T> the object type
+     * @return the new chain
+     */
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    static <T> Chain<T> startOpt(@Nonnull Optional<T> optional) {
+        return new SimpleChain<>(optional.orElse(null));
     }
 
     /**

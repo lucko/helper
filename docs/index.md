@@ -286,8 +286,6 @@ You can either integrate messenger into your own existing messaging system (usin
 ### Commands
 helper provides a very simple command abstraction, designed to reduce some of the boilerplate needed when writing simple commands.
 
-It doesn't have support for automatic argument parsing, sub commands, or anything like that. It's only purpose is removing the bloat from writing simple commands.
-
 Specifically:
 * Checking if the sender is a player/console sender, and then automatically casting.
 * Checking for permission status
@@ -302,15 +300,13 @@ Commands.create()
         .assertPermission("message.send")
         .assertPlayer()
         .assertUsage("<player> <message>")
-        .assertArgument(0, s -> Bukkit.getPlayerExact(s) != null, "&e{arg} is not online!")
         .handler(c -> {
-            Player other = Bukkit.getPlayerExact(c.getArg(0));
-            Player sender = c.getSender();
-            String message = c.getArgs().subList(1, c.getArgs().size()).stream().collect(Collectors.joining(" "));
+            Player other = c.arg(0).parseOrFail(Player.class);
+            Player sender = c.sender();
+            String message = c.args().subList(1, c.args().size()).stream().collect(Collectors.joining(" "));
 
             other.sendMessage("[" + sender.getName() + " --> you] " + message);
             sender.sendMessage("[you --> " + sender.getName() + "] " + message);
-
         })
         .register(this, "msg");
 ```
@@ -318,13 +314,16 @@ Commands.create()
 All invalid usage/permission/argument messages can be altered when the command is built.
 ```java
 Commands.create()
-        .assertConsole("&cNice try ;)")
+        .assertConsole("&cUse the console to shutdown the server!")
+        .assertUsage("[countdown]")
         .handler(c -> {
-            ConsoleCommandSender sender = c.getSender();
+            ConsoleCommandSender sender = c.sender();
+            int delay = c.arg(0).parse(Integer.class).orElse(5);
 
             sender.sendMessage("Performing graceful shutdown!");
+
             Scheduler.runTaskRepeatingSync(task -> {
-                int countdown = 5 - task.getTimesRan();
+                int countdown = delay - task.getTimesRan();
 
                 if (countdown <= 0) {
                     Bukkit.shutdown();
@@ -332,7 +331,6 @@ Commands.create()
                 }
 
                 Players.forEach(p -> p.sendMessage("Server restarting in " + countdown + " seconds!"));
-
             }, 20L, 20L);
         })
         .register(this, "shutdown");

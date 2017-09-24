@@ -51,7 +51,7 @@ public class DummyHelperPlugin extends ExtendedJavaPlugin {
         // provide an info command
         Commands.create()
                 .handler(c -> {
-                    Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6helper v" + getDescription().getVersion() + "&7.");
+                    Players.msg(c.sender(), "&7[&6helper&7] &7Running &6helper v" + getDescription().getVersion() + "&7.");
 
                     for (String addonName : ADDON_PLUGINS) {
                         if (Helper.plugins().isPluginEnabled(addonName)) {
@@ -59,7 +59,7 @@ public class DummyHelperPlugin extends ExtendedJavaPlugin {
                             if (pl == null) {
                                 continue;
                             }
-                            Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6" + addonName + " v" + pl.getDescription().getVersion() + "&7.");
+                            Players.msg(c.sender(), "&7[&6helper&7] &7Running &6" + addonName + " v" + pl.getDescription().getVersion() + "&7.");
                         }
                     }
                 })
