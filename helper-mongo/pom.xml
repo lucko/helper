@@ -124,7 +124,7 @@
                         </executions>
                         <configuration>
                             <links>
-                                <link>https://lucko.me/helper/</link>
+                                <link>https://lucko.me/helper/javadoc/helper/</link>
                             </links>
                         </configuration>
                     </plugin>

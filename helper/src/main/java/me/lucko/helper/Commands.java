@@ -28,7 +28,9 @@ package me.lucko.helper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.reflect.TypeToken;
 
+import me.lucko.helper.function.Numbers;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Color;
@@ -38,6 +40,8 @@ import me.lucko.helper.utils.Players;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -47,12 +51,19 @@ import org.bukkit.entity.Player;
 import co.aikar.timings.lib.MCTiming;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -104,6 +115,81 @@ public final class Commands {
 
     @SuppressWarnings("deprecation")
     public static final Predicate<String> ASSERTION_OFFLINE_PLAYER = s -> Bukkit.getOfflinePlayer(s) != null;
+
+    // Global argument parsers
+    private static final ArgumentParserRegistry PARSER_REGISTRY;
+
+    @Nonnull
+    public static ArgumentParserRegistry parserRegistry() {
+        return PARSER_REGISTRY;
+    }
+
+    static {
+        PARSER_REGISTRY = new ArgumentRegistryImpl();
+
+        // setup default argument parsers
+        PARSER_REGISTRY.register(String.class, Optional::of);
+        PARSER_REGISTRY.register(Number.class, Numbers::parse);
+        PARSER_REGISTRY.register(Integer.class, Numbers::parseIntegerOpt);
+        PARSER_REGISTRY.register(Long.class, Numbers::parseLongOpt);
+        PARSER_REGISTRY.register(Float.class, Numbers::parseFloatOpt);
+        PARSER_REGISTRY.register(Double.class, Numbers::parseDoubleOpt);
+        PARSER_REGISTRY.register(Byte.class, Numbers::parseByteOpt);
+        PARSER_REGISTRY.register(Boolean.class, s -> s.equalsIgnoreCase("true") ? Optional.of(true) : s.equalsIgnoreCase("false") ? Optional.of(false) : Optional.empty());
+        PARSER_REGISTRY.register(UUID.class, s -> {
+            try {
+                return Optional.of(UUID.fromString(s));
+            } catch (IllegalArgumentException e) {
+                return Optional.empty();
+            }
+        });
+        PARSER_REGISTRY.register(Player.class, s -> {
+            try {
+                return Players.get(UUID.fromString(s));
+            } catch (IllegalArgumentException e) {
+                return Players.get(s);
+            }
+        });
+        PARSER_REGISTRY.register(OfflinePlayer.class, s -> {
+            try {
+                return Players.getOffline(UUID.fromString(s));
+            } catch (IllegalArgumentException e) {
+                return Players.getOffline(s);
+            }
+        });
+        PARSER_REGISTRY.register(World.class, Helper::world);
+    }
+
+    /**
+     * Makes an assertion about a condition.
+     *
+     * <p>When used inside a command, command processing will be gracefully halted
+     * if the condition is not true.</p>
+     *
+     * @param condition the condition
+     * @param failMsg the message to send to the player if the assertion fails
+     * @throws CommandInterruptException if the assertion fails
+     */
+    public static void makeAssertion(boolean condition, String failMsg) throws CommandInterruptException {
+        if (!condition) {
+            throw new InformedCommandInterruptException(failMsg);
+        }
+    }
+
+    /**
+     * Makes an assertion about a condition.
+     *
+     * <p>When used inside a command, command processing will be gracefully halted
+     * if the condition is not true.</p>
+     *
+     * @param condition the condition
+     * @throws CommandInterruptException if the assertion fails
+     */
+    public static void makeAssertion(boolean condition) throws CommandInterruptException {
+        if (!condition) {
+            throw CommandInterruptException.INSTANCE;
+        }
+    }
 
     /**
      * Creates and returns a new command builder
@@ -338,6 +424,32 @@ public final class Commands {
     }
 
     /**
+     * Exception thrown when the handling of a command should be interrupted.
+     *
+     * <p>This exception is silently swallowed by the command processing handler.</p>
+     */
+    public static class CommandInterruptException extends Exception {
+        public static final CommandInterruptException INSTANCE = new CommandInterruptException();
+    }
+
+    @NonnullByDefault
+    public static class InformedCommandInterruptException extends CommandInterruptException {
+        private final Consumer<CommandSender> action;
+
+        public InformedCommandInterruptException(Consumer<CommandSender> action) {
+            this.action = action;
+        }
+
+        public InformedCommandInterruptException(String message) {
+            this.action = cs -> cs.sendMessage(Color.colorize(message));
+        }
+
+        public Consumer<CommandSender> getAction() {
+            return action;
+        }
+    }
+
+    /**
      * Represents a command built from functional predicate calls
      */
     @NonnullByDefault
@@ -371,17 +483,18 @@ public final class Commands {
 
         /**
          * Executes the handler using the given command context
+         *
          * @param c the command context
          */
-        void handle(CommandContext<T> c);
+        void handle(CommandContext<T> c) throws CommandInterruptException;
 
     }
 
     /**
      * Represents the context for a command call
+     *
      * @param <T> the sender type
      */
-    @NonnullByDefault
     public interface CommandContext<T extends CommandSender> {
 
         /**
@@ -389,30 +502,90 @@ public final class Commands {
          *
          * @return the sender who executed the command
          */
-        T getSender();
+        @Nonnull
+        T sender();
 
         /**
          * Gets an immutable list of the supplied arguments
          *
          * @return an immutable list of the supplied arguments
          */
-        ImmutableList<String> getArgs();
+        @Nonnull
+        ImmutableList<String> args();
+
+        /**
+         * Gets the argument at a the given index
+         *
+         * @param index the index
+         * @return the argument
+         */
+        @Nonnull
+        Argument arg(int index);
+
+        /**
+         * Gets the argument at the given index.
+         * Returns null if no argument is present at that index.
+         *
+         * @param index the index
+         * @return the argument, or null if one was not present
+         */
+        @Nullable
+        String rawArg(int index);
+
+        /**
+         * Gets the command label which was used to execute this command
+         *
+         * @return the command label which was used to execute this command
+         */
+        @Nonnull
+        String label();
+
+        /**
+         * Gets the sender who executed the command
+         *
+         * @return the sender who executed the command
+         * @deprecated in favour of {@link #sender()}
+         */
+        @Nonnull
+        @Deprecated
+        default T getSender() {
+            return sender();
+        }
+
+        /**
+         * Gets an immutable list of the supplied arguments
+         *
+         * @return an immutable list of the supplied arguments
+         * @deprecated in favour of {@link #args()}
+         */
+        @Nonnull
+        @Deprecated
+        default ImmutableList<String> getArgs() {
+            return args();
+        }
 
         /**
          * Gets the argument at the given index. Returns null if no argument is present at that index.
          *
          * @param index the index
          * @return the argument, or null if one was not present
+         * @deprecated in favour of {@link #rawArg(int)}
          */
         @Nullable
-        String getArg(int index);
+        @Deprecated
+        default String getArg(int index) {
+            return rawArg(index);
+        }
 
         /**
          * Returns a {@link Optional} containing the argument if present
          *
          * @param index the index
          * @return the argument
+         * @deprecated in favour of {@link #rawArg(int)}
          */
+        @Nonnull
+        @Deprecated
         default Optional<String> getArgIfPresent(int index) {
             return Optional.ofNullable(getArg(index));
         }
@@ -421,8 +594,235 @@ public final class Commands {
          * Gets the command label which was used to execute this command
          *
          * @return the command label which was used to execute this command
+         * @deprecated in favour of {@link #label()}
          */
-        String getLabel();
+        @Nonnull
+        @Deprecated
+        default String getLabel() {
+            return label();
+        }
+
+    }
+
+    /**
+     * Represents a command argument
+     */
+    public interface Argument {
+
+        /**
+         * Gets the index of the argument
+         *
+         * @return the index
+         */
+        int index();
+
+        /**
+         * Gets the value of the argument
+         *
+         * @return the value
+         */
+        @Nonnull
+        Optional<String> value();
+
+        @Nonnull
+        default <T> Optional<T> parse(@Nonnull ArgumentParser<T> parser) {
+            return parser.parse(this);
+        }
+
+        @Nonnull
+        default <T> T parseOrFail(@Nonnull ArgumentParser<T> parser) throws CommandInterruptException {
+            return parser.parseOrFail(this);
+        }
+
+        @Nonnull
+        default <T> Optional<T> parse(@Nonnull TypeToken<T> type) {
+            return parserRegistry().find(type).flatMap(this::parse);
+        }
+
+        @Nonnull
+        default <T> T parseOrFail(@Nonnull TypeToken<T> type) throws CommandInterruptException {
+            ArgumentParser<T> parser = parserRegistry().find(type).orElse(null);
+            if (parser == null) {
+                throw new RuntimeException("Unable to find ArgumentParser for " + type);
+            }
+
+            return parseOrFail(parser);
+        }
+
+        @Nonnull
+        default <T> Optional<T> parse(@Nonnull Class<T> clazz) {
+            return parserRegistry().find(clazz).flatMap(this::parse);
+        }
+
+        @Nonnull
+        default <T> T parseOrFail(@Nonnull Class<T> clazz) throws CommandInterruptException {
+            ArgumentParser<T> parser = parserRegistry().find(clazz).orElse(null);
+            if (parser == null) {
+                throw new RuntimeException("Unable to find ArgumentParser for " + clazz);
+            }
+
+            return parseOrFail(parser);
+        }
+
+        /**
+         * Gets if the argument is present
+         *
+         * @return true if present
+         */
+        boolean isPresent();
+
+        /**
+         * Asserts that the permission is present
+         */
+        default void assertPresent() throws CommandInterruptException {
+            makeAssertion(isPresent(), "&cArgument at index " + index() + " is not present.");
+        }
+
+    }
+
+    /**
+     * Parses an argument from a String
+     *
+     * @param <T> the value type
+     */
+    public interface ArgumentParser<T> {
+
+        /**
+         * Parses the value from a string
+         *
+         * @param s the string
+         * @return the value, if parsing was successful
+         */
+        @Nonnull
+        Optional<T> parse(@Nonnull String s);
+
+        /**
+         * Parses the value from a string, throwing an interrupt exception if
+         * parsing failed.
+         *
+         * @param s the string
+         * @return the value
+         */
+        @Nonnull
+        default T parseOrFail(@Nonnull String s) throws CommandInterruptException {
+            Optional<T> ret = parse(s);
+            if (!ret.isPresent()) {
+                throw new InformedCommandInterruptException("&cUnable to parse argument: " + s);
+            }
+            return ret.get();
+        }
+
+        /**
+         * Tries to parse the value from the argument
+         *
+         * @param argument the argument
+         * @return the value, if parsing was successful
+         */
+        @Nonnull
+        default Optional<T> parse(@Nonnull Argument argument) {
+            return argument.value().flatMap(this::parse);
+        }
+
+        /**
+         * Parses the value from an argument, throwing an interrupt exception if
+         * parsing failed.
+         *
+         * @param argument the argument
+         * @return the value
+         */
+        default T parseOrFail(@Nonnull Argument argument) throws CommandInterruptException {
+            Optional<T> ret = parse(argument);
+            if (!ret.isPresent()) {
+                throw new InformedCommandInterruptException("&cUnable to parse argument at index " + argument.index() + ".");
+            }
+            return ret.get();
+        }
+
+        /**
+         * Creates a new parser which first tries to obtain a value from
+         * this parser, then from another if the former was not successful.
+         *
+         * @param other the other parser
+         * @return the combined parser
+         */
+        default ArgumentParser<T> thenTry(ArgumentParser<T> other) {
+            ArgumentParser<T> first = this;
+            return t -> {
+                Optional<T> ret = first.parse(t);
+                return ret.isPresent() ? ret : other.parse(t);
+            };
+        }
+
+    }
+
+    /**
+     * A collection of {@link ArgumentParser}s
+     */
+    public interface ArgumentParserRegistry {
+
+        /**
+         * Tries to find an argument parser for the given type
+         *
+         * @param type the argument type
+         * @param <T> the type
+         * @return an argument, if one was found
+         */
+        @Nonnull
+        <T> Optional<ArgumentParser<T>> find(@Nonnull TypeToken<T> type);
+
+        /**
+         * Tries to find an argument parser for the given class
+         *
+         * @param clazz the argument class
+         * @param <T> the class type
+         * @return an argument, if one was found
+         */
+        @Nonnull
+        default <T> Optional<ArgumentParser<T>> find(@Nonnull Class<T> clazz) {
+            return find(TypeToken.of(clazz));
+        }
+
+        /**
+         * Finds all known parsers for a given type
+         *
+         * @param type the argument type
+         * @param <T> the type
+         * @return a collection of argument parsers
+         */
+        @Nonnull
+        <T> Collection<ArgumentParser<T>> findAll(@Nonnull TypeToken<T> type);
+
+        /**
+         * Finds all known parsers for a given class
+         *
+         * @param clazz the argument class
+         * @param <T> the class type
+         * @return a collection of argument parsers
+         */
+        @Nonnull
+        default <T> Collection<ArgumentParser<T>> findAll(@Nonnull Class<T> clazz) {
+            return findAll(TypeToken.of(clazz));
+        }
+
+        /**
+         * Registers a new parser with the registry
+         *
+         * @param type the argument type
+         * @param parser the parser
+         * @param <T> the type
+         */
+        <T> void register(@Nonnull TypeToken<T> type, @Nonnull ArgumentParser<T> parser);
+
+        /**
+         * Registers a new parser with the registry
+         *
+         * @param clazz the argument class
+         * @param parser the parser
+         * @param <T> the class type
+         */
+        default <T> void register(@Nonnull Class<T> clazz, @Nonnull ArgumentParser<T> parser) {
+            register(TypeToken.of(clazz), parser);
+        }
 
     }
 
@@ -442,11 +842,11 @@ public final class Commands {
             Preconditions.checkNotNull(permission, "permission");
             Preconditions.checkNotNull(failureMessage, "failureMessage");
             predicates.add(context -> {
-                if (context.getSender().hasPermission(permission)) {
+                if (context.sender().hasPermission(permission)) {
                     return true;
                 }
 
-                context.getSender().sendMessage(Color.colorize(failureMessage));
+                context.sender().sendMessage(Color.colorize(failureMessage));
                 return false;
             });
             return this;
@@ -456,11 +856,11 @@ public final class Commands {
         public CommandBuilder<T> assertOp(String failureMessage) {
             Preconditions.checkNotNull(failureMessage, "failureMessage");
             predicates.add(context -> {
-                if (context.getSender().isOp()) {
+                if (context.sender().isOp()) {
                     return true;
                 }
 
-                context.getSender().sendMessage(Color.colorize(failureMessage));
+                context.sender().sendMessage(Color.colorize(failureMessage));
                 return false;
             });
             return this;
@@ -470,11 +870,11 @@ public final class Commands {
         public CommandBuilder<Player> assertPlayer(String failureMessage) {
             Preconditions.checkNotNull(failureMessage, "failureMessage");
             predicates.add(context -> {
-                if (context.getSender() instanceof Player) {
+                if (context.sender() instanceof Player) {
                     return true;
                 }
 
-                context.getSender().sendMessage(Color.colorize(failureMessage));
+                context.sender().sendMessage(Color.colorize(failureMessage));
                 return false;
             });
             // cast the generic type
@@ -485,11 +885,11 @@ public final class Commands {
         public CommandBuilder<ConsoleCommandSender> assertConsole(String failureMessage) {
             Preconditions.checkNotNull(failureMessage, "failureMessage");
             predicates.add(context -> {
-                if (context.getSender() instanceof ConsoleCommandSender) {
+                if (context.sender() instanceof ConsoleCommandSender) {
                     return true;
                 }
 
-                context.getSender().sendMessage(Color.colorize(failureMessage));
+                context.sender().sendMessage(Color.colorize(failureMessage));
                 return false;
             });
             // cast the generic type
@@ -513,11 +913,11 @@ public final class Commands {
 
             int finalRequiredArgs = requiredArgs;
             predicates.add(context -> {
-                if (context.getArgs().size() >= finalRequiredArgs) {
+                if (context.args().size() >= finalRequiredArgs) {
                     return true;
                 }
 
-                context.getSender().sendMessage(Color.colorize(failureMessage.replace("{usage}", "/" + context.getLabel() + " " + usage)));
+                context.sender().sendMessage(Color.colorize(failureMessage.replace("{usage}", "/" + context.label() + " " + usage)));
                 return false;
             });
 
@@ -529,12 +929,12 @@ public final class Commands {
             Preconditions.checkNotNull(test, "test");
             Preconditions.checkNotNull(failureMessage, "failureMessage");
             predicates.add(context -> {
-                String arg = context.getArg(index);
+                String arg = context.rawArg(index);
                 if (test.test(arg)) {
                     return true;
                 }
 
-                context.getSender().sendMessage(Color.colorize(failureMessage.replace("{arg}", arg).replace("{index}", Integer.toString(index))));
+                context.sender().sendMessage(Color.colorize(failureMessage.replace("{arg}", arg).replace("{index}", Integer.toString(index))));
                 return false;
             });
             return this;
@@ -546,12 +946,12 @@ public final class Commands {
             Preconditions.checkNotNull(failureMessage, "failureMessage");
             predicates.add(context -> {
                 //noinspection unchecked
-                T sender = (T) context.getSender();
+                T sender = (T) context.sender();
                 if (test.test(sender)) {
                     return true;
                 }
 
-                context.getSender().sendMessage(Color.colorize(failureMessage));
+                context.sender().sendMessage(Color.colorize(failureMessage));
                 return false;
             });
             return this;
@@ -566,7 +966,7 @@ public final class Commands {
                     return true;
                 }
 
-                context.getSender().sendMessage(Color.colorize(failureMessage.replace("{seconds}", Long.toString(cooldown.remainingTime(TimeUnit.SECONDS)))));
+                context.sender().sendMessage(Color.colorize(failureMessage.replace("{seconds}", Long.toString(cooldown.remainingTime(TimeUnit.SECONDS)))));
                 return false;
             });
             return this;
@@ -578,12 +978,12 @@ public final class Commands {
             Preconditions.checkNotNull(failureMessage, "failureMessage");
             predicates.add(context -> {
                 //noinspection unchecked
-                T sender = (T) context.getSender();
+                T sender = (T) context.sender();
                 if (cooldown.test(sender)) {
                     return true;
                 }
 
-                context.getSender().sendMessage(Color.colorize(failureMessage.replace("{seconds}", Long.toString(cooldown.remainingTime(sender, TimeUnit.SECONDS)))));
+                context.sender().sendMessage(Color.colorize(failureMessage.replace("{seconds}", Long.toString(cooldown.remainingTime(sender, TimeUnit.SECONDS)))));
                 return false;
             });
             return this;
@@ -617,8 +1017,14 @@ public final class Commands {
                 }
             }
 
-            //noinspection unchecked
-            handler.handle(context);
+            try {
+                //noinspection unchecked
+                handler.handle(context);
+            } catch (InformedCommandInterruptException e) {
+                e.getAction().accept(context.sender());
+            } catch (CommandInterruptException e) {
+                // ignore
+            }
         }
 
         @Override
@@ -658,27 +1064,105 @@ public final class Commands {
             this.args = ImmutableList.copyOf(args);
         }
 
+        @Nonnull
         @Override
-        public T getSender() {
+        public T sender() {
             return sender;
         }
 
+        @Nonnull
         @Override
-        public ImmutableList<String> getArgs() {
+        public ImmutableList<String> args() {
             return args;
         }
 
+        @Nonnull
         @Override
-        public String getArg(int index) {
+        public Argument arg(int index) {
+            return new ArgumentImpl(index, rawArg(index));
+        }
+
+        @Nullable
+        @Override
+        public String rawArg(int index) {
             if (index < 0 || index >= args.size()) {
                 return null;
             }
             return args.get(index);
         }
 
+        @Nonnull
         @Override
-        public String getLabel() {
+        public String label() {
             return label;
+        }
+    }
+
+    @NonnullByDefault
+    private static final class ArgumentImpl implements Argument {
+        private final int index;
+        @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+        private final Optional<String> value;
+
+        private ArgumentImpl(int index, @Nullable String value) {
+            this.index = index;
+            this.value = Optional.ofNullable(value);
+        }
+
+        @Override
+        public int index() {
+            return index;
+        }
+
+        @Nonnull
+        @Override
+        public Optional<String> value() {
+            return value;
+        }
+
+        @Override
+        public boolean isPresent() {
+            return value.isPresent();
+        }
+    }
+
+    private static final class ArgumentRegistryImpl implements ArgumentParserRegistry {
+        private final Map<TypeToken<?>, List<ArgumentParser<?>>> parsers = new ConcurrentHashMap<>();
+
+        @Nonnull
+        @Override
+        public <T> Optional<ArgumentParser<T>> find(@Nonnull TypeToken<T> type) {
+            Preconditions.checkNotNull(type, "type");
+            List<ArgumentParser<?>> parsers = this.parsers.get(type);
+            if (parsers == null || parsers.isEmpty()) {
+                return Optional.empty();
+            }
+
+            //noinspection unchecked
+            return Optional.of((ArgumentParser<T>) parsers.get(0));
+        }
+
+        @Nonnull
+        @Override
+        public <T> Collection<ArgumentParser<T>> findAll(@Nonnull TypeToken<T> type) {
+            Preconditions.checkNotNull(type, "type");
+            List<ArgumentParser<?>> parsers = this.parsers.get(type);
+            if (parsers == null || parsers.isEmpty()) {
+                return ImmutableList.of();
+            }
+
+            //noinspection unchecked
+            return (Collection) Collections.unmodifiableList(parsers);
+        }
+
+        @Override
+        public <T> void register(@Nonnull TypeToken<T> type, @Nonnull ArgumentParser<T> parser) {
+            Preconditions.checkNotNull(type, "type");
+            Preconditions.checkNotNull(parser, "parser");
+            List<ArgumentParser<?>> list = parsers.computeIfAbsent(type, t -> new CopyOnWriteArrayList<>());
+            if (!list.contains(parser)) {
+                list.add(parser);
+            }
         }
     }
 
