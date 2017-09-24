@@ -12,14 +12,14 @@
 
     <artifactId>helper-redis</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 
     <name>helper-redis</name>
     <description>Provides Redis clients and implements the helper Messaging system using Jedis.</description>
     <url>https://github.com/lucko/helper</url>
 
     <properties>
-        <shade.pattern>me.lucko.helper.redis.libs.</shade.pattern>
+        <shade.pattern>me.lucko.helper.redis.external.</shade.pattern>
     </properties>
 
     <build>

@@ -782,7 +782,7 @@ dependencies {
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper-sql</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -791,7 +791,7 @@ dependencies {
 #### Gradle
 ```gradle
 dependencies {
-    compile ("me.lucko:helper-sql:1.0.2")
+    compile ("me.lucko:helper-sql:1.0.3")
 }
 ```
 
@@ -802,7 +802,7 @@ dependencies {
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper-redis</artifactId>
-        <version>1.0.3</version>
+        <version>1.0.4</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -811,7 +811,7 @@ dependencies {
 #### Gradle
 ```gradle
 dependencies {
-    compile ("me.lucko:helper-redis:1.0.3")
+    compile ("me.lucko:helper-redis:1.0.4")
 }
 ```
 
@@ -822,7 +822,7 @@ dependencies {
     <dependency>
         <groupId>me.lucko</groupId>
         <artifactId>helper-mongo</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -831,6 +831,6 @@ dependencies {
 #### Gradle
 ```gradle
 dependencies {
-    compile ("me.lucko:helper-mongo:1.0.0")
+    compile ("me.lucko:helper-mongo:1.0.1")
 }
 ```
