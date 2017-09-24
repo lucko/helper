@@ -1,5 +1,4 @@
 # helper [![Build Status](https://ci.lucko.me/job/helper/badge/icon)](https://ci.lucko.me/job/helper/)
-A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing the same old stuff again and again. :)
 
 ### Modules
 ##### [`helper`](https://github.com/lucko/helper/tree/master/helper): The main helper project
@@ -40,7 +39,7 @@ A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing t
 
 
 ## Features
-### [`Events`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/Events.java)
+### Events
 helper adds a functional event handling utility. It allows you to dynamically register event listeners on the fly, without having to break out of logic, or define listeners as their own method.
 
 Instead of *implementing Listener*, creating a *new method* annotated with *@EventHandler*, and *registering* your listener with the plugin manager, with helper, you can subscribe to an event with one simple line of code. This allows you to define multiple listeners in the same class, and register then selectively.
@@ -108,7 +107,7 @@ Events.subscribe(PlayerInteractEvent.class)
 ```
 
 
-### [`Scheduler`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/Scheduler.java)
+### Scheduler
 The scheduler class provides easy static access to the Bukkit Scheduler. All future methods return `CompletableFuture`s, allowing for easy use of callbacks and use of the Completion Stage API.
 
 It also exposes asynchronous and synchronous `Executor` instances.
@@ -152,7 +151,7 @@ Scheduler.callAsync(() -> {
 ```
 
 
-### [`Metadata`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/metadata)
+### Metadata
 helper provides an alternate system to the Bukkit Metadata API. The main benefits over Bukkit are the use of generic types and automatically expiring, weak or soft values.
 
 The metadata API can be easily integrated with the Event system, thanks to some default filters.
@@ -223,7 +222,7 @@ Events.subscribe(PlayerDeathEvent.class)
 Unlike Bukkit's system, metadata will be removed automatically when a player leaves the server, meaning you need-not worry about creating accidental memory leaks from left over metadata. The API also supports attaching metadata to blocks, worlds and other entities.
 
 
-### [`Messenger`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/messaging)
+### Messenger
 helper provides a Messenger abstraction utility, which consists of a few key classes.
 
 * [`Messenger`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/Messenger.java) - an object which manages messaging Channels
@@ -284,7 +283,7 @@ public class GlobalMessengerPlugin extends ExtendedJavaPlugin {
 You can either integrate messenger into your own existing messaging system (using [`AbstractMessenger`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/AbstractMessenger.java), or, use **helper-redis**, which implements Messenger using Jedis and the Redis PubSub system.
 
 
-### [`Commands`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/Commands.java)
+### Commands
 helper provides a very simple command abstraction, designed to reduce some of the boilerplate needed when writing simple commands.
 
 It doesn't have support for automatic argument parsing, sub commands, or anything like that. It's only purpose is removing the bloat from writing simple commands.
@@ -340,7 +339,7 @@ Commands.create()
 ```
 
 
-### [`Scoreboard`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/scoreboard)
+### Scoreboard
 helper includes a thread safe scoreboard system, allowing you to easily setup & update custom teams and objectives. It is written directly at the packet level, meaning it can be safely used from asynchronous tasks.
 
 For example....
@@ -380,7 +379,7 @@ Scheduler.runTaskRepeatingAsync(() -> {
 ```
 
 
-### [`GUI`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/menu/Gui.java)
+### GUI
 helper provides a highly adaptable and flexible GUI abstraction class.
 
 All you have to do is extend `Gui` and override the `#redraw` method.
@@ -466,7 +465,7 @@ The GUI class also provides a number of methods which allow you to
 * Create automatically paginated views in a "dictionary" style
 
 
-### [`Menu Scheming`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/menu/scheme)
+### Menu Scheming
 MenuScheme allows you to easily apply layouts to GUIs without having to think about slot ids.
 ```java
 @Override
@@ -509,7 +508,7 @@ public void redraw() {
 ```
 
 
-### [`Plugin Annotations`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/plugin/ap/Plugin.java)
+### Plugin Annotations
 With helper, you can automagically create the standard `plugin.yml` files at compile time using annotation processing.
 
 Simply annotate your main class with `@Plugin` and fill in the name and version. The processor will take care of the rest!
@@ -540,7 +539,7 @@ public class MyPlugin extends JavaPlugin {
 ```
 
 
-### [`Maven Annotations`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/maven/MavenLibrary.java)
+### Maven Annotations
 helper includes a system which allows you to magically download dependencies for your plugins at runtime.
 
 This means you don't have to shade MBs of libraries into your jar. It's as simple as adding an annotation to your plugins class.
@@ -561,7 +560,7 @@ public class ExamplePlugin extends JavaPlugin {
 ```
 
 
-### [`Terminables`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/terminable)
+### Terminables
 Terminables are a way to easily cleanup active objects in plugins when a shutdown or reset is needed.
 
 The system consists of a few key interfaces.
@@ -616,7 +615,7 @@ public class DemoPlugin extends ExtendedJavaPlugin {
 }
 ```
 
-### [`Serialization`](https://github.com/lucko/helper/tree/master/helper/src/main/java/me/lucko/helper/serialize)
+### Serialization
 helper provides a few classes with are useful when trying to serialize plugin data. It makes use of Google's GSON to convert from Java Objects to JSON.
 
 * [`Position`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/serialize/Position.java) - similar to Bukkit's location, but without pitch/yaw
@@ -689,7 +688,7 @@ gsonHandler.save(ImmutableList.of("some key", "some value"));
 ```
 
 
-### [`Bungee Messaging`](https://github.com/lucko/helper/blob/master/helper/src/main/java/me/lucko/helper/messaging/bungee/BungeeMessaging.java)
+### Bungee Messaging
 helper provides a wrapper class for the BungeeCord Plugin Messaging API, providing callbacks to read response data.
 
 It handles the messaging channels behind the scenes and simply runs the provided callback when the data is returned.

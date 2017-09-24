@@ -4,16 +4,16 @@ A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing t
 
 ### Modules
 ##### [`helper`](https://github.com/lucko/helper/tree/master/helper): The main helper project
-[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper/target/helper.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](#helper) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper/)
+[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper/target/helper.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](https://github.com/lucko/helper#helperr) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper/javadoc/helper/)
 
 ##### [`helper-sql`](https://github.com/lucko/helper/tree/master/helper-sql): Provides SQL datasources using HikariCP.
-[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-sql/target/helper-sql.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](#helper-sql) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper-sql/)
+[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-sql/target/helper-sql.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](https://github.com/lucko/helper#helper-sql) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper/javadoc/helper-sql/)
 
 ##### [`helper-redis`](https://github.com/lucko/helper/tree/master/helper-redis): Provides Redis clients and implements the helper Messaging system using Jedis.
-[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-redis/target/helper-redis.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](#helper-redis) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper-redis/)
+[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-redis/target/helper-redis.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](https://github.com/lucko/helper#helper-redis) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper/javadoc/helper-redis/)
 
 ##### [`helper-mongo`](https://github.com/lucko/helper/tree/master/helper-mongo): Provides MongoDB datasources.
-[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-mongo/target/helper-mongo.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](#helper-mongo) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper-mongo/)
+[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-mongo/target/helper-mongo.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](https://github.com/lucko/helper#helper-mongo) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper/javadoc/helper-mongo/)
 
 ##### [`helper-lilypad`](https://github.com/lucko/helper/tree/master/helper-lilypad): Implements the helper Messaging system using LilyPad.
 [![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-lilypad/target/helper-lilypad.jar)
