@@ -12,14 +12,14 @@
 
     <artifactId>helper-mongo</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>helper-mongo</name>
     <description>Provides MongoDB datasources.</description>
     <url>https://github.com/lucko/helper</url>
 
     <properties>
-        <shade.pattern>me.lucko.helper.mongo.libs.</shade.pattern>
+        <shade.pattern>me.lucko.helper.mongo.external.</shade.pattern>
     </properties>
 
     <build>

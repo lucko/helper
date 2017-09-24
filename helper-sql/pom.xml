@@ -12,14 +12,14 @@
 
     <artifactId>helper-sql</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <name>helper-sql</name>
     <description>Provides SQL datasources using HikariCP.</description>
     <url>https://github.com/lucko/helper</url>
 
     <properties>
-        <shade.pattern>me.lucko.helper.sql.libs.</shade.pattern>
+        <shade.pattern>me.lucko.helper.sql.external.</shade.pattern>
     </properties>
 
     <build>
