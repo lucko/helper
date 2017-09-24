@@ -37,6 +37,7 @@ import org.bukkit.plugin.Plugin;
  * Really just an alternative to shading it into another project.
  */
 public class DummyHelperPlugin extends ExtendedJavaPlugin {
+    private static final String[] ADDON_PLUGINS = {"helper-sql", "helper-redis", "helper-mongo", "helper-lilypad"};
 
     public DummyHelperPlugin() {
         getLogger().info("Initialized helper v" + getDescription().getVersion());
@@ -51,13 +52,15 @@ public class DummyHelperPlugin extends ExtendedJavaPlugin {
         Commands.create()
                 .handler(c -> {
                     Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6helper v" + getDescription().getVersion() + "&7.");
-                    if (Helper.plugins().isPluginEnabled("helper-sql")) {
-                        Plugin sqlPlugin = getPlugin("helper-sql", Plugin.class);
-                        Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6helper-sql v" + sqlPlugin.getDescription().getVersion() + "&7.");
-                    }
-                    if (Helper.plugins().isPluginEnabled("helper-redis")) {
-                        Plugin redisPlugin = getPlugin("helper-redis", Plugin.class);
-                        Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6helper-redis v" + redisPlugin.getDescription().getVersion() + "&7.");
+
+                    for (String addonName : ADDON_PLUGINS) {
+                        if (Helper.plugins().isPluginEnabled(addonName)) {
+                            Plugin pl = getPlugin(addonName, Plugin.class);
+                            if (pl == null) {
+                                continue;
+                            }
+                            Players.msg(c.getSender(), "&7[&6helper&7] &7Running &6" + addonName + " v" + pl.getDescription().getVersion() + "&7.");
+                        }
                     }
                 })
                 .register(this, "helper");

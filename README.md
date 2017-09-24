@@ -12,6 +12,9 @@ A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing t
 ##### [`helper-redis`](https://github.com/lucko/helper/tree/master/helper-redis): Provides Redis clients and implements the helper Messaging system using Jedis.
 [![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-redis/target/helper-redis.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](#helper-redis) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper-redis/)
 
+##### [`helper-mongo`](https://github.com/lucko/helper/tree/master/helper-mongo): Provides MongoDB datasources.
+[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-mongo/target/helper-mongo.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](#helper-mongo) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper-mongo/)
+
 ##### [`helper-lilypad`](https://github.com/lucko/helper/tree/master/helper-lilypad): Implements the helper Messaging system using LilyPad.
 [![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-lilypad/target/helper-lilypad.jar)
 
@@ -809,5 +812,25 @@ dependencies {
 ```gradle
 dependencies {
     compile ("me.lucko:helper-redis:1.0.3")
+}
+```
+
+### helper-mongo
+#### Maven
+```xml
+<dependencies>
+    <dependency>
+        <groupId>me.lucko</groupId>
+        <artifactId>helper-mongo</artifactId>
+        <version>1.0.0</version>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+```
+
+#### Gradle
+```gradle
+dependencies {
+    compile ("me.lucko:helper-mongo:1.0.0")
 }
 ```

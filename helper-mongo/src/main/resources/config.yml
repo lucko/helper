@@ -1,0 +1,7 @@
+# The credentials for the global helper-mongo database.
+
+address: "localhost"
+port: 27017
+database: "minecraft"
+username: "root"
+password: "passw0rd"
