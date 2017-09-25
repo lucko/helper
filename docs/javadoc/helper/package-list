@@ -1,4 +1,8 @@
 me.lucko.helper
+me.lucko.helper.command
+me.lucko.helper.command.argument
+me.lucko.helper.command.context
+me.lucko.helper.command.functional
 me.lucko.helper.function
 me.lucko.helper.function.chain
 me.lucko.helper.gson
@@ -14,6 +18,7 @@ me.lucko.helper.messaging.bungee
 me.lucko.helper.metadata
 me.lucko.helper.plugin
 me.lucko.helper.plugin.ap
+me.lucko.helper.promise
 me.lucko.helper.scoreboard
 me.lucko.helper.serialize
 me.lucko.helper.terminable
