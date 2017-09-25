@@ -4,7 +4,7 @@ A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing t
 
 ### Modules
 ##### [`helper`](https://github.com/lucko/helper/tree/master/helper): The main helper project
-[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper/target/helper.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](https://github.com/lucko/helper#helperr) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper/javadoc/helper/)
+[![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper/target/helper.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](https://github.com/lucko/helper#helper) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper/javadoc/helper/)
 
 ##### [`helper-sql`](https://github.com/lucko/helper/tree/master/helper-sql): Provides SQL datasources using HikariCP.
 [![Artifact](https://img.shields.io/badge/build-artifact-green.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-sql/target/helper-sql.jar) [![Dependency Info](https://img.shields.io/badge/api-dependency_info-orange.svg)](https://github.com/lucko/helper#helper-sql) [![JavaDoc](https://img.shields.io/badge/api-javadoc-blue.svg)](https://lucko.me/helper/javadoc/helper-sql/)
