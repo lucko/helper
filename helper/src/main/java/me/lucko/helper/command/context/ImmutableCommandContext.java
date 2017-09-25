@@ -23,47 +23,59 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.command.context;
 
-import me.lucko.helper.utils.Delegates;
+import com.google.common.collect.ImmutableList;
+
+import me.lucko.helper.command.argument.Argument;
+import me.lucko.helper.command.argument.SimpleArgument;
+
+import org.bukkit.command.CommandSender;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-/**
- * Represents an object that can be unregistered, stopped, or gracefully halted.
- */
-@FunctionalInterface
-public interface Terminable {
-    Terminable EMPTY = () -> true;
+public class ImmutableCommandContext<T extends CommandSender> implements CommandContext<T> {
+    private final T sender;
+    private final String label;
+    private final ImmutableList<String> args;
+
+    public ImmutableCommandContext(T sender, String label, String[] args) {
+        this.sender = sender;
+        this.label = label;
+        this.args = ImmutableList.copyOf(args);
+    }
 
     @Nonnull
-    static Terminable of(@Nonnull Runnable r) {
-        return Delegates.runnableToTerminable(r);
+    @Override
+    public T sender() {
+        return sender;
     }
 
-    /**
-     * Terminate this instance
-     *
-     * @return true if the termination was successful
-     */
-    boolean terminate();
-
-    /**
-     * Registers this terminable with a terminable consumer (usually the plugin instance)
-     *
-     * @param consumer the terminable consumer
-     */
-    default void bindWith(@Nonnull TerminableConsumer consumer) {
-        consumer.bind(this);
+    @Nonnull
+    @Override
+    public ImmutableList<String> args() {
+        return args;
     }
 
-    /**
-     * Used to help cleanup held terminable instances in registries
-     *
-     * @return true if this terminable has been terminated already
-     */
-    default boolean hasTerminated() {
-        return false;
+    @Nonnull
+    @Override
+    public Argument arg(int index) {
+        return new SimpleArgument(index, rawArg(index));
     }
 
+    @Nullable
+    @Override
+    public String rawArg(int index) {
+        if (index < 0 || index >= args.size()) {
+            return null;
+        }
+        return args.get(index);
+    }
+
+    @Nonnull
+    @Override
+    public String label() {
+        return label;
+    }
 }

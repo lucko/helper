@@ -37,6 +37,7 @@ import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Cooldown;
 import me.lucko.helper.utils.CooldownCollection;
+import me.lucko.helper.utils.Delegates;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
@@ -397,7 +398,7 @@ public final class Events {
          * @throws NullPointerException if the handler is null
          */
         default Handler<T> handler(Consumer<? super T> handler) {
-            return handler(new DelegateBiConsumer<>(handler));
+            return handler(Delegates.consumerToBiConsumerSecond(handler));
         }
 
         /**
@@ -527,7 +528,7 @@ public final class Events {
          * @throws IllegalStateException if no events have been bound to
          */
         default MergedHandler<T> handler(Consumer<? super T> handler) {
-            return handler(new DelegateBiConsumer<>(handler));
+            return handler(Delegates.consumerToBiConsumerSecond(handler));
         }
 
         /**
@@ -1175,24 +1176,6 @@ public final class Events {
         @Override
         public <T extends PlayerEvent> Predicate<T> playerHasPermission(String permission) {
             return e -> e.getPlayer().hasPermission(permission);
-        }
-    }
-
-    private static final class DelegateBiConsumer<T, U> implements BiConsumer<T, U>, Delegate<Consumer<U>> {
-        private final Consumer<U> delegate;
-
-        private DelegateBiConsumer(Consumer<U> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Consumer<U> getDelegate() {
-            return delegate;
-        }
-
-        @Override
-        public void accept(T t, U u) {
-            delegate.accept(u);
         }
     }
 

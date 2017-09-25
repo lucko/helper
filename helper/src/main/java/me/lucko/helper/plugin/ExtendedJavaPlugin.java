@@ -35,6 +35,7 @@ import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.terminable.composite.CompositeTerminableConsumer;
 import me.lucko.helper.terminable.registry.TerminableRegistry;
 import me.lucko.helper.utils.CommandMapUtil;
+import me.lucko.helper.utils.LoaderUtils;
 
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -62,6 +63,7 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
 
     @Override
     public final void onLoad() {
+        LoaderUtils.getPlugin(); // cache the loader plugin
         terminableRegistry = TerminableRegistry.create();
 
         LibraryLoader.loadAll(getClass());

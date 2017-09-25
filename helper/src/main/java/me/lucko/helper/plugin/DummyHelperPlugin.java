@@ -27,7 +27,6 @@ package me.lucko.helper.plugin;
 
 import me.lucko.helper.Commands;
 import me.lucko.helper.Helper;
-import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Players;
 
 import org.bukkit.plugin.Plugin;
@@ -45,9 +44,6 @@ public class DummyHelperPlugin extends ExtendedJavaPlugin {
 
     @Override
     protected void enable() {
-        // cache the loader plugin
-        LoaderUtils.getPlugin();
-
         // provide an info command
         Commands.create()
                 .handler(c -> {

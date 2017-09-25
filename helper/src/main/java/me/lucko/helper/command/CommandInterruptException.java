@@ -23,47 +23,48 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.command;
 
-import me.lucko.helper.utils.Delegates;
+import me.lucko.helper.utils.Color;
 
-import javax.annotation.Nonnull;
+import org.bukkit.command.CommandSender;
+
+import java.util.function.Consumer;
 
 /**
- * Represents an object that can be unregistered, stopped, or gracefully halted.
+ * Exception thrown when the handling of a command should be interrupted.
+ *
+ * <p>This exception is silently swallowed by the command processing handler.</p>
  */
-@FunctionalInterface
-public interface Terminable {
-    Terminable EMPTY = () -> true;
-
-    @Nonnull
-    static Terminable of(@Nonnull Runnable r) {
-        return Delegates.runnableToTerminable(r);
-    }
+public class CommandInterruptException extends Exception {
 
     /**
-     * Terminate this instance
+     * Makes an assertion about a condition.
      *
-     * @return true if the termination was successful
-     */
-    boolean terminate();
-
-    /**
-     * Registers this terminable with a terminable consumer (usually the plugin instance)
+     * <p>When used inside a command, command processing will be gracefully halted
+     * if the condition is not true.</p>
      *
-     * @param consumer the terminable consumer
+     * @param condition the condition
+     * @param failMsg the message to send to the player if the assertion fails
+     * @throws CommandInterruptException if the assertion fails
      */
-    default void bindWith(@Nonnull TerminableConsumer consumer) {
-        consumer.bind(this);
+    public static void makeAssertion(boolean condition, String failMsg) throws CommandInterruptException {
+        if (!condition) {
+            throw new CommandInterruptException(failMsg);
+        }
     }
 
-    /**
-     * Used to help cleanup held terminable instances in registries
-     *
-     * @return true if this terminable has been terminated already
-     */
-    default boolean hasTerminated() {
-        return false;
+    private final Consumer<CommandSender> action;
+
+    public CommandInterruptException(Consumer<CommandSender> action) {
+        this.action = action;
     }
 
+    public CommandInterruptException(String message) {
+        this.action = cs -> cs.sendMessage(Color.colorize(message));
+    }
+
+    public Consumer<CommandSender> getAction() {
+        return action;
+    }
 }

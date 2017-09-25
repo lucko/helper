@@ -35,6 +35,7 @@ import javax.annotation.Nonnull;
  */
 public final class LoaderUtils {
     private static JavaPlugin plugin = null;
+    private static Thread mainThread = null;
 
     @Nonnull
     public static synchronized JavaPlugin getPlugin() {
@@ -44,8 +45,19 @@ public final class LoaderUtils {
             String thisClass = LoaderUtils.class.getName();
             thisClass = thisClass.substring(0, thisClass.length() - ".utils.LoaderUtils".length());
             Bukkit.getLogger().info("[helper] helper (" + thisClass + ") bound to plugin " + plugin.getName() + " - " + plugin.getClass().getName());
+            getMainThread(); // cache main thread
         }
         return plugin;
+    }
+
+    @Nonnull
+    public static synchronized Thread getMainThread() {
+        if (mainThread == null) {
+            if (Bukkit.getServer().isPrimaryThread()) {
+                mainThread = Thread.currentThread();
+            }
+        }
+        return mainThread;
     }
 
     private LoaderUtils() {

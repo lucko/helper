@@ -30,6 +30,7 @@ import com.google.common.base.Preconditions;
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.timings.Timings;
+import me.lucko.helper.utils.Delegates;
 import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
@@ -72,6 +73,7 @@ public final class Scheduler {
 
     /**
      * Get an Executor instance which will execute all passed runnables on the main server thread.
+     *
      * @return a "sync" executor instance
      */
     public static synchronized Executor sync() {
@@ -113,70 +115,77 @@ public final class Scheduler {
 
     /**
      * Compute the result of the passed supplier on the main thread
+     *
      * @param supplier the supplier
      * @param <T> the return type
      * @return a completable future which will return the result of the computation
      */
     public static <T> CompletableFuture<T> supplySync(Supplier<T> supplier) {
         Preconditions.checkNotNull(supplier, "supplier");
-        return CompletableFuture.supplyAsync(wrapSupplier(supplier), sync());
+        return CompletableFuture.supplyAsync(new TimingWrappedSupplier<>(supplier), sync());
     }
 
     /**
      * Compute the result of the passed supplier asynchronously
+     *
      * @param supplier the supplier
      * @param <T> the return type
      * @return a completable future which will return the result of the computation
      */
     public static <T> CompletableFuture<T> supplyAsync(Supplier<T> supplier) {
         Preconditions.checkNotNull(supplier, "supplier");
-        return CompletableFuture.supplyAsync(wrapSupplier(supplier), async());
+        return CompletableFuture.supplyAsync(supplier, async());
     }
 
     /**
      * Call a callable on the main server thread
+     *
      * @param callable the callable
      * @param <T> the return type
      * @return a completable future which will return the result of the computation
      */
     public static <T> CompletableFuture<T> callSync(Callable<T> callable) {
         Preconditions.checkNotNull(callable, "callable");
-        return CompletableFuture.supplyAsync(wrapCallable(callable), sync());
+        return CompletableFuture.supplyAsync(new TimingWrappedCallable<>(callable), sync());
     }
 
     /**
      * Call a callable asynchronously
+     *
      * @param callable the callable
      * @param <T> the return type
      * @return a completable future which will return the result of the computation
      */
     public static <T> CompletableFuture<T> callAsync(Callable<T> callable) {
         Preconditions.checkNotNull(callable, "callable");
-        return CompletableFuture.supplyAsync(wrapCallable(callable), async());
+        return CompletableFuture.supplyAsync(new TimingWrappedCallable<>(callable), async());
     }
 
     /**
      * Execute a runnable on the main server thread
+     *
      * @param runnable the runnable
      * @return a completable future which will return when the runnable is complete
      */
     public static CompletableFuture<Void> runSync(Runnable runnable) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return CompletableFuture.runAsync(wrapRunnable(runnable), sync());
+        return CompletableFuture.runAsync(new TimingWrappedRunnable(runnable), sync());
     }
 
     /**
      * Execute a runnable asynchronously
+     *
      * @param runnable the runnable
      * @return a completable future which will return when the runnable is complete
      */
     public static CompletableFuture<Void> runAsync(Runnable runnable) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return CompletableFuture.runAsync(wrapRunnable(runnable), async());
+        return CompletableFuture.runAsync(runnable, async());
     }
 
     /**
      * Compute the result of the passed supplier on the main thread at some point in the future
+     *
      * @param supplier the supplier
      * @param delay the delay in ticks before calling the supplier
      * @param <T> the return type
@@ -202,6 +211,7 @@ public final class Scheduler {
 
     /**
      * Compute the result of the passed supplier asynchronously at some point in the future
+     *
      * @param supplier the supplier
      * @param delay the delay in ticks before calling the supplier
      * @param <T> the return type
@@ -227,6 +237,7 @@ public final class Scheduler {
 
     /**
      * Call a callable on the main thread at some point in the future
+     *
      * @param callable the callable
      * @param delay the delay in ticks before calling the supplier
      * @param <T> the return type
@@ -252,6 +263,7 @@ public final class Scheduler {
 
     /**
      * Call a callable asynchronously at some point in the future
+     *
      * @param callable the callable
      * @param delay the delay in ticks before calling the supplier
      * @param <T> the return type
@@ -277,6 +289,7 @@ public final class Scheduler {
 
     /**
      * Execute a runnable on the main server thread at some point in the future
+     *
      * @param runnable the runnable
      * @param delay the delay in ticks before calling the supplier
      * @return a completable future which will return when the runnable is complete
@@ -301,6 +314,7 @@ public final class Scheduler {
 
     /**
      * Execute a runnable asynchronously at some point in the future
+     *
      * @param runnable the runnable
      * @param delay the delay in ticks before calling the supplier
      * @return a completable future which will return when the runnable is complete
@@ -325,6 +339,7 @@ public final class Scheduler {
 
     /**
      * Schedule a repeating task to run on the main server thread
+     *
      * @param consumer the task to run
      * @param delay the delay before the task begins
      * @param interval the interval at which the task will repeat
@@ -339,6 +354,7 @@ public final class Scheduler {
 
     /**
      * Schedule a repeating task to run asynchronously
+     *
      * @param consumer the task to run
      * @param delay the delay before the task begins
      * @param interval the interval at which the task will repeat
@@ -353,6 +369,7 @@ public final class Scheduler {
 
     /**
      * Schedule a repeating task to run on the main server thread
+     *
      * @param runnable the task to run
      * @param delay the delay before the task begins
      * @param interval the interval at which the task will repeat
@@ -360,11 +377,12 @@ public final class Scheduler {
      */
     public static Task runTaskRepeatingSync(Runnable runnable, long delay, long interval) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return runTaskRepeatingSync(new DelegateConsumer<>(runnable), delay, interval);
+        return runTaskRepeatingSync(Delegates.runnableToConsumer(runnable), delay, interval);
     }
 
     /**
      * Schedule a repeating task to run asynchronously
+     *
      * @param runnable the task to run
      * @param delay the delay before the task begins
      * @param interval the interval at which the task will repeat
@@ -372,7 +390,7 @@ public final class Scheduler {
      */
     public static Task runTaskRepeatingAsync(Runnable runnable, long delay, long interval) {
         Preconditions.checkNotNull(runnable, "runnable");
-        return runTaskRepeatingAsync(new DelegateConsumer<>(runnable), delay, interval);
+        return runTaskRepeatingAsync(Delegates.runnableToConsumer(runnable), delay, interval);
     }
 
     /**
@@ -383,54 +401,42 @@ public final class Scheduler {
 
         /**
          * Gets the number of times this task has ran. The counter is only incremented at the end of execution.
+         *
          * @return the number of times this task has ran
          */
         int getTimesRan();
 
         /**
          * Stops the task
+         *
          * @return true if the task wasn't already cancelled
          */
         boolean stop();
 
         /**
          * Gets the Bukkit ID for this task
+         *
          * @return the bukkit id for this task
          */
         int getBukkitId();
 
     }
 
-    private static <T> Supplier<T> wrapSupplier(Supplier<T> supplier) {
-        return new TimingWrappedSupplier<>(supplier);
-    }
-
-    private static <T> Supplier<T> wrapCallable(Callable<T> callable) {
-        return new TimingWrappedCallable<>(callable);
-    }
-
-    private static Runnable wrapRunnable(Runnable runnable) {
-        // already wrapped
-        if (runnable instanceof TimingWrappedRunnable) {
-            return runnable;
-        }
-        if (runnable instanceof CompletableFuture.AsynchronousCompletionTask) {
-            return new WrappedRunnable(runnable);
-        }
-        return new TimingWrappedRunnable(runnable);
+    private static Runnable reportExceptions(Runnable runnable) {
+        return new SchedulerWrappedRunnable(runnable);
     }
 
     private static final class SyncExecutor implements Executor {
         @Override
         public void execute(Runnable runnable) {
-            bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), wrapRunnable(runnable));
+            bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), reportExceptions(runnable));
         }
     }
 
     private static final class AsyncExecutor implements Executor {
         @Override
         public void execute(Runnable runnable) {
-            bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), wrapRunnable(runnable));
+            bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), reportExceptions(runnable));
         }
     }
 
@@ -442,7 +448,7 @@ public final class Scheduler {
 
         @Override
         public void execute(Runnable runnable) {
-            super.execute(wrapRunnable(runnable));
+            super.execute(reportExceptions(runnable));
         }
     }
 
@@ -553,24 +559,6 @@ public final class Scheduler {
         }
     }
 
-    private static final class DelegateConsumer<T> implements Consumer<T>, Delegate<Runnable> {
-        private final Runnable delegate;
-
-        private DelegateConsumer(Runnable delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void accept(T t) {
-            delegate.run();
-        }
-
-        @Override
-        public Runnable getDelegate() {
-            return delegate;
-        }
-    }
-
     private static final class TimingWrappedSupplier<T> implements Supplier<T>, Delegate<Supplier<T>> {
         private final Supplier<T> delegate;
 
@@ -580,10 +568,8 @@ public final class Scheduler {
 
         @Override
         public T get() {
-            try (MCTiming t = Timings.ofStart("helper-scheduler: " + delegate.getClass().getName())) {
+            try (MCTiming t = Timings.ofStart("helper-scheduler: " + Delegate.resolve(delegate).getClass().getName())) {
                 return delegate.get();
-            } catch (Throwable t) {
-                throw new CompletionException(t);
             }
         }
 
@@ -602,10 +588,10 @@ public final class Scheduler {
 
         @Override
         public T get() {
-            try (MCTiming t = Timings.ofStart("helper-scheduler: " + delegate.getClass().getName())) {
+            try (MCTiming t = Timings.ofStart("helper-scheduler: " + Delegate.resolve(delegate).getClass().getName())) {
                 return delegate.call();
-            } catch (Throwable t) {
-                throw new CompletionException(t);
+            } catch (Exception e) {
+                throw new CompletionException(e);
             }
         }
 
@@ -624,10 +610,8 @@ public final class Scheduler {
 
         @Override
         public void run() {
-            try (MCTiming t = Timings.ofStart("helper-scheduler: " + delegate.getClass().getName())) {
+            try (MCTiming t = Timings.ofStart("helper-scheduler: " + Delegate.resolve(delegate).getClass().getName())) {
                 delegate.run();
-            } catch (Throwable t) {
-                throw new CompletionException(t);
             }
         }
 
@@ -637,15 +621,21 @@ public final class Scheduler {
         }
     }
 
-    private static final class WrappedRunnable implements Runnable, Delegate<Runnable> {
+
+    private static final class SchedulerWrappedRunnable implements Runnable, Delegate<Runnable> {
         private final Runnable delegate;
 
-        private WrappedRunnable(Runnable delegate) {
+        private SchedulerWrappedRunnable(Runnable delegate) {
             this.delegate = delegate;
         }
 
         @Override
         public void run() {
+            MCTiming timing = null;
+            if (!(delegate instanceof TimingWrappedRunnable)) {
+                timing = Timings.ofStart("helper-scheduler: " + Delegate.resolve(delegate).getClass().getName());
+            }
+
             try {
                 delegate.run();
             } catch (Throwable t) {
@@ -656,6 +646,10 @@ public final class Scheduler {
                     throw t;
                 } else {
                     throw new CompletionException(t);
+                }
+            } finally {
+                if (timing != null) {
+                    timing.stopTiming();
                 }
             }
         }

@@ -23,47 +23,39 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.command.argument;
 
-import me.lucko.helper.utils.Delegates;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-/**
- * Represents an object that can be unregistered, stopped, or gracefully halted.
- */
-@FunctionalInterface
-public interface Terminable {
-    Terminable EMPTY = () -> true;
+@NonnullByDefault
+public class SimpleArgument implements Argument {
+    protected final int index;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    protected final Optional<String> value;
+
+    public SimpleArgument(int index, @Nullable String value) {
+        this.index = index;
+        this.value = Optional.ofNullable(value);
+    }
+
+    @Override
+    public int index() {
+        return index;
+    }
 
     @Nonnull
-    static Terminable of(@Nonnull Runnable r) {
-        return Delegates.runnableToTerminable(r);
+    @Override
+    public Optional<String> value() {
+        return value;
     }
 
-    /**
-     * Terminate this instance
-     *
-     * @return true if the termination was successful
-     */
-    boolean terminate();
-
-    /**
-     * Registers this terminable with a terminable consumer (usually the plugin instance)
-     *
-     * @param consumer the terminable consumer
-     */
-    default void bindWith(@Nonnull TerminableConsumer consumer) {
-        consumer.bind(this);
+    @Override
+    public boolean isPresent() {
+        return value.isPresent();
     }
-
-    /**
-     * Used to help cleanup held terminable instances in registries
-     *
-     * @return true if this terminable has been terminated already
-     */
-    default boolean hasTerminated() {
-        return false;
-    }
-
 }
