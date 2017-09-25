@@ -23,47 +23,65 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.command.context;
 
-import me.lucko.helper.utils.Delegates;
+import com.google.common.collect.ImmutableList;
+
+import me.lucko.helper.command.argument.Argument;
+
+import org.bukkit.command.CommandSender;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * Represents an object that can be unregistered, stopped, or gracefully halted.
+ * Represents the context for a given command execution
+ *
+ * @param <T> the sender type
  */
-@FunctionalInterface
-public interface Terminable {
-    Terminable EMPTY = () -> true;
+public interface CommandContext<T extends CommandSender> {
 
+    /**
+     * Gets the sender who executed the command
+     *
+     * @return the sender who executed the command
+     */
     @Nonnull
-    static Terminable of(@Nonnull Runnable r) {
-        return Delegates.runnableToTerminable(r);
-    }
+    T sender();
 
     /**
-     * Terminate this instance
+     * Gets an immutable list of the supplied arguments
      *
-     * @return true if the termination was successful
+     * @return an immutable list of the supplied arguments
      */
-    boolean terminate();
+    @Nonnull
+    ImmutableList<String> args();
 
     /**
-     * Registers this terminable with a terminable consumer (usually the plugin instance)
+     * Gets the argument at a the given index
      *
-     * @param consumer the terminable consumer
+     * @param index the index
+     * @return the argument
      */
-    default void bindWith(@Nonnull TerminableConsumer consumer) {
-        consumer.bind(this);
-    }
+    @Nonnull
+    Argument arg(int index);
 
     /**
-     * Used to help cleanup held terminable instances in registries
+     * Gets the argument at the given index.
+     * Returns null if no argument is present at that index.
      *
-     * @return true if this terminable has been terminated already
+     * @param index the index
+     * @return the argument, or null if one was not present
      */
-    default boolean hasTerminated() {
-        return false;
-    }
+    @Nullable
+    String rawArg(int index);
+
+    /**
+     * Gets the command label which was used to execute this command
+     *
+     * @return the command label which was used to execute this command
+     */
+    @Nonnull
+    String label();
 
 }

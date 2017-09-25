@@ -28,7 +28,7 @@ package me.lucko.helper.menu;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
-import me.lucko.helper.interfaces.Delegate;
+import me.lucko.helper.utils.Delegates;
 
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -157,24 +157,6 @@ public class Item {
 
     @Nonnull
     public static Consumer<InventoryClickEvent> transformRunnable(@Nonnull Runnable runnable) {
-        return new DelegateConsumer<>(runnable);
-    }
-
-    static final class DelegateConsumer<T> implements Consumer<T>, Delegate<Runnable> {
-        private final Runnable delegate;
-
-        private DelegateConsumer(Runnable delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Runnable getDelegate() {
-            return delegate;
-        }
-
-        @Override
-        public void accept(T t) {
-            delegate.run();
-        }
+        return Delegates.runnableToConsumer(runnable);
     }
 }

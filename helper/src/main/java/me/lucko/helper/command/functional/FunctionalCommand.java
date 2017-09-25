@@ -23,47 +23,38 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.command.functional;
 
-import me.lucko.helper.utils.Delegates;
+import com.google.common.collect.ImmutableList;
+
+import me.lucko.helper.command.AbstractCommand;
+import me.lucko.helper.command.CommandInterruptException;
+import me.lucko.helper.command.context.CommandContext;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
+
+import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 
-/**
- * Represents an object that can be unregistered, stopped, or gracefully halted.
- */
-@FunctionalInterface
-public interface Terminable {
-    Terminable EMPTY = () -> true;
+@NonnullByDefault
+class FunctionalCommand extends AbstractCommand {
+    private final ImmutableList<Predicate<CommandContext<?>>> predicates;
+    private final FunctionalCommandHandler handler;
 
-    @Nonnull
-    static Terminable of(@Nonnull Runnable r) {
-        return Delegates.runnableToTerminable(r);
+    FunctionalCommand(ImmutableList<Predicate<CommandContext<?>>> predicates, FunctionalCommandHandler handler) {
+        this.predicates = predicates;
+        this.handler = handler;
     }
 
-    /**
-     * Terminate this instance
-     *
-     * @return true if the termination was successful
-     */
-    boolean terminate();
+    @Override
+    public void call(@Nonnull CommandContext<?> context) throws CommandInterruptException {
+        for (Predicate<CommandContext<?>> predicate : predicates) {
+            if (!predicate.test(context)) {
+                return;
+            }
+        }
 
-    /**
-     * Registers this terminable with a terminable consumer (usually the plugin instance)
-     *
-     * @param consumer the terminable consumer
-     */
-    default void bindWith(@Nonnull TerminableConsumer consumer) {
-        consumer.bind(this);
+        //noinspection unchecked
+        handler.handle(context);
     }
-
-    /**
-     * Used to help cleanup held terminable instances in registries
-     *
-     * @return true if this terminable has been terminated already
-     */
-    default boolean hasTerminated() {
-        return false;
-    }
-
 }

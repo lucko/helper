@@ -23,47 +23,31 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.command;
 
-import me.lucko.helper.utils.Delegates;
+import me.lucko.helper.command.context.CommandContext;
+import me.lucko.helper.plugin.ExtendedJavaPlugin;
 
 import javax.annotation.Nonnull;
 
 /**
- * Represents an object that can be unregistered, stopped, or gracefully halted.
+ * Represents a command
  */
-@FunctionalInterface
-public interface Terminable {
-    Terminable EMPTY = () -> true;
-
-    @Nonnull
-    static Terminable of(@Nonnull Runnable r) {
-        return Delegates.runnableToTerminable(r);
-    }
+public interface Command {
 
     /**
-     * Terminate this instance
+     * Registers this command with the server, via the given plugin instance
      *
-     * @return true if the termination was successful
+     * @param plugin the plugin instance
+     * @param aliases the aliases for the command
      */
-    boolean terminate();
+    void register(@Nonnull ExtendedJavaPlugin plugin, @Nonnull String... aliases);
 
     /**
-     * Registers this terminable with a terminable consumer (usually the plugin instance)
+     * Calls the command handler
      *
-     * @param consumer the terminable consumer
+     * @param context the contexts for the command
      */
-    default void bindWith(@Nonnull TerminableConsumer consumer) {
-        consumer.bind(this);
-    }
-
-    /**
-     * Used to help cleanup held terminable instances in registries
-     *
-     * @return true if this terminable has been terminated already
-     */
-    default boolean hasTerminated() {
-        return false;
-    }
+    void call(@Nonnull CommandContext<?> context) throws CommandInterruptException;
 
 }
