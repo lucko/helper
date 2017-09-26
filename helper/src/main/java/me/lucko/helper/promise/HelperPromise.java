@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Implementation of {@link Promise} using {@link Scheduler}.
+ * Implementation of {@link Promise} using the server scheduler.
  *
  * @param <V> the result type
  */
@@ -57,12 +57,13 @@ class HelperPromise<V> implements Promise<V> {
         return new HelperPromise<>(value);
     }
 
-    private static boolean isSync() {
-        return Thread.currentThread() == LoaderUtils.getMainThread();
+    @Nonnull
+    public static <U> HelperPromise<U> exceptionally(@Nonnull Throwable t) {
+        return new HelperPromise<>(t);
     }
 
-    private static boolean isAsync() {
-        return !isSync();
+    private static boolean isSync() {
+        return Thread.currentThread() == LoaderUtils.getMainThread();
     }
 
     /**
@@ -83,37 +84,38 @@ class HelperPromise<V> implements Promise<V> {
         fut.complete(v);
     }
 
+    private HelperPromise(@Nonnull Throwable t) {
+        supplied.set(true);
+        fut.completeExceptionally(t);
+    }
+
     /* utility methods */
 
-    private void runSync(@Nonnull Runnable runnable) {
+    private void executeSync(@Nonnull Runnable runnable) {
         if (isSync()) {
             runnable.run();
         } else {
-            Scheduler.runSync(runnable);
+            Scheduler.sync().execute(runnable);
         }
     }
 
-    private void runAsync(@Nonnull Runnable runnable) {
-        if (isAsync()) {
-            runnable.run();
-        } else {
-            Scheduler.runAsync(runnable);
-        }
+    private void executeAsync(@Nonnull Runnable runnable) {
+        Scheduler.async().execute(runnable);
     }
 
-    private void runDelayedSync(@Nonnull Runnable runnable, long delay) {
+    private void executeDelayedSync(@Nonnull Runnable runnable, long delay) {
         if (delay <= 0) {
-            runSync(runnable);
+            executeSync(runnable);
         } else {
-            Scheduler.runLaterSync(runnable, delay);
+            Scheduler.bukkit().runTaskLater(LoaderUtils.getPlugin(), runnable, delay);
         }
     }
 
-    private void runDelayedAsync(@Nonnull Runnable runnable, long delay) {
+    private void executeDelayedAsync(@Nonnull Runnable runnable, long delay) {
         if (delay <= 0) {
-            runAsync(runnable);
+            executeAsync(runnable);
         } else {
-            Scheduler.runLaterAsync(runnable, delay);
+            Scheduler.bukkit().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), runnable, delay);
         }
     }
 
@@ -158,13 +160,28 @@ class HelperPromise<V> implements Promise<V> {
         return fut.get(timeout, unit);
     }
 
+    @Override
+    public V join() {
+        return fut.join();
+    }
+
+    @Override
+    public V getNow(V valueIfAbsent) {
+        return fut.getNow(valueIfAbsent);
+    }
+
+    @Override
+    public CompletableFuture<V> toCompletableFuture() {
+        return fut.thenApply(Function.identity());
+    }
+
     /* implementation */
 
     @Nonnull
     @Override
     public Promise<V> supplySync(@Nonnull Supplier<V> supplier) {
         markAsSupplied();
-        runSync(new SupplyRunnable(supplier));
+        executeSync(new SupplyRunnable(supplier));
         return this;
     }
 
@@ -172,7 +189,7 @@ class HelperPromise<V> implements Promise<V> {
     @Override
     public Promise<V> supplyAsync(@Nonnull Supplier<V> supplier) {
         markAsSupplied();
-        runAsync(new SupplyRunnable(supplier));
+        executeAsync(new SupplyRunnable(supplier));
         return this;
     }
 
@@ -180,7 +197,7 @@ class HelperPromise<V> implements Promise<V> {
     @Override
     public Promise<V> supplyDelayedSync(@Nonnull Supplier<V> supplier, long delay) {
         markAsSupplied();
-        runDelayedSync(new SupplyRunnable(supplier), delay);
+        executeDelayedSync(new SupplyRunnable(supplier), delay);
         return this;
     }
 
@@ -188,7 +205,7 @@ class HelperPromise<V> implements Promise<V> {
     @Override
     public Promise<V> supplyDelayedAsync(@Nonnull Supplier<V> supplier, long delay) {
         markAsSupplied();
-        runDelayedAsync(new SupplyRunnable(supplier), delay);
+        executeDelayedAsync(new SupplyRunnable(supplier), delay);
         return this;
     }
 
@@ -200,7 +217,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                runSync(new ApplyRunnable<>(promise, fn, value));
+                executeSync(new ApplyRunnable<>(promise, fn, value));
             }
         });
         return promise;
@@ -214,7 +231,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                runAsync(new ApplyRunnable<>(promise, fn, value));
+                executeAsync(new ApplyRunnable<>(promise, fn, value));
             }
         });
         return promise;
@@ -228,7 +245,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                runDelayedSync(new ApplyRunnable<>(promise, fn, value), delay);
+                executeDelayedSync(new ApplyRunnable<>(promise, fn, value), delay);
             }
         });
         return promise;
@@ -242,7 +259,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                runDelayedAsync(new ApplyRunnable<>(promise, fn, value), delay);
+                executeDelayedAsync(new ApplyRunnable<>(promise, fn, value), delay);
             }
         });
         return promise;
@@ -256,7 +273,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                runSync(new ComposeRunnable<>(promise, fn, value));
+                executeSync(new ComposeRunnable<>(promise, fn, value, true));
             }
         });
         return promise;
@@ -270,7 +287,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                runAsync(new ComposeRunnable<>(promise, fn, value));
+                executeAsync(new ComposeRunnable<>(promise, fn, value, false));
             }
         });
         return promise;
@@ -284,7 +301,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                runDelayedSync(new ComposeRunnable<>(promise, fn, value), delay);
+                executeDelayedSync(new ComposeRunnable<>(promise, fn, value, true), delay);
             }
         });
         return promise;
@@ -298,7 +315,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                runDelayedAsync(new ComposeRunnable<>(promise, fn, value), delay);
+                executeDelayedAsync(new ComposeRunnable<>(promise, fn, value, false), delay);
             }
         });
         return promise;
@@ -312,7 +329,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t == null) {
                 promise.complete(value);
             } else {
-                runSync(new ExceptionallyRunnable<>(promise, fn, t));
+                executeSync(new ExceptionallyRunnable<>(promise, fn, t));
             }
         });
         return promise;
@@ -326,7 +343,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t == null) {
                 promise.complete(value);
             } else {
-                runAsync(new ExceptionallyRunnable<>(promise, fn, t));
+                executeAsync(new ExceptionallyRunnable<>(promise, fn, t));
             }
         });
         return promise;
@@ -340,7 +357,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t == null) {
                 promise.complete(value);
             } else {
-                runDelayedSync(new ExceptionallyRunnable<>(promise, fn, t), delay);
+                executeDelayedSync(new ExceptionallyRunnable<>(promise, fn, t), delay);
             }
         });
         return promise;
@@ -354,7 +371,7 @@ class HelperPromise<V> implements Promise<V> {
             if (t == null) {
                 promise.complete(value);
             } else {
-                runDelayedAsync(new ExceptionallyRunnable<>(promise, fn, t), delay);
+                executeDelayedAsync(new ExceptionallyRunnable<>(promise, fn, t), delay);
             }
         });
         return promise;
@@ -404,10 +421,12 @@ class HelperPromise<V> implements Promise<V> {
         private final HelperPromise<U> promise;
         private final Function<? super V, ? extends Promise<U>> function;
         private final V value;
-        private ComposeRunnable(HelperPromise<U> promise, Function<? super V, ? extends Promise<U>> function, V value) {
+        private final boolean sync;
+        private ComposeRunnable(HelperPromise<U> promise, Function<? super V, ? extends Promise<U>> function, V value, boolean sync) {
             this.promise = promise;
             this.function = function;
             this.value = value;
+            this.sync = sync;
         }
         @Override public Function getDelegate() { return function; }
 
@@ -418,7 +437,11 @@ class HelperPromise<V> implements Promise<V> {
                 if (p == null) {
                     promise.complete(null);
                 } else {
-                    p.thenAcceptSync(promise::complete);
+                    if (sync) {
+                        p.thenAcceptSync(promise::complete);
+                    } else {
+                        p.thenAcceptAsync(promise::complete);
+                    }
                 }
             } catch (Throwable e) {
                 promise.completeExceptionally(e);

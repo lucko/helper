@@ -57,6 +57,7 @@ public final class ServiceCallback<T> implements Terminable {
         return new ServiceCallback<>(serviceClass);
     }
 
+    @Nullable
     private T instance = null;
     private Class<T> serviceClass;
     private final Events.MergedHandler listener;
