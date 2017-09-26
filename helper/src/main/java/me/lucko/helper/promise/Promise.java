@@ -184,6 +184,17 @@ public interface Promise<V> extends Future<V> {
     }
 
     /**
+     * Attempts to cancel execution of this task.
+     *
+     * @return {@code false} if the task could not be cancelled, typically
+     * because it has already completed normally;
+     * {@code true} otherwise
+     */
+    default boolean cancel() {
+        return cancel(true);
+    }
+
+    /**
      * Returns the result value when complete, or throws an
      * (unchecked) exception if completed exceptionally.
      *

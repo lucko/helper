@@ -72,6 +72,11 @@ class HelperPromise<V> implements Promise<V> {
     private final AtomicBoolean supplied = new AtomicBoolean(false);
 
     /**
+     * If the execution of the promise is cancelled
+     */
+    private final AtomicBoolean cancelled = new AtomicBoolean(false);
+
+    /**
      * The completable future backing this promise
      */
     @Nonnull
@@ -120,6 +125,9 @@ class HelperPromise<V> implements Promise<V> {
     }
 
     private boolean complete(V value) {
+        if (cancelled.get()) {
+            return false;
+        }
         return fut.complete(value);
     }
 
@@ -137,6 +145,7 @@ class HelperPromise<V> implements Promise<V> {
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
+        cancelled.set(true);
         return fut.cancel(mayInterruptIfRunning);
     }
 
@@ -388,6 +397,9 @@ class HelperPromise<V> implements Promise<V> {
 
         @Override
         public void run() {
+            if (cancelled.get()) {
+                return;
+            }
             try {
                 fut.complete(supplier.get());
             } catch (Throwable t) {
@@ -409,6 +421,9 @@ class HelperPromise<V> implements Promise<V> {
 
         @Override
         public void run() {
+            if (cancelled.get()) {
+                return;
+            }
             try {
                 promise.complete(function.apply(value));
             } catch (Throwable e) {
@@ -432,6 +447,9 @@ class HelperPromise<V> implements Promise<V> {
 
         @Override
         public void run() {
+            if (cancelled.get()) {
+                return;
+            }
             try {
                 Promise<U> p = function.apply(value);
                 if (p == null) {
@@ -462,6 +480,9 @@ class HelperPromise<V> implements Promise<V> {
 
         @Override
         public void run() {
+            if (cancelled.get()) {
+                return;
+            }
             try {
                 promise.complete(function.apply(t));
             } catch (Throwable e) {

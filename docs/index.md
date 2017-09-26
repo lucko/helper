@@ -109,7 +109,7 @@ Events.subscribe(PlayerInteractEvent.class)
 
 
 ### Scheduler
-The scheduler class provides easy static access to the Bukkit Scheduler. All future methods return `CompletableFuture`s, allowing for easy use of callbacks and use of the Completion Stage API.
+The scheduler class provides easy static access to the Bukkit Scheduler. All future methods return `Promise`s, allowing for easy use of callbacks.
 
 It also exposes asynchronous and synchronous `Executor` instances.
 
@@ -133,22 +133,6 @@ Scheduler.runTaskRepeatingSync(task -> {
 
     // some repeating task
 }, 20L, 20L);
-```
-
-Completion stages can be used to chain futures together.
-```java
-Scheduler.callAsync(() -> {
-
-    // Do some expensive lookup or i/o
-    Thread.sleep(1000L);
-
-    return "something";
-}).thenAcceptAsync(s -> {
-
-    // Back on the main server thread with the result from the lookup
-    Bukkit.broadcastMessage(s);
-
-}, Scheduler.sync());
 ```
 
 
