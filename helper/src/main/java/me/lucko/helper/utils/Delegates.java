@@ -25,12 +25,16 @@
 
 package me.lucko.helper.utils;
 
+import com.google.common.base.Throwables;
+
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.terminable.Terminable;
 
+import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A collection of utility methods for delegating Java 8 functions
@@ -39,6 +43,14 @@ public final class Delegates {
 
     public static <T> Consumer<T> runnableToConsumer(Runnable runnable) {
         return new RunnableToConsumer<>(runnable);
+    }
+
+    public static Supplier<Void> runnableToSupplier(Runnable runnable) {
+        return new RunnableToSupplier<>(runnable);
+    }
+
+    public static <T> Supplier<T> callableToSupplier(Callable<T> callable) {
+        return new CallableToSupplier<>(callable);
     }
 
     public static <T, U> BiConsumer<T, U> consumerToBiConsumerFirst(Consumer<T> consumer) {
@@ -72,7 +84,39 @@ public final class Delegates {
         public void accept(T t) {
             delegate.run();
         }
+    }
 
+    private static final class CallableToSupplier<T> implements Supplier<T>, Delegate<Callable<T>> {
+        private final Callable<T> delegate;
+        private CallableToSupplier(Callable<T> delegate) {
+            this.delegate = delegate;
+        }
+        @Override public Callable<T> getDelegate() { return delegate; }
+
+        @Override
+        public T get() {
+            try {
+                return delegate.call();
+            } catch (Exception e) {
+                // try to propagate the exception
+                Throwables.throwIfUnchecked(e);
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private static final class RunnableToSupplier<T> implements Supplier<T>, Delegate<Runnable> {
+        private final Runnable delegate;
+        private RunnableToSupplier(Runnable delegate) {
+            this.delegate = delegate;
+        }
+        @Override public Runnable getDelegate() { return delegate; }
+
+        @Override
+        public T get() {
+            delegate.run();
+            return null;
+        }
     }
 
     private static final class ConsumerToBiConsumerFirst<T, U> implements BiConsumer<T, U>, Delegate<Consumer<T>> {
