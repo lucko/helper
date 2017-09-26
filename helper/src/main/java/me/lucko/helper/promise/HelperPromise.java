@@ -107,7 +107,7 @@ class HelperPromise<V> implements Promise<V> {
         if (delay <= 0) {
             executeSync(runnable);
         } else {
-            Scheduler.bukkit().runTaskLater(LoaderUtils.getPlugin(), runnable, delay);
+            Scheduler.bukkit().runTaskLater(LoaderUtils.getPlugin(), Scheduler.wrapRunnable(runnable), delay);
         }
     }
 
@@ -115,7 +115,7 @@ class HelperPromise<V> implements Promise<V> {
         if (delay <= 0) {
             executeAsync(runnable);
         } else {
-            Scheduler.bukkit().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), runnable, delay);
+            Scheduler.bukkit().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), Scheduler.wrapRunnable(runnable), delay);
         }
     }
 

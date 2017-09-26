@@ -343,14 +343,14 @@ public final class Scheduler {
     private static final class SyncExecutor implements Executor {
         @Override
         public void execute(Runnable runnable) {
-            bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), new SchedulerWrappedRunnable(runnable));
+            bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), wrapRunnable(runnable));
         }
     }
 
     private static final class AsyncExecutor implements Executor {
         @Override
         public void execute(Runnable runnable) {
-            bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), new SchedulerWrappedRunnable(runnable));
+            bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), wrapRunnable(runnable));
         }
     }
 
@@ -362,7 +362,7 @@ public final class Scheduler {
 
         @Override
         public void execute(Runnable runnable) {
-            super.execute(new SchedulerWrappedRunnable(runnable));
+            super.execute(wrapRunnable(runnable));
         }
     }
 
@@ -421,6 +421,10 @@ public final class Scheduler {
         public boolean hasTerminated() {
             return shouldStop.get();
         }
+    }
+
+    public static Runnable wrapRunnable(Runnable runnable) {
+        return new SchedulerWrappedRunnable(runnable);
     }
 
     private static final class SchedulerWrappedRunnable implements Runnable, Delegate<Runnable> {
