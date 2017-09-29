@@ -25,10 +25,29 @@
 
 package me.lucko.helper.promise;
 
+import me.lucko.helper.utils.LoaderUtils;
+
+/**
+ * Represents the two main types of {@link Thread} on the server.
+ */
 public enum ThreadContext {
 
+    /**
+     * Represents the main "server" thread
+     */
     SYNC,
 
-    ASYNC
+    /**
+     * Represents anything which isn't the {@link #SYNC} thread.
+     */
+    ASYNC;
+
+    public static ThreadContext forCurrentThread() {
+        return forThread(Thread.currentThread());
+    }
+
+    public static ThreadContext forThread(Thread thread) {
+        return thread == LoaderUtils.getMainThread() ? SYNC : ASYNC;
+    }
 
 }

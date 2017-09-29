@@ -45,6 +45,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 /**
  * A thread-safe scoreboard using ProtocolLib
  */
@@ -65,7 +67,7 @@ public class PacketScoreboard implements Scoreboard {
         this(null);
     }
 
-    public PacketScoreboard(ExtendedJavaPlugin plugin) {
+    public PacketScoreboard(@Nullable ExtendedJavaPlugin plugin) {
         this.protocolManager = ProtocolLibrary.getProtocolManager();
 
         if (plugin != null) {
