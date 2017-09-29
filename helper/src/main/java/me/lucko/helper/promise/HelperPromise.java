@@ -62,10 +62,6 @@ class HelperPromise<V> implements Promise<V> {
         return new HelperPromise<>(t);
     }
 
-    private static boolean isSync() {
-        return Thread.currentThread() == LoaderUtils.getMainThread();
-    }
-
     /**
      * If the promise is currently being supplied
      */
@@ -97,7 +93,7 @@ class HelperPromise<V> implements Promise<V> {
     /* utility methods */
 
     private void executeSync(@Nonnull Runnable runnable) {
-        if (isSync()) {
+        if (ThreadContext.forCurrentThread() == ThreadContext.SYNC) {
             runnable.run();
         } else {
             Scheduler.sync().execute(runnable);
@@ -125,10 +121,7 @@ class HelperPromise<V> implements Promise<V> {
     }
 
     private boolean complete(V value) {
-        if (cancelled.get()) {
-            return false;
-        }
-        return fut.complete(value);
+        return !cancelled.get() && fut.complete(value);
     }
 
     private boolean completeExceptionally(@Nonnull Throwable t) {
