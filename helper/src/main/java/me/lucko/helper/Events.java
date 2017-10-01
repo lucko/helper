@@ -1137,11 +1137,25 @@ public final class Events {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static class DefaultFiltersImpl implements DefaultFilters {
         private static final Predicate<? extends Cancellable> IGNORE_CANCELLED = e -> !e.isCancelled();
-        private static final Predicate<? extends PlayerMoveEvent> IGNORE_SAME_BLOCK = e -> e.getFrom().getBlockX() != e.getTo().getBlockX() || e.getFrom().getBlockZ() != e.getTo().getBlockZ() || e.getFrom().getBlockY() != e.getTo().getBlockY();
-        private static final Predicate<? extends PlayerMoveEvent> IGNORE_SAME_BLOCK_AND_Y = e -> e.getFrom().getBlockX() != e.getTo().getBlockX() || e.getFrom().getBlockZ() != e.getTo().getBlockZ();
-        private static final Predicate<? extends PlayerMoveEvent> IGNORE_SAME_CHUNK = e -> (e.getFrom().getBlockX() >> 4) != (e.getTo().getBlockX() >> 4) || (e.getFrom().getBlockZ() >> 4) != (e.getTo().getBlockZ() >> 4);
+
+        private static final Predicate<? extends PlayerMoveEvent> IGNORE_SAME_BLOCK = e ->
+                e.getFrom().getBlockX() != e.getTo().getBlockX() ||
+                e.getFrom().getBlockZ() != e.getTo().getBlockZ() ||
+                e.getFrom().getBlockY() != e.getTo().getBlockY() ||
+                !e.getFrom().getWorld().equals(e.getTo().getWorld());
+
+        private static final Predicate<? extends PlayerMoveEvent> IGNORE_SAME_BLOCK_AND_Y = e ->
+                e.getFrom().getBlockX() != e.getTo().getBlockX() ||
+                e.getFrom().getBlockZ() != e.getTo().getBlockZ() ||
+                !e.getFrom().getWorld().equals(e.getTo().getWorld());
+
+        private static final Predicate<? extends PlayerMoveEvent> IGNORE_SAME_CHUNK = e ->
+                (e.getFrom().getBlockX() >> 4) != (e.getTo().getBlockX() >> 4) ||
+                (e.getFrom().getBlockZ() >> 4) != (e.getTo().getBlockZ() >> 4) ||
+                !e.getFrom().getWorld().equals(e.getTo().getWorld());
 
         @Override
         public <T extends Cancellable> Predicate<T> ignoreCancelled() {
