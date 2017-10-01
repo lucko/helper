@@ -611,7 +611,7 @@ public final class Events {
 
     }
 
-    private static class HandlerImpl<T extends Event> implements Handler<T>, EventExecutor {
+    private static class HelperEventHandler<T extends Event> implements Handler<T>, EventExecutor, Listener {
         private final Class<T> eventClass;
         private final EventPriority priority;
 
@@ -622,11 +622,10 @@ public final class Events {
         private final BiConsumer<Handler<T>, ? super T> handler;
         private final MCTiming timing;
 
-        private final Listener listener = new Listener() {};
         private final AtomicLong callCount = new AtomicLong(0);
         private final AtomicBoolean active = new AtomicBoolean(true);
 
-        private HandlerImpl(HandlerBuilderImpl<T> builder, BiConsumer<Handler<T>, ? super T> handler) {
+        private HelperEventHandler(HandlerBuilderImpl<T> builder, BiConsumer<Handler<T>, ? super T> handler) {
             this.eventClass = builder.eventClass;
             this.priority = builder.priority;
             this.expiry = builder.expiry;
@@ -638,7 +637,7 @@ public final class Events {
         }
 
         private void register(Plugin plugin) {
-            Helper.plugins().registerEvent(eventClass, listener, priority, this, plugin, false);
+            Helper.plugins().registerEvent(eventClass, this, priority, this, plugin, false);
         }
 
         @Override
@@ -664,26 +663,34 @@ public final class Events {
             }
 
             // Check if the handler has reached its max calls
-            if (tryExpire(listener, event.getHandlers())) {
+            if (checkMaxCalls(listener, event.getHandlers())) {
                 return;
             }
 
             T eventInstance = eventClass.cast(event);
 
-            for (Predicate<T> filter : filters) {
-                if (!filter.test(eventInstance)) {
-                    return;
+            // Actually call the handler
+            try {
+                try (MCTiming t = timing.startTiming()) {
+                    for (Predicate<T> filter : filters) {
+                        if (!filter.test(eventInstance)) {
+                            return;
+                        }
+                    }
+
+                    handler.accept(this, eventInstance);
                 }
+
+                callCount.incrementAndGet();
+            } catch (Throwable t) {
+                exceptionConsumer.accept(eventInstance, t);
             }
 
-            // Actually call the handler
-            handle(eventInstance);
-
             // has it expired now?
-            tryExpire(listener, event.getHandlers());
+            checkMaxCalls(listener, event.getHandlers());
         }
 
-        private boolean tryExpire(Listener listener, HandlerList handlerList) {
+        private boolean checkMaxCalls(Listener listener, HandlerList handlerList) {
             if (maxCalls != -1) {
                 if (callCount.get() >= maxCalls) {
                     handlerList.unregister(listener);
@@ -692,18 +699,6 @@ public final class Events {
                 }
             }
             return false;
-        }
-
-        private void handle(T e) {
-            try {
-                try (MCTiming t = timing.startTiming()) {
-                    handler.accept(this, e);
-                }
-
-                callCount.incrementAndGet();
-            } catch (Throwable t) {
-                exceptionConsumer.accept(e, t);
-            }
         }
 
         @Override
@@ -743,7 +738,7 @@ public final class Events {
             try {
                 Method getHandlerListMethod = eventClass.getMethod("getHandlerList");
                 HandlerList handlerList = (HandlerList) getHandlerListMethod.invoke(null);
-                handlerList.unregister(listener);
+                handlerList.unregister(this);
             } catch (Throwable t) {
                 // ignored
             }
@@ -751,9 +746,9 @@ public final class Events {
         }
     }
 
-    private static class MergedHandlerImpl<T> implements MergedHandler<T>, EventExecutor {
+    private static class HelperMergedEventHandler<T> implements MergedHandler<T>, EventExecutor, Listener {
         private final TypeToken<T> handledClass;
-        private final Map<Class<? extends Event>, HandlerMapping<T, ? extends Event>> mappings;
+        private final Map<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> mappings;
 
         private final long expiry;
         private final long maxCalls;
@@ -762,11 +757,10 @@ public final class Events {
         private final BiConsumer<MergedHandler<T>, ? super T> handler;
         private final MCTiming timing;
 
-        private final Listener listener = new Listener() {};
         private final AtomicLong callCount = new AtomicLong(0);
         private final AtomicBoolean active = new AtomicBoolean(true);
 
-        private MergedHandlerImpl(MergedHandlerBuilderImpl<T> builder, BiConsumer<MergedHandler<T>, ? super T> handler) {
+        private HelperMergedEventHandler(MergedHandlerBuilderImpl<T> builder, BiConsumer<MergedHandler<T>, ? super T> handler) {
             this.handledClass = builder.handledClass;
             this.mappings = ImmutableMap.copyOf(builder.mappings);
             this.expiry = builder.expiry;
@@ -778,8 +772,8 @@ public final class Events {
         }
 
         private void register(Plugin plugin) {
-            for (Map.Entry<Class<? extends Event>, HandlerMapping<T, ? extends Event>> ent : mappings.entrySet()) {
-                Helper.plugins().registerEvent(ent.getKey(), listener, ent.getValue().getPriority(), this, plugin, false);
+            for (Map.Entry<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> ent : mappings.entrySet()) {
+                Helper.plugins().registerEvent(ent.getKey(), this, ent.getValue().getPriority(), this, plugin, false);
             }
         }
 
@@ -787,7 +781,7 @@ public final class Events {
         public void execute(Listener listener, Event event) throws EventException {
             Function<Object, T> function = null;
 
-            for (Map.Entry<Class<? extends Event>, HandlerMapping<T, ? extends Event>> ent : mappings.entrySet()) {
+            for (Map.Entry<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> ent : mappings.entrySet()) {
                 if (event.getClass() == ent.getKey()) {
                     function = ent.getValue().getFunction();
                     break;
@@ -805,7 +799,7 @@ public final class Events {
             }
 
             // Check if the handler has expired.
-            if (tryExpire()) {
+            if (checkMaxCalls()) {
                 return;
             }
 
@@ -819,20 +813,28 @@ public final class Events {
 
             T eventInstance = function.apply(event);
 
-            for (Predicate<T> filter : filters) {
-                if (!filter.test(eventInstance)) {
-                    return;
+            // Actually call the handler
+            try {
+                try (MCTiming t = timing.startTiming()) {
+                    for (Predicate<T> filter : filters) {
+                        if (!filter.test(eventInstance)) {
+                            return;
+                        }
+                    }
+
+                    handler.accept(this, eventInstance);
                 }
+
+                callCount.incrementAndGet();
+            } catch (Throwable t) {
+                exceptionConsumer.accept(event, t);
             }
 
-            // Actually call the handler
-            handle(event, eventInstance);
-
             // check if the call caused the method to expire.
-            tryExpire();
+            checkMaxCalls();
         }
 
-        private boolean tryExpire() {
+        private boolean checkMaxCalls() {
             if (maxCalls != -1) {
                 if (callCount.get() >= maxCalls) {
                     unregister();
@@ -840,18 +842,6 @@ public final class Events {
                 }
             }
             return false;
-        }
-
-        private void handle(Event event, T e) {
-            try {
-                try (MCTiming t = timing.startTiming()) {
-                    handler.accept(this, e);
-                }
-
-                callCount.incrementAndGet();
-            } catch (Throwable t) {
-                exceptionConsumer.accept(event, t);
-            }
         }
 
         @Override
@@ -887,7 +877,7 @@ public final class Events {
                 try {
                     Method getHandlerListMethod = clazz.getMethod("getHandlerList");
                     HandlerList handlerList = (HandlerList) getHandlerListMethod.invoke(null);
-                    handlerList.unregister(listener);
+                    handlerList.unregister(this);
                 } catch (Throwable t) {
                     // ignored
                 }
@@ -997,7 +987,7 @@ public final class Events {
         public Handler<T> handler(BiConsumer<Handler<T>, ? super T> handler) {
             Preconditions.checkNotNull(handler, "handler");
 
-            HandlerImpl<T> impl = new HandlerImpl<>(this, handler);
+            HelperEventHandler<T> impl = new HelperEventHandler<>(this, handler);
             impl.register(LoaderUtils.getPlugin());
             return impl;
         }
@@ -1005,7 +995,7 @@ public final class Events {
 
     private static class MergedHandlerBuilderImpl<T> implements MergedHandlerBuilder<T> {
         private final TypeToken<T> handledClass;
-        private final Map<Class<? extends Event>, HandlerMapping<T, ? extends Event>> mappings = new HashMap<>();
+        private final Map<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> mappings = new HashMap<>();
 
         private long expiry = -1;
         private long maxCalls = -1;
@@ -1027,7 +1017,7 @@ public final class Events {
             Preconditions.checkNotNull(priority, "priority");
             Preconditions.checkNotNull(function, "function");
 
-            mappings.put(eventClass, new HandlerMapping<>(priority, function));
+            mappings.put(eventClass, new MergedHandlerMapping<>(priority, function));
             return this;
         }
 
@@ -1112,17 +1102,17 @@ public final class Events {
                 throw new IllegalStateException("No mappings were created");
             }
 
-            MergedHandlerImpl<T> impl = new MergedHandlerImpl<>(this, handler);
+            HelperMergedEventHandler<T> impl = new HelperMergedEventHandler<>(this, handler);
             impl.register(LoaderUtils.getPlugin());
             return impl;
         }
     }
 
-    private static class HandlerMapping<T, E extends Event> {
+    private static class MergedHandlerMapping<T, E extends Event> {
         private final EventPriority priority;
         private final Function<Object, T> function;
 
-        private HandlerMapping(EventPriority priority, Function<E, T> function) {
+        private MergedHandlerMapping(EventPriority priority, Function<E, T> function) {
             this.priority = priority;
             //noinspection unchecked
             this.function = o -> function.apply((E) o);
