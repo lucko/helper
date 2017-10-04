@@ -63,7 +63,7 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
 
     @Override
     public final void onLoad() {
-        LoaderUtils.getPlugin(); // cache the loader plugin
+        LoaderUtils.getPlugin(); // cache the loader plugin & run initial setup
         terminableRegistry = TerminableRegistry.create();
 
         LibraryLoader.loadAll(getClass());

@@ -25,8 +25,24 @@
 
 package me.lucko.helper.utils;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
+import me.lucko.helper.gson.GsonSerializable;
+import me.lucko.helper.gson.GsonSerializableConfigurateProxy;
+import me.lucko.helper.gson.configurate.JsonArraySerializer;
+import me.lucko.helper.gson.configurate.JsonNullSerializer;
+import me.lucko.helper.gson.configurate.JsonObjectSerializer;
+import me.lucko.helper.gson.configurate.JsonPrimitiveSerializer;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializerCollection;
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 
 import javax.annotation.Nonnull;
 
@@ -45,7 +61,8 @@ public final class LoaderUtils {
             String thisClass = LoaderUtils.class.getName();
             thisClass = thisClass.substring(0, thisClass.length() - ".utils.LoaderUtils".length());
             Bukkit.getLogger().info("[helper] helper (" + thisClass + ") bound to plugin " + plugin.getName() + " - " + plugin.getClass().getName());
-            getMainThread(); // cache main thread
+
+            setup();
         }
         return plugin;
     }
@@ -58,6 +75,25 @@ public final class LoaderUtils {
             }
         }
         return mainThread;
+    }
+
+    // performs an intial setup for global handlers
+    private static void setup() {
+
+        // cache main thread in this class
+        getMainThread();
+
+        // register configurate serializers
+
+        TypeSerializerCollection defs = TypeSerializers.getDefaultSerializers();
+
+        defs.registerType(TypeToken.of(JsonArray.class), JsonArraySerializer.INSTANCE);
+        defs.registerType(TypeToken.of(JsonObject.class), JsonObjectSerializer.INSTANCE);
+        defs.registerType(TypeToken.of(JsonPrimitive.class), JsonPrimitiveSerializer.INSTANCE);
+        defs.registerType(TypeToken.of(JsonNull.class), JsonNullSerializer.INSTANCE);
+
+        defs.registerType(TypeToken.of(GsonSerializable.class), GsonSerializableConfigurateProxy.INSTANCE);
+
     }
 
     private LoaderUtils() {

@@ -68,7 +68,6 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.zaxxer:HikariCP</include>
-                                    <include>org.slf4j:slf4j-simple</include>
                                     <include>org.mariadb.jdbc:mariadb-java-client</include>
                                 </includes>
                             </artifactSet>
@@ -76,10 +75,6 @@
                                 <relocation>
                                     <pattern>com.zaxxer.hikari</pattern>
                                     <shadedPattern>${shade.pattern}hikari</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.slf4j.impl</pattern>
-                                    <shadedPattern>${shade.pattern}slf4j</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.mariadb</pattern>
@@ -139,7 +134,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>helper</artifactId>
-            <version>3.0.0</version>
+            <version>3.1.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -155,18 +150,20 @@
             <artifactId>HikariCP</artifactId>
             <version>2.6.3</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
-            <scope>compile</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <version>2.0.3</version>
             <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
