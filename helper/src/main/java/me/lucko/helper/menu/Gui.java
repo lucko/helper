@@ -76,7 +76,7 @@ public abstract class Gui implements TerminableConsumer {
     // The initial title set when the inventory was made.
     private final String initialTitle;
     // The slots in the gui, lazily loaded
-    private final Map<Integer, Slot> slots;
+    private final Map<Integer, SimpleSlot> slots;
     // This remains true until after #redraw is called for the first time
     private boolean firstDraw = true;
     // A function used to build a fallback page when this page is closed.
@@ -159,7 +159,7 @@ public abstract class Gui implements TerminableConsumer {
             throw new IllegalArgumentException("Invalid slot id: " + slot);
         }
 
-        return slots.computeIfAbsent(slot, i -> new Slot(this, i));
+        return slots.computeIfAbsent(slot, i -> new SimpleSlot(this, i));
     }
 
     public void setItem(int slot, Item item) {
@@ -308,7 +308,7 @@ public abstract class Gui implements TerminableConsumer {
                         return;
                     }
 
-                    Slot slot = slots.get(slotId);
+                    SimpleSlot slot = slots.get(slotId);
                     if (slot != null) {
                         slot.handle(e);
                     }

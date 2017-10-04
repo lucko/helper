@@ -25,22 +25,11 @@
 
 package me.lucko.helper.menu;
 
-import com.google.common.base.Preconditions;
-
-import me.lucko.helper.interfaces.Delegate;
-import me.lucko.helper.timings.Timings;
-
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
-import co.aikar.timings.lib.MCTiming;
-
-import java.util.Collections;
-import java.util.EnumMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
@@ -51,22 +40,7 @@ import javax.annotation.Nullable;
  *
  * All changes made to this object are applied to the backing Gui instance, and vice versa.
  */
-public class Slot {
-
-    // the parent gui
-    private final Gui gui;
-
-    // the id of this slot
-    private final int id;
-
-    // the click handlers for this slot
-    protected final Map<ClickType, Set<Consumer<InventoryClickEvent>>> handlers;
-
-    public Slot(@Nonnull Gui gui, int id) {
-        this.gui = gui;
-        this.id = id;
-        this.handlers = Collections.synchronizedMap(new EnumMap<>(ClickType.class));
-    }
+public interface Slot {
 
     /**
      * Gets the GUI this slot references
@@ -74,18 +48,14 @@ public class Slot {
      * @return the parent gui
      */
     @Nonnull
-    public Gui gui() {
-        return gui;
-    }
+    Gui gui();
 
     /**
      * Gets the id of this slot
      *
      * @return the id
      */
-    public int getId() {
-        return id;
-    }
+    int getId();
 
     /**
      * Applies an item model to this slot.
@@ -93,13 +63,7 @@ public class Slot {
      * @param item the item
      * @return this slot
      */
-    public Slot applyFromItem(Item item) {
-        Preconditions.checkNotNull(item, "item");
-        setItem(item.getItemStack());
-        clearBindings();
-        bindAllConsumers(item.getHandlers().entrySet());
-        return this;
-    }
+    Slot applyFromItem(Item item);
 
     /**
      * Gets the item in this slot
@@ -107,18 +71,14 @@ public class Slot {
      * @return the item in this slot
      */
     @Nullable
-    public ItemStack getItem() {
-        return gui.getHandle().getItem(id);
-    }
+    ItemStack getItem();
 
     /**
      * Gets if this slot has an item
      *
      * @return true if this slot has an item
      */
-    public boolean hasItem() {
-        return getItem() != null;
-    }
+    boolean hasItem();
 
     /**
      * Sets the item in this slot
@@ -127,22 +87,14 @@ public class Slot {
      * @return this slot
      */
     @Nonnull
-    public Slot setItem(@Nonnull ItemStack item) {
-        Preconditions.checkNotNull(item, "item");
-        gui.getHandle().setItem(id, item);
-        return this;
-    }
+    Slot setItem(@Nonnull ItemStack item);
 
     /**
      * Clears all attributes of the slot.
      *
      * @return this slot
      */
-    public Slot clear() {
-        clearItem();
-        clearBindings();
-        return this;
-    }
+    Slot clear();
 
     /**
      * Clears the item in this slot
@@ -150,10 +102,7 @@ public class Slot {
      * @return this slot
      */
     @Nonnull
-    public Slot clearItem() {
-        gui.getHandle().clear(id);
-        return this;
-    }
+    Slot clearItem();
 
     /**
      * Clears all bindings on this slot.
@@ -161,10 +110,7 @@ public class Slot {
      * @return this slot
      */
     @Nonnull
-    public Slot clearBindings() {
-        handlers.clear();
-        return this;
-    }
+    Slot clearBindings();
 
     /**
      * Clears all bindings on this slot for a given click type.
@@ -172,73 +118,24 @@ public class Slot {
      * @return this slot
      */
     @Nonnull
-    public Slot clearBindings(ClickType type) {
-        handlers.remove(type);
-        return this;
-    }
-
-    public void handle(@Nonnull InventoryClickEvent event) {
-        Set<Consumer<InventoryClickEvent>> handlers = this.handlers.get(event.getClick());
-        if (handlers == null) {
-            return;
-        }
-        for (Consumer<InventoryClickEvent> handler : handlers) {
-            try (MCTiming t = Timings.ofStart("helper-gui: " + getClass().getSimpleName() + " : " + Delegate.resolve(handler).getClass().getName())) {
-                handler.accept(event);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
+    Slot clearBindings(ClickType type);
 
     @Nonnull
-    public Slot bind(@Nonnull ClickType type, @Nonnull Consumer<InventoryClickEvent> handler) {
-        Preconditions.checkNotNull(type, "type");
-        Preconditions.checkNotNull(handler, "handler");
-        handlers.computeIfAbsent(type, t -> ConcurrentHashMap.newKeySet()).add(handler);
-        return this;
-    }
+    Slot bind(@Nonnull ClickType type, @Nonnull Consumer<InventoryClickEvent> handler);
 
     @Nonnull
-    public Slot bind(@Nonnull ClickType type, @Nonnull Runnable handler) {
-        Preconditions.checkNotNull(type, "type");
-        Preconditions.checkNotNull(handler, "handler");
-        handlers.computeIfAbsent(type, t -> ConcurrentHashMap.newKeySet()).add(Item.transformRunnable(handler));
-        return this;
-    }
+    Slot bind(@Nonnull ClickType type, @Nonnull Runnable handler);
 
     @Nonnull
-    public Slot bind(@Nonnull Consumer<InventoryClickEvent> handler, @Nonnull ClickType... types) {
-        for (ClickType type : types) {
-            bind(type, handler);
-        }
-        return this;
-    }
+    Slot bind(@Nonnull Consumer<InventoryClickEvent> handler, @Nonnull ClickType... types);
 
     @Nonnull
-    public Slot bind(@Nonnull Runnable handler, @Nonnull ClickType... types) {
-        for (ClickType type : types) {
-            bind(type, handler);
-        }
-        return this;
-    }
+    Slot bind(@Nonnull Runnable handler, @Nonnull ClickType... types);
 
     @Nonnull
-    public <T extends Runnable> Slot bindAllRunnables(@Nonnull Iterable<Map.Entry<ClickType, T>> handlers) {
-        Preconditions.checkNotNull(handlers, "handlers");
-        for (Map.Entry<ClickType, T> handler : handlers) {
-            bind(handler.getKey(), handler.getValue());
-        }
-        return this;
-    }
+    <T extends Runnable> Slot bindAllRunnables(@Nonnull Iterable<Map.Entry<ClickType, T>> handlers);
 
     @Nonnull
-    public <T extends Consumer<InventoryClickEvent>> Slot bindAllConsumers(@Nonnull Iterable<Map.Entry<ClickType, T>> handlers) {
-        Preconditions.checkNotNull(handlers, "handlers");
-        for (Map.Entry<ClickType, T> handler : handlers) {
-            bind(handler.getKey(), handler.getValue());
-        }
-        return this;
-    }
+    <T extends Consumer<InventoryClickEvent>> Slot bindAllConsumers(@Nonnull Iterable<Map.Entry<ClickType, T>> handlers);
 
 }

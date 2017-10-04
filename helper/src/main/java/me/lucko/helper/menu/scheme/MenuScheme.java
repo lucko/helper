@@ -33,7 +33,6 @@ import me.lucko.helper.utils.annotation.NonnullByDefault;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
@@ -42,6 +41,9 @@ import javax.annotation.Nullable;
  */
 @NonnullByDefault
 public class MenuScheme {
+    private static final boolean[] EMPTY_MASK = new boolean[]{false, false, false, false, false, false, false, false, false};
+    private static final int[] EMPTY_SCHEME = new int[0];
+
     private final SchemeMapping mapping;
     private final List<boolean[]> maskRows;
     private final List<int[]> schemeRows;
@@ -97,8 +99,8 @@ public class MenuScheme {
 
     public MenuScheme maskEmpty(int lines) {
         for (int i = 0; i < lines; i++) {
-            maskRows.add(new boolean[]{false, false, false, false, false, false, false, false, false});
-            schemeRows.add(new int[]{});
+            maskRows.add(EMPTY_MASK);
+            schemeRows.add(EMPTY_SCHEME);
         }
         return this;
     }
@@ -114,64 +116,56 @@ public class MenuScheme {
     }
 
     public void apply(Gui gui) {
-        try {
-            // the index of the item slot in the inventory
-            AtomicInteger invIndex = new AtomicInteger(-1);
+        // the index of the item slot in the inventory
+        int invIndex = 0;
 
-            // iterate all of the loaded masks
-            for (int i = 0; i < maskRows.size(); i++) {
-                boolean[] mask = maskRows.get(i);
-                int[] scheme = schemeRows.get(i);
+        // iterate all of the loaded masks
+        for (int i = 0; i < maskRows.size(); i++) {
+            boolean[] mask = maskRows.get(i);
+            int[] scheme = schemeRows.get(i);
 
-                AtomicInteger schemeIndex = new AtomicInteger(-1);
+            int schemeIndex = 0;
 
-                // iterate the values in the mask (0 --> 8)
-                for (boolean b : mask) {
+            // iterate the values in the mask (0 --> 8)
+            for (boolean b : mask) {
 
-                    // increment the index in the gui. we're handling a new item.
-                    int index = invIndex.incrementAndGet();
+                // increment the index in the gui. we're handling a new item.
+                int index = invIndex++;
 
-                    // if this index is masked.
-                    if (b) {
-                        // the index of the mapping from schemeRows
-                        int schemeId = schemeIndex.incrementAndGet();
+                // if this index is masked.
+                if (b) {
 
-                        // this is the value from the scheme map for this slot.
-                        int schemeMappingId = scheme[schemeId];
+                    // this is the value from the scheme map for this slot.
+                    int schemeMappingId = scheme[schemeIndex++];
 
-                        // lookup the value for this location, and apply it to the gui
-                        gui.setItem(index, mapping.getNullable(schemeMappingId));
-                    }
+                    // lookup the value for this location, and apply it to the gui
+                    mapping.get(schemeMappingId).ifPresent(item -> gui.setItem(index, item));
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
     public List<Integer> getMaskedIndexes() {
         List<Integer> ret = new ArrayList<>();
-        try {
-            // the index of the item slot in the inventory
-            AtomicInteger invIndex = new AtomicInteger(-1);
 
-            // iterate all of the loaded masks
-            for (boolean[] mask : maskRows) {
-                // iterate the values in the mask (0 --> 8)
-                for (boolean b : mask) {
+        // the index of the item slot in the inventory
+        int invIndex = 0;
 
-                    // increment the index in the gui. we're handling a new item.
-                    int index = invIndex.incrementAndGet();
+        // iterate all of the loaded masks
+        for (boolean[] mask : maskRows) {
+            // iterate the values in the mask (0 --> 8)
+            for (boolean b : mask) {
 
-                    // if this index is masked.
-                    if (b) {
-                        ret.add(index);
-                    }
+                // increment the index in the gui. we're handling a new item.
+                int index = invIndex++;
+
+                // if this index is masked.
+                if (b) {
+                    ret.add(index);
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+
         return ret;
     }
 
