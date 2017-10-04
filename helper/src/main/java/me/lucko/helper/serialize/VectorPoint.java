@@ -25,53 +25,54 @@
 
 package me.lucko.helper.serialize;
 
+import com.flowpowered.math.vector.Vector3d;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import me.lucko.helper.Helper;
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.gson.JsonBuilder;
 
 import org.bukkit.Location;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
- * An immutable and serializable position + direction object
+ * An immutable and serializable vector + direction object
  */
-public final class Point implements GsonSerializable {
-    public static Point deserialize(JsonElement element) {
-        Position position = Position.deserialize(element);
+public final class VectorPoint implements GsonSerializable {
+    public static VectorPoint deserialize(JsonElement element) {
+        Vector3d position = VectorSerializers.deserialize3d(element);
         Direction direction = Direction.deserialize(element);
 
         return of(position, direction);
     }
 
-    public static Point of(Position position, Direction direction) {
+    public static VectorPoint of(Vector3d position, Direction direction) {
         Preconditions.checkNotNull(position, "position");
         Preconditions.checkNotNull(direction, "direction");
-        return new Point(position, direction);
+        return new VectorPoint(position, direction);
     }
 
-    public static Point of(Location location) {
+    public static VectorPoint of(Location location) {
         Preconditions.checkNotNull(location, "location");
-        return of(Position.of(location), Direction.from(location));
+        return of(Position.of(location).toVector(), Direction.from(location));
     }
 
-    private final Position position;
+    public static VectorPoint of(Point point) {
+        Preconditions.checkNotNull(point, "point");
+        return of(point.getPosition().toVector(), point.getDirection());
+    }
+
+    private final Vector3d position;
     private final Direction direction;
 
-    @Nullable
-    private Location bukkitLocation = null;
-
-    private Point(Position position, Direction direction) {
+    private VectorPoint(Vector3d position, Direction direction) {
         this.position = position;
         this.direction = direction;
     }
 
-    public Position getPosition() {
+    public Vector3d getPosition() {
         return position;
     }
 
@@ -79,31 +80,24 @@ public final class Point implements GsonSerializable {
         return direction;
     }
 
-    public synchronized Location toLocation() {
-        if (bukkitLocation == null) {
-            bukkitLocation = new Location(Helper.worldNullable(position.getWorld()), position.getX(), position.getY(), position.getZ(), direction.getYaw(), direction.getPitch());
-        }
-
-        return bukkitLocation.clone();
+    public VectorPoint add(double x, double y, double z) {
+        return of(position.add(x, y, z), direction);
     }
 
-    public VectorPoint toVectorPoint() {
-        return VectorPoint.of(this);
+    public VectorPoint subtract(double x, double y, double z) {
+        return of(position.sub(x, y, z), direction);
     }
 
-    public Point add(double x, double y, double z) {
-        return position.add(x, y, z).withDirection(direction);
-    }
-
-    public Point subtract(double x, double y, double z) {
-        return position.subtract(x, y, z).withDirection(direction);
+    public Point withWorld(String world) {
+        Preconditions.checkNotNull(world, "world");
+        return Point.of(Position.of(position, world), direction);
     }
 
     @Nonnull
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()
-                .addAll(position.serialize())
+                .addAll(VectorSerializers.serialize(position))
                 .addAll(direction.serialize())
                 .build();
     }
@@ -111,8 +105,8 @@ public final class Point implements GsonSerializable {
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;
-        if (!(o instanceof Point)) return false;
-        final Point other = (Point) o;
+        if (!(o instanceof VectorPoint)) return false;
+        final VectorPoint other = (VectorPoint) o;
         return this.getPosition().equals(other.getPosition()) && this.getDirection().equals(other.getDirection());
     }
 
@@ -129,6 +123,6 @@ public final class Point implements GsonSerializable {
 
     @Override
     public String toString() {
-        return "Point(position=" + this.getPosition() + ", direction=" + this.getDirection() + ")";
+        return "VectorPoint(position=" + this.getPosition() + ", direction=" + this.getDirection() + ")";
     }
 }
