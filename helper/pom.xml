@@ -12,11 +12,15 @@
 
     <artifactId>helper</artifactId>
     <packaging>jar</packaging>
-    <version>3.0.1</version>
+    <version>3.1.0</version>
 
     <name>helper</name>
     <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
     <url>https://github.com/lucko/helper</url>
+
+    <properties>
+        <shade.pattern>me.lucko.helper.external.</shade.pattern>
+    </properties>
 
     <build>
         <defaultGoal>clean package</defaultGoal>
@@ -75,12 +79,25 @@
                                 <includes>
                                     <include>com.flowpowered:flow-math</include>
                                     <include>co.aikar:minecraft-timings</include>
+                                    <include>ninja.leaping.configurate:configurate-core</include>
+                                    <include>ninja.leaping.configurate:configurate-yaml</include>
+                                    <include>ninja.leaping.configurate:configurate-gson</include>
+                                    <include>ninja.leaping.configurate:configurate-hocon</include>
+                                    <include>com.typesafe:config</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
                                 <relocation>
                                     <pattern>co.aikar.timings.lib</pattern>
                                     <shadedPattern>me.lucko.helper.timings</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>ninja.leaping.configurate</pattern>
+                                    <shadedPattern>me.lucko.helper.config</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.typesafe.config</pattern>
+                                    <shadedPattern>${shade.pattern}hocon</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -135,17 +152,81 @@
     </profiles>
 
     <dependencies>
+        <!-- flowpowered math -->
         <dependency>
             <groupId>com.flowpowered</groupId>
             <artifactId>flow-math</artifactId>
             <version>1.0.3</version>
             <scope>compile</scope>
         </dependency>
+        <!-- configurate -->
+        <dependency>
+            <groupId>ninja.leaping.configurate</groupId>
+            <artifactId>configurate-core</artifactId>
+            <version>3.3</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ninja.leaping.configurate</groupId>
+            <artifactId>configurate-yaml</artifactId>
+            <version>3.3</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>ninja.leaping.configurate</groupId>
+                    <artifactId>configurate-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.yaml</groupId>
+                    <artifactId>snakeyaml</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ninja.leaping.configurate</groupId>
+            <artifactId>configurate-gson</artifactId>
+            <version>3.3</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>ninja.leaping.configurate</groupId>
+                    <artifactId>configurate-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ninja.leaping.configurate</groupId>
+            <artifactId>configurate-hocon</artifactId>
+            <version>3.3</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>ninja.leaping.configurate</groupId>
+                    <artifactId>configurate-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- timings -->
         <dependency>
             <groupId>co.aikar</groupId>
             <artifactId>minecraft-timings</artifactId>
             <version>1.0.4</version>
             <scope>compile</scope>
+            <optional>true</optional>
             <exclusions>
                 <exclusion>
                     <groupId>org.jetbrains</groupId>
@@ -165,6 +246,7 @@
             <version>${bukkit.version}</version>
             <scope>provided</scope>
         </dependency>
+        <!-- protocollib -->
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
             <artifactId>ProtocolLib-API</artifactId>

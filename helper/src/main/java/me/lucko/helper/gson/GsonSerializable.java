@@ -67,6 +67,29 @@ public interface GsonSerializable {
     }
 
     /**
+     * Deserializes a JsonElement to a GsonSerializable object.
+     *
+     * @param clazz the GsonSerializable class
+     * @param element the json element to deserialize
+     * @return the deserialized object
+     * @throws IllegalStateException if the clazz does not have a deserialization method
+     */
+    @Nonnull
+    static GsonSerializable deserializeRaw(@Nonnull Class<?> clazz, @Nonnull JsonElement element) {
+        Method deserializeMethod = getDeserializeMethod(clazz);
+        if (deserializeMethod == null) {
+            throw new IllegalStateException("Class does not have a deserialize method accessible.");
+        }
+
+        try {
+            //noinspection unchecked
+            return (GsonSerializable) deserializeMethod.invoke(null, element);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Gets the deserialization method for a given class.
      *
      * @param clazz the class
