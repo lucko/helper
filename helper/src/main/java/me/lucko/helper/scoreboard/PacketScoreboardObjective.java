@@ -27,7 +27,7 @@ package me.lucko.helper.scoreboard;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.EnumWrappers.ScoreboardAction;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
@@ -48,30 +48,22 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 /**
- * Wrapper for PacketPlayOutScoreboardObjective, PacketPlayOutScoreboardScore and PacketPlayOutScoreboardDisplayObjective
- *
- * <p>http://wiki.vg/Protocol#Scoreboard_Objective</p>
- * <p>http://wiki.vg/Protocol#Update_Score</p>
- * <p>http://wiki.vg/Protocol#Display_Scoreboard</p>
+ * Implements {@link ScoreboardObjective} using ProtocolLib.
  */
 @NonnullByDefault
 public class PacketScoreboardObjective implements ScoreboardObjective {
-    // the objective value in the ScoreboardObjective packet is limited to 32 chars
-    private static final int MAX_NAME_LENGTH = 32;
 
-    /**
-     * Trims a objective name to the max length of {@link #MAX_NAME_LENGTH}
-     *
-     * @param name the name to trim
-     * @return a trimmed version of name
-     */
+    // the "Entity name" in the Update Score packet is limited to 40 chars
+    private static final int MAX_SCORE_LENGTH = 40;
+    private static String trimScore(String name) {
+        return name.length() > MAX_SCORE_LENGTH ? name.substring(0, MAX_SCORE_LENGTH) : name;
+    }
+
+    // the "Objective Value" in the ScoreboardObjective packet is limited to 32 chars
+    private static final int MAX_NAME_LENGTH = 32;
     private static String trimName(String name) {
         return name.length() > MAX_NAME_LENGTH ? name.substring(0, MAX_NAME_LENGTH) : name;
     }
-
-    private static final int MODE_CREATE = 0;
-    private static final int MODE_REMOVE = 1;
-    private static final int MODE_UPDATE = 2;
 
     // the parent scoreboard
     private final PacketScoreboard scoreboard;
@@ -118,13 +110,13 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     @Override
     public void setDisplayName(String displayName) {
         Preconditions.checkNotNull(displayName, "displayName");
-        displayName = Color.colorize(displayName);
+        displayName = trimName(Color.colorize(displayName));
         if (this.displayName.equals(displayName)) {
             return;
         }
 
         this.displayName = displayName;
-        scoreboard.broadcastPacket(subscribed, newObjectivePacket(MODE_UPDATE));
+        scoreboard.broadcastPacket(subscribed, newObjectivePacket(UpdateType.UPDATE));
     }
 
     @Override
@@ -135,7 +127,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     @Override
     public void setDisplaySlot(DisplaySlot displaySlot) {
         Preconditions.checkNotNull(displaySlot, "displaySlot");
-        if (this.displaySlot.equals(displaySlot)) {
+        if (this.displaySlot == displaySlot) {
             return;
         }
 
@@ -151,39 +143,39 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     @Override
     public boolean hasScore(String name) {
         Preconditions.checkNotNull(name, "name");
-        return scores.containsKey(Color.colorize(trimName(name)));
+        return scores.containsKey(trimScore(Color.colorize(name)));
     }
 
     @Nullable
     @Override
     public Integer getScore(String name) {
         Preconditions.checkNotNull(name, "name");
-        return scores.get(Color.colorize(trimName(name)));
+        return scores.get(trimScore(Color.colorize(name)));
     }
 
     @Override
     public void setScore(String name, int value) {
         Preconditions.checkNotNull(name, "name");
-        name = trimName(name);
+        name = trimScore(Color.colorize(name));
 
         Integer oldValue = scores.put(name, value);
         if (oldValue != null && oldValue == value) {
             return;
         }
 
-        scoreboard.broadcastPacket(subscribed, newScorePacket(name, value, false));
+        scoreboard.broadcastPacket(subscribed, newScorePacket(name, value, ScoreboardAction.REMOVE));
     }
 
     @Override
     public boolean removeScore(String name) {
         Preconditions.checkNotNull(name, "name");
-        name = trimName(name);
+        name = trimScore(Color.colorize(name));
 
         if (scores.remove(name) == null) {
             return false;
         }
 
-        scoreboard.broadcastPacket(subscribed, newScorePacket(name, 0, true));
+        scoreboard.broadcastPacket(subscribed, newScorePacket(name, 0, ScoreboardAction.REMOVE));
         return true;
     }
 
@@ -191,7 +183,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     public void clearScores() {
         scores.clear();
 
-        scoreboard.broadcastPacket(subscribed, newObjectivePacket(MODE_REMOVE));
+        scoreboard.broadcastPacket(subscribed, newObjectivePacket(UpdateType.REMOVE));
         for (Player player : subscribed) {
             subscribe(player);
         }
@@ -203,7 +195,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
         Set<String> toRemove = new HashSet<>(getScores().keySet());
         for (Map.Entry<String, Integer> score : scores.entrySet()) {
-            toRemove.remove(Color.colorize(trimName(score.getKey())));
+            toRemove.remove(trimScore(Color.colorize(score.getKey())));
         }
         for (String name : toRemove) {
             removeScore(name);
@@ -232,10 +224,10 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     @Override
     public void subscribe(Player player) {
         Preconditions.checkNotNull(player, "player");
-        scoreboard.sendPacket(newObjectivePacket(MODE_CREATE), player);
+        scoreboard.sendPacket(newObjectivePacket(UpdateType.CREATE), player);
         scoreboard.sendPacket(newDisplaySlotPacket(getDisplaySlot()), player);
         for (Map.Entry<String, Integer> score : getScores().entrySet()) {
-            scoreboard.sendPacket(newScorePacket(score.getKey(), score.getValue(), false), player);
+            scoreboard.sendPacket(newScorePacket(score.getKey(), score.getValue(), ScoreboardAction.CHANGE), player);
         }
         subscribed.add(player);
     }
@@ -252,59 +244,59 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
             return;
         }
 
-        scoreboard.sendPacket(newObjectivePacket(MODE_REMOVE), player);
+        scoreboard.sendPacket(newObjectivePacket(UpdateType.REMOVE), player);
     }
 
     @Override
     public void unsubscribeAll() {
-        scoreboard.broadcastPacket(subscribed, newObjectivePacket(MODE_REMOVE));
+        scoreboard.broadcastPacket(subscribed, newObjectivePacket(UpdateType.REMOVE));
         subscribed.clear();
     }
 
-    private PacketContainer newObjectivePacket(int mode) {
+    private PacketContainer newObjectivePacket(UpdateType mode) {
+        // http://wiki.vg/Protocol#Scoreboard_Objective
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SCOREBOARD_OBJECTIVE);
 
-        // set name
+        // set name - limited to String(16)
         packet.getStrings().write(0, getId());
 
-        // set display name
+        // set mode - 0 to create the scoreboard. 1 to remove the scoreboard. 2 to update the display text.
+        packet.getIntegers().write(0, mode.getCode());
+
+        // set display name - limited to String(16) - Only if mode is 0 or 2. The text to be displayed for the score
         packet.getStrings().write(1, getDisplayName());
 
-        // set health display
+        // set type - either "integer" or "hearts"
         packet.getEnumModifier(HealthDisplay.class, 2).write(0, HealthDisplay.INTEGER);
-
-        // set mode
-        packet.getIntegers().write(0, mode);
 
         return packet;
     }
 
-    private PacketContainer newScorePacket(String name, int value, boolean remove) {
+    private PacketContainer newScorePacket(String name, int value, ScoreboardAction action) {
+        // http://wiki.vg/Protocol#Update_Score
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SCOREBOARD_SCORE);
 
-        // set name
+        // set "Entity name" - aka the name of the score - limited to 40.
         packet.getStrings().write(0, name);
 
-        // set objective name
+        // set the action - 0 to create/update an item. 1 to remove an item.
+        packet.getScoreboardActions().write(0, action);
+
+        // set objective name - The name of the objective the score belongs to
         packet.getStrings().write(1, getId());
 
-        // set value
+        // set value of the score- The score to be displayed next to the entry. Only sent when Action does not equal 1.
         packet.getIntegers().write(0, value);
-
-        if (remove) {
-            packet.getScoreboardActions().write(0, EnumWrappers.ScoreboardAction.REMOVE);
-        } else {
-            packet.getScoreboardActions().write(0, EnumWrappers.ScoreboardAction.CHANGE);
-        }
 
         return packet;
     }
 
     private PacketContainer newDisplaySlotPacket(DisplaySlot displaySlot) {
+        // http://wiki.vg/Protocol#Display_Scoreboard
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SCOREBOARD_DISPLAY_OBJECTIVE);
 
         // set position
-        int slot;
+        final int slot;
         switch (displaySlot) {
             case PLAYER_LIST:
                 slot = 0;
@@ -316,15 +308,31 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
                 slot = 2;
                 break;
             default:
-                throw new IllegalStateException();
+                throw new RuntimeException();
         }
 
         packet.getIntegers().write(0, slot);
 
-        // set objective name
+        // set objective name - The unique name for the scoreboard to be displayed.
         packet.getStrings().write(0, getId());
 
         return packet;
+    }
+
+    private enum UpdateType {
+        CREATE(0),
+        REMOVE(1),
+        UPDATE(2);
+
+        private final int code;
+
+        UpdateType(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
     }
 
     private enum HealthDisplay {

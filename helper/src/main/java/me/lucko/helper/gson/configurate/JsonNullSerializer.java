@@ -29,9 +29,11 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonNull;
 
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 
 public class JsonNullSerializer implements TypeSerializer<JsonNull> {
+    private static final TypeToken<JsonNull> JSON_NULL_TYPE = TypeToken.of(JsonNull.class);
 
     public static final JsonNullSerializer INSTANCE = new JsonNullSerializer();
 
@@ -39,12 +41,18 @@ public class JsonNullSerializer implements TypeSerializer<JsonNull> {
     }
 
     @Override
-    public JsonNull deserialize(TypeToken<?> type, ConfigurationNode node) {
+    public JsonNull deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
+        if (!type.equals(JSON_NULL_TYPE)) {
+            throw new ObjectMappingException("Unable to map type: " + type.toString());
+        }
         return JsonNull.INSTANCE;
     }
 
     @Override
-    public void serialize(TypeToken<?> type, JsonNull jsonNull, ConfigurationNode node) {
+    public void serialize(TypeToken<?> type, JsonNull jsonNull, ConfigurationNode node) throws ObjectMappingException {
+        if (!type.equals(JSON_NULL_TYPE)) {
+            throw new ObjectMappingException("Unable to map type: " + type.toString());
+        }
         node.setValue(null);
     }
 

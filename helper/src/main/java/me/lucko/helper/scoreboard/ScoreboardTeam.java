@@ -27,6 +27,7 @@ package me.lucko.helper.scoreboard;
 
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.Set;
@@ -141,6 +142,20 @@ public interface ScoreboardTeam {
      * @param collisionRule the new setting
      */
     void setCollisionRule(CollisionRule collisionRule);
+
+    /**
+     * Gets the team color. - {@link ChatColor#RESET} by default.
+     *
+     * @return the team color
+     */
+    ChatColor getColor();
+
+    /**
+     * Sets the teams color.
+     *
+     * @param color the new color
+     */
+    void setColor(ChatColor color);
 
     /**
      * Adds a player to this team

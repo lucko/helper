@@ -48,7 +48,9 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 /**
- * A thread-safe scoreboard using ProtocolLib
+ * Implements {@link Scoreboard} using ProtocolLib.
+ *
+ * <p>This class as well as all returned instances are thread safe.</p>
  */
 @NonnullByDefault
 public class PacketScoreboard implements Scoreboard {

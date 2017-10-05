@@ -33,31 +33,36 @@ import com.google.common.collect.ImmutableSet;
 import me.lucko.helper.utils.Color;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
- * Packet wrapper for PacketPlayOutScoreboardTeam
- *
- * http://wiki.vg/Protocol#Teams
+ * Implements {@link ScoreboardTeam} using ProtocolLib.
  */
 @NonnullByDefault
 public class PacketScoreboardTeam implements ScoreboardTeam {
-    private static final int MODE_CREATE = 0;
-    private static final int MODE_REMOVE = 1;
-    private static final int MODE_UPDATE = 2;
-    private static final int MODE_ADD_PLAYERS = 3;
-    private static final int MODE_REMOVE_PLAYERS = 4;
 
-    // the name value in the Teams packet is limited to 16 chars
-    private static final int MAX_PREFIX_LENGTH = 16;
-    private static final int MAX_SUFFIX_LENGTH = MAX_PREFIX_LENGTH;
+    // the display name value in teams if limited to 32 chars
+    private static final int MAX_NAME_LENGTH = 32;
+    private static String trimName(String name) {
+        return name.length() > MAX_NAME_LENGTH ? name.substring(0, MAX_NAME_LENGTH) : name;
+    }
+
+    // the prefix/suffix value in the Teams packet is limited to 16 chars
+    private static final int MAX_PREFIX_SUFFIX_LENGTH = 16;
+    private static String trimPrefixSuffix(String name) {
+        return name.length() > MAX_PREFIX_SUFFIX_LENGTH ? name.substring(0, MAX_PREFIX_SUFFIX_LENGTH) : name;
+    }
 
     // the parent scoreboard
     private final PacketScoreboard scoreboard;
@@ -83,6 +88,8 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
     // the current collision rule
     private CollisionRule collisionRule = CollisionRule.ALWAYS;
+    // color
+    private ChatColor color = ChatColor.RESET;
 
     /**
      * Creates a new scoreboard team
@@ -112,7 +119,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     @Override
     public void setDisplayName(String displayName) {
         Preconditions.checkNotNull(displayName, "displayName");
-        displayName = Color.colorize(displayName);
+        displayName = trimName(Color.colorize(displayName));
         if (this.displayName.equals(displayName)) {
             return;
         }
@@ -129,10 +136,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     @Override
     public void setPrefix(String prefix) {
         Preconditions.checkNotNull(prefix, "prefix");
-        prefix = Color.colorize(prefix);
-        if (prefix.length() > MAX_PREFIX_LENGTH) {
-            prefix = prefix.substring(0, MAX_PREFIX_LENGTH);
-        }
+        prefix = trimPrefixSuffix(Color.colorize(prefix));
         if (this.prefix.equals(prefix)) {
             return;
         }
@@ -149,10 +153,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     @Override
     public void setSuffix(String suffix) {
         Preconditions.checkNotNull(suffix, "suffix");
-        suffix = Color.colorize(suffix);
-        if (suffix.length() > MAX_SUFFIX_LENGTH) {
-            suffix = suffix.substring(0, MAX_SUFFIX_LENGTH);
-        }
+        suffix = trimPrefixSuffix(Color.colorize(suffix));
         if (this.suffix.equals(suffix)) {
             return;
         }
@@ -199,7 +200,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     @Override
     public void setNameTagVisibility(NameTagVisibility nameTagVisibility) {
         Preconditions.checkNotNull(nameTagVisibility, "nameTagVisibility");
-        if (this.nameTagVisibility.equals(nameTagVisibility)) {
+        if (this.nameTagVisibility == nameTagVisibility) {
             return;
         }
 
@@ -215,11 +216,27 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     @Override
     public void setCollisionRule(CollisionRule collisionRule) {
         Preconditions.checkNotNull(collisionRule, "collisionRule");
-        if (this.collisionRule.equals(collisionRule)) {
+        if (this.collisionRule == collisionRule) {
             return;
         }
 
         this.collisionRule = collisionRule;
+        scoreboard.broadcastPacket(subscribed, newUpdatePacket());
+    }
+
+    @Override
+    public ChatColor getColor() {
+        return color;
+    }
+
+    @Override
+    public void setColor(ChatColor color) {
+        Preconditions.checkNotNull(color, "color");
+        if (this.color == color) {
+            return;
+        }
+
+        this.color = color;
         scoreboard.broadcastPacket(subscribed, newUpdatePacket());
     }
 
@@ -230,7 +247,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
             return false;
         }
 
-        scoreboard.broadcastPacket(subscribed, newPlayerPacket(player, false));
+        scoreboard.broadcastPacket(subscribed, newTeamMemberUpdatePacket(player, MemberAction.ADD));
         return true;
     }
 
@@ -241,7 +258,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
             return false;
         }
 
-        scoreboard.broadcastPacket(subscribed, newPlayerPacket(player, true));
+        scoreboard.broadcastPacket(subscribed, newTeamMemberUpdatePacket(player, MemberAction.REMOVE));
         return true;
     }
 
@@ -283,63 +300,59 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     }
 
     private PacketContainer newCreatePacket() {
+        // create an update packet (as that contains a number of values required by the create packet)
         PacketContainer packet = newUpdatePacket();
-        
-        // get players
+
+        // set mode - byte
+        packet.getIntegers().write(1, UpdateType.CREATE.getCode());
+
+        // add player info - array of String(40)
         List<String> players = new ArrayList<>();
         for (Player player : getPlayers()) {
             players.add(player.getName());
         }
 
-        // set players
+        // set players - ProtocolLib handles setting 'Entity Count'
         packet.getSpecificModifier(Collection.class).write(0, players);
-
-        // set mode
-        packet.getIntegers().write(1, MODE_CREATE);
         
         return packet;
     }
 
     private PacketContainer newRemovePacket() {
+        // http://wiki.vg/Protocol#Teams
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
 
-        // set name
+        // remove packet only has the default fields
+
+        // set team name - 	String (16)
         packet.getStrings().write(0, getId());
 
-        // set mode
-        packet.getIntegers().write(1, MODE_REMOVE);
+        // set mode - byte
+        packet.getIntegers().write(1, UpdateType.REMOVE.getCode());
 
         return packet;
     }
 
     private PacketContainer newUpdatePacket() {
+        // http://wiki.vg/Protocol#Teams
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
 
-        // set name
+        // set team name - 	String (16)
         packet.getStrings().write(0, getId());
 
-        // set display name
+        // set mode - byte
+        packet.getIntegers().write(1, UpdateType.UPDATE.getCode());
+
+        // set display name - String(32)
         packet.getStrings().write(1, getDisplayName());
 
-        // set prefix
+        // set prefix - String(16)
         packet.getStrings().write(2, getPrefix());
 
-        // set suffix
+        // set suffix - String(16)
         packet.getStrings().write(3, getSuffix());
 
-        // set nametag visibility
-        packet.getStrings().write(4, getNameTagVisibility().getProtocolName());
-
-        // set collision rule
-        packet.getStrings().write(5, getCollisionRule().getProtocolName());
-
-        // set color
-        packet.getIntegers().write(0, -1); // ChatColor RESET
-
-        // set mode
-        packet.getIntegers().write(1, MODE_UPDATE);
-
-        // pack option data
+        // set friendly flags - byte - Bit mask. 0x01: Allow friendly fire, 0x02: can see invisible entities on same team
         int data = 0;
         if (isAllowFriendlyFire()) {
             data |= 1;
@@ -348,29 +361,84 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
             data |= 2;
         }
 
-        // set pack data
         packet.getIntegers().write(2, data);
+
+        // set nametag visibility - String Enum (32)
+        packet.getStrings().write(4, getNameTagVisibility().getProtocolName());
+
+        // set collision rule - String Enum (32)
+        packet.getStrings().write(5, getCollisionRule().getProtocolName());
+
+        // set color - byte - For colors, the same Chat colors (0-15). -1 indicates RESET/no color.
+        packet.getIntegers().write(0, COLOR_CODES.getOrDefault(getColor(), -1));
+
+        return packet;
+    }
+
+    private PacketContainer newTeamMemberUpdatePacket(Player player, MemberAction action) {
+        // http://wiki.vg/Protocol#Teams
+        PacketContainer packet = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
+
+        // set team name - 	String (16)
+        packet.getStrings().write(0, getId());
+
+        // set mode
+        switch (action) {
+            case ADD:
+                packet.getIntegers().write(1, UpdateType.ADD_PLAYERS.getCode());
+                break;
+            case REMOVE:
+                packet.getIntegers().write(1, UpdateType.REMOVE_PLAYERS.getCode());
+                break;
+            default:
+                throw new RuntimeException();
+        }
+
+        // set players - Array of String (40)
+        packet.getSpecificModifier(Collection.class).write(0, Collections.singletonList(player.getName()));
         
         return packet;
     }
 
-    private PacketContainer newPlayerPacket(Player player, boolean remove) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
+    private enum MemberAction {
+        ADD, REMOVE
+    }
 
-        // set name
-        packet.getStrings().write(0, getId());
+    private enum UpdateType {
+        CREATE(0),
+        REMOVE(1),
+        UPDATE(2),
+        ADD_PLAYERS(3),
+        REMOVE_PLAYERS(4);
 
-        // set players
-        packet.getSpecificModifier(Collection.class).write(0, Collections.singletonList(player.getName()));
+        private final int code;
 
-        // set mode
-        if (remove) {
-            packet.getIntegers().write(1, MODE_REMOVE_PLAYERS);
-        } else {
-            packet.getIntegers().write(1, MODE_ADD_PLAYERS);
+        UpdateType(int code) {
+            this.code = code;
         }
-        
-        return packet;
+
+        public int getCode() {
+            return code;
+        }
+    }
+
+    // a map of colors --> their mojang code int
+    private static final Map<ChatColor, Integer> COLOR_CODES;
+
+    static {
+        Map<ChatColor, Integer> codes = new EnumMap<>(ChatColor.class);
+        try {
+            Field codeField = ChatColor.class.getDeclaredField("intCode");
+            codeField.setAccessible(true);
+            for (ChatColor color : ChatColor.values()) {
+                if (color.isColor()) {
+                    codes.put(color, codeField.getInt(color));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        COLOR_CODES = codes;
     }
 
 }
