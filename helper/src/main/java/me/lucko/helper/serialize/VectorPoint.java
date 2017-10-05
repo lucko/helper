@@ -34,8 +34,10 @@ import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.gson.JsonBuilder;
 
 import org.bukkit.Location;
+import org.bukkit.World;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * An immutable and serializable vector + direction object
@@ -67,6 +69,9 @@ public final class VectorPoint implements GsonSerializable {
     private final Vector3d position;
     private final Direction direction;
 
+    @Nullable
+    private Location bukkitLocation = null;
+
     private VectorPoint(Vector3d position, Direction direction) {
         this.position = position;
         this.direction = direction;
@@ -78,6 +83,14 @@ public final class VectorPoint implements GsonSerializable {
 
     public Direction getDirection() {
         return direction;
+    }
+
+    public synchronized Location toLocation(World world) {
+        if (bukkitLocation == null) {
+            bukkitLocation = new Location(world, position.getX(), position.getY(), position.getZ(), direction.getYaw(), direction.getPitch());
+        }
+
+        return bukkitLocation.clone();
     }
 
     public VectorPoint add(double x, double y, double z) {
