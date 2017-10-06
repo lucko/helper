@@ -49,6 +49,20 @@ public interface ScoreboardObjective {
     String getId();
 
     /**
+     * Gets if players should be automatically subscribed to this objective.
+     *
+     * @return true if players should be automatically subscribed
+     */
+    boolean shouldAutoSubscribe();
+
+    /**
+     * Sets if players should be automatically subscribed to this objective.
+     *
+     * @param autoSubscribe if players should be automatically subscribed
+     */
+    void setAutoSubscribe(boolean autoSubscribe);
+
+    /**
      * Gets the current display name of this objective
      *
      * @return the display name

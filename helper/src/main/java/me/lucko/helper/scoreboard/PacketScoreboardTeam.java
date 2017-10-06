@@ -64,13 +64,21 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
         return name.length() > MAX_PREFIX_SUFFIX_LENGTH ? name.substring(0, MAX_PREFIX_SUFFIX_LENGTH) : name;
     }
 
+    // the display name value in teams if limited to 40 chars
+    private static final int MAX_TEAM_MEMBER_LENGTH = 40;
+    private static String trimMember(String name) {
+        return name.length() > MAX_TEAM_MEMBER_LENGTH ? name.substring(0, MAX_TEAM_MEMBER_LENGTH) : name;
+    }
+
     // the parent scoreboard
     private final PacketScoreboard scoreboard;
     // the id of this team
     private final String id;
+    // if players should be automatically subscribed
+    private boolean autoSubscribe;
 
     // the members of this team
-    private final Set<Player> players = Collections.synchronizedSet(new HashSet<>());
+    private final Set<String> players = Collections.synchronizedSet(new HashSet<>());
     // a set of the players subscribed to & receiving updates for this team
     private final Set<Player> subscribed = Collections.synchronizedSet(new HashSet<>());
 
@@ -97,18 +105,41 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
      * @param scoreboard the parent scoreboard
      * @param id the id of this team
      * @param displayName the initial display name
+     * @param autoSubscribe if players should be automatically subscribed
      */
-    public PacketScoreboardTeam(PacketScoreboard scoreboard, String id, String displayName) {
+    public PacketScoreboardTeam(PacketScoreboard scoreboard, String id, String displayName, boolean autoSubscribe) {
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
 
         this.scoreboard = Preconditions.checkNotNull(scoreboard, "scoreboard");
         this.id = Preconditions.checkNotNull(id, "id");
         this.displayName = Color.colorize(Preconditions.checkNotNull(displayName, "displayName"));
+        this.autoSubscribe = autoSubscribe;
+    }
+
+    /**
+     * Creates a new scoreboard team
+     *
+     * @param scoreboard the parent scoreboard
+     * @param id the id of this team
+     * @param displayName the initial display name
+     */
+    public PacketScoreboardTeam(PacketScoreboard scoreboard, String id, String displayName) {
+        this(scoreboard, id, displayName, true);
     }
 
     @Override
     public String getId() {
         return id;
+    }
+
+    @Override
+    public boolean shouldAutoSubscribe() {
+        return autoSubscribe;
+    }
+
+    @Override
+    public void setAutoSubscribe(boolean autoSubscribe) {
+        this.autoSubscribe = autoSubscribe;
     }
 
     @Override
@@ -241,8 +272,9 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     }
 
     @Override
-    public boolean addPlayer(Player player) {
+    public boolean addPlayer(String player) {
         Preconditions.checkNotNull(player, "player");
+        player = trimMember(player);
         if (!players.add(player)) {
             return false;
         }
@@ -252,8 +284,9 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     }
 
     @Override
-    public boolean removePlayer(Player player) {
+    public boolean removePlayer(String player) {
         Preconditions.checkNotNull(player, "player");
+        player = trimMember(player);
         if (!players.remove(player)) {
             return false;
         }
@@ -263,13 +296,13 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     }
 
     @Override
-    public boolean hasPlayer(Player player) {
+    public boolean hasPlayer(String player) {
         Preconditions.checkNotNull(player, "player");
-        return players.contains(player);
+        return players.contains(trimMember(player));
     }
 
     @Override
-    public Set<Player> getPlayers() {
+    public Set<String> getPlayers() {
         return ImmutableSet.copyOf(players);
     }
 
@@ -307,10 +340,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
         packet.getIntegers().write(1, UpdateType.CREATE.getCode());
 
         // add player info - array of String(40)
-        List<String> players = new ArrayList<>();
-        for (Player player : getPlayers()) {
-            players.add(player.getName());
-        }
+        List<String> players = new ArrayList<>(getPlayers());
 
         // set players - ProtocolLib handles setting 'Entity Count'
         packet.getSpecificModifier(Collection.class).write(0, players);
@@ -375,7 +405,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
         return packet;
     }
 
-    private PacketContainer newTeamMemberUpdatePacket(Player player, MemberAction action) {
+    private PacketContainer newTeamMemberUpdatePacket(String player, MemberAction action) {
         // http://wiki.vg/Protocol#Teams
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
 
@@ -395,7 +425,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
         }
 
         // set players - Array of String (40)
-        packet.getSpecificModifier(Collection.class).write(0, Collections.singletonList(player.getName()));
+        packet.getSpecificModifier(Collection.class).write(0, Collections.singletonList(player));
         
         return packet;
     }

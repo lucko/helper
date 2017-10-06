@@ -25,6 +25,8 @@
 
 package me.lucko.helper.scoreboard;
 
+import com.google.common.base.Preconditions;
+
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.ChatColor;
@@ -44,6 +46,20 @@ public interface ScoreboardTeam {
      * @return the id
      */
     String getId();
+
+    /**
+     * Gets if players should be automatically subscribed to this team.
+     *
+     * @return true if players should be automatically subscribed
+     */
+    boolean shouldAutoSubscribe();
+
+    /**
+     * Sets if players should be automatically subscribed to this team.
+     *
+     * @param autoSubscribe if players should be automatically subscribed
+     */
+    void setAutoSubscribe(boolean autoSubscribe);
 
     /**
      * Gets the current display name of this team
@@ -163,7 +179,7 @@ public interface ScoreboardTeam {
      * @param player the player to add
      * @return true if the player was added successfully
      */
-    boolean addPlayer(Player player);
+    boolean addPlayer(String player);
 
     /**
      * Removes a player from this team
@@ -171,7 +187,7 @@ public interface ScoreboardTeam {
      * @param player the player to remove
      * @return true if the player was removed successfully
      */
-    boolean removePlayer(Player player);
+    boolean removePlayer(String player);
 
     /**
      * Returns true if the given player is a member of this team
@@ -179,14 +195,44 @@ public interface ScoreboardTeam {
      * @param player the player to check for
      * @return true if the player is a member
      */
-    boolean hasPlayer(Player player);
+    boolean hasPlayer(String player);
+
+    /**
+     * Adds a player to this team
+     *
+     * @param player the player to add
+     * @return true if the player was added successfully
+     */
+    default boolean addPlayer(Player player) {
+        return addPlayer(Preconditions.checkNotNull(player, "player").getName());
+    }
+
+    /**
+     * Removes a player from this team
+     *
+     * @param player the player to remove
+     * @return true if the player was removed successfully
+     */
+    default boolean removePlayer(Player player) {
+        return removePlayer(Preconditions.checkNotNull(player, "player").getName());
+    }
+
+    /**
+     * Returns true if the given player is a member of this team
+     *
+     * @param player the player to check for
+     * @return true if the player is a member
+     */
+    default boolean hasPlayer(Player player) {
+        return hasPlayer(Preconditions.checkNotNull(player, "player").getName());
+    }
 
     /**
      * Gets an immutable copy of the teams members
      *
      * @return the team members
      */
-    Set<Player> getPlayers();
+    Set<String> getPlayers();
 
     /**
      * Subscribes a player to this team

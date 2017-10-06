@@ -69,6 +69,8 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     private final PacketScoreboard scoreboard;
     // the id of this objective
     private final String id;
+    // if players should be automatically subscribed
+    private boolean autoSubscribe;
 
     // the current scores being shown
     private final Map<String, Integer> scores = Collections.synchronizedMap(new HashMap<>());
@@ -87,19 +89,43 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
      * @param id the id of this objective
      * @param displayName the initial display name
      * @param displaySlot the initial display slot
+     * @param autoSubscribe if players should be automatically subscribed
      */
-    public PacketScoreboardObjective(PacketScoreboard scoreboard, String id, String displayName, DisplaySlot displaySlot) {
+    public PacketScoreboardObjective(PacketScoreboard scoreboard, String id, String displayName, DisplaySlot displaySlot, boolean autoSubscribe) {
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
 
         this.scoreboard = Preconditions.checkNotNull(scoreboard, "scoreboard");
         this.id = Preconditions.checkNotNull(id, "id");
         this.displayName = Color.colorize(Preconditions.checkNotNull(displayName, "displayName"));
         this.displaySlot = Preconditions.checkNotNull(displaySlot, "displaySlot");
+        this.autoSubscribe = autoSubscribe;
+    }
+
+    /**
+     * Creates a new scoreboard objective
+     *
+     * @param scoreboard the parent scoreboard
+     * @param id the id of this objective
+     * @param displayName the initial display name
+     * @param displaySlot the initial display slot
+     */
+    public PacketScoreboardObjective(PacketScoreboard scoreboard, String id, String displayName, DisplaySlot displaySlot) {
+        this(scoreboard, id, displayName, displaySlot, true);
     }
 
     @Override
     public String getId() {
         return id;
+    }
+
+    @Override
+    public boolean shouldAutoSubscribe() {
+        return autoSubscribe;
+    }
+
+    @Override
+    public void setAutoSubscribe(boolean autoSubscribe) {
+        this.autoSubscribe = autoSubscribe;
     }
 
     @Override
