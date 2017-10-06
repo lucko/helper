@@ -47,6 +47,43 @@ public final class Terminables {
         return registry;
     }
 
+    @Nonnull
+    public static Terminable combine(@Nonnull Iterable<Terminable> terminables) {
+        TerminableRegistry registry = TerminableRegistry.create();
+        for (Terminable terminable : terminables) {
+            terminable.bindWith(registry);
+        }
+        return registry;
+    }
+
+    public static void silentlyTerminate(Terminable... terminables) {
+        for (Terminable t : terminables) {
+            if (t == null) {
+                continue;
+            }
+
+            try {
+                t.terminate();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void silentlyTerminate(Iterable<? extends Terminable> terminables) {
+        for (Terminable t : terminables) {
+            if (t == null) {
+                continue;
+            }
+
+            try {
+                t.terminate();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private Terminables() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
