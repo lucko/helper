@@ -264,8 +264,8 @@ public interface ScoreboardTeam {
     enum CollisionRule {
         ALWAYS("always"),
         NEVER("never"),
-        HIDE_FOR_OTHER_TEAMS("pushOtherTeams"),
-        HIDE_FOR_OWN_TEAM("pushOwnTeam");
+        PUSH_OTHER_TEAMS("pushOtherTeams"),
+        PUSH_OWN_TEAM("pushOwnTeam");
 
         private final String protocolName;
 
