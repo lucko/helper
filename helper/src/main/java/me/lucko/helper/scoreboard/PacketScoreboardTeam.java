@@ -108,11 +108,12 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
      * @param autoSubscribe if players should be automatically subscribed
      */
     public PacketScoreboardTeam(PacketScoreboard scoreboard, String id, String displayName, boolean autoSubscribe) {
+        Preconditions.checkNotNull(id, "id");
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
 
         this.scoreboard = Preconditions.checkNotNull(scoreboard, "scoreboard");
-        this.id = Preconditions.checkNotNull(id, "id");
-        this.displayName = Color.colorize(Preconditions.checkNotNull(displayName, "displayName"));
+        this.id = id;
+        this.displayName = trimName(Color.colorize(Preconditions.checkNotNull(displayName, "displayName")));
         this.autoSubscribe = autoSubscribe;
     }
 
