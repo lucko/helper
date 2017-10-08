@@ -200,6 +200,34 @@ public final class Events {
     }
 
     /**
+     * Submit the event on the current thread
+     *
+     * @param event the event to call
+     */
+    public static <T extends Event> T callAndReturn(T event) {
+        Helper.plugins().callEvent(event);
+        return event;
+    }
+
+    /**
+     * Submit the event on a new async thread.
+     *
+     * @param event the event to call
+     */
+    public static <T extends Event> T callAsyncAndJoin(T event) {
+        return Scheduler.supplyAsync(() -> callAndReturn(event)).join();
+    }
+
+    /**
+     * Submit the event on the main server thread.
+     *
+     * @param event the event to call
+     */
+    public static <T extends Event> T callSyncAndJoin(T event) {
+        return Scheduler.supplySync(() -> callAndReturn(event)).join();
+    }
+
+    /**
      * Responsible for the handling of a given event
      *
      * @param <T> the event type

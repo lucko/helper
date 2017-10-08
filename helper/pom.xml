@@ -12,7 +12,7 @@
 
     <artifactId>helper</artifactId>
     <packaging>jar</packaging>
-    <version>3.1.2</version>
+    <version>3.1.3</version>
 
     <name>helper</name>
     <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
@@ -79,6 +79,7 @@
                                 <includes>
                                     <include>com.flowpowered:flow-math</include>
                                     <include>co.aikar:minecraft-timings</include>
+                                    <include>net.kyori:text</include>
                                     <include>ninja.leaping.configurate:configurate-core</include>
                                     <include>ninja.leaping.configurate:configurate-yaml</include>
                                     <include>ninja.leaping.configurate:configurate-gson</include>
@@ -98,6 +99,10 @@
                                 <relocation>
                                     <pattern>com.typesafe.config</pattern>
                                     <shadedPattern>${shade.pattern}hocon</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.kyori.text</pattern>
+                                    <shadedPattern>me.lucko.helper.text</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -217,6 +222,28 @@
                 <exclusion>
                     <groupId>ninja.leaping.configurate</groupId>
                     <artifactId>configurate-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- text -->
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>text</artifactId>
+            <version>1.11-1.3.0</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>jsr305</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
