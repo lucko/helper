@@ -50,7 +50,7 @@ public final class NmsUtil {
             // check we're dealing with a craftbukkit implementation.
             if (obcPackage.startsWith("org.bukkit.craftbukkit.")) {
                 // return the nms version.
-                serverVersion = obcPackage.substring("org.bukkit.craftbukkit".length());
+                serverVersion = obcPackage.substring("org.bukkit.craftbukkit.".length());
             }
         }
 
