@@ -66,6 +66,10 @@ public final class TextUtils {
         BukkitTextUtils.sendJsonMessage(sender, message);
     }
 
+    public static void sendMessage(Iterable<CommandSender> senders, Component message) {
+        BukkitTextUtils.sendJsonMessage(senders, message);
+    }
+
     private TextUtils() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }

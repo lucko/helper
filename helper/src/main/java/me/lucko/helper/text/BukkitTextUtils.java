@@ -36,6 +36,7 @@ import org.bukkit.entity.Player;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collections;
 
 /**
  * Utility for sending JSON components to players.
@@ -106,38 +107,79 @@ class BukkitTextUtils {
             setup = true;
             return true;
         } catch (Throwable e) {
+            e.printStackTrace();
             triedAndFailed = true;
             return false;
         }
     }
 
-    private static boolean sendJsonMessage(Player player, String json) {
+    private static Object serializeJsonMessage(Player player, Component message) {
+        if (!trySetup(player)) {
+            return false;
+        }
+
+        try {
+            return PACKET_CHAT_CONSTRUCTOR.newInstance(SERIALIZE_METHOD.invoke(null, ComponentSerializers.JSON.serialize(message)));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static boolean sendJsonMessage(Player player, Object packet) {
         if (!trySetup(player)) {
             return false;
         }
 
         try {
             Object connection = PLAYER_CONNECTION_FIELD.get(GET_HANDLE_METHOD.invoke(player));
-            SEND_PACKET_METHOD.invoke(connection, PACKET_CHAT_CONSTRUCTOR.newInstance(SERIALIZE_METHOD.invoke(null, json)));
+            SEND_PACKET_METHOD.invoke(connection, packet);
             return true;
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
 
     public static void sendJsonMessage(CommandSender sender, Component message) {
-        if (CHAT_COMPATIBLE && sender instanceof Player) {
-            Player player = (Player) sender;
-            String json = ComponentSerializers.JSON.serialize(message);
+        sendJsonMessage(Collections.singleton(sender), message);
+    }
 
-            // Try Bukkit.
-            if (sendJsonMessage(player, json)) {
-                return;
+    public static void sendJsonMessage(Iterable<CommandSender> senders, Component message) {
+        Object packet = null;
+        boolean tried = false;
+        String legacy = null;
+
+        for (CommandSender sender : senders) {
+
+            attempt:
+            if (CHAT_COMPATIBLE && sender instanceof Player) {
+                Player player = (Player) sender;
+
+                if (!tried) {
+                    tried = true;
+                    packet = serializeJsonMessage(player, message);
+                }
+
+                // give up
+                if (packet == null) {
+                    break attempt;
+                }
+
+                // Try Bukkit.
+                if (sendJsonMessage(player, packet)) {
+                    break attempt;
+                }
+
+                continue;
             }
-        }
 
-        // Fallback to Bukkit
-        sender.sendMessage(TextUtils.toLegacy(message));
+            // Fallback to Bukkit
+            if (legacy == null) {
+                legacy = TextUtils.toLegacy(message);
+            }
+            sender.sendMessage(legacy);
+        }
     }
 
 }
