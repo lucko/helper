@@ -166,15 +166,16 @@ class BukkitTextUtils {
                     break attempt;
                 }
 
-                // Try Bukkit.
-                if (sendJsonMessage(player, packet)) {
+                // try sending
+                if (!sendJsonMessage(player, packet)) {
                     break attempt;
                 }
 
+                // sent successfully, process the next sender
                 continue;
             }
 
-            // Fallback to Bukkit
+            // Fallback to legacy text
             if (legacy == null) {
                 legacy = TextUtils.toLegacy(message);
             }
