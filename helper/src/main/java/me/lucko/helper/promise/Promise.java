@@ -25,6 +25,7 @@
 
 package me.lucko.helper.promise;
 
+import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.utils.Delegates;
 
 import java.util.concurrent.CancellationException;
@@ -50,7 +51,7 @@ import javax.annotation.Nullable;
  *
  * @param <V> the result type
  */
-public interface Promise<V> extends Future<V> {
+public interface Promise<V> extends Future<V>, Terminable {
 
     /**
      * Returns a new empty Promise
