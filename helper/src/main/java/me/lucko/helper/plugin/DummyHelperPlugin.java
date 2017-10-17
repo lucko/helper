@@ -36,8 +36,6 @@ import org.bukkit.plugin.Plugin;
  * Really just an alternative to shading it into another project.
  */
 public class DummyHelperPlugin extends ExtendedJavaPlugin {
-    private static final String[] ADDON_PLUGINS = {"helper-sql", "helper-redis", "helper-mongo", "helper-lilypad"};
-
     public DummyHelperPlugin() {
         getLogger().info("Initialized helper v" + getDescription().getVersion());
     }
@@ -48,14 +46,9 @@ public class DummyHelperPlugin extends ExtendedJavaPlugin {
         Commands.create()
                 .handler(c -> {
                     Players.msg(c.sender(), "&7[&6helper&7] &7Running &6helper v" + getDescription().getVersion() + "&7.");
-
-                    for (String addonName : ADDON_PLUGINS) {
-                        if (Helper.plugins().isPluginEnabled(addonName)) {
-                            Plugin pl = getPlugin(addonName, Plugin.class);
-                            if (pl == null) {
-                                continue;
-                            }
-                            Players.msg(c.sender(), "&7[&6helper&7] &7Running &6" + addonName + " v" + pl.getDescription().getVersion() + "&7.");
+                    for (Plugin pl : Helper.plugins().getPlugins()) {
+                        if (pl.getName().toLowerCase().startsWith("helper-")) {
+                            Players.msg(c.sender(), "&7[&6helper&7] &7Running &6" + pl.getName() + " v" + pl.getDescription().getVersion() + "&7.");
                         }
                     }
                 })
