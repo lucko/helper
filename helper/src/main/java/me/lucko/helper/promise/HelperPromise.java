@@ -177,6 +177,16 @@ class HelperPromise<V> implements Promise<V> {
         return fut.thenApply(Function.identity());
     }
 
+    @Override
+    public boolean terminate() {
+        return cancel();
+    }
+
+    @Override
+    public boolean hasTerminated() {
+        return isCancelled();
+    }
+
     /* implementation */
 
     @Nonnull
