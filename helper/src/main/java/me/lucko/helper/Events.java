@@ -426,7 +426,7 @@ public final class Events {
          * @throws NullPointerException if the handler is null
          */
         default Handler<T> handler(Consumer<? super T> handler) {
-            return handler(Delegates.consumerToBiConsumerSecond(handler));
+            return biHandler(Delegates.consumerToBiConsumerSecond(handler));
         }
 
         /**
@@ -436,7 +436,7 @@ public final class Events {
          * @return a registered {@link Handler} instance.
          * @throws NullPointerException if the handler is null
          */
-        Handler<T> handler(BiConsumer<Handler<T>, ? super T> handler);
+        Handler<T> biHandler(BiConsumer<Handler<T>, ? super T> handler);
 
     }
 
@@ -556,7 +556,7 @@ public final class Events {
          * @throws IllegalStateException if no events have been bound to
          */
         default MergedHandler<T> handler(Consumer<? super T> handler) {
-            return handler(Delegates.consumerToBiConsumerSecond(handler));
+            return biHandler(Delegates.consumerToBiConsumerSecond(handler));
         }
 
         /**
@@ -567,7 +567,7 @@ public final class Events {
          * @throws NullPointerException  if the handler is null
          * @throws IllegalStateException if no events have been bound to
          */
-        MergedHandler<T> handler(BiConsumer<MergedHandler<T>, ? super T> handler);
+        MergedHandler<T> biHandler(BiConsumer<MergedHandler<T>, ? super T> handler);
 
     }
 
@@ -1012,7 +1012,7 @@ public final class Events {
         }
 
         @Override
-        public Handler<T> handler(BiConsumer<Handler<T>, ? super T> handler) {
+        public Handler<T> biHandler(BiConsumer<Handler<T>, ? super T> handler) {
             Preconditions.checkNotNull(handler, "handler");
 
             HelperEventHandler<T> impl = new HelperEventHandler<>(this, handler);
@@ -1123,7 +1123,7 @@ public final class Events {
         }
 
         @Override
-        public MergedHandler<T> handler(BiConsumer<MergedHandler<T>, ? super T> handler) {
+        public MergedHandler<T> biHandler(BiConsumer<MergedHandler<T>, ? super T> handler) {
             Preconditions.checkNotNull(handler, "handler");
 
             if (mappings.isEmpty()) {

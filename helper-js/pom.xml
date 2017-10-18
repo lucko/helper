@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>helper-parent</artifactId>
+        <groupId>me.lucko</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>helper-js</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0.0</version>
+
+    <name>helper-js</name>
+    <description>JavaScript plugins using Nashorn.</description>
+    <url>https://github.com/lucko/helper</url>
+
+    <build>
+        <defaultGoal>clean package</defaultGoal>
+        <finalName>${project.name}</finalName>
+        <resources>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>*.yml</include>
+                </includes>
+            </resource>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>header.js</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>../</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>LICENSE.txt</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${compiler.version}</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- helper related dependencies -->
+        <dependency>
+            <groupId>me.lucko</groupId>
+            <artifactId>helper</artifactId>
+            <version>3.1.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
+            <version>${bukkit.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+</project>

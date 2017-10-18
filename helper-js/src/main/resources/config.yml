@@ -1,0 +1,10 @@
+# helper-js config
+
+# Where the root script directory is located
+script-directory: 'plugins/helper-js/js/'
+
+# The initialisation script - loaded when the plugin starts
+init-script: 'init.js'
+
+# How often to refresh the scripts
+refresh-interval: 20

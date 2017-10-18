@@ -1,0 +1,5 @@
+name: helper-js
+version: ${project.version}
+main: me.lucko.helper.js.HelperJsPlugin
+description: JavaScript plugins powered by helper.
+depend: [helper]
