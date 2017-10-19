@@ -27,9 +27,12 @@ package me.lucko.helper.js;
 
 import com.google.common.reflect.TypeToken;
 
+import me.lucko.helper.js.bindings.GeneralScriptBindings;
 import me.lucko.helper.js.bindings.SystemScriptBindings;
 import me.lucko.helper.js.exports.ScriptExportRegistry;
 import me.lucko.helper.js.plugin.ScriptPlugin;
+import me.lucko.helper.menu.scheme.MenuScheme;
+import me.lucko.helper.menu.scheme.SchemeMapping;
 import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.utils.Color;
 
@@ -43,6 +46,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 import javax.script.Bindings;
@@ -101,6 +105,11 @@ public class HelperScriptBindings implements SystemScriptBindings {
         // some util functions
         bindings.put("colorize", (Function<Object, String>) HelperScriptBindings::colorize);
         bindings.put("newMetadataKey", (Function<Object, MetadataKey>) HelperScriptBindings::newMetadataKey);
+        bindings.put("newScheme", (Supplier<MenuScheme>) HelperScriptBindings::newScheme);
+        bindings.put("newScheme", (Function<SchemeMapping, MenuScheme>) HelperScriptBindings::newScheme);
+
+        // some general functions for working with java collections in js
+        GeneralScriptBindings.appendTo(bindings);
 
         // provide hook into the resolvePackageWildcard method below, used by the importWildcardPackage function
         bindings.put("resolvePackageWildcard", (Function<String, List<String>>) HelperScriptBindings::resolvePackageWildcard);
@@ -112,6 +121,14 @@ public class HelperScriptBindings implements SystemScriptBindings {
 
     private static <T> MetadataKey<T> newMetadataKey(Object id) {
         return MetadataKey.create(id.toString(), new TypeToken<T>(){});
+    }
+
+    private static MenuScheme newScheme() {
+        return new MenuScheme();
+    }
+
+    private static MenuScheme newScheme(SchemeMapping mapping) {
+        return new MenuScheme(mapping);
     }
 
     private static List<String> resolvePackageWildcard(String name) {
