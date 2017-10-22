@@ -12,7 +12,7 @@
 
     <artifactId>helper-js</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 
     <name>helper-js</name>
     <description>JavaScript plugins using Nashorn.</description>
