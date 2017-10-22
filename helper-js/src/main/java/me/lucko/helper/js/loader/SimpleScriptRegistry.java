@@ -27,7 +27,7 @@ package me.lucko.helper.js.loader;
 
 import me.lucko.helper.js.script.Script;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +37,7 @@ import javax.annotation.Nullable;
 
 class SimpleScriptRegistry implements ScriptRegistry {
 
-    private Map<File, Script> scripts = new HashMap<>();
+    private Map<Path, Script> scripts = new HashMap<>();
 
     @Override
     public void register(@Nonnull Script script) {
@@ -51,13 +51,13 @@ class SimpleScriptRegistry implements ScriptRegistry {
 
     @Nullable
     @Override
-    public Script getScript(@Nonnull File file) {
-        return scripts.get(file);
+    public Script getScript(@Nonnull Path path) {
+        return scripts.get(path);
     }
 
     @Nonnull
     @Override
-    public Map<File, Script> getAll() {
+    public Map<Path, Script> getAll() {
         return Collections.unmodifiableMap(scripts);
     }
 

@@ -28,7 +28,7 @@ package me.lucko.helper.js.loader;
 import me.lucko.helper.js.script.Script;
 import me.lucko.helper.terminable.Terminable;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
@@ -59,13 +59,13 @@ public interface ScriptRegistry extends Terminable {
     void unregister(@Nonnull Script script);
 
     /**
-     * Gets a script by file
+     * Gets a script by path
      *
-     * @param file the file
+     * @param path the path
      * @return a script for the file, or null
      */
     @Nullable
-    Script getScript(@Nonnull File file);
+    Script getScript(@Nonnull Path path);
 
     /**
      * Gets all scripts known to this registry
@@ -73,6 +73,6 @@ public interface ScriptRegistry extends Terminable {
      * @return the scripts
      */
     @Nonnull
-    Map<File, Script> getAll();
+    Map<Path, Script> getAll();
 
 }

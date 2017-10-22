@@ -36,7 +36,9 @@ import me.lucko.helper.terminable.registry.TerminableRegistry;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import java.io.File;
-import java.io.FileReader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -61,9 +63,7 @@ public class HelperScript implements Script {
     // the name of this script
     private final String name;
     // the associated script file
-    private final File file;
-    // the time when a dependency was last loaded
-    private long dependencyLastLoad;
+    private final Path file;
 
     // the loader instance handling this script
     private final ScriptLoader loader;
@@ -74,16 +74,15 @@ public class HelperScript implements Script {
     // the terminable registry used by this script
     private final TerminableRegistry terminableRegistry = TerminableRegistry.create();
     // the scripts dependencies
-    private final Set<File> depends = new HashSet<>();
+    private final Set<Path> depends = new HashSet<>();
 
-    public HelperScript(@Nonnull String name, @Nonnull File file, long dependencyLastLoad, @Nonnull ScriptLoader loader, @Nonnull SystemScriptBindings systemBindings) {
+    public HelperScript(@Nonnull String name, @Nonnull Path file, @Nonnull ScriptLoader loader, @Nonnull SystemScriptBindings systemBindings) {
         if (name.endsWith(".js")) {
             this.name = name.substring(0, name.lastIndexOf('.'));
         } else {
             this.name = name;
         }
         this.file = file;
-        this.dependencyLastLoad = dependencyLastLoad;
         this.loader = loader;
         this.systemBindings = systemBindings;
         this.logger = new SimpleScriptLogger(this);
@@ -98,32 +97,8 @@ public class HelperScript implements Script {
 
     @Nonnull
     @Override
-    public File getFile() {
+    public Path getFile() {
         return file;
-    }
-
-    @Override
-    public long getLastModified() {
-        long lastModified = 0;
-
-        for (File depend : depends) {
-            try {
-                // avoid a caching issue
-                new FileReader(depend).close();
-            } catch (Exception ignored) { }
-
-            long dependLastModified = depend.lastModified();
-            if (dependLastModified > lastModified) {
-                lastModified = dependLastModified;
-            }
-        }
-
-        return lastModified;
-    }
-
-    @Override
-    public long getLatestDependencyLoad() {
-        return dependencyLastLoad;
     }
 
     @Nonnull
@@ -152,10 +127,10 @@ public class HelperScript implements Script {
             bindings.put("logger", logger);
 
             // the path of the script file (current working directory)
-            bindings.put("cwd", stripDotSlash(file.getAbsolutePath()));
+            bindings.put("cwd", file.normalize().toString());
 
             // the root scripts directory
-            bindings.put("rsd", stripDotSlash(loader.getDirectory().getAbsolutePath()) + "/");
+            bindings.put("rsd", loader.getDirectory().normalize().toString() + "/");
 
             // function to depend on another script
             bindings.put("depend", (Consumer<String>) this::depend);
@@ -171,8 +146,8 @@ public class HelperScript implements Script {
             engine.eval(systemBindings.getPlugin().getScriptHeader(), context);
 
             // load the script
-            String path = stripDotSlash(file.getPath());
-            engine.eval("__load(\"" + path + "\");", context);
+            Path scriptFile = new File("").toPath().relativize(file);
+            engine.eval("__load(\"" + scriptFile.toString() + "\");", context);
 
         } catch (Throwable t) {
             t.printStackTrace();
@@ -180,14 +155,19 @@ public class HelperScript implements Script {
     }
 
     @Override
-    public void depend(@Nonnull File file) {
-        if (this.file.getAbsolutePath().equals(file.getAbsolutePath())) {
-            return;
-        }
+    public Set<Path> getDependencies() {
+        return Collections.unmodifiableSet(depends);
+    }
 
-        long lastModified = file.lastModified();
-        if (lastModified > this.dependencyLastLoad) {
-            this.dependencyLastLoad = lastModified;
+    @Override
+    public void depend(@Nonnull String file) {
+        depend(Paths.get(file));
+    }
+
+    @Override
+    public void depend(@Nonnull Path file) {
+        if (this.file.equals(file)) {
+            return;
         }
 
         depends.add(file);
@@ -198,13 +178,6 @@ public class HelperScript implements Script {
         loader.terminate();
         terminableRegistry.terminate();
         return true;
-    }
-
-    private static String stripDotSlash(String string) {
-        if (string.startsWith("./")) {
-            string = string.substring(2);
-        }
-        return string.replace("\\", "/");
     }
 
 }

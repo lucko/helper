@@ -27,7 +27,7 @@ package me.lucko.helper.js.loader;
 
 import me.lucko.helper.terminable.Terminable;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -75,6 +75,6 @@ public interface ScriptLoader extends Terminable {
      *
      * @return the root dir
      */
-    File getDirectory();
+    Path getDirectory();
 
 }

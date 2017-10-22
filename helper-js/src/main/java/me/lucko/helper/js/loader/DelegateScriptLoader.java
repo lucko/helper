@@ -25,10 +25,10 @@
 
 package me.lucko.helper.js.loader;
 
-import java.io.File;
-import java.util.ArrayList;
+import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
@@ -39,7 +39,7 @@ import javax.annotation.Nonnull;
 public class DelegateScriptLoader implements ScriptLoader {
 
     private ScriptLoader parent;
-    private List<String> files = new ArrayList<>();
+    private Set<String> files = new HashSet<>();
 
     public DelegateScriptLoader(@Nonnull ScriptLoader parent) {
         this.parent = parent;
@@ -47,30 +47,37 @@ public class DelegateScriptLoader implements ScriptLoader {
 
     @Override
     public void watchAll(@Nonnull Collection<String> c) {
-        c = new ArrayList<>(c);
-        c.removeAll(files);
+        for (String s : c) {
+            if (files.contains(s)) {
+                continue;
+            }
 
-        files.addAll(c);
-        parent.watchAll(c);
+            files.add(s);
+            parent.watch(s);
+        }
     }
 
     @Override
     public void unwatchAll(@Nonnull Collection<String> c) {
-        c = new ArrayList<>(c);
-        c.retainAll(files);
+        for (String s : c) {
+            if (!files.contains(s)) {
+                continue;
+            }
 
-        files.removeAll(c);
-        parent.unwatchAll(c);
+            files.remove(s);
+            parent.unwatch(s);
+        }
     }
 
     @Override
-    public File getDirectory() {
+    public Path getDirectory() {
         return parent.getDirectory();
     }
 
     @Override
     public boolean terminate() {
-        unwatchAll(files);
+        parent.unwatchAll(files);
+        files.clear();
         return true;
     }
 }

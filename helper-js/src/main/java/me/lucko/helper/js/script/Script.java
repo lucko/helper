@@ -28,7 +28,8 @@ package me.lucko.helper.js.script;
 import me.lucko.helper.js.bindings.SystemScriptBindings;
 import me.lucko.helper.terminable.Terminable;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
@@ -51,21 +52,7 @@ public interface Script extends Terminable, Runnable {
      * @return the file
      */
     @Nonnull
-    File getFile();
-
-    /**
-     * Gets the most recent time when this script or a dependency was load modified.
-     *
-     * @return the most recent modification time
-     */
-    long getLastModified();
-
-    /**
-     * Gets the most recent time when a dependency of this script was loaded.
-     *
-     * @return the latest dependency load time
-     */
-    long getLatestDependencyLoad();
+    Path getFile();
 
     /**
      * Gets the initial bindings used by this script
@@ -84,19 +71,24 @@ public interface Script extends Terminable, Runnable {
     ScriptLogger getLogger();
 
     /**
-     * Marks that this script depends on another script.
+     * Gets the other scripts depended on by this script.
      *
-     * @param file the other script
+     * @return this scripts dependencies
      */
-    default void depend(@Nonnull String file) {
-        depend(new File(file));
-    }
+    Set<Path> getDependencies();
 
     /**
      * Marks that this script depends on another script.
      *
      * @param file the other script
      */
-    void depend(@Nonnull File file);
+    void depend(@Nonnull String file);
+
+    /**
+     * Marks that this script depends on another script.
+     *
+     * @param file the other script
+     */
+    void depend(@Nonnull Path file);
 
 }
