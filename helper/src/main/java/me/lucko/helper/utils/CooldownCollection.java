@@ -29,9 +29,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.gson.JsonObject;
 
+import me.lucko.helper.gson.JsonBuilder;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -82,10 +85,12 @@ public class CooldownCollection<T> {
         return new CooldownCollection<>(Object::toString, base);
     }
 
+    protected final Cooldown base;
     protected final LoadingCache<String, Cooldown> cache;
     protected final Function<T, String> mappingFunc;
 
     private CooldownCollection(Function<T, String> mappingFunc, Cooldown base) {
+        this.base = base;
         cache = CacheBuilder.newBuilder()
                 // remove from the cache 10 seconds after the cooldown expires
                 .expireAfterAccess(base.getTimeout() + 10000L, TimeUnit.MILLISECONDS)
@@ -109,6 +114,15 @@ public class CooldownCollection<T> {
      */
     public Cooldown get(T t) {
         return cache.getUnchecked(mappingFunc.apply(t));
+    }
+
+    /**
+     * Gets the cooldowns contained within this collection.
+     *
+     * @return the backing map
+     */
+    public Map<String, Cooldown> getAll() {
+        return cache.asMap();
     }
 
     /* methods from Cooldown */
@@ -136,4 +150,33 @@ public class CooldownCollection<T> {
     public long remainingTime(T t, TimeUnit unit) {
         return get(t).remainingTime(unit);
     }
+
+    /**
+     * Loads a JsonObject of keys mapped to the last "test" time into this
+     * collection.
+     *
+     * @param data the data to load
+     */
+    public void load(JsonObject data) {
+        data.entrySet().forEach(e -> {
+            Cooldown val = base.copy();
+            val.setLastTested(e.getValue().getAsLong());
+            cache.put(e.getKey(), val);
+        });
+    }
+
+    /**
+     * Serializes the contained data into a {@link JsonObject} for saving.
+     *
+     * @return the resultant object
+     */
+    public JsonObject save() {
+        return cache.asMap().entrySet().stream()
+                .filter(e -> e.getValue().getLastTested().isPresent())
+                .collect(JsonBuilder.collectToObject(
+                        Map.Entry::getKey,
+                        s -> JsonBuilder.primitive(s.getValue().getLastTested().getAsLong())
+                ));
+    }
+
 }
