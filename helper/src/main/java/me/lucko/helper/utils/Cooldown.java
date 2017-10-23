@@ -27,6 +27,7 @@ package me.lucko.helper.utils;
 
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
+import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
@@ -58,14 +59,14 @@ public class Cooldown implements LongSupplier {
     }
 
     // when the last test occurred.
-    protected long lastCalled;
+    protected long lastTested;
 
     // the cooldown duration in millis
     protected final long timeout;
 
     private Cooldown(long amount, TimeUnit unit) {
         timeout = unit.toMillis(amount);
-        lastCalled = 0;
+        lastTested = 0;
     }
 
     /**
@@ -99,14 +100,14 @@ public class Cooldown implements LongSupplier {
      * @return the elapsed time
      */
     public long elapsed() {
-        return TimeUtil.now() - lastCalled;
+        return TimeUtil.now() - lastTested;
     }
 
     /**
      * Resets the cooldown
      */
     public void reset() {
-        lastCalled = TimeUtil.now();
+        lastTested = TimeUtil.now();
     }
 
     /**
@@ -155,4 +156,30 @@ public class Cooldown implements LongSupplier {
     public Cooldown copy() {
         return new Cooldown(timeout, TimeUnit.MILLISECONDS);
     }
+
+    /**
+     * Return the time in milliseconds when this cooldown was last {@link #test()}ed.
+     *
+     * @return the last call time
+     */
+    public OptionalLong getLastTested() {
+        return lastTested == 0 ? OptionalLong.empty() : OptionalLong.of(lastTested);
+    }
+
+    /**
+     * Sets the time in milliseconds when this cooldown was last tested.
+     *
+     * <p>Note: this should only be used when re-constructing a cooldown
+     * instance. Use {@link #test()} otherwise.</p>
+     *
+     * @param time the time
+     */
+    public void setLastTested(long time) {
+        if (time <= 0) {
+            lastTested = 0;
+        } else {
+            lastTested = time;
+        }
+    }
+
 }
