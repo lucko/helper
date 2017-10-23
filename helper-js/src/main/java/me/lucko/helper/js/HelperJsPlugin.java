@@ -34,11 +34,13 @@ import me.lucko.helper.plugin.ExtendedJavaPlugin;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
@@ -60,27 +62,31 @@ public class HelperJsPlugin extends ExtendedJavaPlugin implements ScriptPlugin {
         try {
             scriptHeader = CharStreams.toString(new InputStreamReader(headerResource, StandardCharsets.UTF_8));
         } catch (IOException e) {
-            throw new RuntimeException("Exception occured whilst reading header file", e);
+            throw new RuntimeException("Exception occurred whilst reading header file", e);
         }
 
         // load config
         YamlConfiguration config = loadConfig("config.yml");
 
         // get script directory
-        File scriptDirectory = new File(config.getString("script-directory"));
-        if (!scriptDirectory.exists()) {
-            scriptDirectory.mkdirs();
+        Path scriptDirectory = Paths.get(config.getString("script-directory"));
+        if (!Files.isDirectory(scriptDirectory)) {
+            try {
+                Files.createDirectories(scriptDirectory);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
-        getLogger().info("Using script directory: " + scriptDirectory.getAbsolutePath());
+        getLogger().info("Using script directory: " + scriptDirectory.toString() + "(" + scriptDirectory.toAbsolutePath().toString() + ")");
 
         // setup script loader
         loader = new HelperScriptLoader(this, new HelperScriptBindings(this), scriptDirectory);
         loader.watch(config.getString("init-script", "init.js"));
         loader.preload();
 
-        // schedule script reload
-        Scheduler.runTaskRepeatingAsync(loader, 0L, config.getLong("refresh-rate", 20L));
+        // schedule script loader poll task
+        Scheduler.runTaskRepeatingAsync(loader, 0L, config.getLong("poll-interval", 20L));
     }
 
     @Nonnull

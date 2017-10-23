@@ -39,32 +39,32 @@ import javax.annotation.Nonnull;
 public class DelegateScriptLoader implements ScriptLoader {
 
     private ScriptLoader parent;
-    private Set<String> files = new HashSet<>();
+    private Set<String> paths = new HashSet<>();
 
     public DelegateScriptLoader(@Nonnull ScriptLoader parent) {
         this.parent = parent;
     }
 
     @Override
-    public void watchAll(@Nonnull Collection<String> c) {
-        for (String s : c) {
-            if (files.contains(s)) {
+    public void watchAll(@Nonnull Collection<String> paths) {
+        for (String s : paths) {
+            if (this.paths.contains(s)) {
                 continue;
             }
 
-            files.add(s);
+            this.paths.add(s);
             parent.watch(s);
         }
     }
 
     @Override
-    public void unwatchAll(@Nonnull Collection<String> c) {
-        for (String s : c) {
-            if (!files.contains(s)) {
+    public void unwatchAll(@Nonnull Collection<String> paths) {
+        for (String s : paths) {
+            if (!this.paths.contains(s)) {
                 continue;
             }
 
-            files.remove(s);
+            this.paths.remove(s);
             parent.unwatch(s);
         }
     }
@@ -76,8 +76,8 @@ public class DelegateScriptLoader implements ScriptLoader {
 
     @Override
     public boolean terminate() {
-        parent.unwatchAll(files);
-        files.clear();
+        parent.unwatchAll(paths);
+        paths.clear();
         return true;
     }
 }

@@ -39,39 +39,41 @@ import javax.annotation.Nonnull;
 public interface ScriptLoader extends Terminable {
 
     /**
-     * Loads and watches a script file
+     * Loads and watches a script
      *
-     * @param files the file to watch
+     * @param paths the path to watch
      */
-    default void watch(@Nonnull String... files) {
-        this.watchAll(Arrays.asList(files));
+    default void watch(@Nonnull String... paths) {
+        this.watchAll(Arrays.asList(paths));
     }
 
     /**
-     * Loads and watches a collection of script files
+     * Loads and watches a collection of scripts
      *
-     * @param files the files to watch
+     * @param paths the paths to watch
      */
-    void watchAll(@Nonnull Collection<String> files);
+    void watchAll(@Nonnull Collection<String> paths);
 
     /**
-     * Unloads a script file
+     * Unloads a script
      *
-     * @param files the file to unwatch
+     * @param paths the path to unwatch
      */
-    default void unwatch(@Nonnull String... files) {
-        this.unwatchAll(Arrays.asList(files));
+    default void unwatch(@Nonnull String... paths) {
+        this.unwatchAll(Arrays.asList(paths));
     }
 
     /**
-     * Unloads a collection of script files
+     * Unloads a collection of scripts
      *
-     * @param files the files to unwatch
+     * @param paths the paths to unwatch
      */
-    void unwatchAll(@Nonnull Collection<String> files);
+    void unwatchAll(@Nonnull Collection<String> paths);
 
     /**
      * Gets the root directory of this loader
+     *
+     * <p>All scripts are loaded relative to this directory.</p>
      *
      * @return the root dir
      */

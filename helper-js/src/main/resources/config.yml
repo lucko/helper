@@ -1,10 +1,14 @@
 # helper-js config
 
 # Where the root script directory is located
-script-directory: 'plugins/helper-js/js/'
+#
+# This directory can either be defined as an absolute path,
+# or as a path relative to the root server directory.
+script-directory: 'plugins/helper-js/scripts/'
 
 # The initialisation script - loaded when the plugin starts
+# All script locations are defined relative to the script directory.
 init-script: 'init.js'
 
-# How often to refresh the scripts
-refresh-interval: 20
+# How often to poll for script changes
+poll-interval: 20

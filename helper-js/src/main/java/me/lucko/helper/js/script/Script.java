@@ -49,10 +49,12 @@ public interface Script extends Terminable, Runnable {
     /**
      * Gets the file this script instance was created from
      *
-     * @return the file
+     * <p>The returned path is relative to the loader directory.</p>
+     *
+     * @return the file path
      */
     @Nonnull
-    Path getFile();
+    Path getPath();
 
     /**
      * Gets the initial bindings used by this script
@@ -80,15 +82,15 @@ public interface Script extends Terminable, Runnable {
     /**
      * Marks that this script depends on another script.
      *
-     * @param file the other script
+     * @param path the other script
      */
-    void depend(@Nonnull String file);
+    void depend(@Nonnull String path);
 
     /**
      * Marks that this script depends on another script.
      *
-     * @param file the other script
+     * @param path the other script
      */
-    void depend(@Nonnull Path file);
+    void depend(@Nonnull Path path);
 
 }

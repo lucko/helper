@@ -62,7 +62,7 @@ public interface ScriptRegistry extends Terminable {
      * Gets a script by path
      *
      * @param path the path
-     * @return a script for the file, or null
+     * @return a script for the path, or null
      */
     @Nullable
     Script getScript(@Nonnull Path path);
