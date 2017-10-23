@@ -27,14 +27,11 @@ package me.lucko.helper.js;
 
 import me.lucko.helper.Scheduler;
 import me.lucko.helper.js.bindings.SystemScriptBindings;
-import me.lucko.helper.js.loader.DelegateScriptLoader;
 import me.lucko.helper.js.loader.ScriptRegistry;
 import me.lucko.helper.js.loader.SystemScriptLoader;
 import me.lucko.helper.js.script.Script;
-import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.Terminables;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -79,13 +76,13 @@ public class HelperScriptLoader implements SystemScriptLoader {
 
     private final ReentrantLock lock = new ReentrantLock();
 
-    public HelperScriptLoader(HelperJsPlugin plugin, SystemScriptBindings bindings, File scriptDirectory) {
+    public HelperScriptLoader(HelperJsPlugin plugin, SystemScriptBindings bindings, Path scriptDirectory) {
         this.plugin = plugin;
         this.bindings = bindings;
-        this.scriptDirectory = scriptDirectory.toPath();
+        this.scriptDirectory = scriptDirectory;
 
         try {
-            this.watchService = scriptDirectory.toPath().getFileSystem().newWatchService();
+            this.watchService = scriptDirectory.getFileSystem().newWatchService();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -98,10 +95,10 @@ public class HelperScriptLoader implements SystemScriptLoader {
     }
 
     @Override
-    public void watchAll(@Nonnull Collection<String> c) {
+    public void watchAll(@Nonnull Collection<String> paths) {
         lock.lock();
         try {
-            for (String s : c) {
+            for (String s : paths) {
                 files.add(Paths.get(s));
             }
         } finally {
@@ -110,10 +107,10 @@ public class HelperScriptLoader implements SystemScriptLoader {
     }
 
     @Override
-    public void unwatchAll(@Nonnull Collection<String> c) {
+    public void unwatchAll(@Nonnull Collection<String> paths) {
         lock.lock();
         try {
-            for (String s : c) {
+            for (String s : paths) {
                 files.remove(Paths.get(s));
             }
         } finally {
@@ -127,46 +124,59 @@ public class HelperScriptLoader implements SystemScriptLoader {
         int filesLength;
         do {
             filesLength = files.size();
-            this.run();
+            run();
         } while (filesLength != files.size());
     }
 
     @Override
     public void run() {
+        lock.lock();
+        try {
+            reload();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void reload() {
 
         // gather work
-        Set<Script> toReload = new LinkedHashSet<>();
+        Set<Path> toReload = new LinkedHashSet<>();
         Set<Path> toLoad = new LinkedHashSet<>();
         Set<Script> toUnload = new LinkedHashSet<>();
 
-        // recently watched scripts
+        // handle scripts being watched
+        // effectively: ensure that for all files being watched, if the file exists
+        // it's loaded.
+        // additionally, ensure that watched scripts still exist, otherwise unload them.
         for (Path path : files) {
+            Script script = registry.getScript(path);
 
-            // if the path exists, make sure we have something loaded for it
             if (scriptDirectory.resolve(path).toFile().exists()) {
-                Script script = registry.getScript(path);
+                // if the path exists, make sure we have something loaded for it
                 if (script == null) {
                     toLoad.add(path);
                 }
             } else {
-                // make sure we don't have anything!
-                Script script = registry.getScript(path);
+                // path doesn't exist, so make sure the script isn't loaded.
                 if (script != null) {
                     toUnload.add(script);
                 }
             }
         }
 
-        // check for scripts which are no longer being watched
+        // unload scripts which are in the registry, but were unwatched since the last check
         for (Map.Entry<Path, Script> script : registry.getAll().entrySet()) {
             if (!files.contains(script.getKey())) {
                 toUnload.add(script.getValue());
             }
         }
 
+        // a set of paths which we're going to 'try' to unload.
+        // meaning, they'll only get unloaded if we also aren't (re)loading in this same cycle
         Set<Path> tryUnload = new HashSet<>();
 
-        // listen for file changes
+        // poll the filesystem for changes
         List<WatchEvent<?>> watchEvents = watchKey.pollEvents();
         for (WatchEvent<?> event : watchEvents) {
             Path context = (Path) event.context();
@@ -175,7 +185,8 @@ public class HelperScriptLoader implements SystemScriptLoader {
             }
 
             // already being loaded / unloaded
-            if (toLoad.contains(context) || toUnload.stream().anyMatch(s -> s.getFile().endsWith(context))) {
+            // soo, just ignore the change
+            if (toLoad.contains(context) || toUnload.stream().anyMatch(s -> s.getPath().equals(context))) {
                 continue;
             }
 
@@ -188,9 +199,14 @@ public class HelperScriptLoader implements SystemScriptLoader {
             // otherwise, try (re)load
             Script script = registry.getScript(context);
             if (script == null) {
-                toLoad.add(context);
+                if (files.contains(context)) {
+                    toLoad.add(context);
+                } else {
+                    // add to the reload queue anyways - we want to resolve it's dependencies
+                    toReload.add(context);
+                }
             } else {
-                toReload.add(script);
+                toReload.add(script.getPath());
             }
         }
 
@@ -204,7 +220,7 @@ public class HelperScriptLoader implements SystemScriptLoader {
             }
         }
 
-        // process scripts to be unloaded
+        // process scripts which might need to be unloaded.
         for (Path p : tryUnload) {
             // only unload if the script exists
             Script script = registry.getScript(p);
@@ -221,24 +237,34 @@ public class HelperScriptLoader implements SystemScriptLoader {
         }
 
         // handle reloading first
-        Set<Script> reloadQueue = new LinkedHashSet<>();
-        for (Script s : toReload) {
-            resolveDepends(reloadQueue, s);
+        // create a reload queue - by taking the paths to reload, and then
+        // recursively looking for anything which depends on them
+        Set<Path> reloadQueue = new LinkedHashSet<>();
+        for (Path p : toReload) {
+            resolveDepends(reloadQueue, p);
         }
 
-        Set<Terminable> toTerminate = new HashSet<>();
+        // a set of scripts to terminate at the end of this cycle
+        Set<Script> toTerminate = new HashSet<>();
+        // a set of scripts to run at the end of this cycle
         Set<Script> toRun = new HashSet<>();
 
-        for (Script script : reloadQueue) {
+        // process the reload queue before unloads or loads
+        for (Path path : reloadQueue) {
+            Script oldScript = registry.getScript(path);
+            if (oldScript == null) {
+                continue;
+            }
+
             // since we're creating a new script instance, we need to schedule an unload for the old one.
-            toTerminate.add(script);
+            toTerminate.add(oldScript);
 
             // init a new script instance
-            Script newScript = new HelperScript(script.getName(), script.getFile(), new DelegateScriptLoader(this), bindings);
+            Script newScript = new HelperScript(path, this, bindings);
             registry.register(newScript);
             toRun.add(newScript);
 
-            plugin.getLogger().info("Reloaded script: " + script.getFile());
+            plugin.getLogger().info("[LOADER] Reloaded script: " + pathToString(path));
         }
 
         // then handle loads
@@ -249,38 +275,48 @@ public class HelperScriptLoader implements SystemScriptLoader {
             }
 
             // init a new script instance & register it
-            Script script = new HelperScript(path.getFileName().toString(), path, new DelegateScriptLoader(this), bindings);
+            Script script = new HelperScript(path, this, bindings);
             registry.register(script);
-
-            // record that we've loaded this script
             toRun.add(script);
-            plugin.getLogger().info("Loaded script: " + path.toString());
+
+            plugin.getLogger().info("[LOADER] Loaded script: " + pathToString(path));
         }
 
+        // then handle unloads
         for (Script s : toUnload) {
             registry.unregister(s);
             toTerminate.add(s);
-            plugin.getLogger().info("Unloaded script: " + s.getFile().toString());
+            plugin.getLogger().info("[LOADER] Unloaded script: " + pathToString(s.getPath()));
         }
 
         // handle init of new scripts & cleanup of old ones
         Scheduler.runSync(() -> {
             for (Script script : toRun) {
-                script.run();
+                try {
+                    script.run();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             Terminables.silentlyTerminate(toTerminate);
         });
     }
 
-    private void resolveDepends(Set<Script> accumulator, Script script) {
-        if (!accumulator.add(script)) {
+    /**
+     * Recursively finds dependencies on a given path.
+     *
+     * @param accumulator the path accumulator
+     * @param path the start path
+     */
+    private void resolveDepends(Set<Path> accumulator, Path path) {
+        if (!accumulator.add(path)) {
             return;
         }
 
         for (Script other : registry.getAll().values()) {
-            if (other.getDependencies().contains(script.getFile())) {
-                resolveDepends(accumulator, other);
+            if (other.getDependencies().contains(path)) {
+                resolveDepends(accumulator, other.getPath());
             }
         }
     }
@@ -297,5 +333,10 @@ public class HelperScriptLoader implements SystemScriptLoader {
         files.clear();
         return true;
     }
+
+    private static String pathToString(Path path) {
+        return path.toString().replace("\\", "/");
+    }
+
 
 }

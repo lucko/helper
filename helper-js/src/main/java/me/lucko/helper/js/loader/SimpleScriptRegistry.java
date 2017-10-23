@@ -41,12 +41,12 @@ class SimpleScriptRegistry implements ScriptRegistry {
 
     @Override
     public void register(@Nonnull Script script) {
-        scripts.put(script.getFile(), script);
+        scripts.put(script.getPath(), script);
     }
 
     @Override
     public void unregister(@Nonnull Script script) {
-        scripts.remove(script.getFile());
+        scripts.remove(script.getPath());
     }
 
     @Nullable

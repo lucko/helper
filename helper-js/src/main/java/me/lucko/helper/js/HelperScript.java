@@ -26,7 +26,9 @@
 package me.lucko.helper.js;
 
 import me.lucko.helper.js.bindings.SystemScriptBindings;
+import me.lucko.helper.js.loader.DelegateScriptLoader;
 import me.lucko.helper.js.loader.ScriptLoader;
+import me.lucko.helper.js.loader.SystemScriptLoader;
 import me.lucko.helper.js.plugin.ScriptPlugin;
 import me.lucko.helper.js.script.Script;
 import me.lucko.helper.js.script.ScriptLogger;
@@ -35,7 +37,6 @@ import me.lucko.helper.terminable.registry.TerminableRegistry;
 
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -63,7 +64,7 @@ public class HelperScript implements Script {
     // the name of this script
     private final String name;
     // the associated script file
-    private final Path file;
+    private final Path path;
 
     // the loader instance handling this script
     private final ScriptLoader loader;
@@ -76,17 +77,18 @@ public class HelperScript implements Script {
     // the scripts dependencies
     private final Set<Path> depends = new HashSet<>();
 
-    public HelperScript(@Nonnull String name, @Nonnull Path file, @Nonnull ScriptLoader loader, @Nonnull SystemScriptBindings systemBindings) {
+    public HelperScript(@Nonnull Path path, @Nonnull SystemScriptLoader loader, @Nonnull SystemScriptBindings systemBindings) {
+        String name = path.getFileName().toString();
         if (name.endsWith(".js")) {
-            this.name = name.substring(0, name.lastIndexOf('.'));
+            this.name = name.substring(0, name.length() - 3);
         } else {
             this.name = name;
         }
-        this.file = file;
-        this.loader = loader;
+        this.path = path;
+        this.loader = new DelegateScriptLoader(loader);
         this.systemBindings = systemBindings;
         this.logger = new SimpleScriptLogger(this);
-        this.depends.add(this.file);
+        this.depends.add(this.path);
     }
 
     @Nonnull
@@ -97,8 +99,8 @@ public class HelperScript implements Script {
 
     @Nonnull
     @Override
-    public Path getFile() {
-        return file;
+    public Path getPath() {
+        return path;
     }
 
     @Nonnull
@@ -127,10 +129,10 @@ public class HelperScript implements Script {
             bindings.put("logger", logger);
 
             // the path of the script file (current working directory)
-            bindings.put("cwd", file.normalize().toString());
+            bindings.put("cwd", path.normalize().toString().replace("\\", "/"));
 
             // the root scripts directory
-            bindings.put("rsd", loader.getDirectory().normalize().toString() + "/");
+            bindings.put("rsd", loader.getDirectory().normalize().toString().replace("\\", "/") + "/");
 
             // function to depend on another script
             bindings.put("depend", (Consumer<String>) this::depend);
@@ -145,9 +147,9 @@ public class HelperScript implements Script {
             // evaluate the header
             engine.eval(systemBindings.getPlugin().getScriptHeader(), context);
 
-            // load the script
-            Path scriptFile = new File("").toPath().relativize(file);
-            engine.eval("__load(\"" + scriptFile.toString() + "\");", context);
+            // resolve the load path, relative to the loader directory.
+            Path loadPath = loader.getDirectory().normalize().resolve(path);
+            engine.eval("__load(\"" + loadPath.toString().replace("\\", "/") + "\");", context);
 
         } catch (Throwable t) {
             t.printStackTrace();
@@ -160,17 +162,17 @@ public class HelperScript implements Script {
     }
 
     @Override
-    public void depend(@Nonnull String file) {
-        depend(Paths.get(file));
+    public void depend(@Nonnull String path) {
+        depend(Paths.get(path));
     }
 
     @Override
-    public void depend(@Nonnull Path file) {
-        if (this.file.equals(file)) {
+    public void depend(@Nonnull Path path) {
+        if (this.path.equals(path)) {
             return;
         }
 
-        depends.add(file);
+        depends.add(path);
     }
 
     @Override

@@ -3,7 +3,7 @@ load("nashorn:mozilla_compat.js");
 var __load = load;
 var load = function(file) {
     __load(rsd + file);
-    depend(rsd + file);
+    depend(file);
 };
 
 var importWildcardPackage = function(name) {
