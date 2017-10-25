@@ -62,11 +62,25 @@ public abstract class Gui implements TerminableConsumer {
 
     /**
      * Utility method to get the number of lines needed for x items
+     *
      * @param count the number of items
      * @return the number of lines needed
      */
     public static int getMenuSize(int count) {
-        return (count / 9 + ((count % 9 != 0) ? 1 : 0));
+        Preconditions.checkArgument(count >= 0, "count < 0");
+        return getMenuSize(count, 9);
+    }
+
+    /**
+     * Utility method to get the number of lines needed for x items
+     *
+     * @param count the number of items
+     * @param itemsPerLine the number of items per line
+     * @return the number of lines needed
+     */
+    public static int getMenuSize(int count, int itemsPerLine) {
+        Preconditions.checkArgument(itemsPerLine >= 1, "itemsPerLine < 1");
+        return (count / itemsPerLine + ((count % itemsPerLine != 0) ? 1 : 0));
     }
 
     // The player holding the GUI
