@@ -155,6 +155,15 @@ public class MenuPopulator {
         return remainingSlots.size();
     }
 
+    /**
+     * Gets if there is any space left in this populator
+     *
+     * @return if there is more space
+     */
+    public boolean hasSpace() {
+        return remainingSlots.size() > 0;
+    }
+
     public MenuPopulator copy() {
         return new MenuPopulator(this);
     }
