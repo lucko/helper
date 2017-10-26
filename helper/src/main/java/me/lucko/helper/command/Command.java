@@ -27,13 +27,15 @@ package me.lucko.helper.command;
 
 import me.lucko.helper.command.context.CommandContext;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
+import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.terminable.TerminableConsumer;
 
 import javax.annotation.Nonnull;
 
 /**
  * Represents a command
  */
-public interface Command {
+public interface Command extends Terminable {
 
     /**
      * Registers this command with the server, via the given plugin instance
@@ -42,6 +44,18 @@ public interface Command {
      * @param aliases the aliases for the command
      */
     void register(@Nonnull ExtendedJavaPlugin plugin, @Nonnull String... aliases);
+
+    /**
+     * Registers this command with the server, via the given plugin instance, and then binds it with the composite terminable.
+     *
+     * @param consumer the terminable consumer to bind with
+     * @param plugin the plugin instance
+     * @param aliases the aliases for the command
+     */
+    default void registerAndBind(@Nonnull TerminableConsumer consumer, @Nonnull ExtendedJavaPlugin plugin, @Nonnull String... aliases) {
+        register(plugin, aliases);
+        bindWith(consumer);
+    }
 
     /**
      * Calls the command handler

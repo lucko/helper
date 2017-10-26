@@ -29,6 +29,7 @@ import me.lucko.helper.command.context.CommandContext;
 import me.lucko.helper.command.context.ImmutableCommandContext;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.timings.Timings;
+import me.lucko.helper.utils.CommandMapUtil;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.command.CommandExecutor;
@@ -53,6 +54,12 @@ public abstract class AbstractCommand implements Command, CommandExecutor {
     public void register(ExtendedJavaPlugin plugin, String... aliases) {
         plugin.registerCommand(this, aliases);
         timing = Timings.of("helper-commands: " + plugin.getName() + " - " + Arrays.toString(aliases));
+    }
+
+    @Override
+    public boolean terminate() {
+        CommandMapUtil.unregisterCommand(this);
+        return true;
     }
 
     @Override
