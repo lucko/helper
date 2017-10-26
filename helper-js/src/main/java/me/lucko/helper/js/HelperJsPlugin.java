@@ -30,6 +30,7 @@ import com.google.common.io.CharStreams;
 import me.lucko.helper.Scheduler;
 import me.lucko.helper.js.loader.SystemScriptLoader;
 import me.lucko.helper.js.plugin.ScriptPlugin;
+import me.lucko.helper.js.utils.EnsureLoad;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -49,6 +50,12 @@ public class HelperJsPlugin extends ExtendedJavaPlugin implements ScriptPlugin {
 
     private HelperScriptLoader loader;
     private String scriptHeader;
+
+    @Override
+    protected void load() {
+        // ensure all helper classes are loaded in
+        EnsureLoad.ensure();
+    }
 
     @Override
     protected void enable() {
