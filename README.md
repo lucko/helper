@@ -37,6 +37,7 @@ A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing t
 * [`Terminables`](#terminables) - a family of interfaces to help easily manipulate objects which can be unregistered, stopped, or gracefully halted
 * [`Serialization`](#serialization) - immutable and GSON compatible alternatives for common Bukkit objects
 * [`Bungee Messaging`](#bungee-messaging) - wrapper for BungeeCord's plugin messaging API
+* [`JavaScript Plugins`](#javascript-plugins) - javascript plugins using helper-js and Nashorn
 
 ... and much more!
 
@@ -815,6 +816,231 @@ BungeeMessaging.registerForwardCallback("my-special-channel", buf -> {
     return false;
 });
 ```
+
+
+### [`JavaScript Plugins`](https://github.com/lucko/helper/tree/master/helper-js)
+helper-js is an addon which allows you to create JavaScript plugins using helper.
+
+To achieve this, helper uses the Java scripting API and Nashorn, Java 8's JavaScript engine.
+
+Nashorn (in a nutshell) lets you:
+
+* Invoke Java code from JS
+* Invoke JS code from Java
+* Use Java classes and APIs within JS
+* Easily modify code at runtime
+
+helper-js provides an interface around Nashorn, to aid with the specific task of writing Bukkit plugins (or "scripts" as they'll be called from now on) using the Bukkit API and helper, all in JavaScript. helper-js is a standalone plugin, which has to be installed separately from helper (and unlike helper cannot be shaded!).
+
+The plugin is formed of a number of elements. We'll start from the top.
+
+#### [`Script`](https://github.com/lucko/helper/blob/master/helper-js/src/main/java/me/lucko/helper/js/script/Script.java)
+
+The whole helper-js system is based around `Script`s. These in a more abstract sense are the javascript files which contain the code responsible for implementing the desired behaviour.
+
+However, programmatically they are formed of:
+
+* **a name** - the name of the script, usually formed by taking the script name (e.g. "myscript.js") and removing the extension (e.g. "myscript")
+* **a path** - the path where the actual script file is located
+* **bindings** - these are explained later
+* **a logger** - plugins have loggers, scripts do too!
+* **dependencies** - the other scripts currently in the system which are depended upon by the script
+
+Scripts also implement `Runnable`, which when invoked, evaluates the script file.
+
+#### [`Bindings`](https://docs.oracle.com/javase/8/docs/api/javax/script/Bindings.html)
+
+"Bindings" refers to a feature exposed in the Java Scripting API. Expressed simply, bindings represent the objects, mapped to keys (variable names) which are available during the scripts execution.
+
+The bindings provided by helper are encapsulated by [`SystemScriptBindings`](https://github.com/lucko/helper/blob/master/helper-js/src/main/java/me/lucko/helper/js/bindings/SystemScriptBindings.java), and implemented by [`HelperScriptBindings`](https://github.com/lucko/helper/blob/master/helper-js/src/main/java/me/lucko/helper/js/HelperScriptBindings.java).
+
+helper itself provides a number of bindings for convenience:
+
+* `exports` - these are explained later
+* `server` - the Bukkit server instance
+* `plugin` - the helper-js plugin instance
+* `services` - the Bukkit services manager
+* `colorize` - a function which accepts a string, and passes it through `Color#colorize`
+* `newMetadataKey` - a function which accepts a string, and returns a new `MetadataKey` for the object.
+
+Plus a number of more general bindings for working with Java objects:
+
+* newArrayList
+* newLinkedList
+* newHashSet
+* newHashMap
+* newCopyOnWriteArrayList
+* newConcurrentHashSet
+* newConcurrentHashMap
+* listOf
+* setOf
+* immutableListOf
+* immutableSetOf
+
+Each script then appends its own bindings.
+
+* `loader` - the script loader which loaded the script. Useful if you want to load dependant scripts independently
+* `registry` - a TerminableRegistry instance used by the script
+* `logger` - the scripts logger instance
+* `cwd` - the "current working directory" - effectively the scripts location relative to the loader directory
+* `rsd` - the "root scripts directory" - the path (relative to the server root) to the scripts directory
+
+#### [`Script Loader`](https://github.com/lucko/helper/blob/master/helper-js/src/main/java/me/lucko/helper/js/loader/ScriptLoader.java)
+
+The script loader represents an object capable of loading scripts and monitoring them for changes.
+
+The HelperScriptLoader makes use of Java 8's WatchService to monitor script files for changes. When changes are detected, the script is automagically reloaded.
+
+#### [`Script Exports`](https://github.com/lucko/helper/tree/master/helper-js/src/main/java/me/lucko/helper/js/exports)
+
+Since scripts are reloaded often during runtime, their entire state has to be considered entirely transient. However, this is a problem if you need to have state that persists over the servers lifetime.
+
+The family of classes in the exports package solve this, by providing a registry of 'exports' (basically an object) which are shared by all scripts, and persist between reloads.
+
+The [`ScriptExportRegistry`](https://github.com/lucko/helper/blob/master/helper-js/src/main/java/me/lucko/helper/js/exports/ScriptExportRegistry.java) is provided as a binding in all scripts, and contains methods to create and retrieve exports.
+
+### Writing scripts
+Now you have a (rough) understanding of how helper-js is formed, let's have a look at a script.
+
+Everything starts with the initialisation script. By default, this is a script called "init.js", in the root of the scripts directory. This script is called when the plugin starts. Everything branches from this main script.
+
+To test the script is loading, we can create a simple "Hello world" example.
+
+```javascript
+logger.info("Hello world!")
+```
+
+All things going well, this should produce the following output in the console.
+
+```
+[INFO]: [helper-js] Enabling helper-js v1.1.0
+[INFO]: [helper-js] Using script directory: plugins\helper-js\scripts
+[INFO]: [helper-js] [LOADER] Loaded script: init.js
+[INFO]: [helper-js] [init] Hello world!
+```
+
+We can load other scripts from init.js by making a call to the script loader, like so:
+
+```javascript
+loader.watch("event-test.js")
+loader.watch("gui-test.js")
+```
+
+Which will neatly lead onto two other examples :)
+
+#### Listening to events
+We can use the helper events API to construct event listeners easily from javascript.
+
+```javascript
+Events.subscribe(BlockBreakEvent.class)
+    .filter(e => e.player.hasPermission("notify.break"))
+    .handler(e => {
+        e.player.sendMessage(colorize("&7You broke: &e" + e.block.type))
+
+        for (var p of server.getOnlinePlayers()) {
+            p.sendMessage(colorize("&e" + e.player.name + " &7broke &e" + e.block.type + "&7."))
+        }
+
+    })
+    .bindWith(registry);
+
+Events.subscribe(BlockPlaceEvent.class)
+    .filter(e => e.player.hasPermission("notify.place"))
+    .handler(e => {
+        e.player.sendMessage(colorize("&7You placed: &e" + e.block.type))
+
+        for (var p of server.getOnlinePlayers()) {
+            p.sendMessage(colorize("&e" + e.player.name + " &7placed &e" + e.block.type + "&7."))
+        }
+
+    })
+    .bindWith(registry);
+```
+
+Since scripts are frequently reloaded, it's even more important to bind Terminables to the scripts registry, otherwise, duplicate listeners are left floating around when a script is terminated.
+
+#### Creating a GUI
+
+And now for a slightly more complicated GUI example. This implements exactly the same interface as the one found in the GUI example earlier.
+
+```javascript
+// the display book
+var display = new MenuScheme().mask("000010000")
+
+// the keyboard buttons
+var buttons = new MenuScheme()
+    .mask("000000000")
+    .mask("000000001")
+    .mask("111111111")
+    .mask("111111111")
+    .mask("011111110")
+    .mask("000010000")
+
+// we're limited to 9 keys per line, so add 'P' one line above.
+var keys = "PQWERTYUIOASDFGHJKLZXCVBNM"
+
+function makeTypewriterGui(player) {
+    var gui = new Gui(player, 6, "&7Typewriter", {
+        message: new StringBuilder(""),
+        redraw: () => {
+            var message = this.message;
+
+             // perform initial setup.
+            if (gui.isFirstDraw()) {
+                // when the GUI closes, send the resultant message to the player
+                gui.bindRunnable(() => {
+                    gui.player.sendMessage(colorize("&7Your typed message was: &f" + message.toString()))
+                })
+
+                // place the buttons
+                var populator = buttons.newPopulator(gui);
+
+                for (let k of keys) {
+                    populator.accept(ItemStackBuilder.of(Material.CLAY_BALL)
+                        .name("&f&l" + k)
+                        .lore("")
+                        .lore("&7Click to type this character")
+                        .build(() => {
+                            message.append(k);
+                            gui.redraw();
+                        })
+                    );
+                }
+
+                // space key
+                populator.accept(ItemStackBuilder.of(Material.CLAY_BALL)
+                    .name("&f&lSPACE")
+                    .lore("")
+                    .lore("&7Click to type this character")
+                    .build(() => {
+                        message.append(" ");
+                        gui.redraw();
+                    })
+                );
+            }
+
+            // update the display every time the GUI is redrawn.
+            display.newPopulator(gui).accept(ItemStackBuilder.of(Material.BOOK)
+                .name("&f" + message + "&7_")
+                .lore("")
+                .lore("&f> &7Use the buttons below to type your message.")
+                .lore("&f> &7Hit ESC when you're done!")
+                .buildItem().build()
+            );
+        }
+    });
+    return gui;
+}
+
+Commands.create()
+    .assertPlayer()
+    .handler(c => {
+        makeTypewriterGui(c.sender()).open();
+    })
+    .register(plugin, "typewriter");
+```
+
+Although these two examples only showcase the manipulation of a few systems, hopefully it demonstrates the usefulness of the system. :smile:
 
 
 ## Using helper in your project
