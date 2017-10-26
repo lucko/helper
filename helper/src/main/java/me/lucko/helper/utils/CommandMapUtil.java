@@ -80,7 +80,7 @@ public final class CommandMapUtil {
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
-        OWNING_PLUGIN_FIELD = null;
+        OWNING_PLUGIN_FIELD = owningPluginField;
 
         Field knownCommandsField;
         try {
@@ -158,9 +158,12 @@ public final class CommandMapUtil {
             Iterator<Command> iterator = knownCommands.values().iterator();
             while (iterator.hasNext()) {
                 Command cmd = iterator.next();
-                if (cmd == command) {
-                    cmd.unregister(map);
-                    iterator.remove();
+                if (cmd instanceof PluginCommand) {
+                    CommandExecutor executor = ((PluginCommand) cmd).getExecutor();
+                    if (command == executor) {
+                        cmd.unregister(map);
+                        iterator.remove();
+                    }
                 }
             }
         } catch (Exception e) {
