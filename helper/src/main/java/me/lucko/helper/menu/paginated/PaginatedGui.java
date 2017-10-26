@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 import me.lucko.helper.item.ItemStackBuilder;
 import me.lucko.helper.menu.Gui;
 import me.lucko.helper.menu.Item;
+import me.lucko.helper.menu.Slot;
 import me.lucko.helper.menu.scheme.MenuScheme;
 import me.lucko.helper.utils.CollectionUtils;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
@@ -76,9 +77,7 @@ public class PaginatedGui extends Gui {
 
     @Override
     public void redraw() {
-        if (isFirstDraw()) {
-            scheme.apply(this);
-        }
+        scheme.apply(this);
 
         // get available slots for items
         List<Integer> slots = new ArrayList<>(itemSlots);
@@ -90,7 +89,11 @@ public class PaginatedGui extends Gui {
         // place prev/next page buttons
         if (this.page == 1) {
             // can't go back further
-            removeItem(previousPageSlot);
+            // remove the item if the current slot contains a previous page item type
+            Slot slot = getSlot(previousPageSlot);
+            if (slot.hasItem() && slot.getItem().getType() == previousPageItem.apply(PageInfo.create(0, 0)).getType()) {
+                slot.clearItem();
+            }
         } else {
             setItem(previousPageSlot, ItemStackBuilder.of(previousPageItem.apply(PageInfo.create(this.page, pages.size())))
                     .build(() -> {
@@ -101,7 +104,11 @@ public class PaginatedGui extends Gui {
 
         if (this.page >= pages.size()) {
             // can't go forward a page
-            removeItem(nextPageSlot);
+            // remove the item if the current slot contains a next page item type
+            Slot slot = getSlot(nextPageSlot);
+            if (slot.hasItem() && slot.getItem().getType() == nextPageItem.apply(PageInfo.create(0, 0)).getType()) {
+                slot.clearItem();
+            }
         } else {
             setItem(nextPageSlot, ItemStackBuilder.of(nextPageItem.apply(PageInfo.create(this.page, pages.size())))
                     .build(() -> {
