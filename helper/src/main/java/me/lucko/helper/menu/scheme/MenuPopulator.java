@@ -45,7 +45,7 @@ public class MenuPopulator {
 
     private final Gui gui;
     private final ImmutableList<Integer> slots;
-    private List<Integer> remainingSlots;
+    protected List<Integer> remainingSlots;
 
     public MenuPopulator(Gui gui, MenuScheme scheme) {
         Preconditions.checkNotNull(gui, "gui");
@@ -106,7 +106,7 @@ public class MenuPopulator {
 
     public boolean tryConsume(Consumer<Slot> action) {
         Preconditions.checkNotNull(action, "action");
-        if (remainingSlots.size() == 0) {
+        if (remainingSlots.isEmpty()) {
             return false;
         }
 
@@ -161,7 +161,7 @@ public class MenuPopulator {
      * @return if there is more space
      */
     public boolean hasSpace() {
-        return remainingSlots.size() > 0;
+        return !remainingSlots.isEmpty();
     }
 
     public MenuPopulator copy() {
