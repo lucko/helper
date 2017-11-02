@@ -51,7 +51,6 @@ public final class CommandMapUtil {
 
     private static final Constructor<PluginCommand> COMMAND_CONSTRUCTOR;
     private static final Field COMMAND_MAP_FIELD;
-    private static final Field OWNING_PLUGIN_FIELD;
     private static final Field KNOWN_COMMANDS_FIELD;
 
     static {
@@ -73,15 +72,6 @@ public final class CommandMapUtil {
         }
         COMMAND_MAP_FIELD = commandMapField;
 
-        Field owningPluginField;
-        try {
-            owningPluginField = PluginCommand.class.getDeclaredField("owningPlugin");
-            owningPluginField.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
-        OWNING_PLUGIN_FIELD = owningPluginField;
-
         Field knownCommandsField;
         try {
             knownCommandsField = SimpleCommandMap.class.getDeclaredField("knownCommands");
@@ -92,11 +82,20 @@ public final class CommandMapUtil {
         KNOWN_COMMANDS_FIELD = knownCommandsField;
     }
 
-    private static synchronized CommandMap getCommandMap() {
+    private static CommandMap getCommandMap() {
         try {
             return (CommandMap) COMMAND_MAP_FIELD.get(Bukkit.getServer().getPluginManager());
         } catch (Exception e) {
             throw new RuntimeException("Could not get CommandMap", e);
+        }
+    }
+
+    private static Map<String, Command> getKnownCommandMap() {
+        try {
+            //noinspection unchecked
+            return (Map<String, Command>) KNOWN_COMMANDS_FIELD.get(getCommandMap());
+        } catch (Exception e) {
+            throw new RuntimeException("Could not get known commands map", e);
         }
     }
 
@@ -113,29 +112,20 @@ public final class CommandMapUtil {
     public static <T extends CommandExecutor> T registerCommand(@Nonnull Plugin plugin, @Nonnull T command, @Nonnull String... aliases) {
         Preconditions.checkArgument(aliases.length != 0, "No aliases");
         for (String alias : aliases) {
-            PluginCommand cmd = Bukkit.getServer().getPluginCommand(alias);
-            if (cmd == null) {
-                try {
-                    cmd = COMMAND_CONSTRUCTOR.newInstance(alias, plugin);
-                } catch (Exception ex) {
-                    throw new RuntimeException("Could not register command: " + alias);
-                }
+            try {
+                PluginCommand cmd = COMMAND_CONSTRUCTOR.newInstance(alias, plugin);
 
                 getCommandMap().register(plugin.getDescription().getName(), cmd);
-            } else {
-                // we may need to change the owningPlugin, since this was already registered
-                try {
-                    OWNING_PLUGIN_FIELD.set(cmd, plugin);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+                getKnownCommandMap().put(plugin.getDescription().getName().toLowerCase() + ":" + alias.toLowerCase(), cmd);
+                getKnownCommandMap().put(alias.toLowerCase(), cmd);
+                cmd.setLabel(alias.toLowerCase());
 
-            cmd.setExecutor(command);
-            if (command instanceof TabCompleter) {
-                cmd.setTabCompleter((TabCompleter) command);
-            } else {
-                cmd.setTabCompleter(null);
+                cmd.setExecutor(command);
+                if (command instanceof TabCompleter) {
+                    cmd.setTabCompleter((TabCompleter) command);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         return command;
