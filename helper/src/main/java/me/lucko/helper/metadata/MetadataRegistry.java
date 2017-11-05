@@ -25,43 +25,47 @@
 
 package me.lucko.helper.metadata;
 
-import java.util.function.Supplier;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
 /**
- * An object which represents nothing.
+ * A registry which provides and stores {@link MetadataMap}s for a given type.
  *
- * <p>Used mostly by {@link MetadataKey}s, where the presence of the key in the map
- * is enough for a behaviour to apply. In other words, the value is not significant.</p>
- *
- * <p>Very similar to {@link Void}, except this class also provides an instance of the "empty" object.</p>
+ * @param <T> the type
  */
-public final class Empty {
-    private static final Empty INSTANCE = new Empty();
-    private static final Supplier<Empty> SUPPLIER = () -> INSTANCE;
+public interface MetadataRegistry<T> {
 
+    /**
+     * Produces a {@link MetadataMap} for the given object.
+     *
+     * @param id the object
+     * @return a metadata map
+     */
     @Nonnull
-    public static Empty instance() {
-        return INSTANCE;
-    }
+    MetadataMap provide(@Nonnull T id);
 
+    /**
+     * Gets a {@link MetadataMap} for the given object, if one already exists and has
+     * been cached in this registry.
+     *
+     * @param id the object
+     * @return a metadata map, if present
+     */
     @Nonnull
-    public static Supplier<Empty> supplier() {
-        return SUPPLIER;
-    }
+    Optional<MetadataMap> get(@Nonnull T id);
 
-    private Empty() {
+    /**
+     * Deletes the {@link MetadataMap} and all contained {@link MetadataKey}s for
+     * the given object.
+     *
+     * @param id the object
+     */
+    void remove(@Nonnull T id);
 
-    }
+    /**
+     * Performs cache maintenance to remove empty map instances and expired transient values.
+     */
+    void cleanup();
 
-    @Override
-    public boolean equals(Object obj) {
-        return obj == this;
-    }
-
-    @Override
-    public String toString() {
-        return "Empty";
-    }
 }

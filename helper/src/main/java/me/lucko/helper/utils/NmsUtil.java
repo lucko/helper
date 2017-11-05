@@ -27,6 +27,8 @@ package me.lucko.helper.utils;
 
 import org.bukkit.Bukkit;
 
+import javax.annotation.Nonnull;
+
 public final class NmsUtil {
 
     public static final String NMS = "net.minecraft.server";
@@ -66,22 +68,27 @@ public final class NmsUtil {
         OBC_PREFIX = OBC + SERVER_VERSION_PACKAGE_COMPONENT;
     }
 
+    @Nonnull
     public static String getServerVersion() {
         return SERVER_VERSION;
     }
 
+    @Nonnull
     public static String nms(String className) {
         return NMS_PREFIX.concat(className);
     }
 
+    @Nonnull
     public static Class<?> nmsClass(String className) throws ClassNotFoundException {
         return Class.forName(nms(className));
     }
 
+    @Nonnull
     public static String obc(String className) {
         return OBC_PREFIX.concat(className);
     }
 
+    @Nonnull
     public static Class<?> obcClass(String className) throws ClassNotFoundException {
         return Class.forName(obc(className));
     }

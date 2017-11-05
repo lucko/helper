@@ -116,7 +116,7 @@ final class SimpleMetadataMap implements MetadataMap {
 
         lock.lock();
         try {
-            doExpire();
+            cleanup();
             return map.putIfAbsent(key, value) == null;
         } finally {
             lock.unlock();
@@ -395,14 +395,15 @@ final class SimpleMetadataMap implements MetadataMap {
     public boolean isEmpty() {
         lock.lock();
         try {
-            doExpire();
+            cleanup();
             return map.isEmpty();
         } finally {
             lock.unlock();
         }
     }
 
-    private void doExpire() {
+    @Override
+    public void cleanup() {
         lock.lock();
         try {
             map.values().removeIf(o -> o instanceof TransientValue<?> && ((TransientValue) o).shouldExpire());

@@ -23,45 +23,52 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.metadata;
+package me.lucko.helper.metadata.type;
 
-import java.util.function.Supplier;
+import me.lucko.helper.metadata.MetadataKey;
+import me.lucko.helper.metadata.MetadataMap;
+import me.lucko.helper.metadata.MetadataRegistry;
+
+import org.bukkit.entity.Player;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
 /**
- * An object which represents nothing.
- *
- * <p>Used mostly by {@link MetadataKey}s, where the presence of the key in the map
- * is enough for a behaviour to apply. In other words, the value is not significant.</p>
- *
- * <p>Very similar to {@link Void}, except this class also provides an instance of the "empty" object.</p>
+ * A registry which provides and stores {@link MetadataMap}s for {@link Player}s.
  */
-public final class Empty {
-    private static final Empty INSTANCE = new Empty();
-    private static final Supplier<Empty> SUPPLIER = () -> INSTANCE;
+public interface PlayerMetadataRegistry extends MetadataRegistry<UUID> {
 
+    /**
+     * Produces a {@link MetadataMap} for the given player.
+     *
+     * @param player the player
+     * @return a metadata map
+     */
     @Nonnull
-    public static Empty instance() {
-        return INSTANCE;
-    }
+    MetadataMap provide(@Nonnull Player player);
 
+    /**
+     * Gets a {@link MetadataMap} for the given player, if one already exists and has
+     * been cached in this registry.
+     *
+     * @param player the player
+     * @return a metadata map, if present
+     */
     @Nonnull
-    public static Supplier<Empty> supplier() {
-        return SUPPLIER;
-    }
+    Optional<MetadataMap> get(@Nonnull Player player);
 
-    private Empty() {
+    /**
+     * Gets a map of the players with a given metadata key
+     *
+     * @param key the key
+     * @param <K> the key type
+     * @return an immutable map of players to key value
+     */
+    @Nonnull
+    <K> Map<Player, K> getAllWithKey(@Nonnull MetadataKey<K> key);
 
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj == this;
-    }
-
-    @Override
-    public String toString() {
-        return "Empty";
-    }
 }

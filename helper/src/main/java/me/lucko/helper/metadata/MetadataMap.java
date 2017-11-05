@@ -222,4 +222,11 @@ public interface MetadataMap {
      */
     boolean isEmpty();
 
+    /**
+     * Removes expired {@link TransientValue}s from this map.
+     *
+     * <p>Note that this method does need to be explicitly called - as cleanup happens naturally over time.</p>
+     */
+    void cleanup();
+
 }
