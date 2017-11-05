@@ -26,17 +26,16 @@
 package me.lucko.helper.metadata;
 
 import com.google.common.base.Preconditions;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.Scheduler;
+import me.lucko.helper.metadata.type.BlockMetadataRegistry;
+import me.lucko.helper.metadata.type.EntityMetadataRegistry;
+import me.lucko.helper.metadata.type.PlayerMetadataRegistry;
+import me.lucko.helper.metadata.type.WorldMetadataRegistry;
 import me.lucko.helper.serialize.BlockPosition;
-import me.lucko.helper.utils.Players;
+import me.lucko.helper.terminable.Terminable;
 
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -45,60 +44,83 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * Holds {@link MetadataMap}s bound to players, entities, blocks and worlds.
+ * Provides access to {@link MetadataRegistry} instances bound to players, entities, blocks and worlds.
  */
 public final class Metadata {
 
-    private static LoadingCache<UUID, MetadataMap> players = null;
-    private static LoadingCache<UUID, MetadataMap> entities = null;
-    private static LoadingCache<BlockPosition, MetadataMap> blocks = null;
-    private static LoadingCache<UUID, MetadataMap> worlds = null;
+    @Nullable
+    private static Terminable eventListener = null;
+    @Nullable
+    private static Terminable cleanupTask = null;
 
     // lazily load
-    private static synchronized void setup() {
-        if (players != null) return;
+    private static synchronized void ensureSetup() {
+        if (eventListener == null || eventListener.hasTerminated()) {
+            // remove player metadata when they leave the server
+            eventListener = Events.subscribe(PlayerQuitEvent.class, EventPriority.MONITOR)
+                    .handler(e -> StandardMetadataRegistries.PLAYER.remove(e.getPlayer().getUniqueId()));
+        }
 
-        players = makeCache();
-        entities = makeCache();
-        blocks = makeCache();
-        worlds = makeCache();
-
-        // remove player metadata when they leave the server
-        Events.subscribe(PlayerQuitEvent.class, EventPriority.MONITOR)
-                .handler(e -> {
-                    MetadataMap map = players.asMap().remove(e.getPlayer().getUniqueId());
-                    if (map != null) {
-                        map.clear();
-                    }
-                });
-
-        // cache housekeeping task
-        Scheduler.runTaskRepeatingAsync(() -> {
-            players.asMap().values().removeIf(MetadataMap::isEmpty);
-            entities.asMap().values().removeIf(MetadataMap::isEmpty);
-            blocks.asMap().values().removeIf(MetadataMap::isEmpty);
-            worlds.asMap().values().removeIf(MetadataMap::isEmpty);
-        }, 1200L + ThreadLocalRandom.current().nextInt(20), 1200L);
-    }
-
-    private static <T> LoadingCache<T, MetadataMap> makeCache() {
-        return CacheBuilder.newBuilder()
-                .build(new CacheLoader<T, MetadataMap>() {
-                    @Override
-                    public MetadataMap load(T uuid) {
-                        return MetadataMap.create();
-                    }
-                });
+        if (cleanupTask == null || cleanupTask.hasTerminated()) {
+            // cache housekeeping task
+            cleanupTask = Scheduler.runTaskRepeatingAsync(() -> {
+                StandardMetadataRegistries.PLAYER.cleanup();
+                StandardMetadataRegistries.ENTITY.cleanup();
+                StandardMetadataRegistries.BLOCK.cleanup();
+                StandardMetadataRegistries.WORLD.cleanup();
+            }, 1204L, 1200L);
+        }
     }
 
     /**
-     * Gets a metadata map for the given object.
+     * Gets the {@link MetadataRegistry} for {@link Player}s.
+     *
+     * @return the {@link PlayerMetadataRegistry}
+     */
+    public static PlayerMetadataRegistry players() {
+        ensureSetup();
+        return StandardMetadataRegistries.PLAYER;
+    }
+
+    /**
+     * Gets the {@link MetadataRegistry} for {@link Entity}s.
+     *
+     * @return the {@link EntityMetadataRegistry}
+     */
+    public static EntityMetadataRegistry entities() {
+        ensureSetup();
+        return StandardMetadataRegistries.ENTITY;
+    }
+
+    /**
+     * Gets the {@link MetadataRegistry} for {@link Block}s.
+     *
+     * @return the {@link BlockMetadataRegistry}
+     */
+    public static BlockMetadataRegistry blocks() {
+        ensureSetup();
+        return StandardMetadataRegistries.BLOCK;
+    }
+
+    /**
+     * Gets the {@link MetadataRegistry} for {@link World}s.
+     *
+     * @return the {@link WorldMetadataRegistry}
+     */
+    public static WorldMetadataRegistry worlds() {
+        ensureSetup();
+        return StandardMetadataRegistries.WORLD;
+    }
+
+    /**
+     * Produces a {@link MetadataMap} for the given object.
      *
      * A map will only be returned if the object is an instance of
      * {@link Player}, {@link UUID}, {@link Entity}, {@link Block} or {@link World}.
@@ -125,161 +147,131 @@ public final class Metadata {
     }
 
     /**
-     * Gets a MetadataMap for the given player.
-     * A map will only be loaded when requested for.
+     * Gets a {@link MetadataMap} for the given object, if one already exists and has
+     * been cached in this registry.
      *
-     * @param player the player
+     * A map will only be returned if the object is an instance of
+     * {@link Player}, {@link UUID}, {@link Entity}, {@link Block} or {@link World}.
+     *
+     * @param obj the object
      * @return a metadata map
      */
     @Nonnull
-    public static MetadataMap provideForPlayer(@Nonnull Player player) {
-        Preconditions.checkNotNull(player, "player");
-        setup();
-        return players.getUnchecked(player.getUniqueId());
+    public static Optional<MetadataMap> get(@Nonnull Object obj) {
+        Preconditions.checkNotNull(obj, "obj");
+        if (obj instanceof Player) {
+            return getForPlayer(((Player) obj));
+        } else if (obj instanceof UUID) {
+            return getForPlayer(((UUID) obj));
+        } else if (obj instanceof Entity) {
+            return getForEntity(((Entity) obj));
+        } else if (obj instanceof Block) {
+            return getForBlock(((Block) obj));
+        } else if (obj instanceof World) {
+            return getForWorld(((World) obj));
+        } else {
+            throw new IllegalArgumentException("Unknown object type: " + obj.getClass());
+        }
     }
 
-    /**
-     * Gets a MetadataMap for the given player.
-     * A map will only be loaded when requested for.
-     *
-     * @param uuid the players uuid
-     * @return a metadata map
-     */
     @Nonnull
     public static MetadataMap provideForPlayer(@Nonnull UUID uuid) {
-        Preconditions.checkNotNull(uuid, "uuid");
-        setup();
-        return players.getUnchecked(uuid);
+        return players().provide(uuid);
     }
 
-    /**
-     * Gets a map of the players with a given metadata key
-     *
-     * @param key the key
-     * @param <T> the key type
-     * @return an immutable map of players to key value
-     */
+    @Nonnull
+    public static MetadataMap provideForPlayer(@Nonnull Player player) {
+        return players().provide(player);
+    }
+
+    @Nonnull
+    public static Optional<MetadataMap> getForPlayer(@Nonnull UUID uuid) {
+        return players().get(uuid);
+    }
+
+    @Nonnull
+    public static Optional<MetadataMap> getForPlayer(@Nonnull Player player) {
+        return players().get(player);
+    }
+
     @Nonnull
     public static <T> Map<Player, T> lookupPlayersWithKey(@Nonnull MetadataKey<T> key) {
-        Preconditions.checkNotNull(key, "key");
-        setup();
-
-        ImmutableMap.Builder<Player, T> ret = ImmutableMap.builder();
-        players.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
-            Player player = Players.getNullable(uuid);
-            if (player != null) {
-                ret.put(player, t);
-            }
-        }));
-        return ret.build();
+        return players().getAllWithKey(key);
     }
 
-    /**
-     * Gets a MetadataMap for the given entity.
-     * A map will only be loaded when requested for.
-     *
-     * @param entity the entity
-     * @return a metadata map
-     */
+    @Nonnull
+    public static MetadataMap provideForEntity(@Nonnull UUID uuid) {
+        return entities().provide(uuid);
+    }
+
     @Nonnull
     public static MetadataMap provideForEntity(@Nonnull Entity entity) {
-        Preconditions.checkNotNull(entity, "entity");
-        setup();
-
-        if (entity instanceof Player) {
-            return provideForPlayer(((Player) entity));
-        }
-
-        return entities.getUnchecked(entity.getUniqueId());
+        return entities().provide(entity);
     }
 
-    /**
-     * Gets a map of the entities with a given metadata key
-     *
-     * @param key the key
-     * @param <T> the key type
-     * @return an immutable map of entity to key value
-     */
+    @Nonnull
+    public static Optional<MetadataMap> getForEntity(@Nonnull UUID uuid) {
+        return entities().get(uuid);
+    }
+
+    @Nonnull
+    public static Optional<MetadataMap> getForEntity(@Nonnull Entity entity) {
+        return entities().get(entity);
+    }
+
     @Nonnull
     public static <T> Map<Entity, T> lookupEntitiesWithKey(@Nonnull MetadataKey<T> key) {
-        Preconditions.checkNotNull(key, "key");
-        setup();
-
-        ImmutableMap.Builder<Entity, T> ret = ImmutableMap.builder();
-        entities.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
-            Entity entity = Bukkit.getEntity(uuid);
-            if (entity != null) {
-                ret.put(entity, t);
-            }
-        }));
-        return ret.build();
+        return entities().getAllWithKey(key);
     }
 
-    /**
-     * Gets a MetadataMap for the given block.
-     * A map will only be loaded when requested for.
-     *
-     * @param block the block
-     * @return a metadata map
-     */
+    @Nonnull
+    public static MetadataMap provideForBlock(@Nonnull BlockPosition block) {
+        return blocks().provide(block);
+    }
+
     @Nonnull
     public static MetadataMap provideForBlock(@Nonnull Block block) {
-        Preconditions.checkNotNull(block, "block");
-        setup();
-        return blocks.getUnchecked(BlockPosition.of(block));
+        return blocks().provide(block);
     }
 
-    /**
-     * Gets a map of the blocks with a given metadata key
-     *
-     * @param key the key
-     * @param <T> the key type
-     * @return an immutable map of block position to key value
-     */
+    @Nonnull
+    public static Optional<MetadataMap> getForBlock(@Nonnull BlockPosition block) {
+        return blocks().get(block);
+    }
+
+    @Nonnull
+    public static Optional<MetadataMap> getForBlock(@Nonnull Block block) {
+        return blocks().get(block);
+    }
+
     @Nonnull
     public static <T> Map<BlockPosition, T> lookupBlocksWithKey(@Nonnull MetadataKey<T> key) {
-        Preconditions.checkNotNull(key, "key");
-        setup();
-
-        ImmutableMap.Builder<BlockPosition, T> ret = ImmutableMap.builder();
-        blocks.asMap().forEach((pos, map) -> map.get(key).ifPresent(t -> ret.put(pos, t)));
-        return ret.build();
+        return blocks().getAllWithKey(key);
     }
 
-    /**
-     * Gets a MetadataMap for the given world.
-     * A map will only be loaded when requested for.
-     *
-     * @param world the world
-     * @return a metadata map
-     */
+    @Nonnull
+    public static MetadataMap provideForWorld(@Nonnull UUID uid) {
+        return worlds().provide(uid);
+    }
+
     @Nonnull
     public static MetadataMap provideForWorld(@Nonnull World world) {
-        Preconditions.checkNotNull(world, "world");
-        setup();
-        return worlds.getUnchecked(world.getUID());
+        return worlds().provide(world);
     }
 
-    /**
-     * Gets a map of the worlds with a given metadata key
-     *
-     * @param key the key
-     * @param <T> the key type
-     * @return an immutable map of world to key value
-     */
+    @Nonnull
+    public static Optional<MetadataMap> getForWorld(@Nonnull UUID uid) {
+        return worlds().get(uid);
+    }
+
+    @Nonnull
+    public static Optional<MetadataMap> getForWorld(@Nonnull World world) {
+        return worlds().get(world);
+    }
+
     @Nonnull
     public static <T> Map<World, T> lookupWorldsWithKey(@Nonnull MetadataKey<T> key) {
-        Preconditions.checkNotNull(key, "key");
-        setup();
-
-        ImmutableMap.Builder<World, T> ret = ImmutableMap.builder();
-        worlds.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
-            World world = Bukkit.getWorld(uuid);
-            if (world != null) {
-                ret.put(world, t);
-            }
-        }));
-        return ret.build();
+        return worlds().getAllWithKey(key);
     }
 
     private Metadata() {

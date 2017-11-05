@@ -113,6 +113,6 @@ public interface Hologram extends Terminable, GsonSerializable {
      *
      * @param clickCallback the click callback, or null to unregister any existing callback
      */
-    void setClickCallback(@Nullable  Consumer<Player> clickCallback);
+    void setClickCallback(@Nullable Consumer<Player> clickCallback);
 
 }
