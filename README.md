@@ -44,6 +44,7 @@ A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing t
 * [**How to add helper to your project**](https://github.com/lucko/helper/wiki/General:-Using-helper)
 * [**Standalone plugin download**](https://ci.lucko.me/job/helper/)
 
-# Documentation
 
-Documentation and a more detailed feature overview ans showcase can be found at the wiki, here: https://github.com/lucko/helper/wiki
+## Documentation
+
+Documentation and a more detailed feature overview can be found on the wiki, here: https://github.com/lucko/helper/wiki
