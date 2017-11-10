@@ -94,7 +94,7 @@ class HelperPromise<V> implements Promise<V> {
 
     private void executeSync(@Nonnull Runnable runnable) {
         if (ThreadContext.forCurrentThread() == ThreadContext.SYNC) {
-            runnable.run();
+            Scheduler.wrapRunnable(runnable).run();
         } else {
             Scheduler.sync().execute(runnable);
         }
