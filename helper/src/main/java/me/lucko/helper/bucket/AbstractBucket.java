@@ -1,0 +1,352 @@
+/*
+ * This file is part of helper, licensed under the MIT License.
+ *
+ *  Copyright (c) lucko (Luck) <luck@lucko.me>
+ *  Copyright (c) contributors
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in all
+ *  copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE.
+ */
+
+package me.lucko.helper.bucket;
+
+import com.google.common.collect.ImmutableList;
+
+import me.lucko.helper.bucket.partitioning.PartitioningStrategy;
+import me.lucko.helper.utils.ImmutableCollectors;
+
+import java.util.AbstractSet;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
+
+/**
+ * An abstract implementation of {@link Bucket}.
+ *
+ * @param <E> the element type
+ */
+public abstract class AbstractBucket<E> extends AbstractSet<E> implements Bucket<E> {
+
+    /**
+     * The function used to partition objects
+     */
+    protected final PartitioningStrategy<E> strategy;
+
+    /**
+     * The number of partitions in this bucket
+     */
+    protected final int size;
+
+    /**
+     * The content in the bucket
+     */
+    protected final Set<E> content;
+
+    /**
+     * The partitions in the bucket
+     */
+    protected final ImmutableList<Set<E>> partitions;
+
+    /**
+     * A view of the {@link #partitions} list - with all contained values wrapped by {@link SetView}.
+     */
+    protected final ImmutableList<BucketPartition<E>> partitionView;
+
+    /**
+     * A cycle of the partitions in this bucket
+     */
+    private final Cycle<BucketPartition<E>> partitionCycle;
+
+    protected AbstractBucket(int size, PartitioningStrategy<E> strategy) {
+        this.strategy = strategy;
+
+        this.size = size;
+        this.content = createSet();
+
+        //noinspection unchecked
+        Set<E>[] objs = new Set[size];
+        for (int i = 0; i < size; i++) {
+            objs[i] = createSet();
+        }
+
+        this.partitions = ImmutableList.copyOf(objs);
+        this.partitionView = this.partitions.stream().map(SetView::new).collect(ImmutableCollectors.toList());
+        this.partitionCycle = Cycle.of(this.partitionView);
+    }
+
+    /**
+     * Supplies the set instances to use for each partition in the bucket
+     *
+     * @return a new set
+     */
+    protected abstract Set<E> createSet();
+
+    @Override
+    public int getPartitionCount() {
+        return size;
+    }
+
+    @Nonnull
+    @Override
+    public BucketPartition<E> getPartition(int index) {
+        return partitionView.get(index);
+    }
+
+    @Nonnull
+    @Override
+    public List<BucketPartition<E>> getPartitions() {
+        return partitionView;
+    }
+
+    @Override
+    public Cycle<BucketPartition<E>> asCycle() {
+        return partitionCycle;
+    }
+
+    @Override
+    public boolean add(E e) {
+        if (e == null) {
+            throw new NullPointerException("Buckets do not accept null elements.");
+        }
+
+        if (!content.add(e)) {
+            return false;
+        }
+
+        partitions.get(strategy.allocate(e, this)).add(e);
+        return true;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        if (!content.remove(o)) {
+           return false;
+        }
+
+        for (Set<E> partition : partitions) {
+            partition.remove(o);
+        }
+
+        return true;
+    }
+
+    @Override
+    public void clear() {
+        for (Set<E> partition : partitions) {
+            partition.clear();
+        }
+        content.clear();
+    }
+
+    @Nonnull
+    @Override
+    public Iterator<E> iterator() {
+        return new BucketIterator();
+    }
+
+    // just delegate to the backing content set
+
+    @Override
+    public int size() {
+        return content.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return content.isEmpty();
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        return content.contains(o);
+    }
+
+
+    /**
+     * Class used to wrap the result of {@link Bucket}'s {@link #iterator()} method.
+     *
+     * This wrapping overrides the #remove method, and ensures that when removed,
+     * elements are also removed from their backing partition.
+     */
+    private final class BucketIterator implements Iterator<E> {
+        private final Iterator<E> delegate = content.iterator();
+        private E current;
+
+        @Override
+        public boolean hasNext() {
+            return delegate.hasNext();
+        }
+
+        @Override
+        public E next() {
+            // track the iterators cursor to handle #remove calls
+            current = delegate.next();
+            return current;
+        }
+
+        @Override
+        public void remove() {
+            if (current == null) {
+                throw new IllegalStateException();
+            }
+
+            // remove from the global collection
+            delegate.remove();
+
+            // also remove the element from it's contained partition
+            for (Set<E> partition : partitions) {
+                partition.remove(current);
+            }
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super E> action) {
+            delegate.forEachRemaining(action);
+        }
+    }
+
+    /**
+     * Class used to wrap the backing sets returned by {@link #getPartition(int)}.
+     *
+     * This wrapping prevents add operations, and propagates calls with remove objects
+     * back to the parent bucket.
+     */
+    private final class SetView extends AbstractSet<E> implements BucketPartition<E> {
+        private final Set<E> backing;
+        private final int index;
+
+        private SetView(Set<E> backing) {
+            this.backing = backing;
+            this.index = partitions.indexOf(backing);
+        }
+
+        @Override
+        public int getPartitionIndex() {
+            return index;
+        }
+
+        @Override
+        public Iterator<E> iterator() {
+            return new SetViewIterator(backing.iterator());
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            if (!backing.remove(o)) {
+                return false;
+            }
+
+            // also remove from the bucket content set
+            content.remove(o);
+            return true;
+        }
+
+        @Override
+        public void clear() {
+            // remove the content of the backing from the bucket content set
+            content.removeAll(backing);
+            // then clear the backing
+            backing.clear();
+        }
+
+        // just delegate
+
+        @Override
+        public int size() {
+            return backing.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return backing.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return backing.contains(o);
+        }
+
+        @Override
+        public Object[] toArray() {
+            return backing.toArray();
+        }
+
+        @Override
+        public <T> T[] toArray(@Nonnull T[] a) {
+            return backing.toArray(a);
+        }
+
+        @Override
+        public boolean containsAll(@Nonnull Collection<?> c) {
+            return backing.containsAll(c);
+        }
+
+        @Override
+        public int hashCode() {
+            return backing.hashCode();
+        }
+    }
+
+    /**
+     * Wrapping around {@link SetView}'s iterators, to propagate calls to the
+     * #remove method to the parent bucket.
+     */
+    private final class SetViewIterator implements Iterator<E> {
+        private final Iterator<E> delegate;
+        private E current;
+
+        private SetViewIterator(Iterator<E> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return delegate.hasNext();
+        }
+
+        @Override
+        public E next() {
+            // track the iterators cursor to handle #remove calls
+            current = delegate.next();
+            return current;
+        }
+
+        @Override
+        public void remove() {
+            if (current == null) {
+                throw new IllegalStateException();
+            }
+
+            // remove from the backing partition
+            delegate.remove();
+
+            // also remove from the bucket content set
+            content.remove(current);
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super E> action) {
+            delegate.forEachRemaining(action);
+        }
+    }
+
+}
