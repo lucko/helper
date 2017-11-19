@@ -91,6 +91,7 @@ public class PaginatedGui extends Gui {
             // can't go back further
             // remove the item if the current slot contains a previous page item type
             Slot slot = getSlot(previousPageSlot);
+            slot.clearBindings();
             if (slot.hasItem() && slot.getItem().getType() == previousPageItem.apply(PageInfo.create(0, 0)).getType()) {
                 slot.clearItem();
             }
@@ -106,6 +107,7 @@ public class PaginatedGui extends Gui {
             // can't go forward a page
             // remove the item if the current slot contains a next page item type
             Slot slot = getSlot(nextPageSlot);
+            slot.clearBindings();
             if (slot.hasItem() && slot.getItem().getType() == nextPageItem.apply(PageInfo.create(0, 0)).getType()) {
                 slot.clearItem();
             }
