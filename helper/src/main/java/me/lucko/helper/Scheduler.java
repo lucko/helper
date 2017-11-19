@@ -59,8 +59,9 @@ import java.util.function.Supplier;
 public final class Scheduler {
 
     private static final Executor SYNC_EXECUTOR = new SyncExecutor();
-    private static final Executor BUKKIT_ASYNC_EXECUTOR = new AsyncExecutor();
-    private static final ExecutorService ASYNC_EXECUTOR = new FallbackAsyncExecutor();
+    private static final Executor ASYNC_EXECUTOR = new AsyncExecutor();
+    private static final Executor ASYNC_EXECUTOR_BUKKIT = new BukkitAsyncExecutor();
+    private static final ExecutorService ASYNC_EXECUTOR_FALLBACK = new FallbackAsyncExecutor();
 
     private static final Consumer<Throwable> EXCEPTION_CONSUMER = throwable -> {
         Log.severe("[SCHEDULER] Exception thrown whilst executing task");
@@ -77,6 +78,15 @@ public final class Scheduler {
     }
 
     /**
+     * Get an Executor instance which will execute all passed runnables asynchronously
+     *
+     * @return an "async" executor instance
+     */
+    public static synchronized Executor async() {
+        return ASYNC_EXECUTOR;
+    }
+
+    /**
      * Get an Executor instance which will execute all passed runnables using the Bukkit scheduler thread pool
      *
      * Does not allow tasks to be posted if the backing plugin is not enabled.
@@ -84,7 +94,7 @@ public final class Scheduler {
      * @return an "async" executor instance
      */
     public static synchronized Executor bukkitAsync() {
-        return BUKKIT_ASYNC_EXECUTOR;
+        return ASYNC_EXECUTOR_BUKKIT;
     }
 
     /**
@@ -93,16 +103,7 @@ public final class Scheduler {
      * @return an "async" executor instance
      */
     public static synchronized ExecutorService internalAsync() {
-        return ASYNC_EXECUTOR;
-    }
-
-    /**
-     * Get an Executor instance which will execute all passed runnables using a thread pool
-     *
-     * @return an "async" executor instance
-     */
-    public static synchronized Executor async() {
-        return LoaderUtils.getPlugin().isEnabled() ? bukkitAsync() : internalAsync();
+        return ASYNC_EXECUTOR_FALLBACK;
     }
     
     public static BukkitScheduler bukkit() {
@@ -348,6 +349,17 @@ public final class Scheduler {
     }
 
     private static final class AsyncExecutor implements Executor {
+        @Override
+        public void execute(Runnable runnable) {
+            if (LoaderUtils.getPlugin().isEnabled()) {
+                ASYNC_EXECUTOR_BUKKIT.execute(runnable);
+            } else {
+                ASYNC_EXECUTOR_FALLBACK.execute(runnable);
+            }
+        }
+    }
+
+    private static final class BukkitAsyncExecutor implements Executor {
         @Override
         public void execute(Runnable runnable) {
             bukkit().runTaskAsynchronously(LoaderUtils.getPlugin(), wrapRunnable(runnable));
