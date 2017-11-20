@@ -1,0 +1,15 @@
+# helper-profiles configuration
+
+# The name of the database table
+table-name: "helper_profiles"
+
+# If the global helper-sql credentials should be used
+use-global-credentials: true
+
+# The credentials for the helper-profiles database.
+# These values are only read if 'use-global-credentials' is false.
+address: "localhost"
+port: 3306
+database: "minecraft"
+username: "root"
+password: "passw0rd"
