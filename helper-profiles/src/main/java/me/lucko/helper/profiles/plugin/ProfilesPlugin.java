@@ -75,6 +75,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
     private static final String SELECT_UID = "SELECT `name`, `lastupdate` FROM {table} WHERE `uniqueid` = UNHEX(?)";
     private static final String SELECT_NAME = "SELECT HEX(`uniqueid`) AS `canonicalid`, `name`, `lastupdate` FROM {table} WHERE `name` = ? ORDER BY `lastupdate` DESC LIMIT 1";
     private static final String SELECT_ALL = "SELECT HEX(`uniqueid`) AS `canonicalid`, `name`, `lastupdate` FROM {table}";
+    private static final String SELECT_ALL_RECENT = "SELECT HEX(`uniqueid`) AS `canonicalid`, `name`, `lastupdate` FROM {table} ORDER BY `lastupdate` DESC LIMIT ?";
     private static final String SELECT_ALL_UIDS = "SELECT HEX(`uniqueid`) AS `canonicalid`, `name`, `lastupdate` FROM {table} WHERE `uniqueid` IN %s";
     private static final String SELECT_ALL_NAMES = "SELECT HEX(`uniqueid`) AS `canonicalid`, `name`, `lastupdate` FROM {table} WHERE `name` IN %s GROUP BY `name` ORDER BY `lastupdate` DESC";
 
@@ -109,6 +110,14 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+
+        // preload data
+        int preloadAmount = config.getInt("preload-amount", 2000);
+        if (preloadAmount > 0) {
+            getLogger().info("Preloading the most recent " + preloadAmount + " entries...");
+            int found = preload(preloadAmount);
+            getLogger().info("Preloaded " + found + " profiles into the cache!");
         }
 
         // observe logins
@@ -149,6 +158,30 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private int preload(int numEntries) {
+        int i = 0;
+        try (Connection c = sql.getConnection()) {
+            try (PreparedStatement ps = c.prepareStatement(replaceTableName(SELECT_ALL_RECENT))) {
+                ps.setInt(1, numEntries);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        String name = rs.getString("name");
+                        Timestamp lastUpdate = rs.getTimestamp("lastupdate");
+                        String uuidString = rs.getString("canonicalid");
+                        UUID uuid = UuidUtils.fromString(uuidString);
+
+                        ImmutableProfile p = new ImmutableProfile(uuid, name, lastUpdate.getTime());
+                        updateCache(p);
+                        i++;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return i;
     }
 
     @Nonnull
