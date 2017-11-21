@@ -84,6 +84,14 @@ public class PaginatedGui extends Gui {
 
         // work out the items to display on this page
         List<List<Item>> pages = CollectionUtils.divideIterable(content, slots.size());
+
+        // normalize page number
+        if (this.page < 1) {
+            this.page = 1;
+        } else if (this.page > pages.size()) {
+            this.page = Math.max(1, pages.size());
+        }
+
         List<Item> page = pages.isEmpty() ? new ArrayList<>() : pages.get(this.page - 1);
 
         // place prev/next page buttons
