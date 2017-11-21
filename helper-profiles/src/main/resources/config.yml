@@ -1,5 +1,9 @@
 # helper-profiles configuration
 
+# The number of profiles to preload when the plugin starts.
+# The profiles are loaded in order of last the last update
+preload-amount: 2000
+
 # The name of the database table
 table-name: "helper_profiles"
 
