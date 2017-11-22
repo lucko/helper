@@ -116,8 +116,10 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
         int preloadAmount = config.getInt("preload-amount", 2000);
         if (preloadAmount > 0) {
             getLogger().info("Preloading the most recent " + preloadAmount + " entries...");
+            long start = System.currentTimeMillis();
             int found = preload(preloadAmount);
-            getLogger().info("Preloaded " + found + " profiles into the cache!");
+            long time = System.currentTimeMillis() - start;
+            getLogger().info("Preloaded " + found + " profiles into the cache! - took " + time + "ms");
         }
 
         // observe logins
@@ -332,7 +334,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
             if (!first) {
                 sb.append(", ");
             }
-            sb.append("`").append(UuidUtils.toString(uniqueId)).append("`");
+            sb.append("UNHEX(`").append(UuidUtils.toString(uniqueId)).append("`)");
             first = false;
         }
 
