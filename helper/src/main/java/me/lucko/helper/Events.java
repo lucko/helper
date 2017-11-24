@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.interfaces.Delegate;
+import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.metadata.Metadata;
 import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.terminable.Terminable;
@@ -38,7 +39,6 @@ import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Cooldown;
 import me.lucko.helper.utils.CooldownCollection;
 import me.lucko.helper.utils.Delegates;
-import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 

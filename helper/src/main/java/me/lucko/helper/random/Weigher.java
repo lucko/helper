@@ -23,31 +23,26 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.promise;
+package me.lucko.helper.random;
 
-import me.lucko.helper.internal.LoaderUtils;
+import javax.annotation.Nonnegative;
 
 /**
- * Represents the two main types of {@link Thread} on the server.
+ * Represents an object which can determine the weight of objects.
+ *
+ * @param <E> the element type
  */
-public enum ThreadContext {
+public interface Weigher<E> {
 
     /**
-     * Represents the main "server" thread
+     * Calculates and returns the weight of the element.
+     *
+     * <p>The weight value should be non-negative.</p>
+     *
+     * @param element the element to calculate the weight for
+     * @return the weight
      */
-    SYNC,
-
-    /**
-     * Represents anything which isn't the {@link #SYNC} thread.
-     */
-    ASYNC;
-
-    public static ThreadContext forCurrentThread() {
-        return forThread(Thread.currentThread());
-    }
-
-    public static ThreadContext forThread(Thread thread) {
-        return thread == LoaderUtils.getMainThread() ? SYNC : ASYNC;
-    }
+    @Nonnegative
+    double weigh(E element);
 
 }

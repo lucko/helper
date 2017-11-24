@@ -117,6 +117,7 @@ public abstract class AbstractBucket<E> extends AbstractSet<E> implements Bucket
         return partitionView;
     }
 
+    @Nonnull
     @Override
     public Cycle<BucketPartition<E>> asCycle() {
         return partitionCycle;

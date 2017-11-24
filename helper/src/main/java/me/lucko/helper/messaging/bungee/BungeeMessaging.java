@@ -35,9 +35,9 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
 import me.lucko.helper.Scheduler;
+import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.terminable.registry.TerminableRegistry;
-import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Players;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 

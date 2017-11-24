@@ -80,6 +80,7 @@ public interface Bucket<E> extends Set<E> {
      *
      * @return a cycle of partitions
      */
+    @Nonnull
     Cycle<BucketPartition<E>> asCycle();
 
 }

@@ -90,12 +90,12 @@ public interface Promise<V> extends Future<V>, Terminable {
     /**
      * Returns a Promise which is already completed with the given exception.
      *
-     * @param t the exception
+     * @param exception the exception
      * @param <U> the result type
      * @return the new completed promise
      */
-    static <U> Promise<U> exceptionally(@Nonnull Throwable t) {
-        return HelperPromise.exceptionally(t);
+    static <U> Promise<U> exceptionally(@Nonnull Throwable exception) {
+        return HelperPromise.exceptionally(exception);
     }
 
     /**
@@ -223,6 +223,26 @@ public interface Promise<V> extends Future<V>, Terminable {
      * exceptionally or a completion computation threw an exception
      */
     V getNow(V valueIfAbsent);
+
+    /**
+     * Supplies the Promise's result.
+     *
+     * @param value the object to pass to the promise
+     * @return the same promise
+     * @throws IllegalStateException if the promise is already being supplied, or has already been completed.
+     */
+    @Nonnull
+    Promise<V> supply(@Nullable V value);
+
+    /**
+     * Supplies an exceptional result to the Promise.
+     *
+     * @param exception the exception to supply
+     * @return the same promise
+     * @throws IllegalStateException if the promise is already being supplied, or has already been completed.
+     */
+    @Nonnull
+    Promise<V> supplyException(@Nonnull Throwable exception);
 
     /**
      * Schedules the supply of the Promise's result, via the given supplier.
