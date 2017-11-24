@@ -28,11 +28,12 @@ package me.lucko.helper;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.interfaces.Delegate;
+import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.promise.Promise;
+import me.lucko.helper.promise.ThreadContext;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Delegates;
-import me.lucko.helper.utils.LoaderUtils;
 import me.lucko.helper.utils.Log;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -178,6 +179,54 @@ public final class Scheduler {
     public static Promise<Void> runAsync(Runnable runnable) {
         Preconditions.checkNotNull(runnable, "runnable");
         return Promise.supplyingAsync(Delegates.runnableToSupplier(runnable));
+    }
+
+    /**
+     * Returns a consumer which when supplied, will delegate calls to the given
+     * consumer (a)synchronously.
+     *
+     * @param context the type of executor to use to supply the delegate consumer
+     * @param action the delegate consumer
+     * @param <T> the type
+     * @return a wrapped consumer
+     */
+    public static <T> Consumer<T> consuming(ThreadContext context, Consumer<? super T> action) {
+        switch (context) {
+            case SYNC:
+                return consumingSync(action);
+            case ASYNC:
+                return consumingAsync(action);
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    /**
+     * Returns a consumer which when supplied, will delegate calls to the given
+     * consumer on the main server thread.
+     *
+     * @param action the delegate consumer
+     * @param <T> the type
+     * @return a wrapped consumer
+     */
+    public static <T> Consumer<T> consumingSync(Consumer<? super T> action) {
+        Promise<T> promise = Promise.empty();
+        promise.thenAcceptSync(action);
+        return promise::supply;
+    }
+
+    /**
+     * Returns a consumer which when supplied, will delegate calls to the given
+     * consumer asynchronously.
+     *
+     * @param action the delegate consumer
+     * @param <T> the type
+     * @return a wrapped consumer
+     */
+    public static <T> Consumer<T> consumingAsync(Consumer<? super T> action) {
+        Promise<T> promise = Promise.empty();
+        promise.thenAcceptAsync(action);
+        return promise::supply;
     }
 
     /**

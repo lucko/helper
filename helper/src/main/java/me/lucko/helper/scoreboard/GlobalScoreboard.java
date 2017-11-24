@@ -25,8 +25,8 @@
 
 package me.lucko.helper.scoreboard;
 
+import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
-import me.lucko.helper.utils.LoaderUtils;
 
 import org.bukkit.plugin.java.JavaPlugin;
 

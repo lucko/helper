@@ -25,6 +25,8 @@
 
 package me.lucko.helper.utils;
 
+import me.lucko.helper.internal.LoaderUtils;
+
 import org.bukkit.Bukkit;
 
 import javax.annotation.Nonnull;

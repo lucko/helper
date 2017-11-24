@@ -35,72 +35,66 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public final class PartitioningStrategies {
 
-    private static final GenericPartitioningStrategy RANDOM = new RandomStrategy();
-    private static final GenericPartitioningStrategy LOWEST_SIZE = new LowestSizeStrategy();
-    private static final GenericPartitioningStrategy NEXT_IN_CYCLE = new NextInCycleStrategy();
-    private static final GenericPartitioningStrategy PREVIOUS_IN_CYCLE = new PreviousInCycleStrategy();
-
     public static <T> PartitioningStrategy<T> random() {
-        return RANDOM.cast();
+        return Strategies.RANDOM.cast();
     }
 
     public static <T> PartitioningStrategy<T> lowestSize() {
-        return LOWEST_SIZE.cast();
+        return Strategies.LOWEST_SIZE.cast();
     }
 
     public static <T> PartitioningStrategy<T> nextInCycle() {
-        return NEXT_IN_CYCLE.cast();
+        return Strategies.NEXT_IN_CYCLE.cast();
     }
 
     public static <T> PartitioningStrategy<T> previousInCycle() {
-        return PREVIOUS_IN_CYCLE.cast();
+        return Strategies.PREVIOUS_IN_CYCLE.cast();
     }
 
-    private static final class RandomStrategy implements GenericPartitioningStrategy {
-        @Override
-        public int allocate(Bucket<?> bucket) {
-            return ThreadLocalRandom.current().nextInt(bucket.getPartitionCount());
-        }
-    }
+    private enum Strategies implements GenericPartitioningStrategy {
+        RANDOM {
+            @Override
+            public int allocate(Bucket<?> bucket) {
+                return ThreadLocalRandom.current().nextInt(bucket.getPartitionCount());
+            }
+        },
+        LOWEST_SIZE {
+            @Override
+            public int allocate(Bucket<?> bucket) {
+                int index = -1;
+                int lowestSize = Integer.MAX_VALUE;
 
-    private static final class LowestSizeStrategy implements GenericPartitioningStrategy {
-        @Override
-        public int allocate(Bucket<?> bucket) {
-            int index = -1;
-            int lowestSize = Integer.MAX_VALUE;
+                for (BucketPartition<?> partition : bucket.getPartitions()) {
+                    int size = partition.size();
+                    int i = partition.getPartitionIndex();
 
-            for (BucketPartition<?> partition : bucket.getPartitions()) {
-                int size = partition.size();
-                int i = partition.getPartitionIndex();
+                    if (size == 0) {
+                        return i;
+                    }
 
-                if (size == 0) {
-                    return i;
+                    if (size < lowestSize) {
+                        lowestSize = size;
+                        index = i;
+                    }
                 }
 
-                if (size < lowestSize) {
-                    lowestSize = size;
-                    index = i;
+                if (index == -1) {
+                    throw new AssertionError();
                 }
+                return index;
             }
-
-            if (index == -1) {
-                throw new AssertionError();
+        },
+        NEXT_IN_CYCLE {
+            @Override
+            public int allocate(Bucket<?> bucket) {
+                return bucket.asCycle().next().getPartitionIndex();
             }
-            return index;
-        }
-    }
-
-    private static final class NextInCycleStrategy implements GenericPartitioningStrategy {
-        @Override
-        public int allocate(Bucket<?> bucket) {
-            return bucket.asCycle().next().getPartitionIndex();
-        }
-    }
-
-    private static final class PreviousInCycleStrategy implements GenericPartitioningStrategy {
-        @Override
-        public int allocate(Bucket<?> bucket) {
-            return bucket.asCycle().previous().getPartitionIndex();
+        },
+        PREVIOUS_IN_CYCLE {
+            @Override
+            public int allocate(Bucket<?> bucket) {
+                return bucket.asCycle().previous().getPartitionIndex();
+            }
         }
     }
 

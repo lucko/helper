@@ -27,7 +27,7 @@ package me.lucko.helper.maven;
 
 import com.google.common.base.Preconditions;
 
-import me.lucko.helper.utils.LoaderUtils;
+import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.utils.Log;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 

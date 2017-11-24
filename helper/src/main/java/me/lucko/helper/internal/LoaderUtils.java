@@ -23,7 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.internal;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonArray;

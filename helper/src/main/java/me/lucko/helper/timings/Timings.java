@@ -25,7 +25,7 @@
 
 package me.lucko.helper.timings;
 
-import me.lucko.helper.utils.LoaderUtils;
+import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.plugin.java.JavaPlugin;

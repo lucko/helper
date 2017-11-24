@@ -27,7 +27,7 @@ package me.lucko.helper.promise;
 
 import me.lucko.helper.Scheduler;
 import me.lucko.helper.interfaces.Delegate;
-import me.lucko.helper.utils.LoaderUtils;
+import me.lucko.helper.internal.LoaderUtils;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -125,7 +125,7 @@ class HelperPromise<V> implements Promise<V> {
     }
 
     private boolean completeExceptionally(@Nonnull Throwable t) {
-        return fut.completeExceptionally(t);
+        return !cancelled.get() && fut.completeExceptionally(t);
     }
 
     private void markAsSupplied() {
@@ -188,6 +188,22 @@ class HelperPromise<V> implements Promise<V> {
     }
 
     /* implementation */
+
+    @Nonnull
+    @Override
+    public Promise<V> supply(@Nullable V value) {
+        markAsSupplied();
+        complete(value);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public Promise<V> supplyException(@Nonnull Throwable exception) {
+        markAsSupplied();
+        completeExceptionally(exception);
+        return this;
+    }
 
     @Nonnull
     @Override

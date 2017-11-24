@@ -28,6 +28,7 @@ package me.lucko.helper.plugin;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.Scheduler;
+import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.maven.LibraryLoader;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableConsumer;
@@ -35,7 +36,6 @@ import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.terminable.composite.CompositeTerminableConsumer;
 import me.lucko.helper.terminable.registry.TerminableRegistry;
 import me.lucko.helper.utils.CommandMapUtil;
-import me.lucko.helper.utils.LoaderUtils;
 
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.YamlConfiguration;
