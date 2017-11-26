@@ -27,6 +27,7 @@ package me.lucko.helper.utils;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.Helper;
+import me.lucko.helper.event.MergedSubscription;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -60,7 +61,7 @@ public final class ServiceCallback<T> implements Terminable {
     @Nullable
     private T instance = null;
     private Class<T> serviceClass;
-    private final Events.MergedHandler listener;
+    private final MergedSubscription<ServiceEvent> listener;
 
     private ServiceCallback(Class<T> serviceClass) {
         this.serviceClass = serviceClass;
