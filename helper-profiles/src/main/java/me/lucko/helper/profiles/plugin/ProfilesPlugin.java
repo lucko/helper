@@ -258,6 +258,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
         return Scheduler.supplyAsync(() -> {
             try (Connection c = sql.getConnection()) {
                 try (PreparedStatement ps = c.prepareStatement(replaceTableName(SELECT_NAME))) {
+                    ps.setString(1, name);
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
                             String remoteName = rs.getString("name"); // provide a case corrected name
