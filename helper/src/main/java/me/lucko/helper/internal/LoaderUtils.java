@@ -58,9 +58,9 @@ public final class LoaderUtils {
         if (plugin == null) {
             plugin = JavaPlugin.getProvidingPlugin(LoaderUtils.class);
 
-            String thisClass = LoaderUtils.class.getName();
-            thisClass = thisClass.substring(0, thisClass.length() - ".utils.LoaderUtils".length());
-            Bukkit.getLogger().info("[helper] helper (" + thisClass + ") bound to plugin " + plugin.getName() + " - " + plugin.getClass().getName());
+            String packageName = LoaderUtils.class.getPackage().getName();
+            packageName = packageName.substring(0, packageName.length() - ".internal".length());
+            Bukkit.getLogger().info("[helper] helper (" + packageName + ") bound to plugin " + plugin.getName() + " - " + plugin.getClass().getName());
 
             setup();
         }
