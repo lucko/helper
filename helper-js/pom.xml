@@ -63,7 +63,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>helper</artifactId>
-            <version>4.0.0</version>
+            <version>4.1.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

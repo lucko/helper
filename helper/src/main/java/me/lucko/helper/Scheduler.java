@@ -31,6 +31,7 @@ import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.promise.Promise;
 import me.lucko.helper.promise.ThreadContext;
+import me.lucko.helper.scheduler.TaskBuilder;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Delegates;
@@ -70,27 +71,29 @@ public final class Scheduler {
     };
 
     /**
-     * Get an Executor instance which will execute all passed runnables on the main server thread.
+     * Returns a "sync" executor, which executes all passed runnables on the main server thread.
      *
-     * @return a "sync" executor instance
+     * @return a sync executor instance
      */
     public static synchronized Executor sync() {
         return SYNC_EXECUTOR;
     }
 
     /**
-     * Get an Executor instance which will execute all passed runnables asynchronously
+     * Returns an "async" executor, which executes all passed runnables asynchronously
      *
-     * @return an "async" executor instance
+     * @return an async executor instance
      */
     public static synchronized Executor async() {
         return ASYNC_EXECUTOR;
     }
 
     /**
-     * Get an Executor instance which will execute all passed runnables using the Bukkit scheduler thread pool
+     * Returns a variant of {@link #async()}, which always uses the BukkitScheduler's
+     * thread pool to execute tasks.
      *
-     * Does not allow tasks to be posted if the backing plugin is not enabled.
+     * <p>Note: the BukkitScheduler does not allow tasks to be posted if the backing
+     * plugin is not enabled. Execution of tasks does not commence until the server has fully started.</p>
      *
      * @return an "async" executor instance
      */
@@ -99,16 +102,48 @@ public final class Scheduler {
     }
 
     /**
-     * Get an Executor instance which will execute all passed runnables using an internal thread pool
+     * Returns a variant of {@link #async()} which uses an internal thread pool
+     * to execute tasks.
+     *
+     * <p>This executor instance is not affected by Bukkit rules, and will start working
+     * immediately. (before the server has fully started)</p>
      *
      * @return an "async" executor instance
      */
     public static synchronized ExecutorService internalAsync() {
         return ASYNC_EXECUTOR_FALLBACK;
     }
-    
+
+    /**
+     * Gets Bukkit's scheduler.
+     *
+     * @return bukkit's scheduler
+     */
     public static BukkitScheduler bukkit() {
         return Helper.bukkitScheduler();
+    }
+
+    /**
+     * Gets a {@link TaskBuilder} instance
+     *
+     * @return a task builder
+     */
+    public static TaskBuilder builder() {
+        return TaskBuilder.newBuilder();
+    }
+
+    /**
+     * Compute the result of the passed supplier
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param supplier the supplier
+     * @param <T> the return type
+     * @return a Promise which will return the result of the computation
+     */
+    public static <T> Promise<T> supply(ThreadContext context, Supplier<T> supplier) {
+        Preconditions.checkNotNull(context, "context");
+        Preconditions.checkNotNull(supplier, "supplier");
+        return Promise.supplying(context, supplier);
     }
 
     /**
@@ -136,6 +171,20 @@ public final class Scheduler {
     }
 
     /**
+     * Call a callable
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param callable the callable
+     * @param <T> the return type
+     * @return a Promise which will return the result of the computation
+     */
+    public static <T> Promise<T> call(ThreadContext context, Callable<T> callable) {
+        Preconditions.checkNotNull(context, "context");
+        Preconditions.checkNotNull(callable, "callable");
+        return Promise.supplying(context, Delegates.callableToSupplier(callable));
+    }
+
+    /**
      * Call a callable on the main server thread
      *
      * @param callable the callable
@@ -157,6 +206,19 @@ public final class Scheduler {
     public static <T> Promise<T> callAsync(Callable<T> callable) {
         Preconditions.checkNotNull(callable, "callable");
         return Promise.supplyingAsync(Delegates.callableToSupplier(callable));
+    }
+
+    /**
+     * Execute a runnable
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param runnable the runnable
+     * @return a Promise which will return when the runnable is complete
+     */
+    public static Promise<Void> run(ThreadContext context, Runnable runnable) {
+        Preconditions.checkNotNull(context, "context");
+        Preconditions.checkNotNull(runnable, "runnable");
+        return Promise.supplyingSync(Delegates.runnableToSupplier(runnable));
     }
 
     /**
@@ -191,6 +253,7 @@ public final class Scheduler {
      * @return a wrapped consumer
      */
     public static <T> Consumer<T> consuming(ThreadContext context, Consumer<? super T> action) {
+        Preconditions.checkNotNull(context, "context");
         switch (context) {
             case SYNC:
                 return consumingSync(action);
@@ -230,6 +293,21 @@ public final class Scheduler {
     }
 
     /**
+     * Compute the result of the passed supplier at some point in the future
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param supplier the supplier
+     * @param delay the delay in ticks before calling the supplier
+     * @param <T> the return type
+     * @return a Promise which will return the result of the computation
+     */
+    public static <T> Promise<T> supplyLater(ThreadContext context, Supplier<T> supplier, long delay) {
+        Preconditions.checkNotNull(context, "context");
+        Preconditions.checkNotNull(supplier, "supplier");
+        return Promise.supplyingDelayed(context, supplier, delay);
+    }
+
+    /**
      * Compute the result of the passed supplier on the main thread at some point in the future
      *
      * @param supplier the supplier
@@ -253,6 +331,21 @@ public final class Scheduler {
     public static <T> Promise<T> supplyLaterAsync(Supplier<T> supplier, long delay) {
         Preconditions.checkNotNull(supplier, "supplier");
         return Promise.supplyingDelayedAsync(supplier, delay);
+    }
+
+    /**
+     * Call a callable at some point in the future
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param callable the callable
+     * @param delay the delay in ticks before calling the supplier
+     * @param <T> the return type
+     * @return a Promise which will return the result of the computation
+     */
+    public static <T> Promise<T> callLater(ThreadContext context, Callable<T> callable, long delay) {
+        Preconditions.checkNotNull(context, "context");
+        Preconditions.checkNotNull(callable, "callable");
+        return Promise.supplyingDelayed(context, Delegates.callableToSupplier(callable), delay);
     }
 
     /**
@@ -282,6 +375,20 @@ public final class Scheduler {
     }
 
     /**
+     * Execute a runnable at some point in the future
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param runnable the runnable
+     * @param delay the delay in ticks before calling the supplier
+     * @return a Promise which will return when the runnable is complete
+     */
+    public static Promise<Void> runLater(ThreadContext context, Runnable runnable, long delay) {
+        Preconditions.checkNotNull(context, "context");
+        Preconditions.checkNotNull(runnable, "runnable");
+        return Promise.supplyingDelayed(context, Delegates.runnableToSupplier(runnable), delay);
+    }
+
+    /**
      * Execute a runnable on the main server thread at some point in the future
      *
      * @param runnable the runnable
@@ -303,6 +410,27 @@ public final class Scheduler {
     public static Promise<Void> runLaterAsync(Runnable runnable, long delay) {
         Preconditions.checkNotNull(runnable, "runnable");
         return Promise.supplyingDelayedAsync(Delegates.runnableToSupplier(runnable), delay);
+    }
+
+    /**
+     * Schedule a repeating task to run
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param consumer the task to run
+     * @param delay the delay before the task begins
+     * @param interval the interval at which the task will repeat
+     * @return a task instance
+     */
+    public static Task runTaskRepeating(ThreadContext context, Consumer<Task> consumer, long delay, long interval) {
+        Preconditions.checkNotNull(context, "context");
+        switch (context) {
+            case SYNC:
+                return runTaskRepeatingSync(consumer, delay, interval);
+            case ASYNC:
+                return runTaskRepeatingAsync(consumer, delay, interval);
+            default:
+                throw new AssertionError();
+        }
     }
 
     /**
@@ -333,6 +461,27 @@ public final class Scheduler {
         HelperTask task = new HelperTask(consumer);
         task.runTaskTimerAsynchronously(LoaderUtils.getPlugin(), delay, interval);
         return task;
+    }
+
+    /**
+     * Schedule a repeating task to run
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param runnable the task to run
+     * @param delay the delay before the task begins
+     * @param interval the interval at which the task will repeat
+     * @return a task instance
+     */
+    public static Task runTaskRepeating(ThreadContext context, Runnable runnable, long delay, long interval) {
+        Preconditions.checkNotNull(context, "context");
+        switch (context) {
+            case SYNC:
+                return runTaskRepeatingSync(runnable, delay, interval);
+            case ASYNC:
+                return runTaskRepeatingAsync(runnable, delay, interval);
+            default:
+                throw new AssertionError();
+        }
     }
 
     /**

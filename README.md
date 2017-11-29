@@ -1,6 +1,6 @@
-![alt text](https://i.imgur.com/zllxTFp.png "Banner")
+![](https://i.imgur.com/zllxTFp.png "Banner")
 # helper [![Build Status](https://ci.lucko.me/job/helper/badge/icon)](https://ci.lucko.me/job/helper/)
-A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing the same old stuff again and again. :)
+A collection of utilities and extended APIs to support the rapid and easy development of Bukkit plugins.
 
 ### Modules
 ##### [`helper`](https://github.com/lucko/helper/tree/master/helper): The main helper project
@@ -18,6 +18,9 @@ A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing t
 ##### [`helper-lilypad`](https://github.com/lucko/helper/tree/master/helper-lilypad): Implements the helper Messaging system using LilyPad.
 [![Artifact](https://img.shields.io/badge/build-artifact-brightgreen.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-lilypad/target/helper-lilypad.jar)
 
+##### [`helper-profiles`](https://github.com/lucko/helper/tree/master/helper-profiles): Provides a cached lookup service for player profiles.
+[![Artifact](https://img.shields.io/badge/build-artifact-brightgreen.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-profiles/target/helper-profiles.jar)
+
 ##### [`helper-js`](https://github.com/lucko/helper/tree/master/helper-js): JavaScript plugins using Nashorn.
 [![Artifact](https://img.shields.io/badge/build-artifact-brightgreen.svg)](https://ci.lucko.me/job/helper/lastSuccessfulBuild/artifact/helper-js/target/helper-js.jar)
 
@@ -32,6 +35,9 @@ A utility to reduce boilerplate code in Bukkit plugins. It gets boring writing t
 * [`Scoreboard`](https://github.com/lucko/helper/wiki/helper:-Scoreboard) - asynchronous scoreboard using ProtocolLib
 * [`GUI`](https://github.com/lucko/helper/wiki/helper:-GUI) - lightweight by highly adaptable and flexible menu abstraction
 * [`Menu Scheming`](https://github.com/lucko/helper/wiki/helper:-Menu-Scheming) - easily design menu layouts without having to worry about slot ids
+* [`Random`](https://github.com/lucko/helper/wiki/helper:-Random) - make random selections from collections of weighted elements
+* [`Bucket`](https://github.com/lucko/helper/wiki/helper:-Bucket) - sets of distributed and uniformly partitioned elements
+* [`Profiles`](https://github.com/lucko/helper/wiki/helper:-Profiles) - a lookup repository and cache for player uuid & name profiles
 * [`Plugin Annotations`](https://github.com/lucko/helper/wiki/helper:-Plugin-Annotations) - automatically create plugin.yml files for your projects using annotations
 * [`Maven Annotations`](https://github.com/lucko/helper/wiki/helper:-Maven-Annotations) - download & install maven dependencies at runtime
 * [`Terminables`](https://github.com/lucko/helper/wiki/helper:-Terminables) - a family of interfaces to help easily manipulate objects which can be unregistered, stopped, or gracefully halted
