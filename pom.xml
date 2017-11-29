@@ -19,7 +19,7 @@
     </modules>
 
     <name>helper-parent</name>
-    <description>A collection of utilities to reduce boilerplate code in Bukkit plugins.</description>
+    <description>A collection of utilities and extended APIs to support the rapid and easy development of Bukkit plugins.</description>
     <url>https://github.com/lucko/helper</url>
 
     <licenses>

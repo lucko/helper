@@ -44,7 +44,7 @@ import javax.annotation.Nullable;
  * usually because the computation of its value is yet incomplete.
  *
  * <p>This interface carries similar method signatures to those of
- * {@link java.util.concurrent.CompletionStage} and {@link java.util.concurrent.CompletableFuture}.</p>
+ * {@link java.util.concurrent.CompletionStage} and {@link CompletableFuture}.</p>
  *
  * <p>However, a distinction is made between actions which are executed on
  * the main server thread vs asynchronously.</p>
