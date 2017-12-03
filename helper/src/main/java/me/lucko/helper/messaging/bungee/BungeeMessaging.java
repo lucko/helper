@@ -348,7 +348,7 @@ public final class BungeeMessaging implements PluginMessageListener {
         String subChannel = in.readUTF();
 
         // exclude the first value from the input stream
-        inputStream.mark(0);
+        inputStream.mark(/* ignored */ 0);
 
         lock.lock();
         try {
@@ -441,6 +441,7 @@ public final class BungeeMessaging implements PluginMessageListener {
          *
          * @return the player to send the message via, or null if any player should be used
          */
+        @Nullable
         default Player getHandle() {
             return null;
         }

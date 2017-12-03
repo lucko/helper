@@ -161,9 +161,7 @@ public final class ChunkPosition implements GsonSerializable {
         if (o == this) return true;
         if (!(o instanceof ChunkPosition)) return false;
         final ChunkPosition other = (ChunkPosition) o;
-        return this.getX() == other.getX() &&
-                this.getZ() == other.getZ() &&
-                (this.getWorld() == null ? other.getWorld() == null : this.getWorld().equals(other.getWorld()));
+        return this.getX() == other.getX() && this.getZ() == other.getZ() && this.getWorld().equals(other.getWorld());
     }
 
     @Override
@@ -172,7 +170,7 @@ public final class ChunkPosition implements GsonSerializable {
         int result = 1;
         result = result * PRIME + this.getX();
         result = result * PRIME + this.getZ();
-        result = result * PRIME + (this.getWorld() == null ? 43 : this.getWorld().hashCode());
+        result = result * PRIME + this.getWorld().hashCode();
         return result;
     }
 

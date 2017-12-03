@@ -29,9 +29,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.event.MergedSubscription;
-import me.lucko.helper.internal.LoaderUtils;
-import me.lucko.helper.utils.Cooldown;
-import me.lucko.helper.utils.CooldownCollection;
+import me.lucko.helper.event.functional.ExpiryTestStage;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
@@ -40,22 +38,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 
 class MergedBuilder<T> implements MergedSubscriptionBuilder<T> {
-
     final TypeToken<T> handledClass;
     final Map<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> mappings = new HashMap<>();
 
-    long expiry = -1;
-    long maxCalls = -1;
     BiConsumer<Event, Throwable> exceptionConsumer = DEFAULT_EXCEPTION_CONSUMER;
+
     final List<Predicate<T>> filters = new ArrayList<>();
+    final List<BiPredicate<MergedSubscription<T>, T>> preExpiryTests = new ArrayList<>(0);
+    final List<BiPredicate<MergedSubscription<T>, T>> midExpiryTests = new ArrayList<>(0);
+    final List<BiPredicate<MergedSubscription<T>, T>> postExpiryTests = new ArrayList<>(0);
 
     MergedBuilder(TypeToken<T> handledClass) {
         this.handledClass = handledClass;
@@ -80,26 +79,24 @@ class MergedBuilder<T> implements MergedSubscriptionBuilder<T> {
 
     @Nonnull
     @Override
-    public MergedSubscriptionBuilder<T> expireAfter(long duration, @Nonnull TimeUnit unit) {
-        Preconditions.checkNotNull(unit, "unit");
-        Preconditions.checkArgument(duration >= 1, "duration >= 1");
-        this.expiry = Math.addExact(System.currentTimeMillis(), unit.toMillis(duration));
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public MergedSubscriptionBuilder<T> expireAfter(long maxCalls) {
-        Preconditions.checkArgument(maxCalls >= 1, "maxCalls >= 1");
-        this.maxCalls = maxCalls;
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public MergedSubscriptionBuilder<T> exceptionConsumer(@Nonnull BiConsumer<Event, Throwable> exceptionConsumer) {
-        Preconditions.checkNotNull(exceptionConsumer, "exceptionConsumer");
-        this.exceptionConsumer = exceptionConsumer;
+    public MergedSubscriptionBuilder<T> expireIf(@Nonnull BiPredicate<MergedSubscription<T>, T> predicate, @Nonnull ExpiryTestStage... testPoints) {
+        Preconditions.checkNotNull(testPoints, "testPoints");
+        Preconditions.checkNotNull(predicate, "predicate");
+        for (ExpiryTestStage testPoint : testPoints) {
+            switch (testPoint) {
+                case PRE:
+                    preExpiryTests.add(predicate);
+                    break;
+                case POST_FILTER:
+                    midExpiryTests.add(predicate);
+                    break;
+                case POST_HANDLE:
+                    postExpiryTests.add(predicate);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown ExpiryTestPoint: " + testPoint);
+            }
+        }
         return this;
     }
 
@@ -113,64 +110,20 @@ class MergedBuilder<T> implements MergedSubscriptionBuilder<T> {
 
     @Nonnull
     @Override
-    public MergedSubscriptionBuilder<T> withCooldown(@Nonnull Cooldown cooldown) {
-        Preconditions.checkNotNull(cooldown, "cooldown");
-        filter(t -> cooldown.test());
+    public MergedSubscriptionBuilder<T> exceptionConsumer(@Nonnull BiConsumer<Event, Throwable> exceptionConsumer) {
+        Preconditions.checkNotNull(exceptionConsumer, "exceptionConsumer");
+        this.exceptionConsumer = exceptionConsumer;
         return this;
     }
 
     @Nonnull
     @Override
-    public MergedSubscriptionBuilder<T> withCooldown(@Nonnull Cooldown cooldown, @Nonnull BiConsumer<Cooldown, ? super T> cooldownFailConsumer) {
-        Preconditions.checkNotNull(cooldown, "cooldown");
-        Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
-        filter(t -> {
-            if (cooldown.test()) {
-                return true;
-            }
-
-            cooldownFailConsumer.accept(cooldown, t);
-            return false;
-        });
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public MergedSubscriptionBuilder<T> withCooldown(@Nonnull CooldownCollection<? super T> cooldown) {
-        Preconditions.checkNotNull(cooldown, "cooldown");
-        filter(t -> cooldown.get(t).test());
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public MergedSubscriptionBuilder<T> withCooldown(@Nonnull CooldownCollection<? super T> cooldown, @Nonnull BiConsumer<Cooldown, ? super T> cooldownFailConsumer) {
-        Preconditions.checkNotNull(cooldown, "cooldown");
-        Preconditions.checkNotNull(cooldownFailConsumer, "cooldownFailConsumer");
-        filter(t -> {
-            if (cooldown.get(t).test()) {
-                return true;
-            }
-
-            cooldownFailConsumer.accept(cooldown.get(t), t);
-            return false;
-        });
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public MergedSubscription<T> biHandler(@Nonnull BiConsumer<MergedSubscription<T>, ? super T> handler) {
-        Preconditions.checkNotNull(handler, "handler");
-
+    public MergedHandlerList<T> handlers() {
         if (mappings.isEmpty()) {
             throw new IllegalStateException("No mappings were created");
         }
 
-        HelperMergedEventListener<T> impl = new HelperMergedEventListener<>(this, handler);
-        impl.register(LoaderUtils.getPlugin());
-        return impl;
+        return new MergedHandlerListImpl<>(this);
     }
-    
+
 }

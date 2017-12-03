@@ -25,8 +25,6 @@
 
 package me.lucko.helper.event.functional;
 
-import me.lucko.helper.utils.Cooldown;
-import me.lucko.helper.utils.CooldownCollection;
 import me.lucko.helper.utils.Log;
 
 import org.bukkit.event.Event;
@@ -48,6 +46,15 @@ public interface SubscriptionBuilder<T> {
         Log.severe("[EVENTS] Exception thrown whilst handling event: " + event.getClass().getName());
         throwable.printStackTrace();
     };
+
+    /**
+     * Add a expiry predicate.
+     *
+     * @param predicate the expiry test
+     * @return ths builder instance
+     */
+    @Nonnull
+    SubscriptionBuilder<T> expireIf(@Nonnull Predicate<T> predicate);
 
     /**
      * Sets the expiry time on the handler
@@ -84,43 +91,5 @@ public interface SubscriptionBuilder<T> {
      */
     @Nonnull
     SubscriptionBuilder<T> filter(@Nonnull Predicate<T> predicate);
-
-    /**
-     * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
-     *
-     * @param cooldown the cooldown
-     * @return the builder instance
-     */
-    @Nonnull
-    SubscriptionBuilder<T> withCooldown(@Nonnull Cooldown cooldown);
-
-    /**
-     * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
-     *
-     * @param cooldown the cooldown
-     * @param cooldownFailConsumer a consumer to be called when the cooldown fails.
-     * @return the builder instance
-     */
-    @Nonnull
-    SubscriptionBuilder<T> withCooldown(@Nonnull Cooldown cooldown, @Nonnull BiConsumer<Cooldown, ? super T> cooldownFailConsumer);
-
-    /**
-     * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
-     *
-     * @param cooldown the cooldown
-     * @return the builder instance
-     */
-    @Nonnull
-    SubscriptionBuilder<T> withCooldown(@Nonnull CooldownCollection<? super T> cooldown);
-
-    /**
-     * Adds a filter to the handler, only allowing it to pass if {@link Cooldown#test()} returns true.
-     *
-     * @param cooldown the cooldown
-     * @param cooldownFailConsumer a consumer to be called when the cooldown fails.
-     * @return the builder instance
-     */
-    @Nonnull
-    SubscriptionBuilder<T> withCooldown(@Nonnull CooldownCollection<? super T> cooldown, @Nonnull BiConsumer<Cooldown, ? super T> cooldownFailConsumer);
 
 }

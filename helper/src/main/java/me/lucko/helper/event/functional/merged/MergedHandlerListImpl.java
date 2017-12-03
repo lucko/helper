@@ -23,37 +23,44 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.bucket.factory;
+package me.lucko.helper.event.functional.merged;
 
-import me.lucko.helper.bucket.Bucket;
-import me.lucko.helper.bucket.partitioning.PartitioningStrategy;
+import com.google.common.base.Preconditions;
 
-import java.util.Set;
-import java.util.function.Supplier;
+import me.lucko.helper.event.MergedSubscription;
+import me.lucko.helper.internal.LoaderUtils;
 
-/**
- * A set of methods for creating {@link Bucket}s.
- */
-public final class BucketFactory {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
 
-    public static <E> Bucket<E> newBucket(int size, PartitioningStrategy<E> strategy, Supplier<Set<E>> setSupplier) {
-        return new SetSuppliedBucket<>(size, strategy, setSupplier);
+import javax.annotation.Nonnull;
+
+class MergedHandlerListImpl<T> implements MergedHandlerList<T> {
+    private final MergedBuilder<T> builder;
+    private final List<BiConsumer<MergedSubscription<T>, ? super T>> handlers = new ArrayList<>(1);
+
+    MergedHandlerListImpl(@Nonnull MergedBuilder<T> builder) {
+        this.builder = builder;
     }
 
-    public static <E> Bucket<E> newHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new HashSetBucket<>(size, strategy);
+    @Nonnull
+    @Override
+    public MergedHandlerList<T> biConsumer(@Nonnull BiConsumer<MergedSubscription<T>, ? super T> handler) {
+        Preconditions.checkNotNull(handler, "handler");
+        handlers.add(handler);
+        return this;
     }
 
-    public static <E> Bucket<E> newSynchronizedHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new SynchronizedHashSetBucket<>(size, strategy);
-    }
+    @Nonnull
+    @Override
+    public MergedSubscription<T> register() {
+        if (handlers.isEmpty()) {
+            throw new IllegalStateException("No handlers have been registered");
+        }
 
-    public static <E> Bucket<E> newConcurrentBucket(int size, PartitioningStrategy<E> strategy) {
-        return new ConcurrentBucket<>(size, strategy);
+        HelperMergedEventListener<T> listener = new HelperMergedEventListener<>(builder, handlers);
+        listener.register(LoaderUtils.getPlugin());
+        return listener;
     }
-
-    private BucketFactory() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
-    }
-
 }

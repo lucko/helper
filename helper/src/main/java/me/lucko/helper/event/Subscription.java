@@ -27,10 +27,6 @@ package me.lucko.helper.event;
 
 import me.lucko.helper.terminable.Terminable;
 
-import java.util.OptionalLong;
-
-import javax.annotation.Nonnull;
-
 /**
  * Represents a subscription to a given (set of) event(s).
  */
@@ -49,14 +45,6 @@ public interface Subscription extends Terminable {
      * @return the number of times the handler has been called
      */
     long getCallCounter();
-
-    /**
-     * Gets the time in milliseconds when this handler will expire, if any
-     *
-     * @return the time in milliseconds when this handler will expire, if any
-     */
-    @Nonnull
-    OptionalLong getExpiryTimeMillis();
 
     /**
      * Unregisters the handler

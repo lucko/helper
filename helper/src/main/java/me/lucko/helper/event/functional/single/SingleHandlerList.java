@@ -23,37 +23,31 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.bucket.factory;
+package me.lucko.helper.event.functional.single;
 
-import me.lucko.helper.bucket.Bucket;
-import me.lucko.helper.bucket.partitioning.PartitioningStrategy;
+import com.google.common.base.Preconditions;
 
-import java.util.Set;
-import java.util.function.Supplier;
+import me.lucko.helper.event.SingleSubscription;
+import me.lucko.helper.event.functional.FunctionalHandlerList;
+import me.lucko.helper.utils.Delegates;
 
-/**
- * A set of methods for creating {@link Bucket}s.
- */
-public final class BucketFactory {
+import org.bukkit.event.Event;
 
-    public static <E> Bucket<E> newBucket(int size, PartitioningStrategy<E> strategy, Supplier<Set<E>> setSupplier) {
-        return new SetSuppliedBucket<>(size, strategy, setSupplier);
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
+
+public interface SingleHandlerList<T extends Event> extends FunctionalHandlerList<T, SingleSubscription<T>> {
+
+    @Nonnull
+    @Override
+    default SingleHandlerList<T> consumer(@Nonnull Consumer<? super T> handler) {
+        Preconditions.checkNotNull(handler, "handler");
+        return biConsumer(Delegates.consumerToBiConsumerSecond(handler));
     }
 
-    public static <E> Bucket<E> newHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new HashSetBucket<>(size, strategy);
-    }
-
-    public static <E> Bucket<E> newSynchronizedHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new SynchronizedHashSetBucket<>(size, strategy);
-    }
-
-    public static <E> Bucket<E> newConcurrentBucket(int size, PartitioningStrategy<E> strategy) {
-        return new ConcurrentBucket<>(size, strategy);
-    }
-
-    private BucketFactory() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
-    }
-
+    @Nonnull
+    @Override
+    SingleHandlerList<T> biConsumer(@Nonnull BiConsumer<SingleSubscription<T>, ? super T> handler);
 }

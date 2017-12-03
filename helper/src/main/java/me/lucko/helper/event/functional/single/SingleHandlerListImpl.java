@@ -23,51 +23,46 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.event.functional.single;
 
-import me.lucko.helper.utils.Delegates;
+import com.google.common.base.Preconditions;
+
+import me.lucko.helper.event.SingleSubscription;
+import me.lucko.helper.internal.LoaderUtils;
+
+import org.bukkit.event.Event;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
 
 import javax.annotation.Nonnull;
 
-/**
- * Represents an object that can be unregistered, stopped, or gracefully halted.
- */
-@FunctionalInterface
-public interface Terminable extends AutoCloseable {
-    Terminable EMPTY = () -> true;
+class SingleHandlerListImpl<T extends Event> implements SingleHandlerList<T> {
+    private final SingleBuilder<T> builder;
+    private final List<BiConsumer<SingleSubscription<T>, ? super T>> handlers = new ArrayList<>(1);
+
+    SingleHandlerListImpl(@Nonnull SingleBuilder<T> builder) {
+        this.builder = builder;
+    }
 
     @Nonnull
-    static Terminable of(@Nonnull Runnable r) {
-        return Delegates.runnableToTerminable(r);
-    }
-
-    /**
-     * Terminate this instance
-     *
-     * @return true if the termination was successful
-     */
-    boolean terminate();
-
-    /**
-     * Registers this terminable with a terminable consumer (usually the plugin instance)
-     *
-     * @param consumer the terminable consumer
-     */
-    default void bindWith(@Nonnull TerminableConsumer consumer) {
-        consumer.bind(this);
-    }
-
-    /**
-     * Used to help cleanup held terminable instances in registries
-     *
-     * @return true if this terminable has been terminated already
-     */
-    default boolean hasTerminated() {
-        return false;
-    }
-
     @Override
-    default void close() {
-        terminate();
+    public SingleHandlerList<T> biConsumer(@Nonnull BiConsumer<SingleSubscription<T>, ? super T> handler) {
+        Preconditions.checkNotNull(handler, "handler");
+        handlers.add(handler);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public SingleSubscription<T> register() {
+        if (handlers.isEmpty()) {
+            throw new IllegalStateException("No handlers have been registered");
+        }
+
+        HelperEventListener<T> listener = new HelperEventListener<>(builder, handlers);
+        listener.register(LoaderUtils.getPlugin());
+        return listener;
     }
 }

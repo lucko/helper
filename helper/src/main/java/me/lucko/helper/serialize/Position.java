@@ -205,7 +205,7 @@ public final class Position implements GsonSerializable {
         return Double.compare(this.getX(), other.getX()) == 0 &&
                 Double.compare(this.getY(), other.getY()) == 0 &&
                 Double.compare(this.getZ(), other.getZ()) == 0 &&
-                (this.getWorld() == null ? other.getWorld() == null : this.getWorld().equals(other.getWorld()));
+                this.getWorld().equals(other.getWorld());
     }
 
     @Override
@@ -220,7 +220,7 @@ public final class Position implements GsonSerializable {
         result = result * PRIME + (int) (x >>> 32 ^ x);
         result = result * PRIME + (int) (y >>> 32 ^ y);
         result = result * PRIME + (int) (z >>> 32 ^ z);
-        result = result * PRIME + (this.getWorld() == null ? 43 : this.getWorld().hashCode());
+        result = result * PRIME + this.getWorld().hashCode();
         return result;
     }
 
