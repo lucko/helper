@@ -199,10 +199,7 @@ public final class BlockPosition implements GsonSerializable {
         if (o == this) return true;
         if (!(o instanceof BlockPosition)) return false;
         final BlockPosition other = (BlockPosition) o;
-        return this.getX() == other.getX() &&
-                this.getY() == other.getY() &&
-                this.getZ() == other.getZ() &&
-                (this.getWorld() == null ? other.getWorld() == null : this.getWorld().equals(other.getWorld()));
+        return this.getX() == other.getX() && this.getY() == other.getY() && this.getZ() == other.getZ() && this.getWorld().equals(other.getWorld());
     }
 
     @Override
@@ -212,7 +209,7 @@ public final class BlockPosition implements GsonSerializable {
         result = result * PRIME + this.getX();
         result = result * PRIME + this.getY();
         result = result * PRIME + this.getZ();
-        result = result * PRIME + (this.getWorld() == null ? 43 : this.getWorld().hashCode());
+        result = result * PRIME + this.getWorld().hashCode();
         return result;
     }
 

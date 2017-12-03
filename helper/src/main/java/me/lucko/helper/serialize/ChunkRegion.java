@@ -116,16 +116,15 @@ public final class ChunkRegion implements GsonSerializable {
         if (o == this) return true;
         if (!(o instanceof ChunkRegion)) return false;
         final ChunkRegion other = (ChunkRegion) o;
-        return (this.getMin() == null ? other.getMin() == null : this.getMin().equals(other.getMin())) &&
-                (this.getMax() == null ? other.getMax() == null : this.getMax().equals(other.getMax()));
+        return this.getMin().equals(other.getMin()) && this.getMax().equals(other.getMax());
     }
 
     @Override
     public int hashCode() {
         final int PRIME = 59;
         int result = 1;
-        result = result * PRIME + (this.getMin() == null ? 43 : this.getMin().hashCode());
-        result = result * PRIME + (this.getMax() == null ? 43 : this.getMax().hashCode());
+        result = result * PRIME + this.getMin().hashCode();
+        result = result * PRIME + this.getMax().hashCode();
         return result;
     }
 

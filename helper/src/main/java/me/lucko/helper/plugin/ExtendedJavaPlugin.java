@@ -31,9 +31,7 @@ import me.lucko.helper.Scheduler;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.maven.LibraryLoader;
 import me.lucko.helper.terminable.Terminable;
-import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
-import me.lucko.helper.terminable.composite.CompositeTerminableConsumer;
 import me.lucko.helper.terminable.registry.TerminableRegistry;
 import me.lucko.helper.utils.CommandMapUtil;
 
@@ -51,7 +49,7 @@ import javax.annotation.Nullable;
 /**
  * An "extended" JavaPlugin class.
  */
-public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer, CompositeTerminableConsumer {
+public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
 
     // the backing terminable registry
     private TerminableRegistry terminableRegistry;
@@ -109,102 +107,52 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
         return terminableRegistry.bindComposite(terminable);
     }
 
-    /**
-     * Register a listener with the server.
-     *
-     * <p>{@link me.lucko.helper.Events} should be used instead of this method in most cases.</p>
-     *
-     * @param listener the listener to register
-     * @param <T> the listener class type
-     * @return the listener
-     */
     @Nonnull
+    @Override
     public <T extends Listener> T registerListener(@Nonnull T listener) {
         Preconditions.checkNotNull(listener, "listener");
         getServer().getPluginManager().registerEvents(listener, this);
         return listener;
     }
 
-    /**
-     * Registers a CommandExecutor with the server
-     *
-     * @param command the command instance
-     * @param aliases the command aliases
-     * @param <T> the command executor class type
-     * @return the command executor
-     */
     @Nonnull
+    @Override
     public <T extends CommandExecutor> T registerCommand(@Nonnull T command, @Nonnull String... aliases) {
         return CommandMapUtil.registerCommand(this, command, aliases);
     }
 
-    /**
-     * Gets a service provided by the ServiceManager
-     *
-     * @param service the service class
-     * @param <T> the class type
-     * @return the service
-     */
     @Nullable
+    @Override
     public <T> T getService(@Nonnull Class<T> service) {
         return getServer().getServicesManager().load(service);
     }
 
-    /**
-     * Provides a service to the ServiceManager, bound to this plugin
-     *
-     * @param clazz the service class
-     * @param instance the instance
-     * @param priority the priority to register the service at
-     * @param <T> the service class type
-     * @return the instance
-     */
     @Nonnull
+    @Override
     public <T> T provideService(@Nonnull Class<T> clazz, @Nonnull T instance, @Nonnull ServicePriority priority) {
         getServer().getServicesManager().register(clazz, instance, this, priority);
         return instance;
     }
 
-    /**
-     * Provides a service to the ServiceManager, bound to this plugin at {@link ServicePriority#Normal}.
-     *
-     * @param clazz the service class
-     * @param instance the instance
-     * @param <T> the service class type
-     * @return the instance
-     */
     @Nonnull
+    @Override
     public <T> T provideService(@Nonnull Class<T> clazz, @Nonnull T instance) {
         Preconditions.checkNotNull(clazz, "clazz");
         Preconditions.checkNotNull(instance, "instance");
         return provideService(clazz, instance, ServicePriority.Normal);
     }
 
-    /**
-     * Gets a plugin instance for the given plugin name
-     *
-     * @param name the name of the plugin
-     * @param pluginClass the main plugin class
-     * @param <T> the main class type
-     * @return the plugin
-     */
     @SuppressWarnings("unchecked")
     @Nullable
+    @Override
     public <T> T getPlugin(@Nonnull String name, @Nonnull Class<T> pluginClass) {
         Preconditions.checkNotNull(name, "name");
         Preconditions.checkNotNull(pluginClass, "pluginClass");
         return (T) getServer().getPluginManager().getPlugin(name);
     }
 
-    /**
-     * Gets a bundled file from the plugins resource folder.
-     *
-     * <p>If the file is not present, a version of it it copied from the jar.</p>
-     *
-     * @param name the name of the file
-     * @return the file
-     */
     @Nonnull
+    @Override
     public File getBundledFile(@Nonnull String name) {
         Preconditions.checkNotNull(name, "name");
         getDataFolder().mkdirs();
@@ -215,18 +163,15 @@ public class ExtendedJavaPlugin extends JavaPlugin implements TerminableConsumer
         return file;
     }
 
-    /**
-     * Loads a config file from a file name.
-     *
-     * <p>Behaves in the same was as {@link #getBundledFile(String)} when the file is not present.</p>
-     *
-     * @param file the name of the file
-     * @return the config instance
-     */
     @Nonnull
+    @Override
     public YamlConfiguration loadConfig(@Nonnull String file) {
         Preconditions.checkNotNull(file, "file");
         return YamlConfiguration.loadConfiguration(getBundledFile(file));
     }
 
+    @Override
+    public ClassLoader getClassloader() {
+        return super.getClassLoader();
+    }
 }

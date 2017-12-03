@@ -28,12 +28,8 @@ package me.lucko.helper.random;
 import com.google.common.base.Preconditions;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Random;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 final class RandomSelectorImpl<E> implements RandomSelector<E> {
 
@@ -92,25 +88,7 @@ final class RandomSelectorImpl<E> implements RandomSelector<E> {
     @Override
     public Stream<E> stream(Random random) {
         Preconditions.checkNotNull(random, "random must not be null");
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(new BaseIterator(random), Spliterator.IMMUTABLE | Spliterator.ORDERED), false);
-    }
-
-    private class BaseIterator implements Iterator<E> {
-        private final Random random;
-
-        BaseIterator(final Random random) {
-            this.random = random;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return true;
-        }
-
-        @Override
-        public E next() {
-            return RandomSelectorImpl.this.pick(this.random);
-        }
+        return Stream.generate(() -> pick(random));
     }
 
     private interface IndexSelector {

@@ -25,35 +25,19 @@
 
 package me.lucko.helper.bucket.factory;
 
-import me.lucko.helper.bucket.Bucket;
+import me.lucko.helper.bucket.AbstractBucket;
 import me.lucko.helper.bucket.partitioning.PartitioningStrategy;
 
+import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Supplier;
 
-/**
- * A set of methods for creating {@link Bucket}s.
- */
-public final class BucketFactory {
-
-    public static <E> Bucket<E> newBucket(int size, PartitioningStrategy<E> strategy, Supplier<Set<E>> setSupplier) {
-        return new SetSuppliedBucket<>(size, strategy, setSupplier);
+class HashSetBucket<E> extends AbstractBucket<E> {
+    HashSetBucket(int size, PartitioningStrategy<E> partitioningStrategy) {
+        super(size, partitioningStrategy);
     }
 
-    public static <E> Bucket<E> newHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new HashSetBucket<>(size, strategy);
+    @Override
+    protected Set<E> createSet() {
+        return new HashSet<>();
     }
-
-    public static <E> Bucket<E> newSynchronizedHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new SynchronizedHashSetBucket<>(size, strategy);
-    }
-
-    public static <E> Bucket<E> newConcurrentBucket(int size, PartitioningStrategy<E> strategy) {
-        return new ConcurrentBucket<>(size, strategy);
-    }
-
-    private BucketFactory() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
-    }
-
 }

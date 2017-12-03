@@ -32,8 +32,10 @@ import me.lucko.helper.terminable.Terminable;
 
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -59,6 +61,14 @@ public final class Delegates {
 
     public static <T, U> BiConsumer<T, U> consumerToBiConsumerSecond(Consumer<U> consumer) {
         return new ConsumerToBiConsumerSecond<>(consumer);
+    }
+
+    public static <T, U> BiPredicate<T, U> predicateToBiPredicateFirst(Predicate<T> predicate) {
+        return new PredicateToBiPredicateFirst<>(predicate);
+    }
+
+    public static <T, U> BiPredicate<T, U> predicateToBiPredicateSecond(Predicate<U> predicate) {
+        return new PredicateToBiPredicateSecond<>(predicate);
     }
 
     public static <T, U> Function<T, U> consumerToFunction(Consumer<T> consumer) {
@@ -142,6 +152,32 @@ public final class Delegates {
         @Override
         public void accept(T t, U u) {
             delegate.accept(u);
+        }
+    }
+
+    private static final class PredicateToBiPredicateFirst<T, U> implements BiPredicate<T, U>, Delegate<Predicate<T>> {
+        private final Predicate<T> delegate;
+        private PredicateToBiPredicateFirst(Predicate<T> delegate) {
+            this.delegate = delegate;
+        }
+        @Override public Predicate<T> getDelegate() { return delegate; }
+
+        @Override
+        public boolean test(T t, U u) {
+            return delegate.test(t);
+        }
+    }
+
+    private static final class PredicateToBiPredicateSecond<T, U> implements BiPredicate<T, U>, Delegate<Predicate<U>> {
+        private final Predicate<U> delegate;
+        private PredicateToBiPredicateSecond(Predicate<U> delegate) {
+            this.delegate = delegate;
+        }
+        @Override public Predicate<U> getDelegate() { return delegate; }
+
+        @Override
+        public boolean test(T t, U u) {
+            return delegate.test(u);
         }
     }
 

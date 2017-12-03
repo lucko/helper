@@ -23,37 +23,46 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.bucket.factory;
+package me.lucko.helper.event.functional;
 
-import me.lucko.helper.bucket.Bucket;
-import me.lucko.helper.bucket.partitioning.PartitioningStrategy;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-import java.util.Set;
-import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 
 /**
- * A set of methods for creating {@link Bucket}s.
+ * A functional builder which accumulates event handlers
+ *
+ * @param <T> the handled type
+ * @param <R> the resultant subscription type
  */
-public final class BucketFactory {
+public interface FunctionalHandlerList<T, R> {
 
-    public static <E> Bucket<E> newBucket(int size, PartitioningStrategy<E> strategy, Supplier<Set<E>> setSupplier) {
-        return new SetSuppliedBucket<>(size, strategy, setSupplier);
-    }
+    /**
+     * Add a {@link Consumer} handler.
+     *
+     * @param handler the handler
+     * @return this handler list
+     */
+    @Nonnull
+    FunctionalHandlerList<T, R> consumer(@Nonnull Consumer<? super T> handler);
 
-    public static <E> Bucket<E> newHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new HashSetBucket<>(size, strategy);
-    }
+    /**
+     * Add a {@link BiConsumer} handler.
+     *
+     * @param handler the handler
+     * @return this handler list
+     */
+    @Nonnull
+    FunctionalHandlerList<T, R> biConsumer(@Nonnull BiConsumer<R, ? super T> handler);
 
-    public static <E> Bucket<E> newSynchronizedHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new SynchronizedHashSetBucket<>(size, strategy);
-    }
-
-    public static <E> Bucket<E> newConcurrentBucket(int size, PartitioningStrategy<E> strategy) {
-        return new ConcurrentBucket<>(size, strategy);
-    }
-
-    private BucketFactory() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
-    }
+    /**
+     * Builds and registers the Handler.
+     *
+     * @return a registered {@link R} instance.
+     * @throws IllegalStateException if no handlers have been registered
+     */
+    @Nonnull
+    R register();
 
 }

@@ -23,37 +23,29 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.bucket.factory;
+package me.lucko.helper.event.functional.merged;
 
-import me.lucko.helper.bucket.Bucket;
-import me.lucko.helper.bucket.partitioning.PartitioningStrategy;
+import com.google.common.base.Preconditions;
 
-import java.util.Set;
-import java.util.function.Supplier;
+import me.lucko.helper.event.MergedSubscription;
+import me.lucko.helper.event.functional.FunctionalHandlerList;
+import me.lucko.helper.utils.Delegates;
 
-/**
- * A set of methods for creating {@link Bucket}s.
- */
-public final class BucketFactory {
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-    public static <E> Bucket<E> newBucket(int size, PartitioningStrategy<E> strategy, Supplier<Set<E>> setSupplier) {
-        return new SetSuppliedBucket<>(size, strategy, setSupplier);
+import javax.annotation.Nonnull;
+
+public interface MergedHandlerList<T> extends FunctionalHandlerList<T, MergedSubscription<T>> {
+
+    @Nonnull
+    @Override
+    default MergedHandlerList<T> consumer(@Nonnull Consumer<? super T> handler) {
+        Preconditions.checkNotNull(handler, "handler");
+        return biConsumer(Delegates.consumerToBiConsumerSecond(handler));
     }
 
-    public static <E> Bucket<E> newHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new HashSetBucket<>(size, strategy);
-    }
-
-    public static <E> Bucket<E> newSynchronizedHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new SynchronizedHashSetBucket<>(size, strategy);
-    }
-
-    public static <E> Bucket<E> newConcurrentBucket(int size, PartitioningStrategy<E> strategy) {
-        return new ConcurrentBucket<>(size, strategy);
-    }
-
-    private BucketFactory() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
-    }
-
+    @Nonnull
+    @Override
+    MergedHandlerList<T> biConsumer(@Nonnull BiConsumer<MergedSubscription<T>, ? super T> handler);
 }

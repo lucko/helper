@@ -23,36 +23,46 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.bucket.factory;
+package me.lucko.helper.event.filter;
 
-import me.lucko.helper.bucket.Bucket;
-import me.lucko.helper.bucket.partitioning.PartitioningStrategy;
+import org.bukkit.event.Cancellable;
 
-import java.util.Set;
-import java.util.function.Supplier;
+import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
 
 /**
- * A set of methods for creating {@link Bucket}s.
+ * Defines standard event predicates for use in functional event handlers.
  */
-public final class BucketFactory {
+@SuppressWarnings("unchecked")
+public final class EventHandlers {
 
-    public static <E> Bucket<E> newBucket(int size, PartitioningStrategy<E> strategy, Supplier<Set<E>> setSupplier) {
-        return new SetSuppliedBucket<>(size, strategy, setSupplier);
+    private static final Consumer<? extends Cancellable> SET_CANCELLED = e -> e.setCancelled(true);
+    private static final Consumer<? extends Cancellable> UNSET_CANCELLED = e -> e.setCancelled(false);
+
+    /**
+     * Returns a consumer which cancels the event
+     *
+     * @param <T> the event type
+     * @return a consumer which cancels the event
+     */
+    @Nonnull
+    public static <T extends Cancellable> Consumer<T> cancel() {
+        return (Consumer<T>) SET_CANCELLED;
     }
 
-    public static <E> Bucket<E> newHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new HashSetBucket<>(size, strategy);
+    /**
+     * Returns a consumer which un-cancels the event
+     *
+     * @param <T> the event type
+     * @return a consumer which un-cancels the event
+     */
+    @Nonnull
+    public static <T extends Cancellable> Consumer<T> uncancel() {
+        return (Consumer<T>) UNSET_CANCELLED;
     }
 
-    public static <E> Bucket<E> newSynchronizedHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new SynchronizedHashSetBucket<>(size, strategy);
-    }
-
-    public static <E> Bucket<E> newConcurrentBucket(int size, PartitioningStrategy<E> strategy) {
-        return new ConcurrentBucket<>(size, strategy);
-    }
-
-    private BucketFactory() {
+    private EventHandlers() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 

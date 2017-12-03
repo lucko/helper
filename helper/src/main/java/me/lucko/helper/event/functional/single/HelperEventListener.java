@@ -25,15 +25,12 @@
 
 package me.lucko.helper.event.functional.single;
 
-import com.google.common.collect.ImmutableList;
-
 import me.lucko.helper.Helper;
 import me.lucko.helper.event.SingleSubscription;
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.timings.Timings;
 
 import org.bukkit.event.Event;
-import org.bukkit.event.EventException;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -44,11 +41,12 @@ import co.aikar.timings.lib.MCTiming;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -56,25 +54,32 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
     private final Class<T> eventClass;
     private final EventPriority priority;
 
-    private final long expiry;
-    private final long maxCalls;
     private final BiConsumer<? super T, Throwable> exceptionConsumer;
-    private final List<Predicate<T>> filters;
-    private final BiConsumer<SingleSubscription<T>, ? super T> handler;
+
+    private final Predicate<T>[] filters;
+    private final BiPredicate<SingleSubscription<T>, T>[] preExpiryTests;
+    private final BiPredicate<SingleSubscription<T>, T>[] midExpiryTests;
+    private final BiPredicate<SingleSubscription<T>, T>[] postExpiryTests;
+    private final BiConsumer<SingleSubscription<T>, ? super T>[] handlers;
+
     private final MCTiming timing;
 
     private final AtomicLong callCount = new AtomicLong(0);
     private final AtomicBoolean active = new AtomicBoolean(true);
 
-    HelperEventListener(SingleBuilder<T> builder, BiConsumer<SingleSubscription<T>, ? super T> handler) {
+    @SuppressWarnings("unchecked")
+    HelperEventListener(SingleBuilder<T> builder, List<BiConsumer<SingleSubscription<T>, ? super T>> handlers) {
         this.eventClass = builder.eventClass;
         this.priority = builder.priority;
-        this.expiry = builder.expiry;
-        this.maxCalls = builder.maxCalls;
         this.exceptionConsumer = builder.exceptionConsumer;
-        this.filters = ImmutableList.copyOf(builder.filters);
-        this.handler = handler;
-        this.timing = Timings.of("helper-events: " + Delegate.resolve(handler).getClass().getName());
+
+        this.filters = builder.filters.toArray(new Predicate[builder.filters.size()]);
+        this.preExpiryTests = builder.preExpiryTests.toArray(new BiPredicate[builder.preExpiryTests.size()]);
+        this.midExpiryTests = builder.midExpiryTests.toArray(new BiPredicate[builder.midExpiryTests.size()]);
+        this.postExpiryTests = builder.postExpiryTests.toArray(new BiPredicate[builder.postExpiryTests.size()]);
+        this.handlers = handlers.toArray(new BiConsumer[handlers.size()]);
+
+        this.timing = Timings.of("helper-events: " + handlers.stream().map(handler -> Delegate.resolve(handler).getClass().getName()).collect(Collectors.joining(" | ")));
     }
 
     void register(Plugin plugin) {
@@ -82,64 +87,67 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
     }
 
     @Override
-    public void execute(Listener listener, Event event) throws EventException {
+    public void execute(Listener listener, Event event) {
+        // check we actually want this event
         if (event.getClass() != eventClass) {
             return;
         }
 
-        // This handler is disabled, so unregister from the event.
+        // this handler is disabled, so unregister from the event.
         if (!active.get()) {
             event.getHandlers().unregister(listener);
             return;
         }
 
-        // Check if the handler has expired.
-        if (expiry != -1) {
-            long now = System.currentTimeMillis();
-            if (now > expiry) {
+        // obtain the event instance
+        T eventInstance = eventClass.cast(event);
+
+        // check pre-expiry tests
+        for (BiPredicate<SingleSubscription<T>, T> test : preExpiryTests) {
+            if (test.test(this, eventInstance)) {
                 event.getHandlers().unregister(listener);
                 active.set(false);
                 return;
             }
         }
 
-        // Check if the handler has reached its max calls
-        if (checkMaxCalls(listener, event.getHandlers())) {
-            return;
-        }
-
-        T eventInstance = eventClass.cast(event);
-
-        // Actually call the handler
-        try {
-            try (MCTiming t = timing.startTiming()) {
-                for (Predicate<T> filter : filters) {
-                    if (!filter.test(eventInstance)) {
-                        return;
-                    }
+        // begin "handling" of the event
+        try (MCTiming t = timing.startTiming()) {
+            // check the filters
+            for (Predicate<T> filter : filters) {
+                if (!filter.test(eventInstance)) {
+                    return;
                 }
+            }
 
+            // check mid-expiry tests
+            for (BiPredicate<SingleSubscription<T>, T> test : midExpiryTests) {
+                if (test.test(this, eventInstance)) {
+                    event.getHandlers().unregister(listener);
+                    active.set(false);
+                    return;
+                }
+            }
+
+            // call the handler
+            for (BiConsumer<SingleSubscription<T>, ? super T> handler : handlers) {
                 handler.accept(this, eventInstance);
             }
 
+            // increment call counter
             callCount.incrementAndGet();
         } catch (Throwable t) {
             exceptionConsumer.accept(eventInstance, t);
         }
 
-        // has it expired now?
-        checkMaxCalls(listener, event.getHandlers());
-    }
-
-    private boolean checkMaxCalls(Listener listener, HandlerList handlerList) {
-        if (maxCalls != -1) {
-            if (callCount.get() >= maxCalls) {
-                handlerList.unregister(listener);
+        // check post-expiry tests
+        for (BiPredicate<SingleSubscription<T>, T> test : postExpiryTests) {
+            if (test.test(this, eventInstance)) {
+                event.getHandlers().unregister(listener);
                 active.set(false);
-                return true;
+                return;
             }
         }
-        return false;
     }
 
     @Nonnull
@@ -163,12 +171,6 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
         return callCount.get();
     }
 
-    @Nonnull
-    @Override
-    public OptionalLong getExpiryTimeMillis() {
-        return expiry == -1 ? OptionalLong.empty() : OptionalLong.of(expiry);
-    }
-
     @Override
     public boolean unregister() {
         // already unregistered
@@ -176,15 +178,23 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
             return false;
         }
 
-        // Also remove the handler directly, just in case the event has a really low throughput.
-        // Unfortunately we can't cache this call, as the method is static
+        // also remove the handler directly, just in case the event has a really low throughput.
+        // (the event would also be unregistered next time it's called - but this obviously assumes
+        // the event will be called again soon)
+        unregisterListener(eventClass, this);
+
+        return true;
+    }
+
+    @SuppressWarnings("JavaReflectionMemberAccess")
+    private static void unregisterListener(Class<? extends Event> eventClass, Listener listener) {
         try {
+            // unfortunately we can't cache this reflect call, as the method is static
             Method getHandlerListMethod = eventClass.getMethod("getHandlerList");
             HandlerList handlerList = (HandlerList) getHandlerListMethod.invoke(null);
-            handlerList.unregister(this);
+            handlerList.unregister(listener);
         } catch (Throwable t) {
             // ignored
         }
-        return true;
     }
 }

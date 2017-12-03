@@ -23,37 +23,27 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.bucket.factory;
-
-import me.lucko.helper.bucket.Bucket;
-import me.lucko.helper.bucket.partitioning.PartitioningStrategy;
-
-import java.util.Set;
-import java.util.function.Supplier;
+package me.lucko.helper.event.functional;
 
 /**
- * A set of methods for creating {@link Bucket}s.
+ * Represents when a expiry predicate should be tested relative to the handling
+ * of the event.
  */
-public final class BucketFactory {
+public enum ExpiryTestStage {
 
-    public static <E> Bucket<E> newBucket(int size, PartitioningStrategy<E> strategy, Supplier<Set<E>> setSupplier) {
-        return new SetSuppliedBucket<>(size, strategy, setSupplier);
-    }
+    /**
+     * The expiry predicate should be tested before the event is filtered or handled
+     */
+    PRE,
 
-    public static <E> Bucket<E> newHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new HashSetBucket<>(size, strategy);
-    }
+    /**
+     * The expiry predicate should be tested after the subscriptions filters have been evaluated
+     */
+    POST_FILTER,
 
-    public static <E> Bucket<E> newSynchronizedHashSetBucket(int size, PartitioningStrategy<E> strategy) {
-        return new SynchronizedHashSetBucket<>(size, strategy);
-    }
-
-    public static <E> Bucket<E> newConcurrentBucket(int size, PartitioningStrategy<E> strategy) {
-        return new ConcurrentBucket<>(size, strategy);
-    }
-
-    private BucketFactory() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
-    }
+    /**
+     * The expiry predicate should be tested after the event has been handled
+     */
+    POST_HANDLE
 
 }

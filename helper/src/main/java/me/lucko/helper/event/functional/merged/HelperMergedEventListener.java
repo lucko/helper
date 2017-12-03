@@ -25,7 +25,6 @@
 
 package me.lucko.helper.event.functional.merged;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 
@@ -35,7 +34,6 @@ import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.timings.Timings;
 
 import org.bukkit.event.Event;
-import org.bukkit.event.EventException;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
@@ -46,13 +44,14 @@ import co.aikar.timings.lib.MCTiming;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -60,25 +59,32 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
     private final TypeToken<T> handledClass;
     private final Map<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> mappings;
 
-    private final long expiry;
-    private final long maxCalls;
     private final BiConsumer<Event, Throwable> exceptionConsumer;
-    private final List<Predicate<T>> filters;
-    private final BiConsumer<MergedSubscription<T>, ? super T> handler;
+
+    private final Predicate<T>[] filters;
+    private final BiPredicate<MergedSubscription<T>, T>[] preExpiryTests;
+    private final BiPredicate<MergedSubscription<T>, T>[] midExpiryTests;
+    private final BiPredicate<MergedSubscription<T>, T>[] postExpiryTests;
+    private final BiConsumer<MergedSubscription<T>, ? super T>[] handlers;
+
     private final MCTiming timing;
 
     private final AtomicLong callCount = new AtomicLong(0);
     private final AtomicBoolean active = new AtomicBoolean(true);
 
-    HelperMergedEventListener(MergedBuilder<T> builder, BiConsumer<MergedSubscription<T>, ? super T> handler) {
+    @SuppressWarnings("unchecked")
+    HelperMergedEventListener(MergedBuilder<T> builder, List<BiConsumer<MergedSubscription<T>, ? super T>> handlers) {
         this.handledClass = builder.handledClass;
         this.mappings = ImmutableMap.copyOf(builder.mappings);
-        this.expiry = builder.expiry;
-        this.maxCalls = builder.maxCalls;
         this.exceptionConsumer = builder.exceptionConsumer;
-        this.filters = ImmutableList.copyOf(builder.filters);
-        this.handler = handler;
-        this.timing = Timings.of("helper-events: " + Delegate.resolve(handler).getClass().getName());
+
+        this.filters = builder.filters.toArray(new Predicate[builder.filters.size()]);
+        this.preExpiryTests = builder.preExpiryTests.toArray(new BiPredicate[builder.preExpiryTests.size()]);
+        this.midExpiryTests = builder.midExpiryTests.toArray(new BiPredicate[builder.midExpiryTests.size()]);
+        this.postExpiryTests = builder.postExpiryTests.toArray(new BiPredicate[builder.postExpiryTests.size()]);
+        this.handlers = handlers.toArray(new BiConsumer[handlers.size()]);
+
+        this.timing = Timings.of("helper-events: " + handlers.stream().map(handler -> Delegate.resolve(handler).getClass().getName()).collect(Collectors.joining(" | ")));
     }
 
     void register(Plugin plugin) {
@@ -88,7 +94,7 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
     }
 
     @Override
-    public void execute(Listener listener, Event event) throws EventException {
+    public void execute(Listener listener, Event event) {
         Function<Object, T> function = null;
 
         for (Map.Entry<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> ent : mappings.entrySet()) {
@@ -102,56 +108,61 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
             return;
         }
 
-        // This handler is disabled, so unregister from the event.
+        // this handler is disabled, so unregister from the event.
         if (!active.get()) {
             event.getHandlers().unregister(listener);
             return;
         }
 
-        // Check if the handler has expired.
-        if (checkMaxCalls()) {
-            return;
-        }
+        // obtain the handled instance
+        T handledInstance = function.apply(event);
 
-        // Check if the handler has reached its max calls
-        if (maxCalls != -1) {
-            if (callCount.get() >= maxCalls) {
-                unregister();
+        // check pre-expiry tests
+        for (BiPredicate<MergedSubscription<T>, T> test : preExpiryTests) {
+            if (test.test(this, handledInstance)) {
+                event.getHandlers().unregister(listener);
+                active.set(false);
                 return;
             }
         }
 
-        T eventInstance = function.apply(event);
-
-        // Actually call the handler
-        try {
-            try (MCTiming t = timing.startTiming()) {
-                for (Predicate<T> filter : filters) {
-                    if (!filter.test(eventInstance)) {
-                        return;
-                    }
+        // begin "handling" of the event
+        try (MCTiming t = timing.startTiming()) {
+            // check the filters
+            for (Predicate<T> filter : filters) {
+                if (!filter.test(handledInstance)) {
+                    return;
                 }
-
-                handler.accept(this, eventInstance);
             }
 
+            // check mid-expiry tests
+            for (BiPredicate<MergedSubscription<T>, T> test : midExpiryTests) {
+                if (test.test(this, handledInstance)) {
+                    event.getHandlers().unregister(listener);
+                    active.set(false);
+                    return;
+                }
+            }
+
+            // call the handler
+            for (BiConsumer<MergedSubscription<T>, ? super T> handler : handlers) {
+                handler.accept(this, handledInstance);
+            }
+
+            // increment call counter
             callCount.incrementAndGet();
         } catch (Throwable t) {
             exceptionConsumer.accept(event, t);
         }
 
-        // check if the call caused the method to expire.
-        checkMaxCalls();
-    }
-
-    private boolean checkMaxCalls() {
-        if (maxCalls != -1) {
-            if (callCount.get() >= maxCalls) {
-                unregister();
-                return true;
+        // check post-expiry tests
+        for (BiPredicate<MergedSubscription<T>, T> test : postExpiryTests) {
+            if (test.test(this, handledInstance)) {
+                event.getHandlers().unregister(listener);
+                active.set(false);
+                return;
             }
         }
-        return false;
     }
 
     @Override
@@ -169,12 +180,6 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
         return callCount.get();
     }
 
-    @Nonnull
-    @Override
-    public OptionalLong getExpiryTimeMillis() {
-        return expiry == -1 ? OptionalLong.empty() : OptionalLong.of(expiry);
-    }
-
     @Override
     public boolean unregister() {
         // already unregistered
@@ -182,17 +187,13 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
             return false;
         }
 
-        // Also remove the handler directly, just in case the event has a really low throughput.
-        // Unfortunately we can't cache this call, as the method is static
+        // also remove the handler directly, just in case the event has a really low throughput.
+        // (the event would also be unregistered next time it's called - but this obviously assumes
+        // the event will be called again soon)
         for (Class<? extends Event> clazz : mappings.keySet()) {
-            try {
-                Method getHandlerListMethod = clazz.getMethod("getHandlerList");
-                HandlerList handlerList = (HandlerList) getHandlerListMethod.invoke(null);
-                handlerList.unregister(this);
-            } catch (Throwable t) {
-                // ignored
-            }
+            unregisterListener(clazz, this);
         }
+
         return true;
     }
 
@@ -206,5 +207,17 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
     @Override
     public Set<Class<? extends Event>> getEventClasses() {
         return mappings.keySet();
+    }
+
+    @SuppressWarnings("JavaReflectionMemberAccess")
+    private static void unregisterListener(Class<? extends Event> eventClass, Listener listener) {
+        try {
+            // unfortunately we can't cache this reflect call, as the method is static
+            Method getHandlerListMethod = eventClass.getMethod("getHandlerList");
+            HandlerList handlerList = (HandlerList) getHandlerListMethod.invoke(null);
+            handlerList.unregister(listener);
+        } catch (Throwable t) {
+            // ignored
+        }
     }
 }
