@@ -28,6 +28,7 @@ package me.lucko.helper.plugin;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.Scheduler;
+import me.lucko.helper.config.Configs;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.maven.LibraryLoader;
 import me.lucko.helper.terminable.Terminable;
@@ -40,6 +41,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import ninja.leaping.configurate.ConfigurationNode;
 
 import java.io.File;
 
@@ -168,6 +171,13 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     public YamlConfiguration loadConfig(@Nonnull String file) {
         Preconditions.checkNotNull(file, "file");
         return YamlConfiguration.loadConfiguration(getBundledFile(file));
+    }
+
+    @Nonnull
+    @Override
+    public ConfigurationNode loadConfigNode(@Nonnull String file) {
+        Preconditions.checkNotNull(file, "file");
+        return Configs.yamlLoad(getBundledFile(file));
     }
 
     @Override
