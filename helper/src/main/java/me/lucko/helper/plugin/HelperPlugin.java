@@ -34,6 +34,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
 
+import ninja.leaping.configurate.ConfigurationNode;
+
 import java.io.File;
 
 import javax.annotation.Nonnull;
@@ -129,6 +131,17 @@ public interface HelperPlugin extends Plugin, TerminableConsumer, CompositeTermi
      */
     @Nonnull
     YamlConfiguration loadConfig(@Nonnull String file);
+
+    /**
+     * Loads a config file from a file name.
+     *
+     * <p>Behaves in the same was as {@link #getBundledFile(String)} when the file is not present.</p>
+     *
+     * @param file the name of the file
+     * @return the config instance
+     */
+    @Nonnull
+    ConfigurationNode loadConfigNode(@Nonnull String file);
 
     /**
      * Gets the plugin's class loader
