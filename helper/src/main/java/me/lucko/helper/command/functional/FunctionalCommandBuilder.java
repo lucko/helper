@@ -27,8 +27,6 @@ package me.lucko.helper.command.functional;
 
 import me.lucko.helper.command.Command;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
-import me.lucko.helper.utils.Cooldown;
-import me.lucko.helper.utils.CooldownCollection;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.command.CommandSender;
@@ -53,7 +51,6 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
     String DEFAULT_INVALID_USAGE_MESSAGE = "&cInvalid usage. Try: {usage}.";
     String DEFAULT_INVALID_ARGUMENT_MESSAGE = "&cInvalid argument '{arg}' at index {index}.";
     String DEFAULT_INVALID_SENDER_MESSAGE = "&cYou are not able to use this command.";
-    String DEFAULT_ON_COOLDOWN_MESSAGE = "&cPlease wait {seconds} seconds before trying again.";
 
     static FunctionalCommandBuilder<CommandSender> newBuilder() {
         return new FunctionalCommandBuilderImpl<>();
@@ -213,54 +210,6 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
      * @return the builder instance
      */
     FunctionalCommandBuilder<T> assertSender(Predicate<T> test, String failureMessage);
-
-    /**
-     * Tests the command attempt against the given cooldown.
-     *
-     * The default failure message is sent if the command does not pass the cooldown.
-     *
-     * @param cooldown the cooldown
-     * @return the builder instance
-     */
-    default FunctionalCommandBuilder<T> withCooldown(Cooldown cooldown) {
-        return withCooldown(cooldown, DEFAULT_ON_COOLDOWN_MESSAGE);
-    }
-
-    /**
-     * Tests the command attempt against the given cooldown.
-     *
-     * The default failure message is sent if the command does not pass the cooldown. "{seconds}" is replaced in the
-     * failure message by the number of seconds until the cooldown expires
-     *
-     * @param cooldown the cooldown
-     * @param failureMessage the failure message to send if cooldown fails
-     * @return the builder instance
-     */
-    FunctionalCommandBuilder<T> withCooldown(Cooldown cooldown, String failureMessage);
-
-    /**
-     * Tests the command attempt against the given cooldown.
-     *
-     * The default failure message is sent if the command does not pass the cooldown.
-     *
-     * @param cooldown the cooldown
-     * @return the builder instance
-     */
-    default FunctionalCommandBuilder<T> withCooldown(CooldownCollection<T> cooldown) {
-        return withCooldown(cooldown, DEFAULT_ON_COOLDOWN_MESSAGE);
-    }
-
-    /**
-     * Tests the command attempt against the given cooldown.
-     *
-     * The default failure message is sent if the command does not pass the cooldown. "{seconds}" is replaced in the
-     * failure message by the number of seconds until the cooldown expires
-     *
-     * @param cooldown the cooldown
-     * @param failureMessage the failure message to send if cooldown fails
-     * @return the builder instance
-     */
-    FunctionalCommandBuilder<T> withCooldown(CooldownCollection<T> cooldown, String failureMessage);
 
     /**
      * Builds this {@link FunctionalCommandBuilder} into a {@link Command} instance.

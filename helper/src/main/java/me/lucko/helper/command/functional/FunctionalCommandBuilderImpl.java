@@ -31,9 +31,6 @@ import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.command.Command;
 import me.lucko.helper.command.context.CommandContext;
-import me.lucko.helper.utils.Color;
-import me.lucko.helper.utils.Cooldown;
-import me.lucko.helper.utils.CooldownCollection;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.command.CommandSender;
@@ -41,7 +38,6 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 @NonnullByDefault
@@ -65,7 +61,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
                 return true;
             }
 
-            context.sender().sendMessage(Color.colorize(failureMessage));
+            context.reply(failureMessage);
             return false;
         });
         return this;
@@ -79,7 +75,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
                 return true;
             }
 
-            context.sender().sendMessage(Color.colorize(failureMessage));
+            context.reply(failureMessage);
             return false;
         });
         return this;
@@ -93,7 +89,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
                 return true;
             }
 
-            context.sender().sendMessage(Color.colorize(failureMessage));
+            context.reply(failureMessage);
             return false;
         });
         // cast the generic type
@@ -108,7 +104,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
                 return true;
             }
 
-            context.sender().sendMessage(Color.colorize(failureMessage));
+            context.reply(failureMessage);
             return false;
         });
         // cast the generic type
@@ -136,7 +132,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
                 return true;
             }
 
-            context.sender().sendMessage(Color.colorize(failureMessage.replace("{usage}", "/" + context.label() + " " + usage)));
+            context.reply(failureMessage.replace("{usage}", "/" + context.label() + " " + usage));
             return false;
         });
 
@@ -153,7 +149,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
                 return true;
             }
 
-            context.sender().sendMessage(Color.colorize(failureMessage.replace("{arg}", arg).replace("{index}", Integer.toString(index))));
+            context.reply(failureMessage.replace("{arg}", arg).replace("{index}", Integer.toString(index)));
             return false;
         });
         return this;
@@ -170,39 +166,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
                 return true;
             }
 
-            context.sender().sendMessage(Color.colorize(failureMessage));
-            return false;
-        });
-        return this;
-    }
-
-    @Override
-    public FunctionalCommandBuilder<T> withCooldown(Cooldown cooldown, String failureMessage) {
-        Preconditions.checkNotNull(cooldown, "cooldown");
-        Preconditions.checkNotNull(failureMessage, "failureMessage");
-        predicates.add(context -> {
-            if (cooldown.test()) {
-                return true;
-            }
-
-            context.sender().sendMessage(Color.colorize(failureMessage.replace("{seconds}", Long.toString(cooldown.remainingTime(TimeUnit.SECONDS)))));
-            return false;
-        });
-        return this;
-    }
-
-    @Override
-    public FunctionalCommandBuilder<T> withCooldown(CooldownCollection<T> cooldown, String failureMessage) {
-        Preconditions.checkNotNull(cooldown, "cooldown");
-        Preconditions.checkNotNull(failureMessage, "failureMessage");
-        predicates.add(context -> {
-            //noinspection unchecked
-            T sender = (T) context.sender();
-            if (cooldown.test(sender)) {
-                return true;
-            }
-
-            context.sender().sendMessage(Color.colorize(failureMessage.replace("{seconds}", Long.toString(cooldown.remainingTime(sender, TimeUnit.SECONDS)))));
+            context.reply(failureMessage);
             return false;
         });
         return this;

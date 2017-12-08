@@ -42,7 +42,9 @@ import java.util.function.Function;
  * A collection of mapped Cooldown instances
  *
  * @param <T> the key type
+ * @deprecated in favour of {@link me.lucko.helper.cooldown.CooldownMap}
  */
+@Deprecated
 @NonnullByDefault
 public class CooldownCollection<T> {
 
@@ -52,6 +54,7 @@ public class CooldownCollection<T> {
      * @param base the cooldown to base off
      * @return a new collection
      */
+    @Deprecated
     public static CooldownCollection<String> create(Cooldown base) {
         Preconditions.checkNotNull(base, "base");
         return new CooldownCollection<>(s -> s, base);
@@ -65,6 +68,7 @@ public class CooldownCollection<T> {
      * @param <T> the key type
      * @return a new collection
      */
+    @Deprecated
     public static <T> CooldownCollection<T> create(Function<T, String> mappingFunc, Cooldown base) {
         Preconditions.checkNotNull(mappingFunc, "mappingFunc");
         Preconditions.checkNotNull(base, "base");
@@ -80,6 +84,7 @@ public class CooldownCollection<T> {
      * @param <T> the key type
      * @return a new collection
      */
+    @Deprecated
     public static <T> CooldownCollection<T> createWithToString(Cooldown base) {
         Preconditions.checkNotNull(base, "base");
         return new CooldownCollection<>(Object::toString, base);
