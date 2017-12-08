@@ -422,6 +422,7 @@ class HelperPromise<V> implements Promise<V> {
             try {
                 fut.complete(supplier.get());
             } catch (Throwable t) {
+                Scheduler.EXCEPTION_CONSUMER.accept(t);
                 fut.completeExceptionally(t);
             }
         }
@@ -445,8 +446,9 @@ class HelperPromise<V> implements Promise<V> {
             }
             try {
                 promise.complete(function.apply(value));
-            } catch (Throwable e) {
-                promise.completeExceptionally(e);
+            } catch (Throwable t) {
+                Scheduler.EXCEPTION_CONSUMER.accept(t);
+                promise.completeExceptionally(t);
             }
         }
     }
@@ -480,8 +482,9 @@ class HelperPromise<V> implements Promise<V> {
                         p.thenAcceptAsync(promise::complete);
                     }
                 }
-            } catch (Throwable e) {
-                promise.completeExceptionally(e);
+            } catch (Throwable t) {
+                Scheduler.EXCEPTION_CONSUMER.accept(t);
+                promise.completeExceptionally(t);
             }
         }
     }
@@ -504,8 +507,9 @@ class HelperPromise<V> implements Promise<V> {
             }
             try {
                 promise.complete(function.apply(t));
-            } catch (Throwable e) {
-                promise.completeExceptionally(e);
+            } catch (Throwable t) {
+                Scheduler.EXCEPTION_CONSUMER.accept(t);
+                promise.completeExceptionally(t);
             }
         }
     }

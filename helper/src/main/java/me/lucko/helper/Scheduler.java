@@ -65,7 +65,7 @@ public final class Scheduler {
     private static final Executor ASYNC_EXECUTOR_BUKKIT = new BukkitAsyncExecutor();
     private static final ExecutorService ASYNC_EXECUTOR_FALLBACK = new FallbackAsyncExecutor();
 
-    private static final Consumer<Throwable> EXCEPTION_CONSUMER = throwable -> {
+    public static final Consumer<Throwable> EXCEPTION_CONSUMER = throwable -> {
         Log.severe("[SCHEDULER] Exception thrown whilst executing task");
         throwable.printStackTrace();
     };
