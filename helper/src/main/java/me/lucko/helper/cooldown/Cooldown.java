@@ -23,22 +23,19 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.cooldown;
 
-import me.lucko.helper.utils.annotation.NonnullByDefault;
+import me.lucko.helper.utils.TimeUtil;
 
 import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
-import java.util.function.LongSupplier;
+
+import javax.annotation.Nonnull;
 
 /**
  * A simple cooldown abstraction
- *
- * @deprecated in favour of referencing {@link me.lucko.helper.cooldown.Cooldown}.
  */
-@Deprecated
-@NonnullByDefault
-public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown {
+public interface Cooldown {
 
     /**
      * Creates a cooldown lasting a number of game ticks
@@ -46,9 +43,10 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      * @param ticks the number of ticks
      * @return a new cooldown
      */
-    @Deprecated
-    public static Cooldown ofTicks(long ticks) {
-        return new Cooldown(ticks * 50L, TimeUnit.MILLISECONDS);
+    @Nonnull
+    static Cooldown ofTicks(long ticks) {
+        //noinspection deprecation
+        return me.lucko.helper.utils.Cooldown.ofTicks(ticks);
     }
 
     /**
@@ -58,21 +56,10 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      * @param unit the unit of time
      * @return a new cooldown
      */
-    @Deprecated
-    public static Cooldown of(long amount, TimeUnit unit) {
-        return new Cooldown(amount, unit);
-    }
-
-    // when the last test occurred.
-    protected long lastTested;
-
-    // the cooldown duration in millis
-    protected final long timeout;
-
-    @Deprecated
-    protected Cooldown(long amount, TimeUnit unit) {
-        timeout = unit.toMillis(amount);
-        lastTested = 0;
+    @Nonnull
+    static Cooldown of(long amount, @Nonnull TimeUnit unit) {
+        //noinspection deprecation
+        return me.lucko.helper.utils.Cooldown.of(amount, unit);
     }
 
     /**
@@ -82,8 +69,7 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      *
      * @return true if the cooldown is not active
      */
-    @Override
-    public boolean test() {
+    default boolean test() {
         if (!testSilently()) {
             return false;
         }
@@ -97,9 +83,8 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      *
      * @return true if the cooldown is not active
      */
-    @Override
-    public boolean testSilently() {
-        return elapsed() > timeout;
+    default boolean testSilently() {
+        return elapsed() > getTimeout();
     }
 
     /**
@@ -107,17 +92,15 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      *
      * @return the elapsed time
      */
-    @Override
-    public long elapsed() {
-        return TimeUtil.now() - lastTested;
+    default long elapsed() {
+        return TimeUtil.now() - getLastTested().orElse(0);
     }
 
     /**
      * Resets the cooldown
      */
-    @Override
-    public void reset() {
-        lastTested = TimeUtil.now();
+    default void reset() {
+        setLastTested(TimeUtil.now());
     }
 
     /**
@@ -127,10 +110,9 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      *
      * @return the time in millis until the cooldown will expire
      */
-    @Override
-    public long remainingMillis() {
+    default long remainingMillis() {
         long diff = elapsed();
-        return diff > timeout ? 0L : timeout - diff;
+        return diff > getTimeout() ? 0L : getTimeout() - diff;
     }
 
     /**
@@ -141,14 +123,8 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      * @param unit the unit to return in
      * @return the time until the cooldown will expire
      */
-    @Override
-    public long remainingTime(TimeUnit unit) {
+    default long remainingTime(TimeUnit unit) {
         return Math.max(0L, unit.convert(remainingMillis(), TimeUnit.MILLISECONDS));
-    }
-
-    @Override
-    public long getAsLong() {
-        return remainingMillis();
     }
 
     /**
@@ -156,30 +132,23 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      *
      * @return the timeout in milliseconds
      */
-    @Override
-    public long getTimeout() {
-        return timeout;
-    }
+    long getTimeout();
 
     /**
      * Copies the properties of this cooldown to a new instance
      *
      * @return a cloned cooldown instance
      */
-    @Override
-    public Cooldown copy() {
-        return new Cooldown(timeout, TimeUnit.MILLISECONDS);
-    }
+    @Nonnull
+    Cooldown copy();
 
     /**
      * Return the time in milliseconds when this cooldown was last {@link #test()}ed.
      *
      * @return the last call time
      */
-    @Override
-    public OptionalLong getLastTested() {
-        return lastTested == 0 ? OptionalLong.empty() : OptionalLong.of(lastTested);
-    }
+    @Nonnull
+    OptionalLong getLastTested();
 
     /**
      * Sets the time in milliseconds when this cooldown was last tested.
@@ -189,13 +158,6 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      *
      * @param time the time
      */
-    @Override
-    public void setLastTested(long time) {
-        if (time <= 0) {
-            lastTested = 0;
-        } else {
-            lastTested = time;
-        }
-    }
+    void setLastTested(long time);
 
 }

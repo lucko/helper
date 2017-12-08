@@ -23,75 +23,77 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.command.context;
+package me.lucko.helper.cooldown;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Preconditions;
 
-import me.lucko.helper.command.argument.Argument;
-import me.lucko.helper.utils.Players;
-
-import org.bukkit.command.CommandSender;
+import java.util.Map;
+import java.util.OptionalLong;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
- * Represents the context for a given command execution
+ * A self-populating map of cooldown instances
  *
- * @param <T> the sender type
+ * @param <T> the type
  */
-public interface CommandContext<T extends CommandSender> {
+public interface CooldownMap<T> {
 
     /**
-     * Gets the sender who executed the command
+     * Creates a new collection with the cooldown properties defined by the base instance
      *
-     * @return the sender who executed the command
+     * @param base the cooldown to base off
+     * @return a new collection
      */
     @Nonnull
-    T sender();
-
-    /**
-     * Sends a message to the {@link #sender()}.
-     *
-     * @param message the message to send
-     */
-    default void reply(String... message) {
-        Players.msg(sender(), message);
+    static <T> CooldownMap<T> create(@Nonnull Cooldown base) {
+        Preconditions.checkNotNull(base, "base");
+        return new CooldownMapImpl<>(base);
     }
 
     /**
-     * Gets an immutable list of the supplied arguments
+     * Gets the base cooldown
      *
-     * @return an immutable list of the supplied arguments
+     * @return the base cooldown
      */
     @Nonnull
-    ImmutableList<String> args();
+    Cooldown getBase();
 
     /**
-     * Gets the argument at a the given index
+     * Gets the internal cooldown instance associated with the given key
      *
-     * @param index the index
-     * @return the argument
+     * @param key the key
+     * @return a cooldown instance
      */
     @Nonnull
-    Argument arg(int index);
+    Cooldown get(@Nonnull T key);
+
+    void put(@Nonnull T key, @Nonnull Cooldown cooldown);
 
     /**
-     * Gets the argument at the given index.
-     * Returns null if no argument is present at that index.
+     * Gets the cooldowns contained within this collection.
      *
-     * @param index the index
-     * @return the argument, or null if one was not present
-     */
-    @Nullable
-    String rawArg(int index);
-
-    /**
-     * Gets the command label which was used to execute this command
-     *
-     * @return the command label which was used to execute this command
+     * @return the backing map
      */
     @Nonnull
-    String label();
+    Map<T, Cooldown> getAll();
+
+    /* methods from Cooldown */
+
+    boolean test(@Nonnull T key);
+
+    boolean testSilently(@Nonnull T key);
+
+    long elapsed(@Nonnull T key);
+
+    void reset(@Nonnull T key);
+
+    long remainingMillis(@Nonnull T key);
+
+    long remainingTime(@Nonnull T key, @Nonnull TimeUnit unit);
+
+    @Nonnull
+    OptionalLong getLastTested(@Nonnull T key);
 
 }
