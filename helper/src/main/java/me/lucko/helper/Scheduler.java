@@ -26,6 +26,7 @@
 package me.lucko.helper;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
@@ -61,9 +62,8 @@ import java.util.function.Supplier;
 public final class Scheduler {
 
     private static final Executor SYNC_EXECUTOR = new SyncExecutor();
-    private static final Executor ASYNC_EXECUTOR = new AsyncExecutor();
     private static final Executor ASYNC_EXECUTOR_BUKKIT = new BukkitAsyncExecutor();
-    private static final ExecutorService ASYNC_EXECUTOR_FALLBACK = new FallbackAsyncExecutor();
+    private static final ExecutorService ASYNC_EXECUTOR_HELPER = new HelperAsyncExecutor();
 
     public static final Consumer<Throwable> EXCEPTION_CONSUMER = throwable -> {
         Log.severe("[SCHEDULER] Exception thrown whilst executing task");
@@ -85,7 +85,7 @@ public final class Scheduler {
      * @return an async executor instance
      */
     public static synchronized Executor async() {
-        return ASYNC_EXECUTOR;
+        return ASYNC_EXECUTOR_HELPER;
     }
 
     /**
@@ -111,7 +111,7 @@ public final class Scheduler {
      * @return an "async" executor instance
      */
     public static synchronized ExecutorService internalAsync() {
-        return ASYNC_EXECUTOR_FALLBACK;
+        return ASYNC_EXECUTOR_HELPER;
     }
 
     /**
@@ -546,17 +546,6 @@ public final class Scheduler {
         }
     }
 
-    private static final class AsyncExecutor implements Executor {
-        @Override
-        public void execute(Runnable runnable) {
-            if (LoaderUtils.getPlugin().isEnabled()) {
-                ASYNC_EXECUTOR_BUKKIT.execute(runnable);
-            } else {
-                ASYNC_EXECUTOR_FALLBACK.execute(runnable);
-            }
-        }
-    }
-
     private static final class BukkitAsyncExecutor implements Executor {
         @Override
         public void execute(Runnable runnable) {
@@ -564,10 +553,9 @@ public final class Scheduler {
         }
     }
 
-    private static final class FallbackAsyncExecutor extends ThreadPoolExecutor {
-        private FallbackAsyncExecutor() {
-            // equivalent to calling Executors.newCachedThreadPool()
-            super(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>());
+    private static final class HelperAsyncExecutor extends ThreadPoolExecutor {
+        private HelperAsyncExecutor() {
+            super(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), new ThreadFactoryBuilder().setNameFormat("helper-scheduler-%d").build());
         }
 
         @Override
