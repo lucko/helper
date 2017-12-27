@@ -7,7 +7,7 @@
     <parent>
         <artifactId>helper-parent</artifactId>
         <groupId>me.lucko</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>4.2.0</version>
     </parent>
 
     <artifactId>helper-sql</artifactId>
@@ -118,11 +118,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <links>
-                                <link>https://lucko.me/helper/javadoc/helper/</link>
-                            </links>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -134,7 +129,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>helper</artifactId>
-            <version>4.1.0</version>
+            <version>[4.2,4.3)</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
