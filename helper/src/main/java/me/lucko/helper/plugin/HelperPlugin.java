@@ -148,6 +148,7 @@ public interface HelperPlugin extends Plugin, TerminableConsumer, CompositeTermi
      *
      * @return the class loader
      */
+    @Nonnull
     ClassLoader getClassloader();
 
 }

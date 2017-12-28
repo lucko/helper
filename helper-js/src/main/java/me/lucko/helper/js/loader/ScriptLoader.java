@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
+import javax.script.ScriptEngine;
 
 /**
  * An object capable of loadings scripts and monitoring them for updates.
@@ -69,6 +70,13 @@ public interface ScriptLoader extends Terminable {
      * @param paths the paths to unwatch
      */
     void unwatchAll(@Nonnull Collection<String> paths);
+
+    /**
+     * Gets the script engine for use by all scripts originating from this loader.
+     *
+     * @return the script engine
+     */
+    ScriptEngine getScriptEngine();
 
     /**
      * Gets the root directory of this loader

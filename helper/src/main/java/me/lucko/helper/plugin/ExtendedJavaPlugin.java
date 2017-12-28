@@ -180,6 +180,7 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
         return Configs.yamlLoad(getBundledFile(file));
     }
 
+    @Nonnull
     @Override
     public ClassLoader getClassloader() {
         return super.getClassLoader();

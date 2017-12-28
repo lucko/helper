@@ -32,6 +32,8 @@ import me.lucko.helper.js.loader.SystemScriptLoader;
 import me.lucko.helper.js.script.Script;
 import me.lucko.helper.terminable.Terminables;
 
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -49,6 +51,7 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nonnull;
+import javax.script.ScriptEngine;
 
 public class HelperScriptLoader implements SystemScriptLoader {
 
@@ -60,6 +63,9 @@ public class HelperScriptLoader implements SystemScriptLoader {
 
     // the script directory
     private final Path scriptDirectory;
+
+    // the nashorn script engine
+    private final ScriptEngine scriptEngine;
 
     // the watch service monitoring the directory
     private final WatchService watchService;
@@ -80,6 +86,8 @@ public class HelperScriptLoader implements SystemScriptLoader {
         this.plugin = plugin;
         this.bindings = bindings;
         this.scriptDirectory = scriptDirectory;
+
+        this.scriptEngine = new NashornScriptEngineFactory().getScriptEngine(plugin.getClassloader());
 
         try {
             this.watchService = scriptDirectory.getFileSystem().newWatchService();
@@ -319,6 +327,11 @@ public class HelperScriptLoader implements SystemScriptLoader {
                 resolveDepends(accumulator, other.getPath());
             }
         }
+    }
+
+    @Override
+    public ScriptEngine getScriptEngine() {
+        return scriptEngine;
     }
 
     @Override

@@ -29,13 +29,10 @@ import me.lucko.helper.js.bindings.SystemScriptBindings;
 import me.lucko.helper.js.loader.DelegateScriptLoader;
 import me.lucko.helper.js.loader.ScriptLoader;
 import me.lucko.helper.js.loader.SystemScriptLoader;
-import me.lucko.helper.js.plugin.ScriptPlugin;
 import me.lucko.helper.js.script.Script;
 import me.lucko.helper.js.script.ScriptLogger;
 import me.lucko.helper.js.script.SimpleScriptLogger;
 import me.lucko.helper.terminable.registry.TerminableRegistry;
-
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,15 +48,6 @@ import javax.script.ScriptEngine;
 import javax.script.SimpleScriptContext;
 
 public class HelperScript implements Script {
-
-    // the nashorn script engine
-    private static ScriptEngine engine;
-    private static synchronized ScriptEngine initEngine(ScriptPlugin plugin) {
-        if (engine == null) {
-            engine = new NashornScriptEngineFactory().getScriptEngine(plugin.getPluginClassLoader());
-        }
-        return engine;
-    }
 
     // the name of this script
     private final String name;
@@ -117,7 +105,7 @@ public class HelperScript implements Script {
 
     @Override
     public void run() {
-        ScriptEngine engine = initEngine(systemBindings.getPlugin());
+        ScriptEngine engine = loader.getScriptEngine();
 
         try {
             // create bindings

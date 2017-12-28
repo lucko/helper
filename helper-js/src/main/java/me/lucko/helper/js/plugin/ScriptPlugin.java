@@ -26,17 +26,14 @@
 package me.lucko.helper.js.plugin;
 
 import me.lucko.helper.js.loader.SystemScriptLoader;
-
-import org.bukkit.plugin.Plugin;
-
-import java.util.logging.Logger;
+import me.lucko.helper.plugin.HelperPlugin;
 
 import javax.annotation.Nonnull;
 
 /**
  * Represents a plugin which runs scripts
  */
-public interface ScriptPlugin extends Plugin {
+public interface ScriptPlugin extends HelperPlugin {
 
     /**
      * Gets the plugins script loader
@@ -45,22 +42,6 @@ public interface ScriptPlugin extends Plugin {
      */
     @Nonnull
     SystemScriptLoader getScriptLoader();
-
-    /**
-     * Get the plugin's classloader
-     *
-     * @return the plugins classloader
-     */
-    @Nonnull
-    ClassLoader getPluginClassLoader();
-
-    /**
-     * Gets the plugin's logger
-     *
-     * @return the plugins logger
-     */
-    @Nonnull
-    Logger getPluginLogger();
 
     /**
      * Gets the script header, to be applied to all scripts loaded via this plugin

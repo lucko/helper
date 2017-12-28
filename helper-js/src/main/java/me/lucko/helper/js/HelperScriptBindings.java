@@ -37,14 +37,16 @@ import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.utils.Color;
 
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -105,7 +107,7 @@ public class HelperScriptBindings implements SystemScriptBindings {
         // some util functions
         bindings.put("colorize", (Function<Object, String>) HelperScriptBindings::colorize);
         bindings.put("newMetadataKey", (Function<Object, MetadataKey>) HelperScriptBindings::newMetadataKey);
-        bindings.put("newScheme", (Supplier<MenuScheme>) HelperScriptBindings::newScheme);
+        bindings.put("newEmptyScheme", (Supplier<MenuScheme>) HelperScriptBindings::newScheme);
         bindings.put("newScheme", (Function<SchemeMapping, MenuScheme>) HelperScriptBindings::newScheme);
 
         // some general functions for working with java collections in js
@@ -156,12 +158,13 @@ public class HelperScriptBindings implements SystemScriptBindings {
     }
 
     private static Set<String> getAllPackages() throws Exception {
-        Set<String> names = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        Plugin[] plugins = Bukkit.getServer().getPluginManager().getPlugins();
 
-        List<ClassLoader> classLoaders = new ArrayList<>();
+        Set<String> names = new HashSet<>();
+        Set<ClassLoader> classLoaders = Collections.newSetFromMap(new IdentityHashMap<>(plugins.length + 3));
 
         // inspect all plugin classloaders
-        for (org.bukkit.plugin.Plugin plugin : Bukkit.getServer().getPluginManager().getPlugins()) {
+        for (Plugin plugin : plugins) {
             ClassLoader classLoader = (ClassLoader) GET_CLASSLOADER_METHOD.invoke(plugin);
             classLoaders.add(classLoader);
         }

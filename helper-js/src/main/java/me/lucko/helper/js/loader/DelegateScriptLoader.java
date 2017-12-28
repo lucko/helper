@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.script.ScriptEngine;
 
 /**
  * A {@link ScriptLoader} which delegates calls to a parent, but keeps track of the files
@@ -67,6 +68,11 @@ public class DelegateScriptLoader implements ScriptLoader {
             this.paths.remove(s);
             parent.unwatch(s);
         }
+    }
+
+    @Override
+    public ScriptEngine getScriptEngine() {
+        return parent.getScriptEngine();
     }
 
     @Override
