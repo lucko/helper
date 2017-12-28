@@ -68,6 +68,6 @@ public class SimpleScriptLogger implements ScriptLogger {
     }
 
     private Logger getLogger() {
-        return script.getBindings().getPlugin().getPluginLogger();
+        return script.getBindings().getPlugin().getLogger();
     }
 }

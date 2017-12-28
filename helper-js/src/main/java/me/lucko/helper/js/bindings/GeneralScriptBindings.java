@@ -47,21 +47,27 @@ import javax.script.Bindings;
  */
 public final class GeneralScriptBindings {
 
-    private static final Supplier<ArrayList> ARRAY_LIST = GeneralScriptBindings::newArrayList;
-    private static final Supplier<LinkedList> LINKED_LIST = GeneralScriptBindings::newLinkedList;
-    private static final Supplier<HashSet> HASH_SET = GeneralScriptBindings::newHashSet;
-    private static final Supplier<HashMap> HASH_MAP = GeneralScriptBindings::newHashMap;
-    private static final Supplier<CopyOnWriteArrayList> COPY_ON_WRITE_ARRAY_LIST = GeneralScriptBindings::newCopyOnWriteArrayList;
-    private static final Supplier<Set> CONCURRENT_HASH_SET = GeneralScriptBindings::newConcurrentHashSet;
-    private static final Supplier<ConcurrentHashMap> CONCURRENT_HASH_MAP = GeneralScriptBindings::newConcurrentHashMap;
+    private static final Supplier<ArrayList> ARRAY_LIST = ArrayList::new;
+    private static final Supplier<LinkedList> LINKED_LIST = LinkedList::new;
+    private static final Supplier<HashSet> HASH_SET = HashSet::new;
+    private static final Supplier<HashMap> HASH_MAP = HashMap::new;
+    private static final Supplier<CopyOnWriteArrayList> COPY_ON_WRITE_ARRAY_LIST = CopyOnWriteArrayList::new;
+    private static final Supplier<Set> CONCURRENT_HASH_SET = ConcurrentHashMap::newKeySet;
+    private static final Supplier<ConcurrentHashMap> CONCURRENT_HASH_MAP = ConcurrentHashMap::new;
 
-    private static final Function<Object[], ArrayList> LIST_OF = GeneralScriptBindings::listOf;
-    private static final Function<Object[], HashSet> SET_OF = GeneralScriptBindings::setOf;
+    private static final Function<Object[], ArrayList> LIST_OF = objects -> new ArrayList<>(Arrays.asList(objects));
+    private static final Function<Object[], HashSet> SET_OF = objects -> new HashSet<>(Arrays.asList(objects));
 
-    private static final Function<Object[], ImmutableList> IMMUTABLE_LIST_OF = GeneralScriptBindings::immutableListOf;
-    private static final Function<Object[], ImmutableSet> IMMUTABLE_SET_OF = GeneralScriptBindings::immutableSetOf;
+    private static final Function<Object[], ImmutableList> IMMUTABLE_LIST_OF = ImmutableList::copyOf;
+    private static final Function<Object[], ImmutableSet> IMMUTABLE_SET_OF = ImmutableSet::copyOf;
 
-    private static final Function<String, UUID> PARSE_UUID = GeneralScriptBindings::parseUuid;
+    private static final Function<String, UUID> PARSE_UUID = s -> {
+        try {
+            return UUID.fromString(s);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    };
 
     public static void appendTo(Bindings bindings) {
         // standard java collections
@@ -82,25 +88,6 @@ public final class GeneralScriptBindings {
 
         // misc
         bindings.put("parseUuid", PARSE_UUID);
-    }
-
-    private static <T> ArrayList<T> newArrayList() { return new ArrayList<>(); }
-    private static <T> LinkedList<T> newLinkedList() { return new LinkedList<>(); }
-    private static <T> HashSet<T> newHashSet() { return new HashSet<>(); }
-    private static <K, V> HashMap<K, V> newHashMap() { return new HashMap<>(); }
-    private static <T> CopyOnWriteArrayList<T> newCopyOnWriteArrayList() { return new CopyOnWriteArrayList<>(); }
-    private static <T> Set<T> newConcurrentHashSet() { return ConcurrentHashMap.newKeySet(); }
-    private static <K, V> ConcurrentHashMap<K, V> newConcurrentHashMap() { return new ConcurrentHashMap<>(); }
-    private static ArrayList listOf(Object[] objects) { return new ArrayList<>(Arrays.asList(objects)); }
-    private static HashSet setOf(Object[] objects) { return new HashSet<>(Arrays.asList(objects)); }
-    private static ImmutableList immutableListOf(Object[] objects) { return ImmutableList.copyOf(objects); }
-    private static ImmutableSet immutableSetOf(Object[] objects) { return ImmutableSet.copyOf(objects); }
-    private static UUID parseUuid(String s) {
-        try {
-            return UUID.fromString(s);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 
     private GeneralScriptBindings() {

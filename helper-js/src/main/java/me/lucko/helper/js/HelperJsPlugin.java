@@ -42,7 +42,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -100,17 +99,6 @@ public class HelperJsPlugin extends ExtendedJavaPlugin implements ScriptPlugin {
     @Override
     public SystemScriptLoader getScriptLoader() {
         return loader;
-    }
-
-    @Nonnull
-    public ClassLoader getPluginClassLoader() {
-        return getClassLoader();
-    }
-
-    @Nonnull
-    @Override
-    public Logger getPluginLogger() {
-        return getLogger();
     }
 
     @Nonnull
