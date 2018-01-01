@@ -122,7 +122,7 @@ public class AbstractMessenger implements Messenger {
 
         private void onIncomingMessage(String message) {
             try {
-                T decoded = GsonProvider.get().fromJson(message, this.type.getType());
+                T decoded = GsonProvider.standard().fromJson(message, this.type.getType());
                 Preconditions.checkNotNull(decoded, "decoded");
 
                 for (AbstractChannelAgent<T> agent : agents) {
@@ -177,7 +177,7 @@ public class AbstractMessenger implements Messenger {
 
         @Override
         public CompletableFuture<Boolean> sendMessage(T message) {
-            return CompletableFuture.supplyAsync(() -> GsonProvider.get().toJson(message, this.type.getType()))
+            return CompletableFuture.supplyAsync(() -> GsonProvider.standard().toJson(message, this.type.getType()))
                     .thenApply(m -> {
                         try {
                             messenger.outgoingMessages.accept(this.name, m);

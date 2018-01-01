@@ -25,6 +25,8 @@
 
 package me.lucko.helper.profiles;
 
+import org.bukkit.entity.HumanEntity;
+
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,6 +48,17 @@ public interface Profile {
     @Nonnull
     static Profile create(@Nonnull UUID uniqueId, @Nullable String name) {
         return new SimpleProfile(uniqueId, name);
+    }
+
+    /**
+     * Creates a new profile instance
+     *
+     * @param player the player to create a profile for
+     * @return the profile
+     */
+    @Nonnull
+    static Profile create(HumanEntity player) {
+        return new SimpleProfile(player.getUniqueId(), player.getName());
     }
 
     /**

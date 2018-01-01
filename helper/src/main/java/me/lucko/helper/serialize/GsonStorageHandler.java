@@ -65,7 +65,7 @@ public class GsonStorageHandler<T> extends FileStorageHandler<T> {
     }
 
     public GsonStorageHandler(String fileName, String fileExtension, File dataFolder, Type type) {
-        this(fileName, fileExtension, dataFolder, type, GsonProvider.getPrettyPrinting());
+        this(fileName, fileExtension, dataFolder, type, GsonProvider.prettyPrinting());
     }
 
     public GsonStorageHandler(String fileName, String fileExtension, File dataFolder, Type type, Gson gson) {

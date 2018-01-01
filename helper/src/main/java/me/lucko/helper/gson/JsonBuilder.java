@@ -197,7 +197,7 @@ public final class JsonBuilder {
      * @return a json primitive for the value
      * @throws NullPointerException if value is null
      */
-    public static JsonElement primitiveNonNull(String value) {
+    public static JsonPrimitive primitiveNonNull(String value) {
         Preconditions.checkNotNull(value, "value");
         return new JsonPrimitive(value);
     }
@@ -211,7 +211,7 @@ public final class JsonBuilder {
      * @return a json primitive for the value
      * @throws NullPointerException if value is null
      */
-    public static JsonElement primitiveNonNull(Number value) {
+    public static JsonPrimitive primitiveNonNull(Number value) {
         Preconditions.checkNotNull(value, "value");
         return new JsonPrimitive(value);
     }
@@ -225,7 +225,7 @@ public final class JsonBuilder {
      * @return a json primitive for the value
      * @throws NullPointerException if value is null
      */
-    public static JsonElement primitiveNonNull(Boolean value) {
+    public static JsonPrimitive primitiveNonNull(Boolean value) {
         Preconditions.checkNotNull(value, "value");
         return new JsonPrimitive(value);
     }
@@ -239,7 +239,7 @@ public final class JsonBuilder {
      * @return a json primitive for the value
      * @throws NullPointerException if value is null
      */
-    public static JsonElement primitiveNonNull(Character value) {
+    public static JsonPrimitive primitiveNonNull(Character value) {
         Preconditions.checkNotNull(value, "value");
         return new JsonPrimitive(value);
     }

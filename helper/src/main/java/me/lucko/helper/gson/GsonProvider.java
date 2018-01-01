@@ -42,62 +42,79 @@ public final class GsonProvider {
 
     private static final Gson STANDARD = new GsonBuilder()
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
+            .registerTypeAdapterFactory(BukkitSerializableAdapterFactory.INSTANCE)
             .serializeNulls()
+            .disableHtmlEscaping()
             .create();
 
     private static final Gson PRETTY_PRINT = new GsonBuilder()
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
+            .registerTypeAdapterFactory(BukkitSerializableAdapterFactory.INSTANCE)
             .serializeNulls()
+            .disableHtmlEscaping()
             .setPrettyPrinting()
             .create();
 
     @Nonnull
-    public static Gson get() {
+    public static Gson standard() {
         return STANDARD;
     }
 
     @Nonnull
-    public static Gson getPrettyPrinting() {
+    public static Gson prettyPrinting() {
         return PRETTY_PRINT;
     }
 
     @Nonnull
     public static JsonObject readObject(@Nonnull Reader reader) {
-        return Preconditions.checkNotNull(get().fromJson(reader, JsonObject.class));
+        return Preconditions.checkNotNull(standard().fromJson(reader, JsonObject.class));
     }
 
     @Nonnull
     public static JsonObject readObject(@Nonnull String s) {
-        return Preconditions.checkNotNull(get().fromJson(s, JsonObject.class));
+        return Preconditions.checkNotNull(standard().fromJson(s, JsonObject.class));
     }
 
     public static void writeObject(@Nonnull Appendable writer, @Nonnull JsonObject object) {
-        get().toJson(object, writer);
+        standard().toJson(object, writer);
     }
 
-    public static void writeObjectPretty(@Nonnull Appendable writer, @Nonnull JsonObject data) {
-        getPrettyPrinting().toJson(data, writer);
+    public static void writeObjectPretty(@Nonnull Appendable writer, @Nonnull JsonObject object) {
+        prettyPrinting().toJson(object, writer);
     }
 
     public static void writeElement(@Nonnull Appendable writer, @Nonnull JsonElement element) {
-        get().toJson(element, writer);
+        standard().toJson(element, writer);
     }
 
     public static void writeElementPretty(@Nonnull Appendable writer, @Nonnull JsonElement element) {
-        getPrettyPrinting().toJson(element, writer);
+        prettyPrinting().toJson(element, writer);
     }
 
     @Nonnull
     public static String toString(@Nonnull JsonElement element) {
-        return Preconditions.checkNotNull(get().toJson(element));
+        return Preconditions.checkNotNull(standard().toJson(element));
     }
 
     @Nonnull
     public static String toStringPretty(@Nonnull JsonElement element) {
-        return Preconditions.checkNotNull(getPrettyPrinting().toJson(element));
+        return Preconditions.checkNotNull(prettyPrinting().toJson(element));
     }
 
     private GsonProvider() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
+
+    @Nonnull
+    @Deprecated
+    public static Gson get() {
+        return standard();
+    }
+
+    @Nonnull
+    @Deprecated
+    public static Gson getPrettyPrinting() {
+        return prettyPrinting();
+    }
+
 }
