@@ -34,7 +34,8 @@ import javax.annotation.Nonnull;
  * A composite terminable is a class which combines a number
  * of {@link Terminable}s, to be easily registered as one.
  *
- * {@link CompositeTerminable}s can be registered with {@link CompositeTerminableConsumer#bindComposite(CompositeTerminable)}
+ * <p>{@link CompositeTerminable}s can be registered with
+ * {@link CompositeTerminableConsumer#bindComposite(CompositeTerminable)}</p>
  */
 public interface CompositeTerminable {
 

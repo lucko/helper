@@ -56,26 +56,27 @@ public final class GsonSerializableAdapterFactory implements TypeAdapterFactory 
             return null;
         }
 
-        return new TypeAdapter<T>() {
+        TypeAdapter<? extends GsonSerializable> typeAdapter = new TypeAdapter<GsonSerializable>() {
             @Override
-            public void write(JsonWriter writer, T t) throws IOException {
-                GsonSerializable serializable = (GsonSerializable) t;
-                gson.toJson(serializable.serialize(), writer);
+            public void write(JsonWriter out, GsonSerializable value) {
+                gson.toJson(value.serialize(), out);
             }
 
             @Override
-            public T read(JsonReader reader) throws IOException {
-                JsonElement element = gson.fromJson(reader, JsonElement.class);
+            public GsonSerializable read(JsonReader in) throws IOException {
+                JsonElement element = gson.fromJson(in, JsonElement.class);
 
                 try {
                     //noinspection unchecked
-                    return (T) deserializeMethod.invoke(null, element);
+                    return (GsonSerializable) deserializeMethod.invoke(null, element);
                 } catch (Exception e) {
                     throw new IOException(e);
                 }
             }
         };
 
+        //noinspection unchecked
+        return (TypeAdapter<T>) typeAdapter;
     }
 
 }

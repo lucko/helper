@@ -29,16 +29,10 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 
-import org.bukkit.Bukkit;
+import me.lucko.helper.gson.JsonBuilder;
+
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.io.BukkitObjectInputStream;
-import org.bukkit.util.io.BukkitObjectOutputStream;
-import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 /**
  * Utility methods for converting ItemStacks and Inventories to and from JSON.
@@ -46,91 +40,30 @@ import java.io.IOException;
 public final class Serializers {
 
     public static JsonPrimitive serializeItemstack(ItemStack item) {
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            try (BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
-                dataOutput.writeObject(item);
-                return new JsonPrimitive(Base64Coder.encodeLines(outputStream.toByteArray()));
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return JsonBuilder.primitiveNonNull(InventorySerialization.encodeItemStackToString(item));
     }
 
     public static ItemStack deserializeItemstack(JsonElement data) {
         Preconditions.checkArgument(data.isJsonPrimitive());
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data.getAsString()))) {
-            try (BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream)) {
-                return (ItemStack) dataInput.readObject();
-            }
-        } catch (ClassNotFoundException | IOException e) {
-            throw new RuntimeException(e);
-        }
+        return InventorySerialization.decodeItemStack(data.getAsString());
     }
 
     public static JsonPrimitive serializeItemstacks(ItemStack[] items) {
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            try (BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
-                dataOutput.writeInt(items.length);
-
-                for (ItemStack item : items) {
-                    dataOutput.writeObject(item);
-                }
-
-                return new JsonPrimitive(Base64Coder.encodeLines(outputStream.toByteArray()));
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return JsonBuilder.primitiveNonNull(InventorySerialization.encodeItemStacksToString(items));
     }
 
     public static JsonPrimitive serializeInventory(Inventory inventory) {
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            try (BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
-                dataOutput.writeInt(inventory.getSize());
-
-                for (int i = 0; i < inventory.getSize(); i++) {
-                    dataOutput.writeObject(inventory.getItem(i));
-                }
-
-                return new JsonPrimitive(Base64Coder.encodeLines(outputStream.toByteArray()));
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return JsonBuilder.primitiveNonNull(InventorySerialization.encodeInventoryToString(inventory));
     }
 
     public static ItemStack[] deserializeItemstacks(JsonElement data) {
         Preconditions.checkArgument(data.isJsonPrimitive());
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data.getAsString()))) {
-            try (BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream)) {
-                ItemStack[] items = new ItemStack[dataInput.readInt()];
-
-                for (int i = 0; i < items.length; i++) {
-                    items[i] = (ItemStack) dataInput.readObject();
-                }
-
-                return items;
-            }
-        } catch (ClassNotFoundException | IOException e) {
-            throw new RuntimeException(e);
-        }
+        return InventorySerialization.decodeItemStacks(data.getAsString());
     }
 
     public static Inventory deserializeInventory(JsonElement data, String title) {
         Preconditions.checkArgument(data.isJsonPrimitive());
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data.getAsString()))) {
-            try (BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream)) {
-                Inventory inventory = Bukkit.getServer().createInventory(null, dataInput.readInt(), title);
-
-                for (int i = 0; i < inventory.getSize(); i++) {
-                    inventory.setItem(i, (ItemStack) dataInput.readObject());
-                }
-
-                return inventory;
-            }
-        } catch (ClassNotFoundException | IOException e) {
-            throw new RuntimeException(e);
-        }
+        return InventorySerialization.decodeInventory(data.getAsString(), title);
     }
 
     private Serializers() {

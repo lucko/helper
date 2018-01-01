@@ -42,9 +42,12 @@ final class SimpleProfile implements Profile {
     @Nullable
     private final String name;
 
+    private final long timestamp;
+
     SimpleProfile(@Nonnull UUID uniqueId, @Nullable String name) {
         this.uniqueId = Preconditions.checkNotNull(uniqueId, "uniqueId");
         this.name = name;
+        this.timestamp = System.currentTimeMillis();
     }
 
     @Nonnull
@@ -61,7 +64,7 @@ final class SimpleProfile implements Profile {
 
     @Override
     public long getTimestamp() {
-        return -1;
+        return timestamp;
     }
 
     @Override
