@@ -25,35 +25,27 @@
 
 package me.lucko.helper.timings;
 
+import me.lucko.helper.cache.Lazy;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
-import org.bukkit.plugin.java.JavaPlugin;
-
 import co.aikar.timings.lib.MCTiming;
 import co.aikar.timings.lib.TimingManager;
-
-import javax.annotation.Nullable;
 
 /**
  * Provides access to a {@link TimingManager}
  */
 @NonnullByDefault
 public final class Timings {
-    @Nullable
-    private static TimingManager timingManager = null;
+
+    private static final Lazy<TimingManager> TIMING_MANAGER = Lazy.suppliedBy(() -> TimingManager.of(LoaderUtils.getPlugin()));
 
     /**
      * Gets the TimingManager
      * @return a timingmanager instance
      */
-    public static synchronized TimingManager get() {
-        if (timingManager == null) {
-            JavaPlugin plugin = LoaderUtils.getPlugin();
-            timingManager = TimingManager.of(plugin);
-        }
-
-        return timingManager;
+    public static TimingManager get() {
+        return TIMING_MANAGER.get();
     }
 
     public static MCTiming ofStart(String name) {

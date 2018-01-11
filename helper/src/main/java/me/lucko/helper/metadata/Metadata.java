@@ -34,7 +34,6 @@ import me.lucko.helper.metadata.type.EntityMetadataRegistry;
 import me.lucko.helper.metadata.type.PlayerMetadataRegistry;
 import me.lucko.helper.metadata.type.WorldMetadataRegistry;
 import me.lucko.helper.serialize.BlockPosition;
-import me.lucko.helper.terminable.Terminable;
 
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -46,36 +45,39 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * Provides access to {@link MetadataRegistry} instances bound to players, entities, blocks and worlds.
  */
 public final class Metadata {
 
-    @Nullable
-    private static Terminable eventListener = null;
-    @Nullable
-    private static Terminable cleanupTask = null;
+    private static final AtomicBoolean SETUP = new AtomicBoolean(false);
 
     // lazily load
-    private static synchronized void ensureSetup() {
-        if (eventListener == null || eventListener.hasTerminated()) {
-            // remove player metadata when they leave the server
-            eventListener = Events.subscribe(PlayerQuitEvent.class, EventPriority.MONITOR)
-                    .handler(e -> StandardMetadataRegistries.PLAYER.remove(e.getPlayer().getUniqueId()));
+    private static void ensureSetup() {
+        if (SETUP.get()) {
+            return;
         }
 
-        if (cleanupTask == null || cleanupTask.hasTerminated()) {
+        if (!SETUP.getAndSet(true)) {
+
+            // remove player metadata when they leave the server
+            Events.subscribe(PlayerQuitEvent.class, EventPriority.MONITOR)
+                    .handler(e -> StandardMetadataRegistries.PLAYER.remove(e.getPlayer().getUniqueId()));
+
             // cache housekeeping task
-            cleanupTask = Scheduler.runTaskRepeatingAsync(() -> {
-                StandardMetadataRegistries.PLAYER.cleanup();
-                StandardMetadataRegistries.ENTITY.cleanup();
-                StandardMetadataRegistries.BLOCK.cleanup();
-                StandardMetadataRegistries.WORLD.cleanup();
-            }, 1204L, 1200L);
+            Scheduler.builder()
+                    .async()
+                    .afterAndEvery(1, TimeUnit.MINUTES)
+                    .run(() -> {
+                        for (MetadataRegistry<?> registry : StandardMetadataRegistries.values()) {
+                            registry.cleanup();
+                        }
+                    });
         }
     }
 

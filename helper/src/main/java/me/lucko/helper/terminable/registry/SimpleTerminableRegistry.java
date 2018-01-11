@@ -51,7 +51,7 @@ public class SimpleTerminableRegistry implements TerminableRegistry {
 
     @Nonnull
     @Override
-    public <T extends CompositeTerminable> T bindComposite(@Nonnull T terminable) {
+    public final <T extends CompositeTerminable> T bindComposite(@Nonnull T terminable) {
         Preconditions.checkNotNull(terminable, "terminable");
         terminable.setup(this);
         return terminable;

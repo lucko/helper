@@ -45,6 +45,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -76,7 +77,12 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     @Override
     public final void onEnable() {
         // schedule cleanup of the registry
-        Scheduler.runTaskRepeatingAsync(terminableRegistry::cleanup, 600L, 600L).bindWith(terminableRegistry);
+        Scheduler.builder()
+                .async()
+                .after(10, TimeUnit.SECONDS)
+                .every(30, TimeUnit.SECONDS)
+                .run(terminableRegistry::cleanup)
+                .bindWith(terminableRegistry);
 
         // call subclass
         enable();
