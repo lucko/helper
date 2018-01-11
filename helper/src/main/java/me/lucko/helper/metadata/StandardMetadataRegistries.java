@@ -59,6 +59,12 @@ final class StandardMetadataRegistries {
     public static final BlockMetadataRegistry BLOCK = new BlockRegistry();
     public static final WorldMetadataRegistry WORLD = new WorldRegistry();
 
+    private static final MetadataRegistry<?>[] VALUES = new MetadataRegistry[]{PLAYER, ENTITY, BLOCK, WORLD};
+
+    public static MetadataRegistry<?>[] values() {
+        return VALUES;
+    }
+
     private static final class PlayerRegistry extends AbstractMetadataRegistry<UUID> implements PlayerMetadataRegistry {
 
         @Nonnull

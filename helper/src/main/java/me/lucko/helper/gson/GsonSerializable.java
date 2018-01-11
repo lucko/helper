@@ -76,17 +76,8 @@ public interface GsonSerializable {
      */
     @Nonnull
     static GsonSerializable deserializeRaw(@Nonnull Class<?> clazz, @Nonnull JsonElement element) {
-        Method deserializeMethod = getDeserializeMethod(clazz);
-        if (deserializeMethod == null) {
-            throw new IllegalStateException("Class does not have a deserialize method accessible.");
-        }
-
-        try {
-            //noinspection unchecked
-            return (GsonSerializable) deserializeMethod.invoke(null, element);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
+        Class<? extends GsonSerializable> typeCastedClass = clazz.asSubclass(GsonSerializable.class);
+        return deserialize(typeCastedClass, element);
     }
 
     /**

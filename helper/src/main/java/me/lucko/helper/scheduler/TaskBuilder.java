@@ -120,6 +120,27 @@ public interface TaskBuilder {
         TaskBuilder.Delayed after(long duration, @Nonnull TimeUnit unit);
 
         /**
+         * Marks that the new task should run after the specified delay,
+         * then repeat on the specified interval, and returns the next builder in the chain.
+         *
+         * @param ticks the number of ticks to delay execution by
+         * @return a delayed builder
+         */
+        @Nonnull
+        ContextualTaskBuilder afterAndEvery(long ticks);
+
+        /**
+         * Marks that the new task should run after the specified delay,
+         * then repeat on the specified interval, and returns the next builder in the chain.
+         *
+         * @param duration the duration to delay execution by
+         * @param unit the units of the duration
+         * @return a delayed builder
+         */
+        @Nonnull
+        ContextualTaskBuilder afterAndEvery(long duration, @Nonnull TimeUnit unit);
+
+        /**
          * Marks that the new task should start running instantly, but repeat on the specified interval,
          * and returns the next builder in the chain.
          *

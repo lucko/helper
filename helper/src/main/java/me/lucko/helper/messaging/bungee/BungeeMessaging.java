@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -321,19 +322,23 @@ public final class BungeeMessaging implements PluginMessageListener {
         plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, CHANNEL, this);
         terminableRegistry.bindRunnable(() -> plugin.getServer().getMessenger().unregisterIncomingPluginChannel(plugin, CHANNEL, this));
 
-        Scheduler.runTaskRepeatingSync(() -> {
-            if (queuedMessages.isEmpty()) {
-                return;
-            }
+        Scheduler.builder()
+                .sync()
+                .afterAndEvery(3, TimeUnit.SECONDS)
+                .run(() -> {
+                    if (queuedMessages.isEmpty()) {
+                        return;
+                    }
 
-            Player p = Iterables.getFirst(Players.all(), null);
-            if (p != null) {
-                queuedMessages.removeIf(ma -> {
-                    sendToChannel(ma, p);
-                   return true;
-                });
-            }
-        }, 60L, 60L).bindWith(terminableRegistry);
+                    Player p = Iterables.getFirst(Players.all(), null);
+                    if (p != null) {
+                        queuedMessages.removeIf(ma -> {
+                            sendToChannel(ma, p);
+                            return true;
+                        });
+                    }
+                })
+                .bindWith(terminableRegistry);
     }
 
     @Override

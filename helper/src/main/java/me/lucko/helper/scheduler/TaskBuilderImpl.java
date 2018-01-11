@@ -84,6 +84,19 @@ class TaskBuilderImpl implements TaskBuilder {
         public TaskBuilder.Delayed after(long duration, @Nonnull TimeUnit unit) {
             return new DelayedBuilder(context, Ticks.from(duration, unit));
         }
+
+        @Nonnull
+        @Override
+        public ContextualTaskBuilder afterAndEvery(long ticks) {
+            return new ContextualTaskBuilderImpl(context, ticks, ticks);
+        }
+
+        @Nonnull
+        @Override
+        public ContextualTaskBuilder afterAndEvery(long duration, @Nonnull TimeUnit unit) {
+            long ticks = Ticks.from(duration, unit);
+            return new ContextualTaskBuilderImpl(context, ticks, ticks);
+        }
     }
 
     private static final class DelayedBuilder implements TaskBuilder.Delayed {

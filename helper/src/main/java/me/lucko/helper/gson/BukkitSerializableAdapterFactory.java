@@ -63,7 +63,7 @@ public final class BukkitSerializableAdapterFactory implements TypeAdapterFactor
     }
 
     private static final class Adapter extends TypeAdapter<ConfigurationSerializable> {
-        private final Type RAW_OUTPUT_TYPE = new TypeToken<Map<String, Object>>(){}.getType();
+        private static final Type RAW_OUTPUT_TYPE = new TypeToken<Map<String, Object>>(){}.getType();
         private final Gson gson;
 
         private Adapter(Gson gson) {
@@ -123,7 +123,6 @@ public final class BukkitSerializableAdapterFactory implements TypeAdapterFactor
 
                     entry.setValue(value);
                 }
-
             }
         }
     }

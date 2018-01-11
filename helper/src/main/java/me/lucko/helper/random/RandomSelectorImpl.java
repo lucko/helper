@@ -94,6 +94,7 @@ final class RandomSelectorImpl<E> implements RandomSelector<E> {
     private interface IndexSelector {
 
         int pickIndex(Random random);
+
     }
 
     private static final class BoundedRandomSelector implements IndexSelector {
