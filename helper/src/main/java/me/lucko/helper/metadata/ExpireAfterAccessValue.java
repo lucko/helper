@@ -27,49 +27,67 @@ package me.lucko.helper.metadata;
 
 import com.google.common.base.Preconditions;
 
-import java.lang.ref.WeakReference;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
 /**
- * Represents a value wrapped in a {@link WeakReference}
+ * Represents a value which will expire a set amount of time after the last access
  *
  * @param <T> the wrapped value type
  */
-public final class WeakValue<T> implements TransientValue<T> {
+public class ExpireAfterAccessValue<T> implements TransientValue<T> {
 
-    public static <T> WeakValue<T> of(T value) {
+    public static <T> ExpireAfterAccessValue<T> of(T value, long duration, TimeUnit unit) {
+        Preconditions.checkArgument(duration >= 0, "duration must be >= 0");
         Preconditions.checkNotNull(value, "value");
-        return new WeakValue<>(value);
+        Preconditions.checkNotNull(unit, "unit");
+
+        long millis = unit.toMillis(duration);
+        return new ExpireAfterAccessValue<>(value, millis);
     }
 
-    public static <T> Supplier<WeakValue<T>> supplied(Supplier<? extends T> supplier) {
+    public static <T> Supplier<ExpireAfterAccessValue<T>> supplied(Supplier<? extends T> supplier, long duration, TimeUnit unit) {
+        Preconditions.checkArgument(duration >= 0, "duration must be >= 0");
         Preconditions.checkNotNull(supplier, "supplier");
+        Preconditions.checkNotNull(unit, "unit");
+
+        long millis = unit.toMillis(duration);
 
         return () -> {
             T value = supplier.get();
             Preconditions.checkNotNull(value, "value");
 
-            return new WeakValue<>(value);
+            return new ExpireAfterAccessValue<>(value, millis);
         };
     }
 
-    private final WeakReference<T> value;
+    private final T value;
+    private final long millis;
+    private long expireAt;
 
-    private WeakValue(T value) {
-        this.value = new WeakReference<>(value);
+    private ExpireAfterAccessValue(T value, long millis) {
+        this.value = value;
+        this.millis = millis;
+        this.expireAt = System.currentTimeMillis() + this.millis;
     }
 
     @Nullable
     @Override
     public T getOrNull() {
-        return value.get();
+        if (shouldExpire()) {
+            return null;
+        }
+
+        // reset expiry time
+        this.expireAt = System.currentTimeMillis() + this.millis;
+        return value;
     }
 
     @Override
     public boolean shouldExpire() {
-        return value.get() == null;
+        return System.currentTimeMillis() > expireAt;
     }
 
 }

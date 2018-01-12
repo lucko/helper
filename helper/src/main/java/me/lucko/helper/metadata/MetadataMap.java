@@ -172,7 +172,7 @@ public interface MetadataMap {
      * @throws ClassCastException if there is a key held in the map with the same id but differing type to the given key.
      */
     @Nonnull
-    <T> T getOrPut(@Nonnull MetadataKey<T> key, @Nonnull Supplier<T> def);
+    <T> T getOrPut(@Nonnull MetadataKey<T> key, @Nonnull Supplier<? extends T> def);
 
     /**
      * Gets a value for the given key, or puts and returns the default if one isn't present.
@@ -184,7 +184,7 @@ public interface MetadataMap {
      * @throws ClassCastException if there is a key held in the map with the same id but differing type to the given key.
      */
     @Nonnull
-    <T> T getOrPutExpiring(@Nonnull MetadataKey<T> key, @Nonnull Supplier<TransientValue<T>> def);
+    <T> T getOrPutExpiring(@Nonnull MetadataKey<T> key, @Nonnull Supplier<? extends TransientValue<T>> def);
 
     /**
      * Returns if this map contains the given key, and the types of each key match.

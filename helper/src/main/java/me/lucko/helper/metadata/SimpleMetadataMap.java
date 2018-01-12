@@ -205,7 +205,7 @@ final class SimpleMetadataMap implements MetadataMap {
 
     @Nonnull
     @Override
-    public <T> T getOrPut(@Nonnull MetadataKey<T> key, @Nonnull Supplier<T> def) {
+    public <T> T getOrPut(@Nonnull MetadataKey<T> key, @Nonnull Supplier<? extends T> def) {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(def, "def");
 
@@ -263,7 +263,7 @@ final class SimpleMetadataMap implements MetadataMap {
 
     @Nonnull
     @Override
-    public <T> T getOrPutExpiring(@Nonnull MetadataKey<T> key, @Nonnull Supplier<TransientValue<T>> def) {
+    public <T> T getOrPutExpiring(@Nonnull MetadataKey<T> key, @Nonnull Supplier<? extends TransientValue<T>> def) {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(def, "def");
 
