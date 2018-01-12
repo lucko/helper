@@ -28,6 +28,7 @@ package me.lucko.helper.metadata;
 import com.google.common.base.Preconditions;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
@@ -44,17 +45,30 @@ public final class ExpiringValue<T> implements TransientValue<T> {
         Preconditions.checkNotNull(unit, "unit");
 
         long millis = unit.toMillis(duration);
-        long expireAt = System.currentTimeMillis() + millis;
+        return new ExpiringValue<>(value, millis);
+    }
 
-        return new ExpiringValue<>(value, expireAt);
+    public static <T> Supplier<ExpiringValue<T>> supplied(Supplier<? extends T> supplier, long duration, TimeUnit unit) {
+        Preconditions.checkArgument(duration >= 0, "duration must be >= 0");
+        Preconditions.checkNotNull(supplier, "supplier");
+        Preconditions.checkNotNull(unit, "unit");
+
+        long millis = unit.toMillis(duration);
+
+        return () -> {
+            T value = supplier.get();
+            Preconditions.checkNotNull(value, "value");
+
+            return new ExpiringValue<>(value, millis);
+        };
     }
 
     private final T value;
     private final long expireAt;
 
-    private ExpiringValue(T value, long expireAt) {
+    private ExpiringValue(T value, long millis) {
         this.value = value;
-        this.expireAt = expireAt;
+        this.expireAt = System.currentTimeMillis() + millis;
     }
 
     @Nullable
