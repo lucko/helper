@@ -12,7 +12,7 @@
 
     <artifactId>helper</artifactId>
     <packaging>jar</packaging>
-    <version>4.2.0</version>
+    <version>4.2.1</version>
 
     <name>helper</name>
     <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
