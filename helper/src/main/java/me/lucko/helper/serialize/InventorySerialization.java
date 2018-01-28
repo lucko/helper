@@ -34,7 +34,6 @@ import org.bukkit.util.io.BukkitObjectOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Base64;
 
 public final class InventorySerialization {
 
@@ -50,7 +49,7 @@ public final class InventorySerialization {
     }
 
     public static String encodeItemStackToString(ItemStack item) {
-        return Base64.getEncoder().encodeToString(encodeItemStack(item));
+        return Base64Util.encode(encodeItemStack(item));
     }
 
     public static ItemStack decodeItemStack(byte[] buf) {
@@ -64,7 +63,7 @@ public final class InventorySerialization {
     }
 
     public static ItemStack decodeItemStack(String data) {
-        return decodeItemStack(Base64.getDecoder().decode(data));
+        return decodeItemStack(Base64Util.decode(data));
     }
 
     public static byte[] encodeItemStacks(ItemStack[] items) {
@@ -82,7 +81,7 @@ public final class InventorySerialization {
     }
 
     public static String encodeItemStacksToString(ItemStack[] items) {
-        return Base64.getEncoder().encodeToString(encodeItemStacks(items));
+        return Base64Util.encode(encodeItemStacks(items));
     }
 
     public static ItemStack[] decodeItemStacks(byte[] buf) {
@@ -100,7 +99,7 @@ public final class InventorySerialization {
     }
 
     public static ItemStack[] decodeItemStacks(String data) {
-        return decodeItemStacks(Base64.getDecoder().decode(data));
+        return decodeItemStacks(Base64Util.decode(data));
     }
 
     public static byte[] encodeInventory(Inventory inventory) {
@@ -118,7 +117,7 @@ public final class InventorySerialization {
     }
 
     public static String encodeInventoryToString(Inventory inventory) {
-        return Base64.getEncoder().encodeToString(encodeInventory(inventory));
+        return Base64Util.encode(encodeInventory(inventory));
     }
 
     public static Inventory decodeInventory(byte[] buf, String title) {
@@ -136,7 +135,7 @@ public final class InventorySerialization {
     }
 
     public static Inventory decodeInventory(String data, String title) {
-        return decodeInventory(Base64.getDecoder().decode(data), title);
+        return decodeInventory(Base64Util.decode(data), title);
     }
 
     private InventorySerialization() {
