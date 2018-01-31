@@ -29,6 +29,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+
 import me.lucko.helper.Events;
 import me.lucko.helper.Scheduler;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
@@ -38,11 +39,11 @@ import me.lucko.helper.promise.Promise;
 import me.lucko.helper.sql.DatabaseCredentials;
 import me.lucko.helper.sql.HelperDataSource;
 import me.lucko.helper.sql.SqlProvider;
+
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerLoginEvent;
 
-import javax.annotation.Nonnull;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -59,6 +60,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nonnull;
 
 public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileRepository {
 
