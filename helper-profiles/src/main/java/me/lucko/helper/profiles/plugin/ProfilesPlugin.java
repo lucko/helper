@@ -335,7 +335,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
             if (!first) {
                 sb.append(", ");
             }
-            sb.append("UNHEX(`").append(UuidUtils.toString(uniqueId)).append("`)");
+            sb.append("UNHEX('").append(UuidUtils.toString(uniqueId)).append("')");
             first = false;
         }
 
@@ -395,7 +395,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
             if (!first) {
                 sb.append(", ");
             }
-            sb.append("`").append(name).append("`");
+            sb.append("'").append(name).append("'");
             first = false;
         }
 
