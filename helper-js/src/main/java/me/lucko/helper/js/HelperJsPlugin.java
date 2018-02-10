@@ -25,52 +25,30 @@
 
 package me.lucko.helper.js;
 
-import com.google.common.io.CharStreams;
-
 import me.lucko.helper.Scheduler;
-import me.lucko.helper.js.loader.SystemScriptLoader;
-import me.lucko.helper.js.plugin.ScriptPlugin;
-import me.lucko.helper.js.utils.EnsureLoad;
+import me.lucko.helper.js.bindings.GeneralScriptBindings;
+import me.lucko.helper.js.bindings.HelperScriptBindings;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
+import me.lucko.helper.scheduler.Ticks;
+import me.lucko.scriptcontroller.ScriptController;
+import me.lucko.scriptcontroller.environment.loader.ScriptLoadingExecutor;
+import me.lucko.scriptcontroller.logging.SystemLogger;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
-public class HelperJsPlugin extends ExtendedJavaPlugin implements ScriptPlugin {
-
-    private HelperScriptLoader loader;
-    private String scriptHeader;
-
-    @Override
-    protected void load() {
-        // ensure all helper classes are loaded in
-        EnsureLoad.ensure();
-    }
+public class HelperJsPlugin extends ExtendedJavaPlugin {
+    private ScriptController controller;
 
     @Override
     protected void enable() {
-
-        // get the script header
-        InputStream headerResource = getResource("header.js");
-        if (headerResource == null) {
-            throw new RuntimeException("Unable to get resource 'header.js' from jar");
-        }
-
-        try {
-            scriptHeader = CharStreams.toString(new InputStreamReader(headerResource, StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new RuntimeException("Exception occurred whilst reading header file", e);
-        }
-
         // load config
         YamlConfiguration config = loadConfig("config.yml");
 
@@ -86,24 +64,37 @@ public class HelperJsPlugin extends ExtendedJavaPlugin implements ScriptPlugin {
 
         getLogger().info("Using script directory: " + scriptDirectory.toString() + "(" + scriptDirectory.toAbsolutePath().toString() + ")");
 
-        // setup script loader
-        loader = new HelperScriptLoader(this, new HelperScriptBindings(this), scriptDirectory);
-        loader.watch(config.getString("init-script", "init.js"));
-        loader.preload();
+        this.controller = ScriptController.builder()
+                .withDirectory(scriptDirectory)
+                .loadExecutor(new ScriptLoadingExecutor() {
+                    @Override
+                    public AutoCloseable scheduleAtFixedRate(Runnable runnable, long l, TimeUnit timeUnit) {
+                        return Scheduler.builder()
+                                .async()
+                                .after(0L)
+                                .every(l, timeUnit)
+                                .run(runnable);
+                    }
 
-        // schedule script loader poll task
-        Scheduler.runTaskRepeatingAsync(loader, 0L, config.getLong("poll-interval", 20L));
+                    @Override
+                    public void execute(@Nonnull Runnable command) {
+                        Scheduler.runAsync(command);
+                    }
+                })
+                .runExecutor(Scheduler.sync())
+                .pollRate(Ticks.to(config.getLong("poll-interval", 20L), TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
+                .logger(new SystemLogger() {
+                    @Override public void info(String s) { getLogger().info(s); }
+                    @Override public void warning(String s) { getLogger().warning(s); }
+                    @Override public void severe(String s) { getLogger().severe(s); }
+                })
+                .withBindings(new GeneralScriptBindings())
+                .withBindings(new HelperScriptBindings(this))
+                .build();
     }
 
-    @Nonnull
     @Override
-    public SystemScriptLoader getScriptLoader() {
-        return loader;
+    protected void disable() {
+        this.controller.shutdown();
     }
-
-    @Nonnull
-    public String getScriptHeader() {
-        return scriptHeader;
-    }
-
 }

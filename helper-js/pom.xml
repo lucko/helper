@@ -12,7 +12,7 @@
 
     <artifactId>helper-js</artifactId>
     <packaging>jar</packaging>
-    <version>1.1.0</version>
+    <version>2.0.0</version>
 
     <name>helper-js</name>
     <description>JavaScript plugins using Nashorn.</description>
@@ -55,6 +55,23 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${shade.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>false</minimizeJar>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -95,6 +112,14 @@
     </profiles>
 
     <dependencies>
+        <!-- helper-js related dependencies -->
+        <dependency>
+            <groupId>me.lucko</groupId>
+            <artifactId>scriptcontroller</artifactId>
+            <version>1.0</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- helper related dependencies -->
         <dependency>
             <groupId>me.lucko</groupId>
