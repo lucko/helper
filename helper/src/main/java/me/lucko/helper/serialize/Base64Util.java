@@ -30,7 +30,7 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import java.util.Base64;
 
 class Base64Util {
-    
+
     public static String encode(byte[] buf) {
         return Base64.getEncoder().encodeToString(buf);
     }

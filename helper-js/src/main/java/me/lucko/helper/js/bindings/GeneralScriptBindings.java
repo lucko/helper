@@ -28,6 +28,9 @@ package me.lucko.helper.js.bindings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
+import me.lucko.scriptcontroller.bindings.BindingsBuilder;
+import me.lucko.scriptcontroller.bindings.BindingsSupplier;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,12 +43,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import javax.script.Bindings;
-
 /**
  * Some misc functions to help with using Java collections in JS
  */
-public final class GeneralScriptBindings {
+public class GeneralScriptBindings implements BindingsSupplier {
 
     private static final Supplier<ArrayList> ARRAY_LIST = ArrayList::new;
     private static final Supplier<LinkedList> LINKED_LIST = LinkedList::new;
@@ -69,7 +70,7 @@ public final class GeneralScriptBindings {
         }
     };
 
-    public static void appendTo(Bindings bindings) {
+    public void accumulateTo(BindingsBuilder bindings) {
         // standard java collections
         bindings.put("newArrayList", ARRAY_LIST);
         bindings.put("newLinkedList", LINKED_LIST);
@@ -88,9 +89,5 @@ public final class GeneralScriptBindings {
 
         // misc
         bindings.put("parseUuid", PARSE_UUID);
-    }
-
-    private GeneralScriptBindings() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 }
