@@ -92,6 +92,13 @@ public interface Hologram extends Terminable, GsonSerializable {
     void despawn();
 
     /**
+     * Check if the hologram is currently spawned
+     *
+     * @return true if spawned and active, or false otherwise
+     */
+    boolean isSpawned();
+
+    /**
      * Updates the position of the hologram and respawns it
      *
      * @param position the new position

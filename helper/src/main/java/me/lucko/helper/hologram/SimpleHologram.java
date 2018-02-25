@@ -154,6 +154,21 @@ class SimpleHologram implements Hologram {
     }
 
     @Override
+    public boolean isSpawned() {
+        if (!spawned) {
+            return false;
+        }
+
+        for (ArmorStand stand : spawnedEntities) {
+            if (!stand.isValid()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
     public void updatePosition(@Nonnull Position position) {
         Preconditions.checkNotNull(position, "position");
         if (this.position.equals(position)) {
