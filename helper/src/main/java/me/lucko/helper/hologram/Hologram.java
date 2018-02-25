@@ -29,16 +29,19 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.Terminable;
+
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * A simple hologram utility.
@@ -90,6 +93,7 @@ public interface Hologram extends Terminable, GsonSerializable {
 
     /**
      * Check if the hologram is currently spawned
+     *
      * @return true if spawned and active, or false otherwise
      */
     boolean isSpawned();
