@@ -27,13 +27,11 @@ package me.lucko.helper.hologram;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
-
 import me.lucko.helper.Events;
 import me.lucko.helper.gson.JsonBuilder;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.registry.TerminableRegistry;
 import me.lucko.helper.utils.Color;
-
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -42,13 +40,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 class SimpleHologram implements Hologram {
 
@@ -151,6 +148,21 @@ class SimpleHologram implements Hologram {
             listeners.terminate();
         }
         listeners = null;
+    }
+
+    @Override
+    public boolean isSpawned() {
+        if(!spawned) {
+            return false;
+        }
+
+        for (ArmorStand stand : spawnedEntities) {
+            if(!stand.isValid()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
