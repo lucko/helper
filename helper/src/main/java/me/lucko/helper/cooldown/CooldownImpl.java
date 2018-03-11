@@ -25,12 +25,17 @@
 
 package me.lucko.helper.cooldown;
 
+import com.google.gson.JsonElement;
+
+import me.lucko.helper.gson.JsonBuilder;
 import me.lucko.helper.utils.TimeUtil;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
+
+import javax.annotation.Nonnull;
 
 @NonnullByDefault
 class CooldownImpl implements LongSupplier, Cooldown {
@@ -169,4 +174,12 @@ class CooldownImpl implements LongSupplier, Cooldown {
         }
     }
 
+    @Nonnull
+    @Override
+    public JsonElement serialize() {
+        return JsonBuilder.object()
+                .add("lastTested", lastTested)
+                .add("timeout", timeout)
+                .build();
+    }
 }
