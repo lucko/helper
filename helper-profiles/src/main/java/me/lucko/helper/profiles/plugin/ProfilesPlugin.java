@@ -31,7 +31,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 
 import me.lucko.helper.Events;
-import me.lucko.helper.Scheduler;
+import me.lucko.helper.Schedulers;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.profiles.Profile;
 import me.lucko.helper.profiles.ProfileRepository;
@@ -97,14 +97,14 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
         // load sql instance
         YamlConfiguration config = loadConfig("config.yml");
         if (config.getBoolean("use-global-credentials", true)) {
-            sql = sqlProvider.getDataSource();
+            this.sql = sqlProvider.getDataSource();
         } else {
-            sql = sqlProvider.getDataSource(DatabaseCredentials.fromConfig(config));
+            this.sql = sqlProvider.getDataSource(DatabaseCredentials.fromConfig(config));
         }
 
         // init the table
-        tableName = config.getString("table-name", "helper_profiles");
-        try (Connection c = sql.getConnection()) {
+        this.tableName = config.getString("table-name", "helper_profiles");
+        try (Connection c = this.sql.getConnection()) {
             try (Statement s = c.createStatement()) {
                 s.execute(replaceTableName(CREATE));
             }
@@ -128,7 +128,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
                 .handler(e -> {
                     ImmutableProfile profile = new ImmutableProfile(e.getPlayer().getUniqueId(), e.getPlayer().getName());
                     updateCache(profile);
-                    Scheduler.runAsync(() -> saveProfile(profile));
+                    Schedulers.async().run(() -> saveProfile(profile));
                 })
                 .bindWith(this);
 
@@ -137,18 +137,18 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
     }
 
     private String replaceTableName(String s) {
-        return s.replace("{table}", tableName);
+        return s.replace("{table}", this.tableName);
     }
 
     private void updateCache(ImmutableProfile profile) {
-        ImmutableProfile existing = profileMap.getIfPresent(profile.getUniqueId());
+        ImmutableProfile existing = this.profileMap.getIfPresent(profile.getUniqueId());
         if (existing == null || existing.getTimestamp() < profile.getTimestamp()) {
-            profileMap.put(profile.getUniqueId(), profile);
+            this.profileMap.put(profile.getUniqueId(), profile);
         }
     }
 
     private void saveProfile(ImmutableProfile profile) {
-        try (Connection c = sql.getConnection()) {
+        try (Connection c = this.sql.getConnection()) {
             try (PreparedStatement ps = c.prepareStatement(replaceTableName(INSERT))) {
                 ps.setString(1, UuidUtils.toString(profile.getUniqueId()));
                 ps.setString(2, profile.getName().get());
@@ -164,7 +164,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
 
     private int preload(int numEntries) {
         int i = 0;
-        try (Connection c = sql.getConnection()) {
+        try (Connection c = this.sql.getConnection()) {
             try (PreparedStatement ps = c.prepareStatement(replaceTableName(SELECT_ALL_RECENT))) {
                 ps.setInt(1, numEntries);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -190,7 +190,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
     @Override
     public Profile getProfile(@Nonnull UUID uniqueId) {
         Preconditions.checkNotNull(uniqueId, "uniqueId");
-        Profile profile = profileMap.getIfPresent(uniqueId);
+        Profile profile = this.profileMap.getIfPresent(uniqueId);
         if (profile == null) {
             profile = new ImmutableProfile(uniqueId, null, 0);
         }
@@ -201,7 +201,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
     @Override
     public Optional<Profile> getProfile(@Nonnull String name) {
         Preconditions.checkNotNull(name, "name");
-        for (Profile profile : profileMap.asMap().values()) {
+        for (Profile profile : this.profileMap.asMap().values()) {
             if (profile.getName().isPresent() && profile.getName().get().equalsIgnoreCase(name)) {
                 return Optional.of(profile);
             }
@@ -212,7 +212,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
     @Nonnull
     @Override
     public Collection<Profile> getKnownProfiles() {
-        return Collections.unmodifiableCollection(profileMap.asMap().values());
+        return Collections.unmodifiableCollection(this.profileMap.asMap().values());
     }
 
     @Nonnull
@@ -224,8 +224,8 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
             return Promise.completed(profile);
         }
 
-        return Scheduler.supplyAsync(() -> {
-            try (Connection c = sql.getConnection()) {
+        return Schedulers.async().supply(() -> {
+            try (Connection c = this.sql.getConnection()) {
                 try (PreparedStatement ps = c.prepareStatement(replaceTableName(SELECT_UID))) {
                     ps.setString(1, UuidUtils.toString(uniqueId));
                     try (ResultSet rs = ps.executeQuery()) {
@@ -255,8 +255,8 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
             return Promise.completed(profile);
         }
 
-        return Scheduler.supplyAsync(() -> {
-            try (Connection c = sql.getConnection()) {
+        return Schedulers.async().supply(() -> {
+            try (Connection c = this.sql.getConnection()) {
                 try (PreparedStatement ps = c.prepareStatement(replaceTableName(SELECT_NAME))) {
                     ps.setString(1, name);
                     try (ResultSet rs = ps.executeQuery()) {
@@ -282,10 +282,10 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
     @Nonnull
     @Override
     public Promise<Collection<Profile>> lookupKnownProfiles() {
-        return Scheduler.supplyAsync(() -> {
+        return Schedulers.async().supply(() -> {
             Set<Profile> ret = new HashSet<>();
 
-            try (Connection c = sql.getConnection()) {
+            try (Connection c = this.sql.getConnection()) {
                 try (PreparedStatement ps = c.prepareStatement(replaceTableName(SELECT_ALL))) {
                     try (ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
@@ -344,8 +344,8 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
         }
         sb.append(")");
 
-        return Scheduler.supplyAsync(() -> {
-            try (Connection c = sql.getConnection()) {
+        return Schedulers.async().supply(() -> {
+            try (Connection c = this.sql.getConnection()) {
                 try (Statement s = c.createStatement()) {
                     try (ResultSet rs = s.executeQuery(replaceTableName(String.format(SELECT_ALL_UIDS, sb.toString())))) {
                         while (rs.next()) {
@@ -404,8 +404,8 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
         }
         sb.append(")");
 
-        return Scheduler.supplyAsync(() -> {
-            try (Connection c = sql.getConnection()) {
+        return Schedulers.async().supply(() -> {
+            try (Connection c = this.sql.getConnection()) {
                 try (Statement s = c.createStatement()) {
                     try (ResultSet rs = s.executeQuery(replaceTableName(String.format(SELECT_ALL_NAMES, sb.toString())))) {
                         while (rs.next()) {

@@ -48,7 +48,7 @@ public interface Cycle<E> {
     @Nonnull
     static <E> Cycle<E> of(@Nonnull List<E> objects) {
         //noinspection deprecation
-        return new me.lucko.helper.utils.Cycle<>(objects);
+        return new CycleImpl<>(objects);
     }
 
     /**

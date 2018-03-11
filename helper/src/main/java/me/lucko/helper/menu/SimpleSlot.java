@@ -88,7 +88,7 @@ public class SimpleSlot implements Slot {
     @Nonnull
     @Override
     public Gui gui() {
-        return gui;
+        return this.gui;
     }
 
     /**
@@ -98,7 +98,7 @@ public class SimpleSlot implements Slot {
      */
     @Override
     public int getId() {
-        return id;
+        return this.id;
     }
 
     /**
@@ -124,7 +124,7 @@ public class SimpleSlot implements Slot {
     @Nullable
     @Override
     public ItemStack getItem() {
-        return gui.getHandle().getItem(id);
+        return this.gui.getHandle().getItem(this.id);
     }
 
     /**
@@ -147,7 +147,7 @@ public class SimpleSlot implements Slot {
     @Override
     public Slot setItem(@Nonnull ItemStack item) {
         Preconditions.checkNotNull(item, "item");
-        gui.getHandle().setItem(id, item);
+        this.gui.getHandle().setItem(this.id, item);
         return this;
     }
 
@@ -171,7 +171,7 @@ public class SimpleSlot implements Slot {
     @Nonnull
     @Override
     public Slot clearItem() {
-        gui.getHandle().clear(id);
+        this.gui.getHandle().clear(this.id);
         return this;
     }
 
@@ -183,7 +183,7 @@ public class SimpleSlot implements Slot {
     @Nonnull
     @Override
     public Slot clearBindings() {
-        handlers.clear();
+        this.handlers.clear();
         return this;
     }
 
@@ -195,7 +195,7 @@ public class SimpleSlot implements Slot {
     @Nonnull
     @Override
     public Slot clearBindings(ClickType type) {
-        handlers.remove(type);
+        this.handlers.remove(type);
         return this;
     }
 
@@ -204,7 +204,7 @@ public class SimpleSlot implements Slot {
     public Slot bind(@Nonnull ClickType type, @Nonnull Consumer<InventoryClickEvent> handler) {
         Preconditions.checkNotNull(type, "type");
         Preconditions.checkNotNull(handler, "handler");
-        handlers.computeIfAbsent(type, t -> ConcurrentHashMap.newKeySet()).add(handler);
+        this.handlers.computeIfAbsent(type, t -> ConcurrentHashMap.newKeySet()).add(handler);
         return this;
     }
 
@@ -213,7 +213,7 @@ public class SimpleSlot implements Slot {
     public Slot bind(@Nonnull ClickType type, @Nonnull Runnable handler) {
         Preconditions.checkNotNull(type, "type");
         Preconditions.checkNotNull(handler, "handler");
-        handlers.computeIfAbsent(type, t -> ConcurrentHashMap.newKeySet()).add(Item.transformRunnable(handler));
+        this.handlers.computeIfAbsent(type, t -> ConcurrentHashMap.newKeySet()).add(Item.transformRunnable(handler));
         return this;
     }
 

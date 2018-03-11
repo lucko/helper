@@ -125,7 +125,7 @@ public final class NullableOptional<T> {
         if (!isPresent()) {
             throw new NoSuchElementException("No value present");
         }
-        return value;
+        return this.value;
     }
 
     /**
@@ -139,7 +139,7 @@ public final class NullableOptional<T> {
      */
     @Nonnull
     public Optional<T> asOptional() {
-        return isPresent() ? Optional.ofNullable(value) : Optional.empty();
+        return isPresent() ? Optional.ofNullable(this.value) : Optional.empty();
     }
 
     /**
@@ -148,7 +148,7 @@ public final class NullableOptional<T> {
      * @return {@code true} if there is a value present, otherwise {@code false}
      */
     public boolean isPresent() {
-        return isPresent;
+        return this.isPresent;
     }
 
     /**
@@ -161,7 +161,7 @@ public final class NullableOptional<T> {
      */
     public void ifPresent(@Nonnull Consumer<? super T> consumer) {
         if (isPresent()) {
-            consumer.accept(value);
+            consumer.accept(this.value);
         }
     }
 
@@ -182,7 +182,7 @@ public final class NullableOptional<T> {
         if (!isPresent()) {
             return this;
         } else {
-            return predicate.test(value) ? this : empty();
+            return predicate.test(this.value) ? this : empty();
         }
     }
 
@@ -204,7 +204,7 @@ public final class NullableOptional<T> {
         if (!isPresent())
             return empty();
         else {
-            return NullableOptional.of(mapper.apply(value));
+            return NullableOptional.of(mapper.apply(this.value));
         }
     }
 
@@ -231,7 +231,7 @@ public final class NullableOptional<T> {
         if (!isPresent())
             return empty();
         else {
-            return Objects.requireNonNull(mapper.apply(value));
+            return Objects.requireNonNull(mapper.apply(this.value));
         }
     }
 
@@ -244,7 +244,7 @@ public final class NullableOptional<T> {
      */
     @Nullable
     public T orElse(@Nullable T other) {
-        return isPresent() ? value : other;
+        return isPresent() ? this.value : other;
     }
 
     /**
@@ -259,7 +259,7 @@ public final class NullableOptional<T> {
      */
     @Nullable
     public T orElseGet(@Nonnull Supplier<? extends T> other) {
-        return isPresent() ? value : other.get();
+        return isPresent() ? this.value : other.get();
     }
 
     /**
@@ -277,7 +277,7 @@ public final class NullableOptional<T> {
     @Nullable
     public <X extends Throwable> T orElseThrow(@Nonnull Supplier<? extends X> exceptionSupplier) throws X {
         if (isPresent()) {
-            return value;
+            return this.value;
         } else {
             throw exceptionSupplier.get();
         }
@@ -307,7 +307,7 @@ public final class NullableOptional<T> {
         }
 
         NullableOptional<?> other = (NullableOptional<?>) obj;
-        return isPresent == other.isPresent && Objects.equals(value, other.value);
+        return this.isPresent == other.isPresent && Objects.equals(this.value, other.value);
     }
 
     /**
@@ -319,10 +319,10 @@ public final class NullableOptional<T> {
      */
     @Override
     public int hashCode() {
-        if (!isPresent) {
+        if (!this.isPresent) {
             return -1;
         }
-        return Objects.hashCode(value);
+        return Objects.hashCode(this.value);
     }
 
     /**
@@ -334,7 +334,7 @@ public final class NullableOptional<T> {
     @Override
     public String toString() {
         return isPresent()
-                ? String.format("NullableOptional[%s]", value)
+                ? String.format("NullableOptional[%s]", this.value)
                 : "NullableOptional.empty";
     }
 }

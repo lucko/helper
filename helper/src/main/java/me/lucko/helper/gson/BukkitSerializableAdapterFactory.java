@@ -78,12 +78,12 @@ public final class BukkitSerializableAdapterFactory implements TypeAdapterFactor
             map.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, ConfigurationSerialization.getAlias(value.getClass()));
             map.putAll(serialized);
 
-            gson.toJson(map, RAW_OUTPUT_TYPE, out);
+            this.gson.toJson(map, RAW_OUTPUT_TYPE, out);
         }
 
         @Override
         public ConfigurationSerializable read(JsonReader in) {
-            Map<String, Object> map = gson.fromJson(in, RAW_OUTPUT_TYPE);
+            Map<String, Object> map = this.gson.fromJson(in, RAW_OUTPUT_TYPE);
             deserializeChildren(map);
             return ConfigurationSerialization.deserializeObject(map);
         }

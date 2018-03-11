@@ -66,14 +66,14 @@ public class PluginProcessor extends AbstractProcessor {
         }
 
         if (annotatedElements.size() > 1) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "More than one @Plugin element found.");
+            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "More than one @Plugin element found.");
             return false;
         }
 
         Element element = annotatedElements.iterator().next();
 
         if (!(element instanceof TypeElement)) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "@Plugin element is not instance of TypeElement");
+            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "@Plugin element is not instance of TypeElement");
             return false;
         }
 
@@ -144,7 +144,7 @@ public class PluginProcessor extends AbstractProcessor {
 
         try {
             Yaml yaml = new Yaml();
-            FileObject resource = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", "plugin.yml");
+            FileObject resource = this.processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", "plugin.yml");
 
             try (Writer writer = resource.openWriter(); BufferedWriter bw = new BufferedWriter(writer)) {
                 yaml.dump(data, bw);

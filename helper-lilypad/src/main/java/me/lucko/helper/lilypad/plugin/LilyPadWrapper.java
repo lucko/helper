@@ -54,7 +54,7 @@ public class LilyPadWrapper implements HelperLilyPad {
     public LilyPadWrapper(@Nonnull Connect connect) {
         this.connect = connect;
 
-        messenger = new AbstractMessenger(
+        this.messenger = new AbstractMessenger(
                 (channel, message) -> {
                     try {
                         connect.request(new MessageRequest(Collections.emptyList(), channel, message));
@@ -63,13 +63,13 @@ public class LilyPadWrapper implements HelperLilyPad {
                     }
                 },
                 channel -> {
-                    if (listening.getAndSet(true)) {
+                    if (this.listening.getAndSet(true)) {
                         return;
                     }
                     try {
                         connect.registerEvents(this);
                     } catch (Exception e) {
-                        listening.set(false);
+                        this.listening.set(false);
                     }
                 },
                 channel -> {}
@@ -87,13 +87,13 @@ public class LilyPadWrapper implements HelperLilyPad {
             return;
         }
 
-        messenger.registerIncomingMessage(channel, message);
+        this.messenger.registerIncomingMessage(channel, message);
     }
 
     @Override
     public void redirectPlayer(@Nonnull String serverId, @Nonnull String playerUsername) {
         try {
-            connect.request(new RedirectRequest(serverId, playerUsername));
+            this.connect.request(new RedirectRequest(serverId, playerUsername));
         } catch (RequestException e) {
             e.printStackTrace();
         }
@@ -102,13 +102,13 @@ public class LilyPadWrapper implements HelperLilyPad {
     @Nonnull
     @Override
     public Connect getLilyPadConnect() {
-        return connect;
+        return this.connect;
     }
 
     @Nonnull
     @Override
     public String getId() {
-        return connect.getSettings().getUsername();
+        return this.connect.getSettings().getUsername();
     }
 
     @Nonnull
@@ -120,7 +120,7 @@ public class LilyPadWrapper implements HelperLilyPad {
     @Nonnull
     @Override
     public <T> Channel<T> getChannel(@Nonnull String name, @Nonnull TypeToken<T> type) {
-        return messenger.getChannel(name, type);
+        return this.messenger.getChannel(name, type);
     }
 
 }

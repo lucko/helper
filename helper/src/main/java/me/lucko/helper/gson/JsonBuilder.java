@@ -682,11 +682,11 @@ public final class JsonBuilder {
             }
 
             if (copy && value.isJsonObject()) {
-                handle.add(property, object(value.getAsJsonObject(), true).build());
+                this.handle.add(property, object(value.getAsJsonObject(), true).build());
             } else if (copy && value.isJsonArray()) {
-                handle.add(property, array(value.getAsJsonArray(), true).build());
+                this.handle.add(property, array(value.getAsJsonArray(), true).build());
             } else {
-                handle.add(property, value);
+                this.handle.add(property, value);
             }
             return this;
         }
@@ -694,7 +694,7 @@ public final class JsonBuilder {
         @Override
         public JsonObjectBuilder addIfAbsent(String property, @Nullable JsonElement value, boolean copy) {
             Preconditions.checkNotNull(property, "property");
-            if (handle.has(property)) {
+            if (this.handle.has(property)) {
                 return this;
             }
             return add(property, value, copy);
@@ -702,7 +702,7 @@ public final class JsonBuilder {
 
         @Override
         public JsonObject build() {
-            return handle;
+            return this.handle;
         }
     }
 
@@ -720,11 +720,11 @@ public final class JsonBuilder {
             }
 
             if (copy && value.isJsonObject()) {
-                handle.add(object(value.getAsJsonObject(), true).build());
+                this.handle.add(object(value.getAsJsonObject(), true).build());
             } else if (copy && value.isJsonArray()) {
-                handle.add(array(value.getAsJsonArray(), true).build());
+                this.handle.add(array(value.getAsJsonArray(), true).build());
             } else {
-                handle.add(value);
+                this.handle.add(value);
             }
 
             return this;
@@ -732,7 +732,7 @@ public final class JsonBuilder {
 
         @Override
         public JsonArray build() {
-            return handle;
+            return this.handle;
         }
     }
 

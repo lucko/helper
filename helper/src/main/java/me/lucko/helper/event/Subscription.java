@@ -54,8 +54,8 @@ public interface Subscription extends Terminable {
     boolean unregister();
 
     @Override
-    default boolean terminate() {
-        return unregister();
+    default void close() {
+        unregister();
     }
 
 }

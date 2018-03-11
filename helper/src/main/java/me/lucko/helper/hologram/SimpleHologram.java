@@ -31,8 +31,8 @@ import com.google.gson.JsonObject;
 import me.lucko.helper.Events;
 import me.lucko.helper.gson.JsonBuilder;
 import me.lucko.helper.serialize.Position;
-import me.lucko.helper.terminable.registry.TerminableRegistry;
-import me.lucko.helper.utils.Color;
+import me.lucko.helper.terminable.composite.CompositeTerminable;
+import me.lucko.helper.text.Text;
 
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
@@ -57,7 +57,7 @@ class SimpleHologram implements Hologram {
     private final List<ArmorStand> spawnedEntities = new ArrayList<>();
     private boolean spawned = false;
 
-    private TerminableRegistry listeners = null;
+    private CompositeTerminable listeners = null;
     private Consumer<Player> clickCallback = null;
 
     SimpleHologram(Position position, List<String> lines) {
@@ -66,11 +66,11 @@ class SimpleHologram implements Hologram {
     }
 
     private Position getNewLinePosition() {
-        if (spawnedEntities.isEmpty()) {
-            return position;
+        if (this.spawnedEntities.isEmpty()) {
+            return this.position;
         } else {
             // get the last entry
-            ArmorStand last = spawnedEntities.get(spawnedEntities.size() - 1);
+            ArmorStand last = this.spawnedEntities.get(this.spawnedEntities.size() - 1);
             return Position.of(last.getLocation()).subtract(0.0d, 0.25d, 0.0d);
         }
     }
@@ -78,8 +78,8 @@ class SimpleHologram implements Hologram {
     @Override
     public void spawn() {
         // resize to fit any new lines
-        int linesSize = lines.size();
-        int spawnedSize = spawnedEntities.size();
+        int linesSize = this.lines.size();
+        int spawnedSize = this.spawnedEntities.size();
 
         // remove excess lines
         if (linesSize < spawnedSize) {
@@ -87,16 +87,16 @@ class SimpleHologram implements Hologram {
             for (int i = 0; i < diff; i++) {
 
                 // get and remove the last entry
-                ArmorStand as = spawnedEntities.remove(spawnedEntities.size() - 1);
+                ArmorStand as = this.spawnedEntities.remove(this.spawnedEntities.size() - 1);
                 as.remove();
             }
         }
 
         // now enough armorstands are spawned, we can now update the text
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
+        for (int i = 0; i < this.lines.size(); i++) {
+            String line = this.lines.get(i);
 
-            if (i >= spawnedEntities.size()) {
+            if (i >= this.spawnedEntities.size()) {
                 // add a new line
                 Location loc = getNewLinePosition().toLocation();
 
@@ -121,10 +121,10 @@ class SimpleHologram implements Hologram {
                     stand.setCustomNameVisible(true);
                 });
 
-                spawnedEntities.add(as);
+                this.spawnedEntities.add(as);
             } else {
                 // update existing line if necessary
-                ArmorStand as = spawnedEntities.get(i);
+                ArmorStand as = this.spawnedEntities.get(i);
 
                 if (as.getCustomName() != null && as.getCustomName().equals(line)) {
                     continue;
@@ -138,28 +138,28 @@ class SimpleHologram implements Hologram {
             setClickCallback(this.clickCallback);
         }
 
-        spawned = true;
+        this.spawned = true;
     }
 
     @Override
     public void despawn() {
-        spawnedEntities.forEach(Entity::remove);
-        spawnedEntities.clear();
-        spawned = false;
+        this.spawnedEntities.forEach(Entity::remove);
+        this.spawnedEntities.clear();
+        this.spawned = false;
 
-        if (listeners != null) {
-            listeners.terminate();
+        if (this.listeners != null) {
+            this.listeners.closeAndReportException();
         }
-        listeners = null;
+        this.listeners = null;
     }
 
     @Override
     public boolean isSpawned() {
-        if (!spawned) {
+        if (!this.spawned) {
             return false;
         }
 
-        for (ArmorStand stand : spawnedEntities) {
+        for (ArmorStand stand : this.spawnedEntities) {
             if (!stand.isValid()) {
                 return false;
             }
@@ -188,7 +188,7 @@ class SimpleHologram implements Hologram {
             Preconditions.checkArgument(line != null, "null line");
         }
 
-        List<String> ret = lines.stream().map(Color::colorize).collect(Collectors.toList());
+        List<String> ret = lines.stream().map(Text::colorize).collect(Collectors.toList());
         if (this.lines.equals(ret)) {
             return;
         }
@@ -201,7 +201,7 @@ class SimpleHologram implements Hologram {
         // unregister any existing listeners
         if (clickCallback == null) {
             if (this.listeners != null) {
-                this.listeners.terminate();
+                this.listeners.closeAndReportException();
             }
             this.clickCallback = null;
             this.listeners = null;
@@ -211,7 +211,7 @@ class SimpleHologram implements Hologram {
         this.clickCallback = clickCallback;
 
         if (this.listeners == null) {
-            this.listeners = TerminableRegistry.create();
+            this.listeners = CompositeTerminable.create();
             Events.subscribe(PlayerInteractAtEntityEvent.class)
                     .filter(e -> e.getRightClicked() instanceof ArmorStand)
                     .handler(e -> {
@@ -248,22 +248,21 @@ class SimpleHologram implements Hologram {
     }
 
     @Override
-    public boolean terminate() {
+    public void close() {
         despawn();
-        return true;
     }
 
     @Override
-    public boolean hasTerminated() {
-        return !spawned;
+    public boolean isClosed() {
+        return !this.spawned;
     }
 
     @Nonnull
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()
-                .add("position", position)
-                .add("lines", JsonBuilder.array().addStrings(lines).build())
+                .add("position", this.position)
+                .add("lines", JsonBuilder.array().addStrings(this.lines).build())
                 .build();
     }
 

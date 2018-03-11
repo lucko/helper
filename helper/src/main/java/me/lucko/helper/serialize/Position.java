@@ -128,29 +128,29 @@ public final class Position implements GsonSerializable {
     }
 
     public Vector3d toVector() {
-        return new Vector3d(x, y, z);
+        return new Vector3d(this.x, this.y, this.z);
     }
 
     public synchronized Location toLocation() {
-        if (bukkitLocation == null) {
-            bukkitLocation = new Location(Helper.worldNullable(world), x, y, z);
+        if (this.bukkitLocation == null) {
+            this.bukkitLocation = new Location(Helper.worldNullable(this.world), this.x, this.y, this.z);
         }
 
-        return bukkitLocation.clone();
+        return this.bukkitLocation.clone();
     }
 
     public BlockPosition floor() {
-        return BlockPosition.of(bukkitFloor(x), bukkitFloor(y), bukkitFloor(z), world);
+        return BlockPosition.of(bukkitFloor(this.x), bukkitFloor(this.y), bukkitFloor(this.z), this.world);
     }
 
     public Position getRelative(BlockFace face) {
         Preconditions.checkNotNull(face, "face");
-        return Position.of(x + face.getModX(), y + face.getModY(), z + face.getModZ(), world);
+        return Position.of(this.x + face.getModX(), this.y + face.getModY(), this.z + face.getModZ(), this.world);
     }
 
     public Position getRelative(BlockFace face, double distance) {
         Preconditions.checkNotNull(face, "face");
-        return Position.of(x + (face.getModX() * distance), y + (face.getModY() * distance), z + (face.getModZ() * distance), world);
+        return Position.of(this.x + (face.getModX() * distance), this.y + (face.getModY() * distance), this.z + (face.getModZ() * distance), this.world);
     }
 
     public Position add(Vector3i vector3i) {
@@ -162,7 +162,7 @@ public final class Position implements GsonSerializable {
     }
 
     public Position add(double x, double y, double z) {
-        return Position.of(this.x + x, this.y + y, this.z + z, world);
+        return Position.of(this.x + x, this.y + y, this.z + z, this.world);
     }
 
     public Position subtract(Vector3i vector3i) {
@@ -190,10 +190,10 @@ public final class Position implements GsonSerializable {
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()
-                .add("x", x)
-                .add("y", y)
-                .add("z", z)
-                .add("world", world)
+                .add("x", this.x)
+                .add("y", this.y)
+                .add("z", this.z)
+                .add("world", this.world)
                 .build();
     }
 

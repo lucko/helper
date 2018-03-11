@@ -149,29 +149,29 @@ public final class LibraryLoader {
         }
 
         public String getGroupId() {
-            return groupId;
+            return this.groupId;
         }
 
         public String getArtifactId() {
-            return artifactId;
+            return this.artifactId;
         }
 
         public String getVersion() {
-            return version;
+            return this.version;
         }
 
         public String getRepoUrl() {
-            return repoUrl;
+            return this.repoUrl;
         }
 
         public URL getUrl() throws MalformedURLException {
-            String repo = repoUrl;
+            String repo = this.repoUrl;
             if (!repo.endsWith("/")) {
                 repo += "/";
             }
             repo += "%s/%s/%s/%s-%s.jar";
 
-            String url = String.format(repo, groupId.replace(".", "/"), artifactId, version, artifactId, version);
+            String url = String.format(repo, this.groupId.replace(".", "/"), this.artifactId, this.version, this.artifactId, this.version);
             return new URL(url);
         }
 

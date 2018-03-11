@@ -64,12 +64,12 @@ public final class WeakValue<T> implements TransientValue<T> {
     @Nullable
     @Override
     public T getOrNull() {
-        return value.get();
+        return this.value.get();
     }
 
     @Override
     public boolean shouldExpire() {
-        return value.get() == null;
+        return this.value.get() == null;
     }
 
 }

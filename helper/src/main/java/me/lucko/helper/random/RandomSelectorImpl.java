@@ -82,7 +82,7 @@ final class RandomSelectorImpl<E> implements RandomSelector<E> {
 
     @Override
     public E pick(Random random) {
-        return elements[selection.pickIndex(random)];
+        return this.elements[this.selection.pickIndex(random)];
     }
 
     @Override
@@ -106,7 +106,7 @@ final class RandomSelectorImpl<E> implements RandomSelector<E> {
 
         @Override
         public int pickIndex(Random random) {
-            return random.nextInt(bound);
+            return random.nextInt(this.bound);
         }
     }
 
@@ -164,8 +164,8 @@ final class RandomSelectorImpl<E> implements RandomSelector<E> {
 
         @Override
         public int pickIndex(final Random random) {
-            final int column = random.nextInt(probabilities.length);
-            return random.nextDouble() < probabilities[column] ? column : alias[column];
+            final int column = random.nextInt(this.probabilities.length);
+            return random.nextDouble() < this.probabilities[column] ? column : this.alias[column];
         }
     }
 }

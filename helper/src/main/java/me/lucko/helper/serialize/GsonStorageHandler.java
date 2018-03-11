@@ -77,7 +77,7 @@ public class GsonStorageHandler<T> extends FileStorageHandler<T> {
     @Override
     protected T readFromFile(Path path) {
         try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            return gson.fromJson(reader, type);
+            return this.gson.fromJson(reader, this.type);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -87,7 +87,7 @@ public class GsonStorageHandler<T> extends FileStorageHandler<T> {
     @Override
     protected void saveToFile(Path path, T t) {
         try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
-            gson.toJson(t, type, writer);
+            this.gson.toJson(t, this.type, writer);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -25,10 +25,13 @@
 
 package me.lucko.helper.terminable;
 
+import me.lucko.helper.terminable.module.TerminableModule;
+
 import javax.annotation.Nonnull;
 
 /**
- * Accepts {@link Terminable}s.
+ * Accepts {@link AutoCloseable}s (and by inheritance {@link Terminable}s),
+ * as well as {@link TerminableModule}s.
  */
 @FunctionalInterface
 public interface TerminableConsumer {
@@ -41,19 +44,19 @@ public interface TerminableConsumer {
      * @return the same terminable
      */
     @Nonnull
-    <T extends Terminable> T bind(@Nonnull T terminable);
+    <T extends AutoCloseable> T bind(@Nonnull T terminable);
 
     /**
-     * Binds with the given runnable.
+     * Binds with the given terminable module.
      *
-     * @param runnable the runnable to bind with
-     * @param <T> the terminable type
-     * @return the same terminable
+     * @param module the module to bind with
+     * @param <T> the module type
+     * @return the same module
      */
     @Nonnull
-    default <T extends Runnable> T bindRunnable(@Nonnull T runnable) {
-        bind(Terminable.of(runnable));
-        return runnable;
+    default <T extends TerminableModule> T bindModule(@Nonnull T module) {
+        module.setup(this);
+        return module;
     }
 
 }

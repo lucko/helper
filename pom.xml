@@ -6,7 +6,7 @@
 
     <groupId>me.lucko</groupId>
     <artifactId>helper-parent</artifactId>
-    <version>4.2.0</version>
+    <version>5.0.0</version>
     
     <modules>
     	<module>helper</module>

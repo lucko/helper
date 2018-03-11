@@ -25,26 +25,41 @@
 
 package me.lucko.helper.scheduler;
 
-import me.lucko.helper.promise.Promise;
-
-import java.util.concurrent.Callable;
-import java.util.function.Supplier;
-
-import javax.annotation.Nonnull;
+import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 /**
- * Builds instances of {@link Promise}, often combining parameters with
- * variables already known by this instance.
+ * Represents a scheduled repeating task
  */
-public interface ContextualPromiseBuilder {
+@NonnullByDefault
+public interface Task extends Terminable {
 
-    @Nonnull
-    <T> Promise<T> supply(@Nonnull Supplier<T> supplier);
+    /**
+     * Gets the number of times this task has ran. The counter is only incremented at the end of execution.
+     *
+     * @return the number of times this task has ran
+     */
+    int getTimesRan();
 
-    @Nonnull
-    <T> Promise<T> call(@Nonnull Callable<T> callable);
+    /**
+     * Stops the task
+     *
+     * @return true if the task wasn't already cancelled
+     */
+    boolean stop();
 
-    @Nonnull
-    Promise<Void> run(@Nonnull Runnable runnable);
+    /**
+     * Gets the Bukkit ID for this task
+     *
+     * @return the bukkit id for this task
+     */
+    int getBukkitId();
 
+    /**
+     * {@link #stop() Stops} the task
+     */
+    @Override
+    default void close() {
+        stop();
+    }
 }

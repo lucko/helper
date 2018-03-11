@@ -23,35 +23,34 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.scheduler;
+package me.lucko.helper.scheduler.threadlock;
 
-import me.lucko.helper.Scheduler;
-import me.lucko.helper.promise.ThreadContext;
+import me.lucko.helper.terminable.Terminable;
 
-import java.util.function.Consumer;
+/**
+ * A tool to synchronize code with the main server thread
+ *
+ * <p>It is highly recommended to use this interface with try-with-resource blocks.</p>
+ *
+ * @see me.lucko.helper.promise.ThreadContext#SYNC
+ */
+public interface ServerThreadLock extends Terminable {
 
-import javax.annotation.Nonnull;
-
-class ContextualTaskBuilderImpl implements ContextualTaskBuilder {
-    private final ThreadContext context;
-    private final long delay;
-    private final long interval;
-
-    ContextualTaskBuilderImpl(ThreadContext context, long delay, long interval) {
-        this.context = context;
-        this.delay = delay;
-        this.interval = interval;
+    /**
+     * Blocks the current thread until a {@link ServerThreadLock} can be obtained.
+     *
+     * <p>Will attempt to return immediately if the calling thread is the main thread itself.</p>
+     *
+     * @return a lock
+     */
+    static ServerThreadLock obtain() {
+        return new ServerThreadLockImpl();
     }
 
-    @Nonnull
+    /**
+     * Closes the lock, and allows the main thread to continue
+     */
     @Override
-    public Scheduler.Task consume(@Nonnull Consumer<Scheduler.Task> consumer) {
-        return Scheduler.runTaskRepeating(context, consumer, delay, interval);
-    }
+    void close();
 
-    @Nonnull
-    @Override
-    public Scheduler.Task run(@Nonnull Runnable runnable) {
-        return Scheduler.runTaskRepeating(context, runnable, delay, interval);
-    }
 }

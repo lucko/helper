@@ -56,7 +56,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     public FunctionalCommandBuilder<T> assertPermission(String permission, String failureMessage) {
         Preconditions.checkNotNull(permission, "permission");
         Preconditions.checkNotNull(failureMessage, "failureMessage");
-        predicates.add(context -> {
+        this.predicates.add(context -> {
             if (context.sender().hasPermission(permission)) {
                 return true;
             }
@@ -70,7 +70,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     @Override
     public FunctionalCommandBuilder<T> assertOp(String failureMessage) {
         Preconditions.checkNotNull(failureMessage, "failureMessage");
-        predicates.add(context -> {
+        this.predicates.add(context -> {
             if (context.sender().isOp()) {
                 return true;
             }
@@ -84,7 +84,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     @Override
     public FunctionalCommandBuilder<Player> assertPlayer(String failureMessage) {
         Preconditions.checkNotNull(failureMessage, "failureMessage");
-        predicates.add(context -> {
+        this.predicates.add(context -> {
             if (context.sender() instanceof Player) {
                 return true;
             }
@@ -93,13 +93,13 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
             return false;
         });
         // cast the generic type
-        return new FunctionalCommandBuilderImpl<>(predicates);
+        return new FunctionalCommandBuilderImpl<>(this.predicates);
     }
 
     @Override
     public FunctionalCommandBuilder<ConsoleCommandSender> assertConsole(String failureMessage) {
         Preconditions.checkNotNull(failureMessage, "failureMessage");
-        predicates.add(context -> {
+        this.predicates.add(context -> {
             if (context.sender() instanceof ConsoleCommandSender) {
                 return true;
             }
@@ -108,7 +108,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
             return false;
         });
         // cast the generic type
-        return new FunctionalCommandBuilderImpl<>(predicates);
+        return new FunctionalCommandBuilderImpl<>(this.predicates);
     }
 
     @Override
@@ -127,7 +127,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
         }
 
         int finalRequiredArgs = requiredArgs;
-        predicates.add(context -> {
+        this.predicates.add(context -> {
             if (context.args().size() >= finalRequiredArgs) {
                 return true;
             }
@@ -143,7 +143,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     public FunctionalCommandBuilder<T> assertArgument(int index, Predicate<String> test, String failureMessage) {
         Preconditions.checkNotNull(test, "test");
         Preconditions.checkNotNull(failureMessage, "failureMessage");
-        predicates.add(context -> {
+        this.predicates.add(context -> {
             String arg = context.rawArg(index);
             if (test.test(arg)) {
                 return true;
@@ -159,7 +159,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     public FunctionalCommandBuilder<T> assertSender(Predicate<T> test, String failureMessage) {
         Preconditions.checkNotNull(test, "test");
         Preconditions.checkNotNull(failureMessage, "failureMessage");
-        predicates.add(context -> {
+        this.predicates.add(context -> {
             //noinspection unchecked
             T sender = (T) context.sender();
             if (test.test(sender)) {
@@ -175,6 +175,6 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     @Override
     public Command handler(FunctionalCommandHandler handler) {
         Preconditions.checkNotNull(handler, "handler");
-        return new FunctionalCommand(predicates.build(), handler);
+        return new FunctionalCommand(this.predicates.build(), handler);
     }
 }

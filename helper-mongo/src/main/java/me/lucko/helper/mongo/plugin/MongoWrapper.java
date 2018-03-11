@@ -26,6 +26,7 @@
 package me.lucko.helper.mongo.plugin;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
@@ -35,8 +36,6 @@ import me.lucko.helper.mongo.MongoDatabaseCredentials;
 
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
-
-import java.util.Collections;
 
 import javax.annotation.Nonnull;
 
@@ -54,53 +53,52 @@ public class MongoWrapper implements HelperMongo {
                 credentials.getPassword().toCharArray()
         );
 
-        client = new MongoClient(
+        this.client = new MongoClient(
                 new ServerAddress(credentials.getAddress(), credentials.getPort()),
-                Collections.singletonList(mongoCredential)
+                mongoCredential,
+                MongoClientOptions.builder().build()
         );
-        database = client.getDatabase(credentials.getDatabase());
-        morphia = new Morphia();
-        morphiaDatastore = morphia.createDatastore(client, credentials.getDatabase());
+        this.database = this.client.getDatabase(credentials.getDatabase());
+        this.morphia = new Morphia();
+        this.morphiaDatastore = this.morphia.createDatastore(this.client, credentials.getDatabase());
     }
 
     @Nonnull
     @Override
     public MongoClient getClient() {
-        return client;
+        return this.client;
     }
 
     @Nonnull
     @Override
     public MongoDatabase getDatabase() {
-        return database;
+        return this.database;
     }
 
     @Override
     public MongoDatabase getDatabase(String name) {
-        return client.getDatabase(name);
+        return this.client.getDatabase(name);
     }
 
     @Override
-    public boolean terminate() {
-        if (client != null) {
-            client.close();
-            return true;
+    public void close() {
+        if (this.client != null) {
+            this.client.close();
         }
-        return false;
     }
 
     @Override
     public Morphia getMorphia() {
-        return morphia;
+        return this.morphia;
     }
 
     @Override
     public Datastore getMorphiaDatastore() {
-        return morphiaDatastore;
+        return this.morphiaDatastore;
     }
 
     @Override
     public Datastore getMorphiaDatastore(String name) {
-        return morphia.createDatastore(client, name);
+        return this.morphia.createDatastore(this.client, name);
     }
 }

@@ -83,68 +83,68 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
     }
 
     void register(Plugin plugin) {
-        Helper.plugins().registerEvent(eventClass, this, priority, this, plugin, false);
+        Helper.plugins().registerEvent(this.eventClass, this, this.priority, this, plugin, false);
     }
 
     @Override
     public void execute(Listener listener, Event event) {
         // check we actually want this event
-        if (event.getClass() != eventClass) {
+        if (event.getClass() != this.eventClass) {
             return;
         }
 
         // this handler is disabled, so unregister from the event.
-        if (!active.get()) {
+        if (!this.active.get()) {
             event.getHandlers().unregister(listener);
             return;
         }
 
         // obtain the event instance
-        T eventInstance = eventClass.cast(event);
+        T eventInstance = this.eventClass.cast(event);
 
         // check pre-expiry tests
-        for (BiPredicate<SingleSubscription<T>, T> test : preExpiryTests) {
+        for (BiPredicate<SingleSubscription<T>, T> test : this.preExpiryTests) {
             if (test.test(this, eventInstance)) {
                 event.getHandlers().unregister(listener);
-                active.set(false);
+                this.active.set(false);
                 return;
             }
         }
 
         // begin "handling" of the event
-        try (MCTiming t = timing.startTiming()) {
+        try (MCTiming t = this.timing.startTiming()) {
             // check the filters
-            for (Predicate<T> filter : filters) {
+            for (Predicate<T> filter : this.filters) {
                 if (!filter.test(eventInstance)) {
                     return;
                 }
             }
 
             // check mid-expiry tests
-            for (BiPredicate<SingleSubscription<T>, T> test : midExpiryTests) {
+            for (BiPredicate<SingleSubscription<T>, T> test : this.midExpiryTests) {
                 if (test.test(this, eventInstance)) {
                     event.getHandlers().unregister(listener);
-                    active.set(false);
+                    this.active.set(false);
                     return;
                 }
             }
 
             // call the handler
-            for (BiConsumer<SingleSubscription<T>, ? super T> handler : handlers) {
+            for (BiConsumer<SingleSubscription<T>, ? super T> handler : this.handlers) {
                 handler.accept(this, eventInstance);
             }
 
             // increment call counter
-            callCount.incrementAndGet();
+            this.callCount.incrementAndGet();
         } catch (Throwable t) {
-            exceptionConsumer.accept(eventInstance, t);
+            this.exceptionConsumer.accept(eventInstance, t);
         }
 
         // check post-expiry tests
-        for (BiPredicate<SingleSubscription<T>, T> test : postExpiryTests) {
+        for (BiPredicate<SingleSubscription<T>, T> test : this.postExpiryTests) {
             if (test.test(this, eventInstance)) {
                 event.getHandlers().unregister(listener);
-                active.set(false);
+                this.active.set(false);
                 return;
             }
         }
@@ -153,35 +153,35 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
     @Nonnull
     @Override
     public Class<T> getEventClass() {
-        return eventClass;
+        return this.eventClass;
     }
 
     @Override
     public boolean isActive() {
-        return active.get();
+        return this.active.get();
     }
 
     @Override
-    public boolean hasTerminated() {
-        return !active.get();
+    public boolean isClosed() {
+        return !this.active.get();
     }
 
     @Override
     public long getCallCounter() {
-        return callCount.get();
+        return this.callCount.get();
     }
 
     @Override
     public boolean unregister() {
         // already unregistered
-        if (!active.getAndSet(false)) {
+        if (!this.active.getAndSet(false)) {
             return false;
         }
 
         // also remove the handler directly, just in case the event has a really low throughput.
         // (the event would also be unregistered next time it's called - but this obviously assumes
         // the event will be called again soon)
-        unregisterListener(eventClass, this);
+        unregisterListener(this.eventClass, this);
 
         return true;
     }

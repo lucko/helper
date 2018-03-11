@@ -54,12 +54,12 @@ public class AbstractSchemeMapping implements SchemeMapping {
     @Override
     @Nullable
     public Item getNullable(int key) {
-        return mapping.get(key);
+        return this.mapping.get(key);
     }
 
     @Override
     public boolean hasMappingFor(int key) {
-        return mapping.containsKey(key);
+        return this.mapping.containsKey(key);
     }
 
     @Nonnull
@@ -70,11 +70,11 @@ public class AbstractSchemeMapping implements SchemeMapping {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof AbstractSchemeMapping && ((AbstractSchemeMapping) obj).mapping.equals(mapping);
+        return obj instanceof AbstractSchemeMapping && ((AbstractSchemeMapping) obj).mapping.equals(this.mapping);
     }
 
     @Override
     public int hashCode() {
-        return mapping.hashCode();
+        return this.mapping.hashCode();
     }
 }

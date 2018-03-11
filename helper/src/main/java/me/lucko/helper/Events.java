@@ -135,7 +135,7 @@ public final class Events {
      * @param event the event to call
      */
     public static void callAsync(@Nonnull Event event) {
-        Scheduler.runAsync(() -> call(event));
+        Schedulers.async().run(() -> call(event));
     }
 
     /**
@@ -144,7 +144,7 @@ public final class Events {
      * @param event the event to call
      */
     public static void callSync(@Nonnull Event event) {
-        Scheduler.runSync(() -> call(event));
+        Schedulers.sync().run(() -> call(event));
     }
 
     /**
@@ -165,7 +165,7 @@ public final class Events {
      */
     @Nonnull
     public static <T extends Event> T callAsyncAndJoin(@Nonnull T event) {
-        return Scheduler.supplyAsync(() -> callAndReturn(event)).join();
+        return Schedulers.async().supply(() -> callAndReturn(event)).join();
     }
 
     /**
@@ -175,7 +175,7 @@ public final class Events {
      */
     @Nonnull
     public static <T extends Event> T callSyncAndJoin(@Nonnull T event) {
-        return Scheduler.supplySync(() -> callAndReturn(event)).join();
+        return Schedulers.sync().supply(() -> callAndReturn(event)).join();
     }
 
     private Events() {

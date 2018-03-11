@@ -7,12 +7,12 @@
     <parent>
         <artifactId>helper-parent</artifactId>
         <groupId>me.lucko</groupId>
-        <version>4.2.0</version>
+        <version>5.0.0</version>
     </parent>
 
     <artifactId>helper-redis</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.5</version>
+    <version>1.1.0</version>
 
     <name>helper-redis</name>
     <description>Provides Redis clients and implements the helper Messaging system using Jedis.</description>
@@ -129,7 +129,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>helper</artifactId>
-            <version>[4.2,4.3)</version>
+            <version>[5.0.0,6.0.0)</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

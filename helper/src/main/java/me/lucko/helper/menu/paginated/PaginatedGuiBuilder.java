@@ -172,48 +172,48 @@ public class PaginatedGuiBuilder {
     }
 
     public int getLines() {
-        return lines;
+        return this.lines;
     }
 
     public String getTitle() {
-        return title;
+        return this.title;
     }
 
     public List<Integer> getItemSlots() {
-        return itemSlots;
+        return this.itemSlots;
     }
 
     public int getNextPageSlot() {
-        return nextPageSlot;
+        return this.nextPageSlot;
     }
 
     public int getPreviousPageSlot() {
-        return previousPageSlot;
+        return this.previousPageSlot;
     }
 
     public MenuScheme getScheme() {
-        return scheme;
+        return this.scheme;
     }
 
     public Function<PageInfo, ItemStack> getNextPageItem() {
-        return nextPageItem;
+        return this.nextPageItem;
     }
 
     public Function<PageInfo, ItemStack> getPreviousPageItem() {
-        return previousPageItem;
+        return this.previousPageItem;
     }
 
     public PaginatedGui build(Player player, Function<PaginatedGui, List<Item>> content) {
         Preconditions.checkNotNull(player, "player");
         Preconditions.checkNotNull(content, "content");
-        Preconditions.checkNotNull(lines, "lines");
-        Preconditions.checkNotNull(title, "title");
-        Preconditions.checkNotNull(itemSlots, "itemSlots");
-        Preconditions.checkNotNull(nextPageSlot, "nextPageSlot");
-        Preconditions.checkNotNull(previousPageSlot, "previousPageSlot");
-        Preconditions.checkNotNull(scheme, "scheme");
-        Preconditions.checkNotNull(nextPageItem, "nextPageItem");
-        Preconditions.checkNotNull(previousPageItem, "previousPageItem");
+        Preconditions.checkNotNull(this.lines, "lines");
+        Preconditions.checkNotNull(this.title, "title");
+        Preconditions.checkNotNull(this.itemSlots, "itemSlots");
+        Preconditions.checkNotNull(this.nextPageSlot, "nextPageSlot");
+        Preconditions.checkNotNull(this.previousPageSlot, "previousPageSlot");
+        Preconditions.checkNotNull(this.scheme, "scheme");
+        Preconditions.checkNotNull(this.nextPageItem, "nextPageItem");
+        Preconditions.checkNotNull(this.previousPageItem, "previousPageItem");
 
         return new PaginatedGui(content, player, this);
     }

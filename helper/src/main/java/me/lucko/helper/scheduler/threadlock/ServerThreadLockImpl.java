@@ -23,11 +23,12 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.scheduler.sync;
+package me.lucko.helper.scheduler.threadlock;
 
-import me.lucko.helper.Scheduler;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.promise.ThreadContext;
+
+import org.bukkit.Bukkit;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -42,12 +43,12 @@ final class ServerThreadLockImpl implements ServerThreadLock {
     ServerThreadLockImpl() {
         // already sync - just countdown on obtained & return
         if (ThreadContext.forCurrentThread() == ThreadContext.SYNC) {
-            obtainedSignal.countDown();
+            this.obtainedSignal.countDown();
             return;
         }
 
         // synchronize with the main thread, then countdown
-        Scheduler.bukkit().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), this::signal);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), this::signal);
 
         // wait for the main thread to become synchronized
         await();
@@ -56,13 +57,13 @@ final class ServerThreadLockImpl implements ServerThreadLock {
     @Override
     public void close() {
         // mark that the work has been completed, and unblock the main thread
-        doneSignal.countDown();
+        this.doneSignal.countDown();
     }
 
     private void await() {
         // await sync with the server thread
         try {
-            obtainedSignal.await();
+            this.obtainedSignal.await();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -71,11 +72,11 @@ final class ServerThreadLockImpl implements ServerThreadLock {
     private void signal() {
         // we're on the main thread now
         // firstly, countdown the obtained latched so the blocked code can start to execute
-        obtainedSignal.countDown();
+        this.obtainedSignal.countDown();
 
         // then block the main thread & wait for the executed code to run
         try {
-            doneSignal.await();
+            this.doneSignal.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

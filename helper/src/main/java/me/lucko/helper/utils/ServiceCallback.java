@@ -77,7 +77,7 @@ public final class ServiceCallback<T> implements Terminable {
      * Refreshes the backing instance of the service
      */
     public void refresh() {
-        instance = Helper.serviceNullable(serviceClass);
+        this.instance = Helper.serviceNullable(this.serviceClass);
     }
 
     /**
@@ -100,13 +100,13 @@ public final class ServiceCallback<T> implements Terminable {
     }
 
     @Override
-    public boolean terminate() {
-        return listener.terminate();
+    public void close() {
+        this.listener.close();
     }
 
     @Override
-    public boolean hasTerminated() {
-        return listener.hasTerminated();
+    public boolean isClosed() {
+        return this.listener.isClosed();
     }
 
     @Override

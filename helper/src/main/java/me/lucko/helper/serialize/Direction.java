@@ -73,19 +73,19 @@ public final class Direction implements GsonSerializable {
     }
 
     public float getYaw() {
-        return yaw;
+        return this.yaw;
     }
 
     public float getPitch() {
-        return pitch;
+        return this.pitch;
     }
 
     @Nonnull
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()
-                .add("yaw", yaw)
-                .add("pitch", pitch)
+                .add("yaw", this.yaw)
+                .add("pitch", this.pitch)
                 .build();
     }
 

@@ -25,7 +25,7 @@
 
 package me.lucko.helper.command;
 
-import me.lucko.helper.utils.Color;
+import me.lucko.helper.text.Text;
 
 import org.bukkit.command.CommandSender;
 
@@ -61,10 +61,10 @@ public class CommandInterruptException extends Exception {
     }
 
     public CommandInterruptException(String message) {
-        this.action = cs -> cs.sendMessage(Color.colorize(message));
+        this.action = cs -> cs.sendMessage(Text.colorize(message));
     }
 
     public Consumer<CommandSender> getAction() {
-        return action;
+        return this.action;
     }
 }

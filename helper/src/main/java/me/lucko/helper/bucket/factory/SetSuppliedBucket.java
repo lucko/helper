@@ -41,6 +41,6 @@ class SetSuppliedBucket<E> extends AbstractBucket<E> {
 
     @Override
     protected Set<E> createSet() {
-        return setSupplier.get();
+        return this.setSupplier.get();
     }
 }

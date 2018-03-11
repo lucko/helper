@@ -73,7 +73,7 @@ class MergedBuilder<T> implements MergedSubscriptionBuilder<T> {
         Preconditions.checkNotNull(priority, "priority");
         Preconditions.checkNotNull(function, "function");
 
-        mappings.put(eventClass, new MergedHandlerMapping<>(priority, function));
+        this.mappings.put(eventClass, new MergedHandlerMapping<>(priority, function));
         return this;
     }
 
@@ -85,13 +85,13 @@ class MergedBuilder<T> implements MergedSubscriptionBuilder<T> {
         for (ExpiryTestStage testPoint : testPoints) {
             switch (testPoint) {
                 case PRE:
-                    preExpiryTests.add(predicate);
+                    this.preExpiryTests.add(predicate);
                     break;
                 case POST_FILTER:
-                    midExpiryTests.add(predicate);
+                    this.midExpiryTests.add(predicate);
                     break;
                 case POST_HANDLE:
-                    postExpiryTests.add(predicate);
+                    this.postExpiryTests.add(predicate);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown ExpiryTestPoint: " + testPoint);
@@ -119,7 +119,7 @@ class MergedBuilder<T> implements MergedSubscriptionBuilder<T> {
     @Nonnull
     @Override
     public MergedHandlerList<T> handlers() {
-        if (mappings.isEmpty()) {
+        if (this.mappings.isEmpty()) {
             throw new IllegalStateException("No mappings were created");
         }
 

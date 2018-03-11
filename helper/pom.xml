@@ -7,12 +7,12 @@
     <parent>
         <artifactId>helper-parent</artifactId>
         <groupId>me.lucko</groupId>
-        <version>4.2.0</version>
+        <version>5.0.0</version>
     </parent>
 
     <artifactId>helper</artifactId>
     <packaging>jar</packaging>
-    <version>4.2.1</version>
+    <version>5.0.0</version>
 
     <name>helper</name>
     <description>A utility to reduce boilerplate code in Bukkit plugins.</description>

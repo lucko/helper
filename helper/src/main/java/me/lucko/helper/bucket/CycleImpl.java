@@ -23,7 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.bucket;
 
 import com.google.common.collect.ImmutableList;
 
@@ -32,8 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nonnull;
 
-@Deprecated
-public final class Cycle<E> implements me.lucko.helper.bucket.Cycle<E> {
+final class CycleImpl<E> implements Cycle<E> {
 
     /**
      * The list that backs this instance
@@ -50,7 +49,7 @@ public final class Cycle<E> implements me.lucko.helper.bucket.Cycle<E> {
      */
     private AtomicInteger cursor = new AtomicInteger(0);
 
-    public Cycle(@Nonnull List<E> objects) {
+    CycleImpl(@Nonnull List<E> objects) {
         if (objects == null || objects.isEmpty()) {
             throw new IllegalArgumentException("List of objects cannot be null/empty.");
         }
@@ -58,36 +57,36 @@ public final class Cycle<E> implements me.lucko.helper.bucket.Cycle<E> {
         this.size = this.objects.size();
     }
 
-    private Cycle(Cycle<E> other) {
+    private CycleImpl(CycleImpl<E> other) {
         this.objects = other.objects;
         this.size = other.size;
     }
 
     @Override
     public int cursor() {
-        return cursor.get();
+        return this.cursor.get();
     }
 
     @Override
     public void setCursor(int index) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        if (index < 0 || index >= this.size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + this.size);
         }
-        cursor.set(index);
+        this.cursor.set(index);
     }
 
     @Nonnull
     @Override
     public E current() {
-        return objects.get(cursor());
+        return this.objects.get(cursor());
     }
 
     @Nonnull
     @Override
     public E next() {
-        return objects.get(this.cursor.updateAndGet(i -> {
+        return this.objects.get(this.cursor.updateAndGet(i -> {
             int n = i + 1;
-            if (n >= size) {
+            if (n >= this.size) {
                 return 0;
             }
             return n;
@@ -97,9 +96,9 @@ public final class Cycle<E> implements me.lucko.helper.bucket.Cycle<E> {
     @Nonnull
     @Override
     public E previous() {
-        return objects.get(this.cursor.updateAndGet(i -> {
+        return this.objects.get(this.cursor.updateAndGet(i -> {
             if (i == 0) {
-                return size - 1;
+                return this.size - 1;
             }
             return i - 1;
         }));
@@ -107,8 +106,8 @@ public final class Cycle<E> implements me.lucko.helper.bucket.Cycle<E> {
 
     @Override
     public int nextPosition() {
-        int n = cursor.get() + 1;
-        if (n >= size) {
+        int n = this.cursor.get() + 1;
+        if (n >= this.size) {
             return 0;
         }
         return n;
@@ -116,9 +115,9 @@ public final class Cycle<E> implements me.lucko.helper.bucket.Cycle<E> {
 
     @Override
     public int previousPosition() {
-        int i = cursor.get();
+        int i = this.cursor.get();
         if (i == 0) {
-            return size - 1;
+            return this.size - 1;
         }
         return i - 1;
     }
@@ -126,33 +125,23 @@ public final class Cycle<E> implements me.lucko.helper.bucket.Cycle<E> {
     @Nonnull
     @Override
     public E peekNext() {
-        return objects.get(nextPosition());
+        return this.objects.get(nextPosition());
     }
 
     @Nonnull
     @Override
     public E peekPrevious() {
-        return objects.get(previousPosition());
+        return this.objects.get(previousPosition());
     }
 
     @Nonnull
     @Override
     public List<E> getBacking() {
-        return objects;
-    }
-
-    @Deprecated
-    public int getIndex() {
-        return cursor();
-    }
-
-    @Deprecated
-    public E back() {
-        return previous();
+        return this.objects;
     }
 
     @Override
-    public me.lucko.helper.bucket.Cycle<E> copy() {
-        return new Cycle<>(this);
+    public Cycle<E> copy() {
+        return new CycleImpl<>(this);
     }
 }

@@ -60,7 +60,7 @@ class ComposedCooldownMapImpl<I, O> implements ComposedCooldownMap<I, O> {
     @Nonnull
     @Override
     public Cooldown getBase() {
-        return base;
+        return this.base;
     }
 
     /**
@@ -75,14 +75,14 @@ class ComposedCooldownMapImpl<I, O> implements ComposedCooldownMap<I, O> {
     @Nonnull
     public Cooldown get(@Nonnull I key) {
         Preconditions.checkNotNull(key, "key");
-        return cache.getUnchecked(composeFunction.apply(key));
+        return this.cache.getUnchecked(this.composeFunction.apply(key));
     }
 
     @Override
     public void put(@Nonnull O key, @Nonnull Cooldown cooldown) {
         Preconditions.checkNotNull(key, "key");
-        Preconditions.checkArgument(cooldown.getTimeout() == base.getTimeout(), "different timeout");
-        cache.put(key, cooldown);
+        Preconditions.checkArgument(cooldown.getTimeout() == this.base.getTimeout(), "different timeout");
+        this.cache.put(key, cooldown);
     }
 
     /**
@@ -92,7 +92,7 @@ class ComposedCooldownMapImpl<I, O> implements ComposedCooldownMap<I, O> {
      */
     @Nonnull
     public Map<O, Cooldown> getAll() {
-        return cache.asMap();
+        return this.cache.asMap();
     }
 
     /* methods from Cooldown */

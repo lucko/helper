@@ -51,7 +51,7 @@ public class MongoPlugin extends ExtendedJavaPlugin implements MongoProvider {
     @Nonnull
     @Override
     public HelperMongo getDataSource() {
-        return globalDataSource;
+        return this.globalDataSource;
     }
 
     @Nonnull
@@ -63,6 +63,6 @@ public class MongoPlugin extends ExtendedJavaPlugin implements MongoProvider {
     @Nonnull
     @Override
     public MongoDatabaseCredentials getGlobalCredentials() {
-        return globalCredentials;
+        return this.globalCredentials;
     }
 }

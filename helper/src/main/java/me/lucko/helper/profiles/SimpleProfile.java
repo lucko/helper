@@ -53,18 +53,18 @@ final class SimpleProfile implements Profile {
     @Nonnull
     @Override
     public UUID getUniqueId() {
-        return uniqueId;
+        return this.uniqueId;
     }
 
     @Nonnull
     @Override
     public Optional<String> getName() {
-        return Optional.ofNullable(name);
+        return Optional.ofNullable(this.name);
     }
 
     @Override
     public long getTimestamp() {
-        return timestamp;
+        return this.timestamp;
     }
 
     @Override

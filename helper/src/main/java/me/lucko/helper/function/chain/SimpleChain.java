@@ -50,7 +50,7 @@ class SimpleChain<T> implements Chain<T> {
     @Override
     public Chain<T> apply(Consumer<? super T> action) {
         Preconditions.checkNotNull(action, "action");
-        action.accept(object);
+        action.accept(this.object);
         return this;
     }
 
@@ -58,8 +58,8 @@ class SimpleChain<T> implements Chain<T> {
     public Chain<T> applyIf(Predicate<? super T> test, Consumer<? super T> action) {
         Preconditions.checkNotNull(test, "test");
         Preconditions.checkNotNull(action, "action");
-        if (test.test(object)) {
-            action.accept(object);
+        if (test.test(this.object)) {
+            action.accept(this.object);
         }
         return this;
     }
@@ -67,8 +67,8 @@ class SimpleChain<T> implements Chain<T> {
     @Override
     public Chain<T> applyIfNonNull(Consumer<? super T> action) {
         Preconditions.checkNotNull(action, "action");
-        if (object != null) {
-            action.accept(object);
+        if (this.object != null) {
+            action.accept(this.object);
         }
         return this;
     }
@@ -76,7 +76,7 @@ class SimpleChain<T> implements Chain<T> {
     @Override
     public Chain<T> orElse(Predicate<? super T> test, T failValue) {
         Preconditions.checkNotNull(test, "test");
-        if (!test.test(object)) {
+        if (!test.test(this.object)) {
             this.object = failValue;
         }
         return this;
@@ -84,7 +84,7 @@ class SimpleChain<T> implements Chain<T> {
 
     @Override
     public Chain<T> orElseIfNull(T otherValue) {
-        if (object == null) {
+        if (this.object == null) {
             this.object = otherValue;
         }
         return this;
@@ -94,7 +94,7 @@ class SimpleChain<T> implements Chain<T> {
     public Chain<T> orElseGet(Predicate<? super T> test, Supplier<? extends T> failSupplier) {
         Preconditions.checkNotNull(test, "test");
         Preconditions.checkNotNull(failSupplier, "failSupplier");
-        if (!test.test(object)) {
+        if (!test.test(this.object)) {
             this.object = failSupplier.get();
         }
         return this;
@@ -103,7 +103,7 @@ class SimpleChain<T> implements Chain<T> {
     @Override
     public Chain<T> orElseGetIfNull(Supplier<? extends T> supplier) {
         Preconditions.checkNotNull(supplier, "supplier");
-        if (object == null) {
+        if (this.object == null) {
             this.object = supplier.get();
         }
         return this;
@@ -112,17 +112,17 @@ class SimpleChain<T> implements Chain<T> {
     @Override
     public <R> Chain<R> ifElse(Predicate<? super T> test, R passValue, R failValue) {
         Preconditions.checkNotNull(test, "test");
-        return test.test(object) ? map(s -> passValue) : map(s -> failValue);
+        return test.test(this.object) ? map(s -> passValue) : map(s -> failValue);
     }
 
     @Override
     public <R> Chain<R> map(Function<? super T, ? extends R> mapper) {
         Preconditions.checkNotNull(mapper, "mapper");
 
-        final R result = mapper.apply(object);
+        final R result = mapper.apply(this.object);
 
         // try to reduce unnecessary instance creation
-        if (result == object) {
+        if (result == this.object) {
             //noinspection unchecked
             return (Chain<R>) this;
         } else {
@@ -144,7 +144,7 @@ class SimpleChain<T> implements Chain<T> {
         Preconditions.checkNotNull(passedMapper, "passedMapper");
         Preconditions.checkNotNull(failedMapper, "failedMapper");
 
-        return test.test(object) ? map(passedMapper) : map(failedMapper);
+        return test.test(this.object) ? map(passedMapper) : map(failedMapper);
     }
 
     @Override
@@ -158,9 +158,9 @@ class SimpleChain<T> implements Chain<T> {
         Preconditions.checkNotNull(nonNullMapper, "nonNullMapper");
         Preconditions.checkNotNull(nullSupplier, "nullSupplier");
 
-        final R result = object != null ? nonNullMapper.apply(object) : nullSupplier.get();
+        final R result = this.object != null ? nonNullMapper.apply(this.object) : nullSupplier.get();
         // try to reduce unnecessary instance creation
-        if (result == object) {
+        if (result == this.object) {
             //noinspection unchecked
             return (Chain<R>) this;
         } else {
@@ -172,17 +172,17 @@ class SimpleChain<T> implements Chain<T> {
     public <R> Chain<R> flatMap(Function<? super T, ? extends Chain<? extends R>> mapper) {
         Preconditions.checkNotNull(mapper, "mapper");
         //noinspection unchecked
-        return (Chain<R>) mapper.apply(object);
+        return (Chain<R>) mapper.apply(this.object);
     }
 
     @Override
     public Optional<T> end() {
-        return Optional.ofNullable(object);
+        return Optional.ofNullable(this.object);
     }
 
     @Nullable
     @Override
     public T endOrNull() {
-        return object;
+        return this.object;
     }
 }

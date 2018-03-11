@@ -86,7 +86,7 @@ final class StandardMetadataRegistries {
         public <K> Map<Player, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
             Preconditions.checkNotNull(key, "key");
             ImmutableMap.Builder<Player, K> ret = ImmutableMap.builder();
-            cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
+            this.cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
                 Player player = Players.getNullable(uuid);
                 if (player != null) {
                     ret.put(player, t);
@@ -117,7 +117,7 @@ final class StandardMetadataRegistries {
         public <K> Map<Entity, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
             Preconditions.checkNotNull(key, "key");
             ImmutableMap.Builder<Entity, K> ret = ImmutableMap.builder();
-            cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
+            this.cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
                 Entity entity = Bukkit.getEntity(uuid);
                 if (entity != null) {
                     ret.put(entity, t);
@@ -148,7 +148,7 @@ final class StandardMetadataRegistries {
         public <K> Map<BlockPosition, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
             Preconditions.checkNotNull(key, "key");
             ImmutableMap.Builder<BlockPosition, K> ret = ImmutableMap.builder();
-            cache.asMap().forEach((pos, map) -> map.get(key).ifPresent(t -> ret.put(pos, t)));
+            this.cache.asMap().forEach((pos, map) -> map.get(key).ifPresent(t -> ret.put(pos, t)));
             return ret.build();
         }
     }
@@ -174,7 +174,7 @@ final class StandardMetadataRegistries {
         public <K> Map<World, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
             Preconditions.checkNotNull(key, "key");
             ImmutableMap.Builder<World, K> ret = ImmutableMap.builder();
-            cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
+            this.cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
                 World world = Bukkit.getWorld(uuid);
                 if (world != null) {
                     ret.put(world, t);

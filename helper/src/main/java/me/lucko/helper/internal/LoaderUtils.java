@@ -37,6 +37,7 @@ import me.lucko.helper.gson.configurate.JsonArraySerializer;
 import me.lucko.helper.gson.configurate.JsonNullSerializer;
 import me.lucko.helper.gson.configurate.JsonObjectSerializer;
 import me.lucko.helper.gson.configurate.JsonPrimitiveSerializer;
+import me.lucko.helper.plugin.HelperPlugin;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,13 +51,13 @@ import javax.annotation.Nonnull;
  * Provides the instance which loaded the helper classes into the server
  */
 public final class LoaderUtils {
-    private static JavaPlugin plugin = null;
+    private static HelperPlugin plugin = null;
     private static Thread mainThread = null;
 
     @Nonnull
-    public static synchronized JavaPlugin getPlugin() {
+    public static synchronized HelperPlugin getPlugin() {
         if (plugin == null) {
-            plugin = JavaPlugin.getProvidingPlugin(LoaderUtils.class);
+            plugin = (HelperPlugin) JavaPlugin.getProvidingPlugin(LoaderUtils.class);
 
             String packageName = LoaderUtils.class.getPackage().getName();
             packageName = packageName.substring(0, packageName.length() - ".internal".length());

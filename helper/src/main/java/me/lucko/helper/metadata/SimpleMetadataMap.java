@@ -57,10 +57,10 @@ final class SimpleMetadataMap implements MetadataMap {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(value, "value");
 
-        lock.lock();
+        this.lock.lock();
         try {
             MetadataKey<?> existing = null;
-            for (MetadataKey<?> k : map.keySet()) {
+            for (MetadataKey<?> k : this.map.keySet()) {
                 if (k.equals(key)) {
                     existing = k;
                     break;
@@ -71,10 +71,10 @@ final class SimpleMetadataMap implements MetadataMap {
                 throw new ClassCastException("Cannot cast key with id " + key.getId() + " with type " + key.getType().getRawType() + " to existing stored type " + existing.getType().getRawType());
             }
 
-            map.put(key, value);
+            this.map.put(key, value);
 
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
@@ -92,11 +92,11 @@ final class SimpleMetadataMap implements MetadataMap {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(value, "value");
 
-        lock.lock();
+        this.lock.lock();
         try {
-            map.put(key, value);
+            this.map.put(key, value);
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
@@ -114,12 +114,12 @@ final class SimpleMetadataMap implements MetadataMap {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(value, "value");
 
-        lock.lock();
+        this.lock.lock();
         try {
             cleanup();
-            return map.putIfAbsent(key, value) == null;
+            return this.map.putIfAbsent(key, value) == null;
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
@@ -128,12 +128,12 @@ final class SimpleMetadataMap implements MetadataMap {
     public <T> Optional<T> get(@Nonnull MetadataKey<T> key) {
         Preconditions.checkNotNull(key, "key");
 
-        lock.lock();
+        this.lock.lock();
         try {
             Map.Entry<MetadataKey<?>, Object> existing = null;
 
             // try to locate an existing entry, and expire any values at the same time.
-            Iterator<Map.Entry<MetadataKey<?>, Object>> it = map.entrySet().iterator();
+            Iterator<Map.Entry<MetadataKey<?>, Object>> it = this.map.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<MetadataKey<?>, Object> kv = it.next();
 
@@ -172,7 +172,7 @@ final class SimpleMetadataMap implements MetadataMap {
 
             return Optional.of(key.cast(existing.getValue()));
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
@@ -209,12 +209,12 @@ final class SimpleMetadataMap implements MetadataMap {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(def, "def");
 
-        lock.lock();
+        this.lock.lock();
         try {
             Map.Entry<MetadataKey<?>, Object> existing = null;
 
             // try to locate an existing entry, and expire any values at the same time.
-            Iterator<Map.Entry<MetadataKey<?>, Object>> it = map.entrySet().iterator();
+            Iterator<Map.Entry<MetadataKey<?>, Object>> it = this.map.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<MetadataKey<?>, Object> kv = it.next();
 
@@ -247,7 +247,7 @@ final class SimpleMetadataMap implements MetadataMap {
                 T t = def.get();
                 Preconditions.checkNotNull(t, "supplied def");
 
-                map.put(key, t);
+                this.map.put(key, t);
                 return t;
             }
 
@@ -257,7 +257,7 @@ final class SimpleMetadataMap implements MetadataMap {
 
             return key.cast(existing.getValue());
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
@@ -267,12 +267,12 @@ final class SimpleMetadataMap implements MetadataMap {
         Preconditions.checkNotNull(key, "key");
         Preconditions.checkNotNull(def, "def");
 
-        lock.lock();
+        this.lock.lock();
         try {
             Map.Entry<MetadataKey<?>, Object> existing = null;
 
             // try to locate an existing entry, and expire any values at the same time.
-            Iterator<Map.Entry<MetadataKey<?>, Object>> it = map.entrySet().iterator();
+            Iterator<Map.Entry<MetadataKey<?>, Object>> it = this.map.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<MetadataKey<?>, Object> kv = it.next();
 
@@ -310,7 +310,7 @@ final class SimpleMetadataMap implements MetadataMap {
                     throw new IllegalArgumentException("Transient value already expired: " + t);
                 }
 
-                map.put(key, t);
+                this.map.put(key, t);
                 return value;
             }
 
@@ -320,7 +320,7 @@ final class SimpleMetadataMap implements MetadataMap {
 
             return key.cast(existing.getValue());
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
@@ -328,12 +328,12 @@ final class SimpleMetadataMap implements MetadataMap {
     public boolean has(@Nonnull MetadataKey<?> key) {
         Preconditions.checkNotNull(key, "key");
 
-        lock.lock();
+        this.lock.lock();
         try {
             Map.Entry<MetadataKey<?>, Object> existing = null;
 
             // try to locate an existing entry, and expire any values at the same time.
-            Iterator<Map.Entry<MetadataKey<?>, Object>> it = map.entrySet().iterator();
+            Iterator<Map.Entry<MetadataKey<?>, Object>> it = this.map.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<MetadataKey<?>, Object> kv = it.next();
 
@@ -354,7 +354,7 @@ final class SimpleMetadataMap implements MetadataMap {
 
             return existing != null && existing.getKey().getType().equals(key.getType());
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
@@ -362,53 +362,53 @@ final class SimpleMetadataMap implements MetadataMap {
     public boolean remove(@Nonnull MetadataKey<?> key) {
         Preconditions.checkNotNull(key, "key");
 
-        lock.lock();
+        this.lock.lock();
         try {
-            return map.remove(key) != null;
+            return this.map.remove(key) != null;
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
     @Override
     public void clear() {
-        lock.lock();
+        this.lock.lock();
         try {
-            map.clear();
+            this.map.clear();
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
     @Nonnull
     @Override
     public ImmutableMap<MetadataKey<?>, Object> asMap() {
-        lock.lock();
+        this.lock.lock();
         try {
-            return ImmutableMap.copyOf(map);
+            return ImmutableMap.copyOf(this.map);
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
     @Override
     public boolean isEmpty() {
-        lock.lock();
+        this.lock.lock();
         try {
             cleanup();
-            return map.isEmpty();
+            return this.map.isEmpty();
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
     @Override
     public void cleanup() {
-        lock.lock();
+        this.lock.lock();
         try {
-            map.values().removeIf(o -> o instanceof TransientValue<?> && ((TransientValue) o).shouldExpire());
+            this.map.values().removeIf(o -> o instanceof TransientValue<?> && ((TransientValue) o).shouldExpire());
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 

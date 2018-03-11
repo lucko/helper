@@ -50,18 +50,18 @@ class SingleHandlerListImpl<T extends Event> implements SingleHandlerList<T> {
     @Override
     public SingleHandlerList<T> biConsumer(@Nonnull BiConsumer<SingleSubscription<T>, ? super T> handler) {
         Preconditions.checkNotNull(handler, "handler");
-        handlers.add(handler);
+        this.handlers.add(handler);
         return this;
     }
 
     @Nonnull
     @Override
     public SingleSubscription<T> register() {
-        if (handlers.isEmpty()) {
+        if (this.handlers.isEmpty()) {
             throw new IllegalStateException("No handlers have been registered");
         }
 
-        HelperEventListener<T> listener = new HelperEventListener<>(builder, handlers);
+        HelperEventListener<T> listener = new HelperEventListener<>(this.builder, this.handlers);
         listener.register(LoaderUtils.getPlugin());
         return listener;
     }

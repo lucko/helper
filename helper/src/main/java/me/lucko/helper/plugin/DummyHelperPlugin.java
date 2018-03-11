@@ -52,6 +52,6 @@ public class DummyHelperPlugin extends ExtendedJavaPlugin {
                         }
                     }
                 })
-                .register(this, "helper");
+                .register("helper");
     }
 }

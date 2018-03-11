@@ -88,7 +88,7 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
     }
 
     void register(Plugin plugin) {
-        for (Map.Entry<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> ent : mappings.entrySet()) {
+        for (Map.Entry<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> ent : this.mappings.entrySet()) {
             Helper.plugins().registerEvent(ent.getKey(), this, ent.getValue().getPriority(), this, plugin, false);
         }
     }
@@ -97,7 +97,7 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
     public void execute(Listener listener, Event event) {
         Function<Object, T> function = null;
 
-        for (Map.Entry<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> ent : mappings.entrySet()) {
+        for (Map.Entry<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> ent : this.mappings.entrySet()) {
             if (event.getClass() == ent.getKey()) {
                 function = ent.getValue().getFunction();
                 break;
@@ -109,7 +109,7 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
         }
 
         // this handler is disabled, so unregister from the event.
-        if (!active.get()) {
+        if (!this.active.get()) {
             event.getHandlers().unregister(listener);
             return;
         }
@@ -118,48 +118,48 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
         T handledInstance = function.apply(event);
 
         // check pre-expiry tests
-        for (BiPredicate<MergedSubscription<T>, T> test : preExpiryTests) {
+        for (BiPredicate<MergedSubscription<T>, T> test : this.preExpiryTests) {
             if (test.test(this, handledInstance)) {
                 event.getHandlers().unregister(listener);
-                active.set(false);
+                this.active.set(false);
                 return;
             }
         }
 
         // begin "handling" of the event
-        try (MCTiming t = timing.startTiming()) {
+        try (MCTiming t = this.timing.startTiming()) {
             // check the filters
-            for (Predicate<T> filter : filters) {
+            for (Predicate<T> filter : this.filters) {
                 if (!filter.test(handledInstance)) {
                     return;
                 }
             }
 
             // check mid-expiry tests
-            for (BiPredicate<MergedSubscription<T>, T> test : midExpiryTests) {
+            for (BiPredicate<MergedSubscription<T>, T> test : this.midExpiryTests) {
                 if (test.test(this, handledInstance)) {
                     event.getHandlers().unregister(listener);
-                    active.set(false);
+                    this.active.set(false);
                     return;
                 }
             }
 
             // call the handler
-            for (BiConsumer<MergedSubscription<T>, ? super T> handler : handlers) {
+            for (BiConsumer<MergedSubscription<T>, ? super T> handler : this.handlers) {
                 handler.accept(this, handledInstance);
             }
 
             // increment call counter
-            callCount.incrementAndGet();
+            this.callCount.incrementAndGet();
         } catch (Throwable t) {
-            exceptionConsumer.accept(event, t);
+            this.exceptionConsumer.accept(event, t);
         }
 
         // check post-expiry tests
-        for (BiPredicate<MergedSubscription<T>, T> test : postExpiryTests) {
+        for (BiPredicate<MergedSubscription<T>, T> test : this.postExpiryTests) {
             if (test.test(this, handledInstance)) {
                 event.getHandlers().unregister(listener);
-                active.set(false);
+                this.active.set(false);
                 return;
             }
         }
@@ -167,30 +167,30 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
 
     @Override
     public boolean isActive() {
-        return active.get();
+        return this.active.get();
     }
 
     @Override
-    public boolean hasTerminated() {
-        return !active.get();
+    public boolean isClosed() {
+        return !this.active.get();
     }
 
     @Override
     public long getCallCounter() {
-        return callCount.get();
+        return this.callCount.get();
     }
 
     @Override
     public boolean unregister() {
         // already unregistered
-        if (!active.getAndSet(false)) {
+        if (!this.active.getAndSet(false)) {
             return false;
         }
 
         // also remove the handler directly, just in case the event has a really low throughput.
         // (the event would also be unregistered next time it's called - but this obviously assumes
         // the event will be called again soon)
-        for (Class<? extends Event> clazz : mappings.keySet()) {
+        for (Class<? extends Event> clazz : this.mappings.keySet()) {
             unregisterListener(clazz, this);
         }
 
@@ -200,13 +200,13 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
     @Nonnull
     @Override
     public Class<? super T> getHandledClass() {
-        return handledClass.getRawType();
+        return this.handledClass.getRawType();
     }
 
     @Nonnull
     @Override
     public Set<Class<? extends Event>> getEventClasses() {
-        return mappings.keySet();
+        return this.mappings.keySet();
     }
 
     @SuppressWarnings("JavaReflectionMemberAccess")

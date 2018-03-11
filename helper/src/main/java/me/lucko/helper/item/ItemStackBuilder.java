@@ -28,6 +28,7 @@ package me.lucko.helper.item;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.menu.Item;
+import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.ChatColor;
@@ -74,15 +75,15 @@ public final class ItemStackBuilder {
     }
 
     public ItemStackBuilder transform(Consumer<ItemStack> is) {
-        is.accept(itemStack);
+        is.accept(this.itemStack);
         return this;
     }
 
     public ItemStackBuilder transformMeta(Consumer<ItemMeta> meta) {
-        ItemMeta m = itemStack.getItemMeta();
+        ItemMeta m = this.itemStack.getItemMeta();
         if (m != null) {
             meta.accept(m);
-            itemStack.setItemMeta(m);
+            this.itemStack.setItemMeta(m);
         }
         return this;
     }
@@ -98,7 +99,7 @@ public final class ItemStackBuilder {
     public ItemStackBuilder lore(String line) {
         return transformMeta(meta -> {
             List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
-            lore.add(me.lucko.helper.utils.Color.colorize(line));
+            lore.add(Text.colorize(line));
             meta.setLore(lore);
         });
     }
@@ -107,7 +108,7 @@ public final class ItemStackBuilder {
         return transformMeta(meta -> {
             List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
             for (String line : lines) {
-                lore.add(me.lucko.helper.utils.Color.colorize(line));
+                lore.add(Text.colorize(line));
             }
             meta.setLore(lore);
         });
@@ -117,7 +118,7 @@ public final class ItemStackBuilder {
         return transformMeta(meta -> {
             List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
             for (String line : lines) {
-                lore.add(me.lucko.helper.utils.Color.colorize(line));
+                lore.add(Text.colorize(line));
             }
             meta.setLore(lore);
         });
@@ -188,7 +189,7 @@ public final class ItemStackBuilder {
     }
 
     public ItemStack build() {
-        return itemStack;
+        return this.itemStack;
     }
 
     public Item.Builder buildItem() {

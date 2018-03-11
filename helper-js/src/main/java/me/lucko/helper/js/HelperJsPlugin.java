@@ -25,7 +25,7 @@
 
 package me.lucko.helper.js;
 
-import me.lucko.helper.Scheduler;
+import me.lucko.helper.Schedulers;
 import me.lucko.helper.js.bindings.GeneralScriptBindings;
 import me.lucko.helper.js.bindings.HelperScriptBindings;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
@@ -69,7 +69,7 @@ public class HelperJsPlugin extends ExtendedJavaPlugin {
                 .loadExecutor(new ScriptLoadingExecutor() {
                     @Override
                     public AutoCloseable scheduleAtFixedRate(Runnable runnable, long l, TimeUnit timeUnit) {
-                        return Scheduler.builder()
+                        return Schedulers.builder()
                                 .async()
                                 .after(0L)
                                 .every(l, timeUnit)
@@ -78,10 +78,10 @@ public class HelperJsPlugin extends ExtendedJavaPlugin {
 
                     @Override
                     public void execute(@Nonnull Runnable command) {
-                        Scheduler.runAsync(command);
+                        Schedulers.async().run(command);
                     }
                 })
-                .runExecutor(Scheduler.sync())
+                .runExecutor(Schedulers.sync())
                 .pollRate(Ticks.to(config.getLong("poll-interval", 20L), TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
                 .logger(new SystemLogger() {
                     @Override public void info(String s) { getLogger().info(s); }

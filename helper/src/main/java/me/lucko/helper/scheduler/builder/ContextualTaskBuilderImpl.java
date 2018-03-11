@@ -23,18 +23,36 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.scheduler.builder;
 
-import org.bukkit.ChatColor;
+import me.lucko.helper.Schedulers;
+import me.lucko.helper.promise.ThreadContext;
+import me.lucko.helper.scheduler.Task;
 
-public final class Color {
+import java.util.function.Consumer;
 
-    public static String colorize(String s) {
-        return s == null ? null : ChatColor.translateAlternateColorCodes('&', s);
+import javax.annotation.Nonnull;
+
+class ContextualTaskBuilderImpl implements ContextualTaskBuilder {
+    private final ThreadContext context;
+    private final long delay;
+    private final long interval;
+
+    ContextualTaskBuilderImpl(ThreadContext context, long delay, long interval) {
+        this.context = context;
+        this.delay = delay;
+        this.interval = interval;
     }
 
-    private Color() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
+    @Nonnull
+    @Override
+    public Task consume(@Nonnull Consumer<Task> consumer) {
+        return Schedulers.get(this.context).runRepeating(consumer, this.delay, this.interval);
     }
 
+    @Nonnull
+    @Override
+    public Task run(@Nonnull Runnable runnable) {
+        return Schedulers.get(this.context).runRepeating(runnable, this.delay, this.interval);
+    }
 }

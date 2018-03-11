@@ -23,28 +23,33 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.event.functional.merged;
+package me.lucko.helper.terminable.module;
 
-import org.bukkit.event.Event;
-import org.bukkit.event.EventPriority;
+import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.terminable.TerminableConsumer;
 
-import java.util.function.Function;
+import javax.annotation.Nonnull;
 
-class MergedHandlerMapping<T, E extends Event> {
-    private final EventPriority priority;
-    private final Function<Object, T> function;
+/**
+ * A terminable module is a class which manipulates and constructs a number
+ * of {@link Terminable}s.
+ */
+public interface TerminableModule {
 
-    MergedHandlerMapping(EventPriority priority, Function<E, T> function) {
-        this.priority = priority;
-        //noinspection unchecked
-        this.function = o -> function.apply((E) o);
+    /**
+     * Performs the tasks to setup this module
+     *
+     * @param consumer the terminable consumer
+     */
+    void setup(@Nonnull TerminableConsumer consumer);
+
+    /**
+     * Registers this terminable with a terminable consumer
+     *
+     * @param consumer the terminable consumer
+     */
+    default void bindWith(@Nonnull TerminableConsumer consumer) {
+        consumer.bindModule(this);
     }
 
-    public Function<Object, T> getFunction() {
-        return this.function;
-    }
-
-    public EventPriority getPriority() {
-        return this.priority;
-    }
 }

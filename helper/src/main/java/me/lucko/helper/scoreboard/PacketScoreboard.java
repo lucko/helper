@@ -31,7 +31,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.Events;
-import me.lucko.helper.plugin.ExtendedJavaPlugin;
+import me.lucko.helper.plugin.HelperPlugin;
 import me.lucko.helper.utils.Players;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -69,7 +69,7 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
         this(null);
     }
 
-    public PacketScoreboard(@Nullable ExtendedJavaPlugin plugin) {
+    public PacketScoreboard(@Nullable HelperPlugin plugin) {
         this.protocolManager = ProtocolLibrary.getProtocolManager();
 
         if (plugin != null) {
@@ -85,14 +85,14 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
         Player player = event.getPlayer();
 
         // auto subscribe to teams
-        for (PacketScoreboardTeam t : teams.values()) {
+        for (PacketScoreboardTeam t : this.teams.values()) {
             if (t.shouldAutoSubscribe()) {
                 t.subscribe(player);
             }
         }
 
         // auto subscribe to objectives
-        for (PacketScoreboardObjective o : objectives.values()) {
+        for (PacketScoreboardObjective o : this.objectives.values()) {
             if (o.shouldAutoSubscribe()) {
                 o.subscribe(player);
             }
@@ -102,11 +102,11 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
     private void handlePlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
-        teams.values().forEach(t -> {
+        this.teams.values().forEach(t -> {
             t.unsubscribe(player, true);
             t.removePlayer(player);
         });
-        objectives.values().forEach(o -> o.unsubscribe(player, true));
+        this.objectives.values().forEach(o -> o.unsubscribe(player, true));
 
         Map<String, PacketScoreboardObjective> playerObjectives = this.playerObjectives.remove(player.getUniqueId());
         if (playerObjectives != null) {
@@ -125,7 +125,7 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
     @Override
     public PacketScoreboardTeam createTeam(String id, String title, boolean autoSubscribe) {
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
-        Preconditions.checkState(!teams.containsKey(id), "id already exists");
+        Preconditions.checkState(!this.teams.containsKey(id), "id already exists");
 
         PacketScoreboardTeam team = new PacketScoreboardTeam(this, id, title, autoSubscribe);
         if (autoSubscribe) {
@@ -134,19 +134,19 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
             }
         }
 
-        teams.put(id, team);
+        this.teams.put(id, team);
         return team;
     }
 
     @Override
     @Nullable
     public PacketScoreboardTeam getTeam(String id) {
-        return teams.get(id);
+        return this.teams.get(id);
     }
 
     @Override
     public boolean removeTeam(String id) {
-        PacketScoreboardTeam team = teams.remove(id);
+        PacketScoreboardTeam team = this.teams.remove(id);
         if (team == null) {
             return false;
         }
@@ -158,7 +158,7 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
     @Override
     public PacketScoreboardObjective createObjective(String id, String title, DisplaySlot displaySlot, boolean autoSubscribe) {
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
-        Preconditions.checkState(!objectives.containsKey(id), "id already exists");
+        Preconditions.checkState(!this.objectives.containsKey(id), "id already exists");
 
         PacketScoreboardObjective objective = new PacketScoreboardObjective(this, id, title, displaySlot, autoSubscribe);
         if (autoSubscribe) {
@@ -167,19 +167,19 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
             }
         }
 
-        objectives.put(id, objective);
+        this.objectives.put(id, objective);
         return objective;
     }
 
     @Override
     @Nullable
     public PacketScoreboardObjective getObjective(String id) {
-        return objectives.get(id);
+        return this.objectives.get(id);
     }
 
     @Override
     public boolean removeObjective(String id) {
-        PacketScoreboardObjective objective = objectives.remove(id);
+        PacketScoreboardObjective objective = this.objectives.remove(id);
         if (objective == null) {
             return false;
         }
@@ -191,7 +191,7 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
     @Override
     public PacketScoreboardTeam createPlayerTeam(Player player, String id, String title, boolean autoSubscribe) {
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
-        Map<String, PacketScoreboardTeam> teams = playerTeams.computeIfAbsent(player.getUniqueId(), p -> new HashMap<>());
+        Map<String, PacketScoreboardTeam> teams = this.playerTeams.computeIfAbsent(player.getUniqueId(), p -> new HashMap<>());
         Preconditions.checkState(!teams.containsKey(id), "id already exists");
 
         PacketScoreboardTeam team = new PacketScoreboardTeam(this, id, title, autoSubscribe);
@@ -206,7 +206,7 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
     @Override
     @Nullable
     public PacketScoreboardTeam getPlayerTeam(Player player, String id) {
-        Map<String, PacketScoreboardTeam> map = playerTeams.get(player.getUniqueId());
+        Map<String, PacketScoreboardTeam> map = this.playerTeams.get(player.getUniqueId());
         if (map == null) {
             return null;
         }
@@ -216,7 +216,7 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
 
     @Override
     public boolean removePlayerTeam(Player player, String id) {
-        Map<String, PacketScoreboardTeam> map = playerTeams.get(player.getUniqueId());
+        Map<String, PacketScoreboardTeam> map = this.playerTeams.get(player.getUniqueId());
         if (map == null) {
             return false;
         }
@@ -233,7 +233,7 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
     @Override
     public PacketScoreboardObjective createPlayerObjective(Player player, String id, String title, DisplaySlot displaySlot, boolean autoSubscribe) {
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
-        Map<String, PacketScoreboardObjective> objectives = playerObjectives.computeIfAbsent(player.getUniqueId(), p -> new HashMap<>());
+        Map<String, PacketScoreboardObjective> objectives = this.playerObjectives.computeIfAbsent(player.getUniqueId(), p -> new HashMap<>());
         Preconditions.checkState(!objectives.containsKey(id), "id already exists");
 
         PacketScoreboardObjective objective = new PacketScoreboardObjective(this, id, title, displaySlot, autoSubscribe);
@@ -248,7 +248,7 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
     @Override
     @Nullable
     public PacketScoreboardObjective getPlayerObjective(Player player, String id) {
-        Map<String, PacketScoreboardObjective> map = playerObjectives.get(player.getUniqueId());
+        Map<String, PacketScoreboardObjective> map = this.playerObjectives.get(player.getUniqueId());
         if (map == null) {
             return null;
         }
@@ -258,7 +258,7 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
 
     @Override
     public boolean removePlayerObjective(Player player, String id) {
-        Map<String, PacketScoreboardObjective> map = playerObjectives.get(player.getUniqueId());
+        Map<String, PacketScoreboardObjective> map = this.playerObjectives.get(player.getUniqueId());
         if (map == null) {
             return false;
         }
@@ -280,7 +280,7 @@ public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, Packet
      */
     void sendPacket(PacketContainer packet, Player player) {
         try {
-            protocolManager.sendServerPacket(player, packet);
+            this.protocolManager.sendServerPacket(player, packet);
         } catch (Exception e) {
             e.printStackTrace();
         }

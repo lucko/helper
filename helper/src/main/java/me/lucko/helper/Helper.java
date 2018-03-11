@@ -26,6 +26,7 @@
 package me.lucko.helper;
 
 import me.lucko.helper.internal.LoaderUtils;
+import me.lucko.helper.plugin.HelperPlugin;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
@@ -34,7 +35,6 @@ import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.ServicesManager;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.Optional;
@@ -52,7 +52,7 @@ public final class Helper {
      *
      * @return the host plugin
      */
-    public static JavaPlugin hostPlugin() {
+    public static HelperPlugin hostPlugin() {
         return LoaderUtils.getPlugin();
     }
 

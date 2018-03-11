@@ -27,13 +27,12 @@ package me.lucko.helper.plugin;
 
 import com.google.common.base.Preconditions;
 
-import me.lucko.helper.Scheduler;
+import me.lucko.helper.Schedulers;
 import me.lucko.helper.config.Configs;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.maven.LibraryLoader;
-import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
-import me.lucko.helper.terminable.registry.TerminableRegistry;
+import me.lucko.helper.terminable.module.TerminableModule;
 import me.lucko.helper.utils.CommandMapUtil;
 
 import org.bukkit.command.CommandExecutor;
@@ -56,7 +55,7 @@ import javax.annotation.Nullable;
 public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
 
     // the backing terminable registry
-    private TerminableRegistry terminableRegistry;
+    private CompositeTerminable terminableRegistry;
 
     // Used by subclasses to perform logic for plugin load/enable/disable.
     protected void load() {}
@@ -66,7 +65,7 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     @Override
     public final void onLoad() {
         LoaderUtils.getPlugin(); // cache the loader plugin & run initial setup
-        terminableRegistry = TerminableRegistry.create();
+        this.terminableRegistry = CompositeTerminable.createWeak();
 
         LibraryLoader.loadAll(getClass());
 
@@ -77,12 +76,12 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     @Override
     public final void onEnable() {
         // schedule cleanup of the registry
-        Scheduler.builder()
+        Schedulers.builder()
                 .async()
                 .after(10, TimeUnit.SECONDS)
                 .every(30, TimeUnit.SECONDS)
-                .run(terminableRegistry::cleanup)
-                .bindWith(terminableRegistry);
+                .run(this.terminableRegistry::cleanup)
+                .bindWith(this.terminableRegistry);
 
         // call subclass
         enable();
@@ -95,25 +94,19 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
         disable();
 
         // terminate the registry
-        terminableRegistry.terminate();
+        this.terminableRegistry.closeAndReportException();
     }
 
     @Nonnull
     @Override
-    public <T extends Terminable> T bind(@Nonnull T terminable) {
-        return terminableRegistry.bind(terminable);
+    public <T extends AutoCloseable> T bind(@Nonnull T terminable) {
+        return this.terminableRegistry.bind(terminable);
     }
 
     @Nonnull
     @Override
-    public <T extends Runnable> T bindRunnable(@Nonnull T runnable) {
-        return terminableRegistry.bindRunnable(runnable);
-    }
-
-    @Nonnull
-    @Override
-    public <T extends CompositeTerminable> T bindComposite(@Nonnull T terminable) {
-        return terminableRegistry.bindComposite(terminable);
+    public <T extends TerminableModule> T bindModule(@Nonnull T module) {
+        return this.terminableRegistry.bindModule(module);
     }
 
     @Nonnull

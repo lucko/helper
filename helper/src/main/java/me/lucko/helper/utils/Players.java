@@ -29,6 +29,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.Helper;
+import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
@@ -177,7 +178,7 @@ public final class Players {
      */
     public static void msg(CommandSender sender, String... msgs) {
         for (String s : msgs) {
-            sender.sendMessage(Color.colorize(s));
+            sender.sendMessage(Text.colorize(s));
         }
     }
 

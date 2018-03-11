@@ -74,12 +74,12 @@ public final class ExpiringValue<T> implements TransientValue<T> {
     @Nullable
     @Override
     public T getOrNull() {
-        return shouldExpire() ? null : value;
+        return shouldExpire() ? null : this.value;
     }
 
     @Override
     public boolean shouldExpire() {
-        return System.currentTimeMillis() > expireAt;
+        return System.currentTimeMillis() > this.expireAt;
     }
 
 }

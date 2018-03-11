@@ -26,7 +26,6 @@
 package me.lucko.helper.plugin;
 
 import me.lucko.helper.terminable.TerminableConsumer;
-import me.lucko.helper.terminable.composite.CompositeTerminableConsumer;
 
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -41,7 +40,7 @@ import java.io.File;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface HelperPlugin extends Plugin, TerminableConsumer, CompositeTerminableConsumer {
+public interface HelperPlugin extends Plugin, TerminableConsumer {
 
     /**
      * Register a listener with the server.

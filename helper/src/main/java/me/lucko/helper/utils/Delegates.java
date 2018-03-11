@@ -28,7 +28,6 @@ package me.lucko.helper.utils;
 import com.google.common.base.Throwables;
 
 import me.lucko.helper.interfaces.Delegate;
-import me.lucko.helper.terminable.Terminable;
 
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
@@ -79,20 +78,16 @@ public final class Delegates {
         return new RunnableToFunction<>(runnable);
     }
 
-    public static Terminable runnableToTerminable(Runnable runnable) {
-        return new RunnableToTerminable(runnable);
-    }
-
     private static final class RunnableToConsumer<T> implements Consumer<T>, Delegate<Runnable> {
         private final Runnable delegate;
         private RunnableToConsumer(Runnable delegate) {
             this.delegate = delegate;
         }
-        @Override public Runnable getDelegate() { return delegate; }
+        @Override public Runnable getDelegate() { return this.delegate; }
 
         @Override
         public void accept(T t) {
-            delegate.run();
+            this.delegate.run();
         }
     }
 
@@ -101,12 +96,12 @@ public final class Delegates {
         private CallableToSupplier(Callable<T> delegate) {
             this.delegate = delegate;
         }
-        @Override public Callable<T> getDelegate() { return delegate; }
+        @Override public Callable<T> getDelegate() { return this.delegate; }
 
         @Override
         public T get() {
             try {
-                return delegate.call();
+                return this.delegate.call();
             } catch (Exception e) {
                 // try to propagate the exception
                 Throwables.throwIfUnchecked(e);
@@ -120,11 +115,11 @@ public final class Delegates {
         private RunnableToSupplier(Runnable delegate) {
             this.delegate = delegate;
         }
-        @Override public Runnable getDelegate() { return delegate; }
+        @Override public Runnable getDelegate() { return this.delegate; }
 
         @Override
         public T get() {
-            delegate.run();
+            this.delegate.run();
             return null;
         }
     }
@@ -134,11 +129,11 @@ public final class Delegates {
         private ConsumerToBiConsumerFirst(Consumer<T> delegate) {
             this.delegate = delegate;
         }
-        @Override public Consumer<T> getDelegate() { return delegate; }
+        @Override public Consumer<T> getDelegate() { return this.delegate; }
 
         @Override
         public void accept(T t, U u) {
-            delegate.accept(t);
+            this.delegate.accept(t);
         }
     }
 
@@ -147,11 +142,11 @@ public final class Delegates {
         private ConsumerToBiConsumerSecond(Consumer<U> delegate) {
             this.delegate = delegate;
         }
-        @Override public Consumer<U> getDelegate() { return delegate; }
+        @Override public Consumer<U> getDelegate() { return this.delegate; }
 
         @Override
         public void accept(T t, U u) {
-            delegate.accept(u);
+            this.delegate.accept(u);
         }
     }
 
@@ -160,11 +155,11 @@ public final class Delegates {
         private PredicateToBiPredicateFirst(Predicate<T> delegate) {
             this.delegate = delegate;
         }
-        @Override public Predicate<T> getDelegate() { return delegate; }
+        @Override public Predicate<T> getDelegate() { return this.delegate; }
 
         @Override
         public boolean test(T t, U u) {
-            return delegate.test(t);
+            return this.delegate.test(t);
         }
     }
 
@@ -173,11 +168,11 @@ public final class Delegates {
         private PredicateToBiPredicateSecond(Predicate<U> delegate) {
             this.delegate = delegate;
         }
-        @Override public Predicate<U> getDelegate() { return delegate; }
+        @Override public Predicate<U> getDelegate() { return this.delegate; }
 
         @Override
         public boolean test(T t, U u) {
-            return delegate.test(u);
+            return this.delegate.test(u);
         }
     }
 
@@ -186,11 +181,11 @@ public final class Delegates {
         private ConsumerToFunction(Consumer<T> delegate) {
             this.delegate = delegate;
         }
-        @Override public Consumer<T> getDelegate() { return delegate; }
+        @Override public Consumer<T> getDelegate() { return this.delegate; }
 
         @Override
         public R apply(T t) {
-            delegate.accept(t);
+            this.delegate.accept(t);
             return null;
         }
     }
@@ -200,28 +195,13 @@ public final class Delegates {
         private RunnableToFunction(Runnable delegate) {
             this.delegate = delegate;
         }
-        @Override public Runnable getDelegate() { return delegate; }
+        @Override public Runnable getDelegate() { return this.delegate; }
 
         @Override
         public R apply(T t) {
-            delegate.run();
+            this.delegate.run();
             return null;
         }
-    }
-
-    private static final class RunnableToTerminable implements Terminable, Delegate<Runnable> {
-        private final Runnable delegate;
-        private RunnableToTerminable(Runnable delegate) {
-            this.delegate = delegate;
-        }
-        @Override public Runnable getDelegate() { return delegate; }
-
-        @Override
-        public boolean terminate() {
-            delegate.run();
-            return true;
-        }
-
     }
 
     private Delegates() {

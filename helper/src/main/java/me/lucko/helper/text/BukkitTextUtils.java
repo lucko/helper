@@ -177,7 +177,7 @@ class BukkitTextUtils {
 
             // Fallback to legacy text
             if (legacy == null) {
-                legacy = TextUtils.toLegacy(message);
+                legacy = Text.toLegacy(message);
             }
             sender.sendMessage(legacy);
         }

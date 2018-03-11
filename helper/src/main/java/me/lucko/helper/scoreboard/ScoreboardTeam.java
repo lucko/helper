@@ -274,7 +274,7 @@ public interface ScoreboardTeam {
         }
 
         public String getProtocolName() {
-            return protocolName;
+            return this.protocolName;
         }
     }
 
@@ -291,7 +291,7 @@ public interface ScoreboardTeam {
         }
 
         public String getProtocolName() {
-            return protocolName;
+            return this.protocolName;
         }
     }
 

@@ -7,12 +7,12 @@
     <parent>
         <artifactId>helper-parent</artifactId>
         <groupId>me.lucko</groupId>
-        <version>4.2.0</version>
+        <version>5.0.0</version>
     </parent>
 
     <artifactId>helper-sql</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.4</version>
+    <version>1.1.0</version>
 
     <name>helper-sql</name>
     <description>Provides SQL datasources using HikariCP.</description>
@@ -129,7 +129,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>helper</artifactId>
-            <version>[4.2,4.3)</version>
+            <version>[5.0.0,6.0.0)</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -143,7 +143,7 @@
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>2.6.3</version>
+            <version>2.7.8</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
@@ -156,7 +156,7 @@
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
-            <version>2.0.3</version>
+            <version>2.2.1</version>
             <scope>compile</scope>
             <optional>true</optional>
         </dependency>
