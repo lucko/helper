@@ -65,7 +65,7 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     @Override
     public final void onLoad() {
         LoaderUtils.getPlugin(); // cache the loader plugin & run initial setup
-        this.terminableRegistry = CompositeTerminable.createWeak();
+        this.terminableRegistry = CompositeTerminable.create();
 
         LibraryLoader.loadAll(getClass());
 
