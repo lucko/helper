@@ -25,6 +25,11 @@
 
 package me.lucko.helper.cooldown;
 
+import com.google.common.base.Preconditions;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.utils.TimeUtil;
 
 import java.util.OptionalLong;
@@ -35,7 +40,21 @@ import javax.annotation.Nonnull;
 /**
  * A simple cooldown abstraction
  */
-public interface Cooldown {
+public interface Cooldown extends GsonSerializable {
+    static Cooldown deserialize(JsonElement element) {
+        Preconditions.checkArgument(element.isJsonObject());
+        JsonObject object = element.getAsJsonObject();
+
+        Preconditions.checkArgument(object.has("lastTested"));
+        Preconditions.checkArgument(object.has("timeout"));
+
+        long lastTested = object.get("lastTested").getAsLong();
+        long timeout = object.get("timeout").getAsLong();
+
+        Cooldown c = of(timeout, TimeUnit.MILLISECONDS);
+        c.setLastTested(lastTested);
+        return c;
+    }
 
     /**
      * Creates a cooldown lasting a number of game ticks

@@ -48,7 +48,7 @@ public interface TerminableModule {
      *
      * @param consumer the terminable consumer
      */
-    default void bindWith(@Nonnull TerminableConsumer consumer) {
+    default void bindModuleWith(@Nonnull TerminableConsumer consumer) {
         consumer.bindModule(this);
     }
 
