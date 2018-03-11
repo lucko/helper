@@ -23,10 +23,10 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.scheduler;
+package me.lucko.helper.scheduler.builder;
 
-import me.lucko.helper.Scheduler;
 import me.lucko.helper.promise.ThreadContext;
+import me.lucko.helper.scheduler.Scheduler;
 
 import java.util.concurrent.TimeUnit;
 

@@ -106,12 +106,12 @@ public class MenuPopulator {
 
     public boolean tryConsume(Consumer<Slot> action) {
         Preconditions.checkNotNull(action, "action");
-        if (remainingSlots.isEmpty()) {
+        if (this.remainingSlots.isEmpty()) {
             return false;
         }
 
-        int slot = remainingSlots.remove(0);
-        action.accept(gui.getSlot(slot));
+        int slot = this.remainingSlots.remove(0);
+        action.accept(this.gui.getSlot(slot));
         return true;
     }
 
@@ -152,7 +152,7 @@ public class MenuPopulator {
      * @return the number of remaining slots
      */
     public int getRemainingSpace() {
-        return remainingSlots.size();
+        return this.remainingSlots.size();
     }
 
     /**
@@ -161,7 +161,7 @@ public class MenuPopulator {
      * @return if there is more space
      */
     public boolean hasSpace() {
-        return !remainingSlots.isEmpty();
+        return !this.remainingSlots.isEmpty();
     }
 
     public MenuPopulator copy() {

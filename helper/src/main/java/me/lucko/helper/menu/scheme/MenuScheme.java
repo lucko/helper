@@ -62,11 +62,11 @@ public class MenuScheme {
         this.mapping = other.mapping.copy();
         this.maskRows = new ArrayList<>();
         for (boolean[] arr : other.maskRows) {
-            maskRows.add(Arrays.copyOf(arr, arr.length));
+            this.maskRows.add(Arrays.copyOf(arr, arr.length));
         }
         this.schemeRows = new ArrayList<>();
         for (int[] arr : other.schemeRows) {
-            schemeRows.add(Arrays.copyOf(arr, arr.length));
+            this.schemeRows.add(Arrays.copyOf(arr, arr.length));
         }
     }
 
@@ -86,7 +86,7 @@ public class MenuScheme {
                 throw new IllegalArgumentException("invalid mask character: " + c);
             }
         }
-        maskRows.add(ret);
+        this.maskRows.add(ret);
         return this;
     }
 
@@ -99,19 +99,19 @@ public class MenuScheme {
 
     public MenuScheme maskEmpty(int lines) {
         for (int i = 0; i < lines; i++) {
-            maskRows.add(EMPTY_MASK);
-            schemeRows.add(EMPTY_SCHEME);
+            this.maskRows.add(EMPTY_MASK);
+            this.schemeRows.add(EMPTY_SCHEME);
         }
         return this;
     }
 
     public MenuScheme scheme(int... schemeIds) {
         for (int schemeId : schemeIds) {
-            if (!mapping.hasMappingFor(schemeId)) {
+            if (!this.mapping.hasMappingFor(schemeId)) {
                 throw new IllegalArgumentException("mapping does not contain value for id: " + schemeId);
             }
         }
-        schemeRows.add(schemeIds);
+        this.schemeRows.add(schemeIds);
         return this;
     }
 
@@ -120,9 +120,9 @@ public class MenuScheme {
         int invIndex = 0;
 
         // iterate all of the loaded masks
-        for (int i = 0; i < maskRows.size(); i++) {
-            boolean[] mask = maskRows.get(i);
-            int[] scheme = schemeRows.get(i);
+        for (int i = 0; i < this.maskRows.size(); i++) {
+            boolean[] mask = this.maskRows.get(i);
+            int[] scheme = this.schemeRows.get(i);
 
             int schemeIndex = 0;
 
@@ -139,7 +139,7 @@ public class MenuScheme {
                     int schemeMappingId = scheme[schemeIndex++];
 
                     // lookup the value for this location, and apply it to the gui
-                    mapping.get(schemeMappingId).ifPresent(item -> gui.setItem(index, item));
+                    this.mapping.get(schemeMappingId).ifPresent(item -> gui.setItem(index, item));
                 }
             }
         }
@@ -152,7 +152,7 @@ public class MenuScheme {
         int invIndex = 0;
 
         // iterate all of the loaded masks
-        for (boolean[] mask : maskRows) {
+        for (boolean[] mask : this.maskRows) {
             // iterate the values in the mask (0 --> 8)
             for (boolean b : mask) {
 

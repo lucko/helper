@@ -46,11 +46,11 @@ public final class PageInfo {
     }
 
     public int getCurrent() {
-        return current;
+        return this.current;
     }
 
     public int getSize() {
-        return size;
+        return this.size;
     }
 
 }

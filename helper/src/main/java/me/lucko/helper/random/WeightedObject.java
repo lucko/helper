@@ -52,12 +52,12 @@ public final class WeightedObject<T> implements Weighted {
 
     @Nonnull
     public T get() {
-        return object;
+        return this.object;
     }
 
     @Override
     public double getWeight() {
-        return weight;
+        return this.weight;
     }
 
     @Override

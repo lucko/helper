@@ -64,12 +64,12 @@ class ImmutableGsonConverter extends AbstractGsonConverter<ImmutableMap<String, 
             if (key == null || value == null) {
                 return;
             }
-            builder.put(key, value);
+            this.builder.put(key, value);
         }
 
         @Override
         public ImmutableMap<K, V> build() {
-            return builder.build();
+            return this.builder.build();
         }
     }
 
@@ -81,12 +81,12 @@ class ImmutableGsonConverter extends AbstractGsonConverter<ImmutableMap<String, 
             if (element == null) {
                 return;
             }
-            builder.add(element);
+            this.builder.add(element);
         }
 
         @Override
         public ImmutableList<E> build() {
-            return builder.build();
+            return this.builder.build();
         }
     }
 
@@ -98,12 +98,12 @@ class ImmutableGsonConverter extends AbstractGsonConverter<ImmutableMap<String, 
             if (element == null) {
                 return;
             }
-            builder.add(element);
+            this.builder.add(element);
         }
 
         @Override
         public ImmutableSet<E> build() {
-            return builder.build();
+            return this.builder.build();
         }
     }
 

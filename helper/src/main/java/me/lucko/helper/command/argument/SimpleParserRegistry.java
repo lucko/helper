@@ -72,7 +72,7 @@ public class SimpleParserRegistry implements ArgumentParserRegistry {
     public <T> void register(@Nonnull TypeToken<T> type, @Nonnull ArgumentParser<T> parser) {
         Preconditions.checkNotNull(type, "type");
         Preconditions.checkNotNull(parser, "parser");
-        List<ArgumentParser<?>> list = parsers.computeIfAbsent(type, t -> new CopyOnWriteArrayList<>());
+        List<ArgumentParser<?>> list = this.parsers.computeIfAbsent(type, t -> new CopyOnWriteArrayList<>());
         if (!list.contains(parser)) {
             list.add(parser);
         }

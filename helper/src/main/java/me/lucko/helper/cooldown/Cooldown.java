@@ -45,8 +45,7 @@ public interface Cooldown {
      */
     @Nonnull
     static Cooldown ofTicks(long ticks) {
-        //noinspection deprecation
-        return me.lucko.helper.utils.Cooldown.ofTicks(ticks);
+        return new CooldownImpl(ticks * 50L, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -58,8 +57,7 @@ public interface Cooldown {
      */
     @Nonnull
     static Cooldown of(long amount, @Nonnull TimeUnit unit) {
-        //noinspection deprecation
-        return me.lucko.helper.utils.Cooldown.of(amount, unit);
+        return new CooldownImpl(amount, unit);
     }
 
     /**

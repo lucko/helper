@@ -125,15 +125,15 @@ public final class BlockPosition implements GsonSerializable {
     }
 
     public synchronized Location toLocation() {
-        if (bukkitLocation == null) {
-            bukkitLocation = new Location(Helper.worldNullable(world), x, y, z);
+        if (this.bukkitLocation == null) {
+            this.bukkitLocation = new Location(Helper.worldNullable(this.world), this.x, this.y, this.z);
         }
 
-        return bukkitLocation.clone();
+        return this.bukkitLocation.clone();
     }
 
     public Vector3i toVector() {
-        return new Vector3i(x, y, z);
+        return new Vector3i(this.x, this.y, this.z);
     }
 
     public Block toBlock() {
@@ -141,25 +141,25 @@ public final class BlockPosition implements GsonSerializable {
     }
 
     public Position toPosition() {
-        return Position.of(x, y, z, world);
+        return Position.of(this.x, this.y, this.z, this.world);
     }
 
     public Position toPositionCenter() {
-        return Position.of(x + 0.5d, y + 0.5d, z + 0.5d, world);
+        return Position.of(this.x + 0.5d, this.y + 0.5d, this.z + 0.5d, this.world);
     }
 
     public ChunkPosition toChunk() {
-        return ChunkPosition.of(x >> 4, z >> 4, world);
+        return ChunkPosition.of(this.x >> 4, this.z >> 4, this.world);
     }
 
     public BlockPosition getRelative(BlockFace face) {
         Preconditions.checkNotNull(face, "face");
-        return BlockPosition.of(x + face.getModX(), y + face.getModY(), z + face.getModZ(), world);
+        return BlockPosition.of(this.x + face.getModX(), this.y + face.getModY(), this.z + face.getModZ(), this.world);
     }
 
     public BlockPosition getRelative(BlockFace face, int distance) {
         Preconditions.checkNotNull(face, "face");
-        return BlockPosition.of(x + (face.getModX() * distance), y + (face.getModY() * distance), z + (face.getModZ() * distance), world);
+        return BlockPosition.of(this.x + (face.getModX() * distance), this.y + (face.getModY() * distance), this.z + (face.getModZ() * distance), this.world);
     }
 
     public BlockPosition add(Vector3i vector3i) {
@@ -167,7 +167,7 @@ public final class BlockPosition implements GsonSerializable {
     }
 
     public BlockPosition add(int x, int y, int z) {
-        return BlockPosition.of(this.x + x, this.y + y, this.z + z, world);
+        return BlockPosition.of(this.x + x, this.y + y, this.z + z, this.world);
     }
 
     public BlockPosition subtract(Vector3i vector3i) {
@@ -187,10 +187,10 @@ public final class BlockPosition implements GsonSerializable {
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()
-                .add("x", x)
-                .add("y", y)
-                .add("z", z)
-                .add("world", world)
+                .add("x", this.x)
+                .add("y", this.y)
+                .add("z", this.z)
+                .add("world", this.world)
                 .build();
     }
 

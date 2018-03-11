@@ -77,13 +77,13 @@ public class PaginatedGui extends Gui {
 
     @Override
     public void redraw() {
-        scheme.apply(this);
+        this.scheme.apply(this);
 
         // get available slots for items
-        List<Integer> slots = new ArrayList<>(itemSlots);
+        List<Integer> slots = new ArrayList<>(this.itemSlots);
 
         // work out the items to display on this page
-        List<List<Item>> pages = CollectionUtils.divideIterable(content, slots.size());
+        List<List<Item>> pages = CollectionUtils.divideIterable(this.content, slots.size());
 
         // normalize page number
         if (this.page < 1) {
@@ -98,13 +98,13 @@ public class PaginatedGui extends Gui {
         if (this.page == 1) {
             // can't go back further
             // remove the item if the current slot contains a previous page item type
-            Slot slot = getSlot(previousPageSlot);
+            Slot slot = getSlot(this.previousPageSlot);
             slot.clearBindings();
-            if (slot.hasItem() && slot.getItem().getType() == previousPageItem.apply(PageInfo.create(0, 0)).getType()) {
+            if (slot.hasItem() && slot.getItem().getType() == this.previousPageItem.apply(PageInfo.create(0, 0)).getType()) {
                 slot.clearItem();
             }
         } else {
-            setItem(previousPageSlot, ItemStackBuilder.of(previousPageItem.apply(PageInfo.create(this.page, pages.size())))
+            setItem(this.previousPageSlot, ItemStackBuilder.of(this.previousPageItem.apply(PageInfo.create(this.page, pages.size())))
                     .build(() -> {
                         this.page = this.page - 1;
                         redraw();
@@ -114,13 +114,13 @@ public class PaginatedGui extends Gui {
         if (this.page >= pages.size()) {
             // can't go forward a page
             // remove the item if the current slot contains a next page item type
-            Slot slot = getSlot(nextPageSlot);
+            Slot slot = getSlot(this.nextPageSlot);
             slot.clearBindings();
-            if (slot.hasItem() && slot.getItem().getType() == nextPageItem.apply(PageInfo.create(0, 0)).getType()) {
+            if (slot.hasItem() && slot.getItem().getType() == this.nextPageItem.apply(PageInfo.create(0, 0)).getType()) {
                 slot.clearItem();
             }
         } else {
-            setItem(nextPageSlot, ItemStackBuilder.of(nextPageItem.apply(PageInfo.create(this.page, pages.size())))
+            setItem(this.nextPageSlot, ItemStackBuilder.of(this.nextPageItem.apply(PageInfo.create(this.page, pages.size())))
                     .build(() -> {
                         this.page = this.page + 1;
                         redraw();

@@ -78,40 +78,40 @@ public final class VectorPoint implements GsonSerializable {
     }
 
     public Vector3d getPosition() {
-        return position;
+        return this.position;
     }
 
     public Direction getDirection() {
-        return direction;
+        return this.direction;
     }
 
     public synchronized Location toLocation(World world) {
-        if (bukkitLocation == null) {
-            bukkitLocation = new Location(world, position.getX(), position.getY(), position.getZ(), direction.getYaw(), direction.getPitch());
+        if (this.bukkitLocation == null) {
+            this.bukkitLocation = new Location(world, this.position.getX(), this.position.getY(), this.position.getZ(), this.direction.getYaw(), this.direction.getPitch());
         }
 
-        return bukkitLocation.clone();
+        return this.bukkitLocation.clone();
     }
 
     public VectorPoint add(double x, double y, double z) {
-        return of(position.add(x, y, z), direction);
+        return of(this.position.add(x, y, z), this.direction);
     }
 
     public VectorPoint subtract(double x, double y, double z) {
-        return of(position.sub(x, y, z), direction);
+        return of(this.position.sub(x, y, z), this.direction);
     }
 
     public Point withWorld(String world) {
         Preconditions.checkNotNull(world, "world");
-        return Point.of(Position.of(position, world), direction);
+        return Point.of(Position.of(this.position, world), this.direction);
     }
 
     @Nonnull
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()
-                .addAll(VectorSerializers.serialize(position))
-                .addAll(direction.serialize())
+                .addAll(VectorSerializers.serialize(this.position))
+                .addAll(this.direction.serialize())
                 .build();
     }
 

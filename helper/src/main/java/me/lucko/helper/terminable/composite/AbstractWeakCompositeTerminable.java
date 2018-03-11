@@ -23,61 +23,57 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable.registry;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+package me.lucko.helper.terminable.composite;
 
 import me.lucko.helper.terminable.Terminable;
-import me.lucko.helper.terminable.composite.CompositeTerminable;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
-import javax.annotation.Nonnull;
+public class AbstractWeakCompositeTerminable implements CompositeTerminable {
+    private final Deque<WeakReference<AutoCloseable>> closeables = new ConcurrentLinkedDeque<>();
 
-public class SimpleTerminableRegistry implements TerminableRegistry {
-    private final List<Terminable> terminables = Collections.synchronizedList(new ArrayList<>());
-    private boolean terminated = false;
+    protected AbstractWeakCompositeTerminable() {
 
-    @Nonnull
-    @Override
-    public final <T extends Terminable> T bind(@Nonnull T terminable) {
-        Preconditions.checkNotNull(terminable, "terminable");
-        terminables.add(terminable);
-        return terminable;
-    }
-
-    @Nonnull
-    @Override
-    public final <T extends CompositeTerminable> T bindComposite(@Nonnull T terminable) {
-        Preconditions.checkNotNull(terminable, "terminable");
-        terminable.setup(this);
-        return terminable;
     }
 
     @Override
-    public final boolean terminate() {
-        Lists.reverse(terminables).forEach((terminable) -> {
-            try {
-                terminable.terminate();
-            } catch (Exception e) {
-                e.printStackTrace();
+    public CompositeTerminable with(AutoCloseable autoCloseable) {
+        Objects.requireNonNull(autoCloseable, "autoCloseable");
+        this.closeables.push(new WeakReference<>(autoCloseable));
+        return this;
+    }
+
+    @Override
+    public void close() throws CompositeClosingException {
+        List<Exception> caught = new ArrayList<>();
+        for (WeakReference<AutoCloseable> ref; (ref = this.closeables.poll()) != null; ) {
+            AutoCloseable ac = ref.get();
+            if (ac == null) {
+                continue;
             }
+
+            try {
+                ac.close();
+            } catch (Exception e) {
+                caught.add(e);
+            }
+        }
+
+        if (!caught.isEmpty()) {
+            throw new CompositeClosingException(caught);
+        }
+    }
+
+    @Override
+    public void cleanup() {
+        this.closeables.removeIf(ref -> {
+            AutoCloseable ac = ref.get();
+            return ac != null && ac instanceof Terminable && ((Terminable) ac).isClosed();
         });
-        terminables.clear();
-        terminated = true;
-        return true;
-    }
-
-    @Override
-    public final boolean hasTerminated() {
-        return terminated;
-    }
-
-    @Override
-    public final void cleanup() {
-        terminables.removeIf(Terminable::hasTerminated);
     }
 }

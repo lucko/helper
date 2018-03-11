@@ -109,25 +109,25 @@ public final class ChunkPosition implements GsonSerializable {
     }
 
     public Vector2i toVector() {
-        return new Vector2i(x, z);
+        return new Vector2i(this.x, this.z);
     }
 
     public synchronized Chunk toChunk() {
-        return Helper.world(world).get().getChunkAt(x, z);
+        return Helper.world(this.world).get().getChunkAt(this.x, this.z);
     }
 
     public BlockPosition getBlock(int x, int y, int z) {
-        return BlockPosition.of((this.x << 4) | (x & 0xF), y, (this.z << 4) | (z & 0xF), world);
+        return BlockPosition.of((this.x << 4) | (x & 0xF), y, (this.z << 4) | (z & 0xF), this.world);
     }
 
     public ChunkPosition getRelative(BlockFace face) {
         Preconditions.checkArgument(face != BlockFace.UP && face != BlockFace.DOWN, "invalid face");
-        return ChunkPosition.of(x + face.getModX(), z + face.getModZ(), world);
+        return ChunkPosition.of(this.x + face.getModX(), this.z + face.getModZ(), this.world);
     }
 
     public ChunkPosition getRelative(BlockFace face, int distance) {
         Preconditions.checkArgument(face != BlockFace.UP && face != BlockFace.DOWN, "invalid face");
-        return ChunkPosition.of(x + (face.getModX() * distance), z + (face.getModZ() * distance), world);
+        return ChunkPosition.of(this.x + (face.getModX() * distance), this.z + (face.getModZ() * distance), this.world);
     }
 
     public ChunkPosition add(Vector2i vector2i) {
@@ -135,7 +135,7 @@ public final class ChunkPosition implements GsonSerializable {
     }
 
     public ChunkPosition add(int x, int z) {
-        return ChunkPosition.of(this.x + x, this.z + z, world);
+        return ChunkPosition.of(this.x + x, this.z + z, this.world);
     }
 
     public ChunkPosition subtract(Vector2i vector2i) {
@@ -150,9 +150,9 @@ public final class ChunkPosition implements GsonSerializable {
     @Override
     public JsonObject serialize() {
         return JsonBuilder.object()
-                .add("x", x)
-                .add("z", z)
-                .add("world", world)
+                .add("x", this.x)
+                .add("z", this.z)
+                .add("world", this.world)
                 .build();
     }
 

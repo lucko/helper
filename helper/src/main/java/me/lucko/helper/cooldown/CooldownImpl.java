@@ -23,56 +23,27 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.cooldown;
 
+import me.lucko.helper.utils.TimeUtil;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
-/**
- * A simple cooldown abstraction
- *
- * @deprecated in favour of referencing {@link me.lucko.helper.cooldown.Cooldown}.
- */
-@Deprecated
 @NonnullByDefault
-public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown {
-
-    /**
-     * Creates a cooldown lasting a number of game ticks
-     *
-     * @param ticks the number of ticks
-     * @return a new cooldown
-     */
-    @Deprecated
-    public static Cooldown ofTicks(long ticks) {
-        return new Cooldown(ticks * 50L, TimeUnit.MILLISECONDS);
-    }
-
-    /**
-     * Creates a cooldown lasting a specified amount of time
-     *
-     * @param amount the amount of time
-     * @param unit the unit of time
-     * @return a new cooldown
-     */
-    @Deprecated
-    public static Cooldown of(long amount, TimeUnit unit) {
-        return new Cooldown(amount, unit);
-    }
+class CooldownImpl implements LongSupplier, Cooldown {
 
     // when the last test occurred.
-    protected long lastTested;
+    private long lastTested;
 
     // the cooldown duration in millis
-    protected final long timeout;
+    private final long timeout;
 
-    @Deprecated
-    protected Cooldown(long amount, TimeUnit unit) {
-        timeout = unit.toMillis(amount);
-        lastTested = 0;
+    CooldownImpl(long amount, TimeUnit unit) {
+        this.timeout = unit.toMillis(amount);
+        this.lastTested = 0;
     }
 
     /**
@@ -99,7 +70,7 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      */
     @Override
     public boolean testSilently() {
-        return elapsed() > timeout;
+        return elapsed() > this.timeout;
     }
 
     /**
@@ -109,7 +80,7 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      */
     @Override
     public long elapsed() {
-        return TimeUtil.now() - lastTested;
+        return TimeUtil.now() - this.lastTested;
     }
 
     /**
@@ -117,7 +88,7 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      */
     @Override
     public void reset() {
-        lastTested = TimeUtil.now();
+        this.lastTested = TimeUtil.now();
     }
 
     /**
@@ -130,7 +101,7 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
     @Override
     public long remainingMillis() {
         long diff = elapsed();
-        return diff > timeout ? 0L : timeout - diff;
+        return diff > this.timeout ? 0L : this.timeout - diff;
     }
 
     /**
@@ -158,7 +129,7 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      */
     @Override
     public long getTimeout() {
-        return timeout;
+        return this.timeout;
     }
 
     /**
@@ -167,8 +138,8 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      * @return a cloned cooldown instance
      */
     @Override
-    public Cooldown copy() {
-        return new Cooldown(timeout, TimeUnit.MILLISECONDS);
+    public CooldownImpl copy() {
+        return new CooldownImpl(this.timeout, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -178,7 +149,7 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
      */
     @Override
     public OptionalLong getLastTested() {
-        return lastTested == 0 ? OptionalLong.empty() : OptionalLong.of(lastTested);
+        return this.lastTested == 0 ? OptionalLong.empty() : OptionalLong.of(this.lastTested);
     }
 
     /**
@@ -192,9 +163,9 @@ public class Cooldown implements LongSupplier, me.lucko.helper.cooldown.Cooldown
     @Override
     public void setLastTested(long time) {
         if (time <= 0) {
-            lastTested = 0;
+            this.lastTested = 0;
         } else {
-            lastTested = time;
+            this.lastTested = time;
         }
     }
 

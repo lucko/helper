@@ -25,22 +25,46 @@
 
 package me.lucko.helper.terminable.composite;
 
-import javax.annotation.Nonnull;
+import me.lucko.helper.terminable.Terminable;
 
-/**
- * Accepts {@link CompositeTerminable}s.
- */
-@FunctionalInterface
-public interface CompositeTerminableConsumer {
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
-    /**
-     * Binds a composite terminable to this consumer
-     *
-     * @param terminable the terminable to bind
-     * @param <T> the terminable class type
-     * @return the terminable instance
-     */
-    @Nonnull
-    <T extends CompositeTerminable> T bindComposite(@Nonnull T terminable);
+public class AbstractCompositeTerminable implements CompositeTerminable {
+    private final Deque<AutoCloseable> closeables = new ConcurrentLinkedDeque<>();
 
+    protected AbstractCompositeTerminable() {
+
+    }
+
+    @Override
+    public CompositeTerminable with(AutoCloseable autoCloseable) {
+        Objects.requireNonNull(autoCloseable, "autoCloseable");
+        this.closeables.push(autoCloseable);
+        return this;
+    }
+
+    @Override
+    public void close() throws CompositeClosingException {
+        List<Exception> caught = new ArrayList<>();
+        for (AutoCloseable ac; (ac = this.closeables.poll()) != null; ) {
+            try {
+                ac.close();
+            } catch (Exception e) {
+                caught.add(e);
+            }
+        }
+
+        if (!caught.isEmpty()) {
+            throw new CompositeClosingException(caught);
+        }
+    }
+
+    @Override
+    public void cleanup() {
+        this.closeables.removeIf(ac -> ac instanceof Terminable && ((Terminable) ac).isClosed());
+    }
 }

@@ -67,13 +67,13 @@ public class HikariWrapper implements HelperDataSource {
         // If a connection is not returned within 10 seconds, it's probably safe to assume it's been leaked.
         config.setLeakDetectionThreshold(TimeUnit.SECONDS.toMillis(10)); // 10000
 
-        hikari = new HikariDataSource(config);
+        this.hikari = new HikariDataSource(config);
     }
 
     @Nonnull
     @Override
     public HikariDataSource getHikari() {
-        return Preconditions.checkNotNull(hikari, "hikari");
+        return Preconditions.checkNotNull(this.hikari, "hikari");
     }
 
     @Nonnull
@@ -83,11 +83,9 @@ public class HikariWrapper implements HelperDataSource {
     }
 
     @Override
-    public boolean terminate() {
-        if (hikari != null) {
-            hikari.close();
-            return true;
+    public void close() {
+        if (this.hikari != null) {
+            this.hikari.close();
         }
-        return false;
     }
 }

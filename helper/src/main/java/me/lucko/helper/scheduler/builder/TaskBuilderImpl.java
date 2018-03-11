@@ -23,11 +23,12 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.scheduler;
+package me.lucko.helper.scheduler.builder;
 
-import me.lucko.helper.Scheduler;
+import me.lucko.helper.Schedulers;
 import me.lucko.helper.promise.Promise;
 import me.lucko.helper.promise.ThreadContext;
+import me.lucko.helper.scheduler.Ticks;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -42,20 +43,20 @@ class TaskBuilderImpl implements TaskBuilder {
     private final ThreadContextual async;
 
     private TaskBuilderImpl() {
-        sync = new ThreadContextualBuilder(ThreadContext.SYNC);
-        async = new ThreadContextualBuilder(ThreadContext.ASYNC);
+        this.sync = new ThreadContextualBuilder(ThreadContext.SYNC);
+        this.async = new ThreadContextualBuilder(ThreadContext.ASYNC);
     }
 
     @Nonnull
     @Override
     public TaskBuilder.ThreadContextual sync() {
-        return sync;
+        return this.sync;
     }
 
     @Nonnull
     @Override
     public TaskBuilder.ThreadContextual async() {
-        return async;
+        return this.async;
     }
 
     private static final class ThreadContextualBuilder implements TaskBuilder.ThreadContextual {
@@ -70,32 +71,32 @@ class TaskBuilderImpl implements TaskBuilder {
         @Nonnull
         @Override
         public ContextualPromiseBuilder now() {
-            return instant;
+            return this.instant;
         }
 
         @Nonnull
         @Override
         public TaskBuilder.Delayed after(long ticks) {
-            return new DelayedBuilder(context, ticks);
+            return new DelayedBuilder(this.context, ticks);
         }
 
         @Nonnull
         @Override
         public TaskBuilder.Delayed after(long duration, @Nonnull TimeUnit unit) {
-            return new DelayedBuilder(context, Ticks.from(duration, unit));
+            return new DelayedBuilder(this.context, Ticks.from(duration, unit));
         }
 
         @Nonnull
         @Override
         public ContextualTaskBuilder afterAndEvery(long ticks) {
-            return new ContextualTaskBuilderImpl(context, ticks, ticks);
+            return new ContextualTaskBuilderImpl(this.context, ticks, ticks);
         }
 
         @Nonnull
         @Override
         public ContextualTaskBuilder afterAndEvery(long duration, @Nonnull TimeUnit unit) {
             long ticks = Ticks.from(duration, unit);
-            return new ContextualTaskBuilderImpl(context, ticks, ticks);
+            return new ContextualTaskBuilderImpl(this.context, ticks, ticks);
         }
     }
 
@@ -111,31 +112,31 @@ class TaskBuilderImpl implements TaskBuilder {
         @Nonnull
         @Override
         public <T> Promise<T> supply(@Nonnull Supplier<T> supplier) {
-            return Scheduler.supplyLater(context, supplier, delay);
+            return Schedulers.get(this.context).supplyLater(supplier, this.delay);
         }
 
         @Nonnull
         @Override
         public <T> Promise<T> call(@Nonnull Callable<T> callable) {
-            return Scheduler.callLater(context, callable, delay);
+            return Schedulers.get(this.context).callLater(callable, this.delay);
         }
 
         @Nonnull
         @Override
         public Promise<Void> run(@Nonnull Runnable runnable) {
-            return Scheduler.runLater(context, runnable, delay);
+            return Schedulers.get(this.context).runLater(runnable, this.delay);
         }
 
         @Nonnull
         @Override
         public ContextualTaskBuilder every(long ticks) {
-            return new ContextualTaskBuilderImpl(context, delay, ticks);
+            return new ContextualTaskBuilderImpl(this.context, this.delay, ticks);
         }
 
         @Nonnull
         @Override
         public ContextualTaskBuilder every(long duration, TimeUnit unit) {
-            return new ContextualTaskBuilderImpl(context, delay, Ticks.from(duration, unit));
+            return new ContextualTaskBuilderImpl(this.context, this.delay, Ticks.from(duration, unit));
         }
     }
 }

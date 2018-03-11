@@ -31,7 +31,7 @@ import com.comphenix.protocol.wrappers.EnumWrappers.ScoreboardAction;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
-import me.lucko.helper.utils.Color;
+import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.entity.Player;
@@ -97,7 +97,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
         this.scoreboard = Preconditions.checkNotNull(scoreboard, "scoreboard");
         this.id = id;
-        this.displayName = trimName(Color.colorize(Preconditions.checkNotNull(displayName, "displayName")));
+        this.displayName = trimName(Text.colorize(Preconditions.checkNotNull(displayName, "displayName")));
         this.displaySlot = Preconditions.checkNotNull(displaySlot, "displaySlot");
         this.autoSubscribe = autoSubscribe;
     }
@@ -116,12 +116,12 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
     @Override
     public String getId() {
-        return id;
+        return this.id;
     }
 
     @Override
     public boolean shouldAutoSubscribe() {
-        return autoSubscribe;
+        return this.autoSubscribe;
     }
 
     @Override
@@ -131,24 +131,24 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
     @Override
     public String getDisplayName() {
-        return displayName;
+        return this.displayName;
     }
 
     @Override
     public void setDisplayName(String displayName) {
         Preconditions.checkNotNull(displayName, "displayName");
-        displayName = trimName(Color.colorize(displayName));
+        displayName = trimName(Text.colorize(displayName));
         if (this.displayName.equals(displayName)) {
             return;
         }
 
         this.displayName = displayName;
-        scoreboard.broadcastPacket(subscribed, newObjectivePacket(UpdateType.UPDATE));
+        this.scoreboard.broadcastPacket(this.subscribed, newObjectivePacket(UpdateType.UPDATE));
     }
 
     @Override
     public DisplaySlot getDisplaySlot() {
-        return displaySlot;
+        return this.displaySlot;
     }
 
     @Override
@@ -159,59 +159,59 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
         }
 
         this.displaySlot = displaySlot;
-        scoreboard.broadcastPacket(subscribed, newDisplaySlotPacket(displaySlot));
+        this.scoreboard.broadcastPacket(this.subscribed, newDisplaySlotPacket(displaySlot));
     }
 
     @Override
     public Map<String, Integer> getScores() {
-        return ImmutableMap.copyOf(scores);
+        return ImmutableMap.copyOf(this.scores);
     }
 
     @Override
     public boolean hasScore(String name) {
         Preconditions.checkNotNull(name, "name");
-        return scores.containsKey(trimScore(Color.colorize(name)));
+        return this.scores.containsKey(trimScore(Text.colorize(name)));
     }
 
     @Nullable
     @Override
     public Integer getScore(String name) {
         Preconditions.checkNotNull(name, "name");
-        return scores.get(trimScore(Color.colorize(name)));
+        return this.scores.get(trimScore(Text.colorize(name)));
     }
 
     @Override
     public void setScore(String name, int value) {
         Preconditions.checkNotNull(name, "name");
-        name = trimScore(Color.colorize(name));
+        name = trimScore(Text.colorize(name));
 
-        Integer oldValue = scores.put(name, value);
+        Integer oldValue = this.scores.put(name, value);
         if (oldValue != null && oldValue == value) {
             return;
         }
 
-        scoreboard.broadcastPacket(subscribed, newScorePacket(name, value, ScoreboardAction.CHANGE));
+        this.scoreboard.broadcastPacket(this.subscribed, newScorePacket(name, value, ScoreboardAction.CHANGE));
     }
 
     @Override
     public boolean removeScore(String name) {
         Preconditions.checkNotNull(name, "name");
-        name = trimScore(Color.colorize(name));
+        name = trimScore(Text.colorize(name));
 
-        if (scores.remove(name) == null) {
+        if (this.scores.remove(name) == null) {
             return false;
         }
 
-        scoreboard.broadcastPacket(subscribed, newScorePacket(name, 0, ScoreboardAction.REMOVE));
+        this.scoreboard.broadcastPacket(this.subscribed, newScorePacket(name, 0, ScoreboardAction.REMOVE));
         return true;
     }
 
     @Override
     public void clearScores() {
-        scores.clear();
+        this.scores.clear();
 
-        scoreboard.broadcastPacket(subscribed, newObjectivePacket(UpdateType.REMOVE));
-        for (Player player : subscribed) {
+        this.scoreboard.broadcastPacket(this.subscribed, newObjectivePacket(UpdateType.REMOVE));
+        for (Player player : this.subscribed) {
             subscribe(player);
         }
     }
@@ -222,7 +222,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
         Set<String> toRemove = new HashSet<>(getScores().keySet());
         for (Map.Entry<String, Integer> score : scores.entrySet()) {
-            toRemove.remove(trimScore(Color.colorize(score.getKey())));
+            toRemove.remove(trimScore(Text.colorize(score.getKey())));
         }
         for (String name : toRemove) {
             removeScore(name);
@@ -251,12 +251,12 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     @Override
     public void subscribe(Player player) {
         Preconditions.checkNotNull(player, "player");
-        scoreboard.sendPacket(newObjectivePacket(UpdateType.CREATE), player);
-        scoreboard.sendPacket(newDisplaySlotPacket(getDisplaySlot()), player);
+        this.scoreboard.sendPacket(newObjectivePacket(UpdateType.CREATE), player);
+        this.scoreboard.sendPacket(newDisplaySlotPacket(getDisplaySlot()), player);
         for (Map.Entry<String, Integer> score : getScores().entrySet()) {
-            scoreboard.sendPacket(newScorePacket(score.getKey(), score.getValue(), ScoreboardAction.CHANGE), player);
+            this.scoreboard.sendPacket(newScorePacket(score.getKey(), score.getValue(), ScoreboardAction.CHANGE), player);
         }
-        subscribed.add(player);
+        this.subscribed.add(player);
     }
 
     @Override
@@ -267,17 +267,17 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     @Override
     public void unsubscribe(Player player, boolean fast) {
         Preconditions.checkNotNull(player, "player");
-        if (!subscribed.remove(player) || fast) {
+        if (!this.subscribed.remove(player) || fast) {
             return;
         }
 
-        scoreboard.sendPacket(newObjectivePacket(UpdateType.REMOVE), player);
+        this.scoreboard.sendPacket(newObjectivePacket(UpdateType.REMOVE), player);
     }
 
     @Override
     public void unsubscribeAll() {
-        scoreboard.broadcastPacket(subscribed, newObjectivePacket(UpdateType.REMOVE));
-        subscribed.clear();
+        this.scoreboard.broadcastPacket(this.subscribed, newObjectivePacket(UpdateType.REMOVE));
+        this.subscribed.clear();
     }
 
     private PacketContainer newObjectivePacket(UpdateType mode) {
@@ -358,7 +358,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
         }
 
         public int getCode() {
-            return code;
+            return this.code;
         }
     }
 

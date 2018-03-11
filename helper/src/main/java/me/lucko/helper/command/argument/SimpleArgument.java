@@ -45,17 +45,17 @@ public class SimpleArgument implements Argument {
 
     @Override
     public int index() {
-        return index;
+        return this.index;
     }
 
     @Nonnull
     @Override
     public Optional<String> value() {
-        return value;
+        return this.value;
     }
 
     @Override
     public boolean isPresent() {
-        return value.isPresent();
+        return this.value.isPresent();
     }
 }

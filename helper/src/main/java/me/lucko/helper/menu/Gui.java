@@ -28,14 +28,13 @@ package me.lucko.helper.menu;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.Events;
-import me.lucko.helper.Scheduler;
+import me.lucko.helper.Schedulers;
 import me.lucko.helper.metadata.Metadata;
 import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.metadata.MetadataMap;
-import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableConsumer;
-import me.lucko.helper.terminable.registry.TerminableRegistry;
-import me.lucko.helper.utils.Color;
+import me.lucko.helper.terminable.composite.CompositeTerminable;
+import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
@@ -99,13 +98,13 @@ public abstract class Gui implements TerminableConsumer {
 
     // Callbacks to be ran when the GUI is invalidated (closed). useful for cancelling tick tasks
     // Also contains the event handlers bound to this GUI, currently listening to events
-    private final TerminableRegistry terminableRegistry = TerminableRegistry.create();
+    private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
     private boolean valid = false;
 
     public Gui(Player player, int lines, String title) {
         this.player = Preconditions.checkNotNull(player, "player");
-        this.initialTitle = Color.colorize(Preconditions.checkNotNull(title, "title"));
+        this.initialTitle = Text.colorize(Preconditions.checkNotNull(title, "title"));
         this.inventory = Bukkit.createInventory(player, lines * 9, this.initialTitle);
         this.slots = new HashMap<>();
     }
@@ -122,7 +121,7 @@ public abstract class Gui implements TerminableConsumer {
      * @return the player viewing this gui
      */
     public Player getPlayer() {
-        return player;
+        return this.player;
     }
 
     /**
@@ -131,7 +130,7 @@ public abstract class Gui implements TerminableConsumer {
      * @return the bukkit inventory being wrapped by this instance
      */
     public Inventory getHandle() {
-        return inventory;
+        return this.inventory;
     }
 
     /**
@@ -140,12 +139,12 @@ public abstract class Gui implements TerminableConsumer {
      * @return the initial title used when this GUI was made
      */
     public String getInitialTitle() {
-        return initialTitle;
+        return this.initialTitle;
     }
 
     @Nullable
     public Function<Player, Gui> getFallbackGui() {
-        return fallbackGui;
+        return this.fallbackGui;
     }
 
     public void setFallbackGui(@Nullable Function<Player, Gui> fallbackGui) {
@@ -154,26 +153,20 @@ public abstract class Gui implements TerminableConsumer {
 
     @Nonnull
     @Override
-    public <T extends Terminable> T bind(@Nonnull T terminable) {
-        return terminableRegistry.bind(terminable);
-    }
-
-    @Nonnull
-    @Override
-    public <T extends Runnable> T bindRunnable(@Nonnull T runnable) {
-        return terminableRegistry.bindRunnable(runnable);
+    public <T extends AutoCloseable> T bind(@Nonnull T terminable) {
+        return this.compositeTerminable.bind(terminable);
     }
 
     public boolean isFirstDraw() {
-        return firstDraw;
+        return this.firstDraw;
     }
 
     public Slot getSlot(int slot) {
-        if (slot < 0 || slot >= inventory.getSize()) {
+        if (slot < 0 || slot >= this.inventory.getSize()) {
             throw new IllegalArgumentException("Invalid slot id: " + slot);
         }
 
-        return slots.computeIfAbsent(slot, i -> new SimpleSlot(this, i));
+        return this.slots.computeIfAbsent(slot, i -> new SimpleSlot(this, i));
     }
 
     public void setItem(int slot, Item item) {
@@ -196,7 +189,7 @@ public abstract class Gui implements TerminableConsumer {
     }
 
     public int getFirstEmpty() {
-        int ret = inventory.firstEmpty();
+        int ret = this.inventory.firstEmpty();
         if (ret < 0) {
             throw new IndexOutOfBoundsException("no empty slots");
         }
@@ -204,7 +197,7 @@ public abstract class Gui implements TerminableConsumer {
     }
 
     public Optional<Slot> getFirstEmptySlot() {
-        int ret = inventory.firstEmpty();
+        int ret = this.inventory.firstEmpty();
         if (ret < 0) {
             return Optional.empty();
         }
@@ -225,7 +218,7 @@ public abstract class Gui implements TerminableConsumer {
 
     public void fillWith(Item item) {
         Preconditions.checkNotNull(item, "item");
-        for (int i = 0; i < inventory.getSize(); ++i) {
+        for (int i = 0; i < this.inventory.getSize(); ++i) {
             setItem(i, item);
         }
     }
@@ -248,16 +241,16 @@ public abstract class Gui implements TerminableConsumer {
     }
 
     public void clearItems() {
-        inventory.clear();
-        slots.values().forEach(Slot::clearBindings);
+        this.inventory.clear();
+        this.slots.values().forEach(Slot::clearBindings);
     }
 
     public void open() {
-        if (valid) {
+        if (this.valid) {
             throw new IllegalStateException("Gui is already opened.");
         }
 
-        firstDraw = true;
+        this.firstDraw = true;
         try {
             redraw();
         } catch (Exception e) {
@@ -266,28 +259,28 @@ public abstract class Gui implements TerminableConsumer {
             return;
         }
 
-        firstDraw = false;
+        this.firstDraw = false;
         startListening();
-        player.openInventory(inventory);
-        Metadata.provideForPlayer(player).put(OPEN_GUI_KEY, this);
-        valid = true;
+        this.player.openInventory(this.inventory);
+        Metadata.provideForPlayer(this.player).put(OPEN_GUI_KEY, this);
+        this.valid = true;
     }
 
     public void close() {
-        player.closeInventory();
+        this.player.closeInventory();
     }
 
     private void invalidate() {
-        valid = false;
+        this.valid = false;
 
-        MetadataMap metadataMap = Metadata.provideForPlayer(player);
+        MetadataMap metadataMap = Metadata.provideForPlayer(this.player);
         Gui existing = metadataMap.getOrNull(OPEN_GUI_KEY);
         if (existing == this) {
             metadataMap.remove(OPEN_GUI_KEY);
         }
 
         // stop listening
-        terminableRegistry.terminate();
+        this.compositeTerminable.closeAndReportException();
 
         // clear all items from the GUI, just in case the menu didn't close properly.
         clearItems();
@@ -298,7 +291,7 @@ public abstract class Gui implements TerminableConsumer {
      * @return true unless this GUI has been invalidated.
      */
     public boolean isValid() {
-        return valid;
+        return this.valid;
     }
 
     /**
@@ -307,7 +300,7 @@ public abstract class Gui implements TerminableConsumer {
     private void startListening() {
         Events.subscribe(InventoryClickEvent.class)
                 .filter(e -> e.getInventory().getHolder() != null)
-                .filter(e -> e.getInventory().getHolder().equals(player))
+                .filter(e -> e.getInventory().getHolder().equals(this.player))
                 .handler(e -> {
                     e.setCancelled(true);
 
@@ -322,7 +315,7 @@ public abstract class Gui implements TerminableConsumer {
                         return;
                     }
 
-                    SimpleSlot slot = slots.get(slotId);
+                    SimpleSlot slot = this.slots.get(slotId);
                     if (slot != null) {
                         slot.handle(e);
                     }
@@ -330,30 +323,30 @@ public abstract class Gui implements TerminableConsumer {
                 .bindWith(this);
 
         Events.subscribe(PlayerQuitEvent.class)
-                .filter(e -> e.getPlayer().equals(player))
+                .filter(e -> e.getPlayer().equals(this.player))
                 .filter(e -> isValid())
                 .handler(e -> invalidate())
                 .bindWith(this);
 
         Events.subscribe(InventoryCloseEvent.class)
-                .filter(e -> e.getPlayer().equals(player))
-                .filter(e -> e.getInventory().equals(inventory))
+                .filter(e -> e.getPlayer().equals(this.player))
+                .filter(e -> e.getInventory().equals(this.inventory))
                 .filter(e -> isValid())
                 .handler(e -> {
                     invalidate();
 
                     // Check for a fallback GUI
-                    Function<Player, Gui> fallback = fallbackGui;
+                    Function<Player, Gui> fallback = this.fallbackGui;
                     if (fallback == null) {
                         return;
                     }
 
                     // Open at a delay
-                    Scheduler.runLaterSync(() -> {
-                        if (!player.isOnline()) {
+                    Schedulers.sync().runLater(() -> {
+                        if (!this.player.isOnline()) {
                             return;
                         }
-                        fallback.apply(player).open();
+                        fallback.apply(this.player).open();
                     }, 1L);
                 })
                 .bindWith(this);

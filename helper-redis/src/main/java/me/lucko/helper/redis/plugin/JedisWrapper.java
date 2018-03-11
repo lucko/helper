@@ -28,12 +28,12 @@ package me.lucko.helper.redis.plugin;
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
-import me.lucko.helper.Scheduler;
+import me.lucko.helper.Schedulers;
 import me.lucko.helper.messaging.AbstractMessenger;
 import me.lucko.helper.messaging.Channel;
 import me.lucko.helper.redis.HelperRedis;
 import me.lucko.helper.redis.RedisCredentials;
-import me.lucko.helper.terminable.registry.TerminableRegistry;
+import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.utils.Log;
 
 import redis.clients.jedis.Jedis;
@@ -53,7 +53,7 @@ public class JedisWrapper implements HelperRedis {
     private final AbstractMessenger messenger;
     private PubSubListener listener = null;
     private Set<String> channels = new HashSet<>();
-    private TerminableRegistry registry = TerminableRegistry.create();
+    private CompositeTerminable registry = CompositeTerminable.create();
 
     public JedisWrapper(@Nonnull RedisCredentials credentials) {
         JedisPoolConfig config = new JedisPoolConfig();
@@ -61,50 +61,50 @@ public class JedisWrapper implements HelperRedis {
 
         // setup jedis
         if (credentials.getPassword().trim().isEmpty()) {
-            jedisPool = new JedisPool(config, credentials.getAddress(), credentials.getPort());
+            this.jedisPool = new JedisPool(config, credentials.getAddress(), credentials.getPort());
         } else {
-            jedisPool = new JedisPool(config, credentials.getAddress(), credentials.getPort(), 2000, credentials.getPassword());
+            this.jedisPool = new JedisPool(config, credentials.getAddress(), credentials.getPort(), 2000, credentials.getPassword());
         }
 
         try (Jedis jedis = this.jedisPool.getResource()) {
             jedis.ping();
         }
 
-        Scheduler.runAsync(new Runnable() {
+        Schedulers.async().run(new Runnable() {
             private boolean broken = false;
 
             @Override
             public void run() {
-                if (broken) {
+                if (this.broken) {
                     Log.info("[helper-redis] Retrying subscription...");
-                    broken = false;
+                    this.broken = false;
                 }
 
                 try (Jedis jedis = getJedis()) {
                     try {
-                        listener = new PubSubListener();
-                        jedis.subscribe(listener, "helper-redis-dummy");
+                        JedisWrapper.this.listener = new PubSubListener();
+                        jedis.subscribe(JedisWrapper.this.listener, "helper-redis-dummy");
                     } catch (Exception e) {
                         // Attempt to unsubscribe this instance and try again.
                         new RuntimeException("Error subscribing to listener", e).printStackTrace();
                         try {
-                            listener.unsubscribe();
+                            JedisWrapper.this.listener.unsubscribe();
                         } catch (Exception ignored) {
 
                         }
-                        listener = null;
-                        broken = true;
+                        JedisWrapper.this.listener = null;
+                        this.broken = true;
                     }
                 }
 
-                if (broken) {
+                if (this.broken) {
                     // reschedule the runnable
-                    Scheduler.runLaterAsync(this, 1L);
+                    Schedulers.async().runLater(this, 1L);
                 }
             }
         });
 
-        Scheduler.runTaskRepeatingAsync(() -> {
+        Schedulers.async().runRepeating(() -> {
             // ensure subscribed to all channels
             PubSubListener listener = JedisWrapper.this.listener;
 
@@ -112,13 +112,13 @@ public class JedisWrapper implements HelperRedis {
                 return;
             }
 
-            for (String channel : channels) {
+            for (String channel : this.channels) {
                 listener.subscribe(channel);
             }
 
-        }, 2L, 2L).bindWith(registry);
+        }, 2L, 2L).bindWith(this.registry);
 
-        messenger = new AbstractMessenger(
+        this.messenger = new AbstractMessenger(
                 (channel, message) -> {
                     try (Jedis jedis = getJedis()) {
                         jedis.publish(channel, message);
@@ -126,12 +126,12 @@ public class JedisWrapper implements HelperRedis {
                 },
                 channel -> {
                     Log.info("[helper-redis] Subscribing to channel: " + channel);
-                    channels.add(channel);
+                    this.channels.add(channel);
                     JedisWrapper.this.listener.subscribe(channel);
                 },
                 channel -> {
                     Log.info("[helper-redis] Unsubscribing from channel: " + channel);
-                    channels.remove(channel);
+                    this.channels.remove(channel);
                     JedisWrapper.this.listener.unsubscribe(channel);
                 }
         );
@@ -140,7 +140,7 @@ public class JedisWrapper implements HelperRedis {
     @Nonnull
     @Override
     public JedisPool getJedisPool() {
-        Preconditions.checkNotNull(jedisPool, "jedisPool");
+        Preconditions.checkNotNull(this.jedisPool, "jedisPool");
         return this.jedisPool;
     }
 
@@ -151,24 +151,23 @@ public class JedisWrapper implements HelperRedis {
     }
 
     @Override
-    public boolean terminate() {
-        if (listener != null) {
-            listener.unsubscribe();
-            listener = null;
+    public void close() throws Exception {
+        if (this.listener != null) {
+            this.listener.unsubscribe();
+            this.listener = null;
         }
 
-        if (jedisPool != null) {
-            jedisPool.close();
-            return true;
+        if (this.jedisPool != null) {
+            this.jedisPool.close();
         }
-        registry.terminate();
-        return false;
+
+        this.registry.close();
     }
 
     @Nonnull
     @Override
     public <T> Channel<T> getChannel(@Nonnull String name, @Nonnull TypeToken<T> type) {
-        return messenger.getChannel(name, type);
+        return this.messenger.getChannel(name, type);
     }
 
     private final class PubSubListener extends JedisPubSub {
@@ -177,7 +176,7 @@ public class JedisWrapper implements HelperRedis {
         @Override
         public void subscribe(String... channels) {
             for (String channel : channels) {
-                if (subscribed.add(channel)) {
+                if (this.subscribed.add(channel)) {
                     super.subscribe(channel);
                 }
             }
@@ -191,13 +190,13 @@ public class JedisWrapper implements HelperRedis {
         @Override
         public void onUnsubscribe(String channel, int subscribedChannels) {
             Log.info("[helper-redis] Unsubscribed from channel: " + channel);
-            subscribed.remove(channel);
+            this.subscribed.remove(channel);
         }
 
         @Override
         public void onMessage(String channel, String message) {
             try {
-                messenger.registerIncomingMessage(channel, message);
+                JedisWrapper.this.messenger.registerIncomingMessage(channel, message);
             } catch (Exception e) {
                 e.printStackTrace();
             }

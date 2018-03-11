@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 
-import me.lucko.helper.Scheduler;
+import me.lucko.helper.Schedulers;
 import me.lucko.helper.gson.GsonProvider;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -89,7 +89,7 @@ public class AbstractMessenger implements Messenger {
         Preconditions.checkNotNull(channel, "channel");
         Preconditions.checkNotNull(message, "message");
 
-        for (Map.Entry<Map.Entry<String, TypeToken<?>>, AbstractChannel<?>> c : channels.asMap().entrySet()) {
+        for (Map.Entry<Map.Entry<String, TypeToken<?>>, AbstractChannel<?>> c : this.channels.asMap().entrySet()) {
             if (c.getKey().getKey().equals(channel)) {
                 c.getValue().onIncomingMessage(message);
             }
@@ -104,7 +104,7 @@ public class AbstractMessenger implements Messenger {
         Preconditions.checkArgument(!name.trim().isEmpty(), "name cannot be empty");
         Preconditions.checkNotNull(type, "type");
 
-        return (Channel<T>) channels.getUnchecked(Maps.immutableEntry(name, type));
+        return (Channel<T>) this.channels.getUnchecked(Maps.immutableEntry(name, type));
     }
 
     private static class AbstractChannel<T> implements Channel<T> {
@@ -125,7 +125,7 @@ public class AbstractMessenger implements Messenger {
                 T decoded = GsonProvider.standard().fromJson(message, this.type.getType());
                 Preconditions.checkNotNull(decoded, "decoded");
 
-                for (AbstractChannelAgent<T> agent : agents) {
+                for (AbstractChannelAgent<T> agent : this.agents) {
                     try {
                         agent.onIncomingMessage(decoded);
                     } catch (Exception e) {
@@ -139,18 +139,18 @@ public class AbstractMessenger implements Messenger {
         }
 
         private void checkSubscription() {
-            boolean shouldSubscribe = agents.stream().anyMatch(AbstractChannelAgent::hasListeners);
-            if (shouldSubscribe == subscribed) {
+            boolean shouldSubscribe = this.agents.stream().anyMatch(AbstractChannelAgent::hasListeners);
+            if (shouldSubscribe == this.subscribed) {
                 return;
             }
-            subscribed = shouldSubscribe;
+            this.subscribed = shouldSubscribe;
 
-            Scheduler.runAsync(() -> {
+            Schedulers.async().run(() -> {
                 try {
                     if (shouldSubscribe) {
-                        messenger.notifySub.accept(this.name);
+                        this.messenger.notifySub.accept(this.name);
                     } else {
-                        messenger.notifyUnsub.accept(this.name);
+                        this.messenger.notifyUnsub.accept(this.name);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -171,7 +171,7 @@ public class AbstractMessenger implements Messenger {
         @Override
         public ChannelAgent<T> newAgent() {
             AbstractChannelAgent<T> agent = new AbstractChannelAgent<>(this);
-            agents.add(agent);
+            this.agents.add(agent);
             return agent;
         }
 
@@ -180,7 +180,7 @@ public class AbstractMessenger implements Messenger {
             return CompletableFuture.supplyAsync(() -> GsonProvider.standard().toJson(message, this.type.getType()))
                     .thenApply(m -> {
                         try {
-                            messenger.outgoingMessages.accept(this.name, m);
+                            this.messenger.outgoingMessages.accept(this.name, m);
                             return true;
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -200,8 +200,8 @@ public class AbstractMessenger implements Messenger {
         }
 
         private void onIncomingMessage(T message) {
-            for (ChannelListener<T> listener : listeners) {
-                Scheduler.runAsync(() -> {
+            for (ChannelListener<T> listener : this.listeners) {
+                Schedulers.async().run(() -> {
                     try {
                         listener.onMessage(this, message);
                     } catch (Exception e) {
@@ -213,52 +213,51 @@ public class AbstractMessenger implements Messenger {
 
         @Override
         public Channel<T> getChannel() {
-            Preconditions.checkState(channel != null, "agent not active");
+            Preconditions.checkState(this.channel != null, "agent not active");
             return this.channel;
         }
 
         @Override
         public Set<ChannelListener<T>> getListeners() {
-            Preconditions.checkState(channel != null, "agent not active");
-            return ImmutableSet.copyOf(listeners);
+            Preconditions.checkState(this.channel != null, "agent not active");
+            return ImmutableSet.copyOf(this.listeners);
         }
 
         @Override
         public boolean hasListeners() {
-            return !listeners.isEmpty();
+            return !this.listeners.isEmpty();
         }
 
         @Override
         public boolean addListener(ChannelListener<T> listener) {
-            Preconditions.checkState(channel != null, "agent not active");
+            Preconditions.checkState(this.channel != null, "agent not active");
             try {
-                return listeners.add(listener);
+                return this.listeners.add(listener);
             } finally {
-                channel.checkSubscription();
+                this.channel.checkSubscription();
             }
         }
 
         @Override
         public boolean removeListener(ChannelListener<T> listener) {
-            Preconditions.checkState(channel != null, "agent not active");
+            Preconditions.checkState(this.channel != null, "agent not active");
             try {
-                return listeners.remove(listener);
+                return this.listeners.remove(listener);
             } finally {
-                channel.checkSubscription();
+                this.channel.checkSubscription();
             }
         }
 
         @Override
-        public boolean terminate() {
-            if (channel == null) {
-                return false;
+        public void close() {
+            if (this.channel == null) {
+                return;
             }
 
-            listeners.clear();
-            channel.agents.remove(this);
-            channel.checkSubscription();
-            channel = null;
-            return true;
+            this.listeners.clear();
+            this.channel.agents.remove(this);
+            this.channel.checkSubscription();
+            this.channel = null;
         }
     }
 

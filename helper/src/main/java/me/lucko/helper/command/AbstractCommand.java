@@ -27,7 +27,7 @@ package me.lucko.helper.command;
 
 import me.lucko.helper.command.context.CommandContext;
 import me.lucko.helper.command.context.ImmutableCommandContext;
-import me.lucko.helper.plugin.ExtendedJavaPlugin;
+import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.CommandMapUtil;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
@@ -51,22 +51,21 @@ public abstract class AbstractCommand implements Command, CommandExecutor {
     private MCTiming timing = null;
 
     @Override
-    public void register(ExtendedJavaPlugin plugin, String... aliases) {
-        plugin.registerCommand(this, aliases);
-        timing = Timings.of("helper-commands: " + plugin.getName() + " - " + Arrays.toString(aliases));
+    public void register(String... aliases) {
+        LoaderUtils.getPlugin().registerCommand(this, aliases);
+        this.timing = Timings.of("helper-commands: " + Arrays.toString(aliases));
     }
 
     @Override
-    public boolean terminate() {
+    public void close() {
         CommandMapUtil.unregisterCommand(this);
-        return true;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
         try {
-            if (timing != null) {
-                timing.startTiming();
+            if (this.timing != null) {
+                this.timing.startTiming();
             }
 
             CommandContext<CommandSender> context = new ImmutableCommandContext<>(sender, label, args);
@@ -80,8 +79,8 @@ public abstract class AbstractCommand implements Command, CommandExecutor {
 
             return true;
         } finally {
-            if (timing != null) {
-                timing.stopTiming();
+            if (this.timing != null) {
+                this.timing.stopTiming();
             }
         }
     }

@@ -23,27 +23,35 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable.registry;
+package me.lucko.helper.terminable.composite;
 
-import me.lucko.helper.terminable.Terminable;
-import me.lucko.helper.terminable.TerminableConsumer;
-import me.lucko.helper.terminable.composite.CompositeTerminableConsumer;
-
-import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Represents a registry of {@link Terminable}s.
+ * Exception thrown to propagate exceptions thrown by
+ * {@link CompositeTerminable#close()}.
  */
-public interface TerminableRegistry extends Terminable, TerminableConsumer, CompositeTerminableConsumer {
+public class CompositeClosingException extends Exception {
+    private final List<? extends Throwable> causes;
 
-    @Nonnull
-    static TerminableRegistry create() {
-        return new SimpleTerminableRegistry();
+    public CompositeClosingException(List<? extends Throwable> causes) {
+        super("Exception(s) occurred whilst closing: " + causes.toString());
+        if (causes.isEmpty()) {
+            throw new IllegalArgumentException("No causes");
+        }
+        this.causes = Collections.unmodifiableList(causes);
     }
 
-    /**
-     * Removes instances which have already been terminated via {@link Terminable#hasTerminated()}
-     */
-    default void cleanup() {}
+    public List<? extends Throwable> getCauses() {
+        return this.causes;
+    }
+
+    public void printAllStackTraces() {
+        this.printStackTrace();
+        for (Throwable cause : this.causes) {
+            cause.printStackTrace();
+        }
+    }
 
 }

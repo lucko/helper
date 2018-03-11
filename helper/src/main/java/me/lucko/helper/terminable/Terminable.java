@@ -25,31 +25,59 @@
 
 package me.lucko.helper.terminable;
 
-import me.lucko.helper.utils.Delegates;
-
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * Represents an object that can be unregistered, stopped, or gracefully halted.
+ * An extension of {@link AutoCloseable}.
  */
 @FunctionalInterface
 public interface Terminable extends AutoCloseable {
-    Terminable EMPTY = () -> true;
+    Terminable EMPTY = () -> {};
 
-    @Nonnull
-    static Terminable of(@Nonnull Runnable r) {
-        return Delegates.runnableToTerminable(r);
+    /**
+     * Closes this resource.
+     */
+    @Override
+    void close() throws Exception;
+
+    /**
+     * Gets if the object represented by this instance is closed already.
+     *
+     * @return true if this terminable has been closed already
+     */
+    default boolean isClosed() {
+        return false;
     }
 
     /**
-     * Terminate this instance
+     * Silently closes this resource, and returns the exception if one is thrown.
      *
-     * @return true if the termination was successful
+     * @return the exception is one is thrown
      */
-    boolean terminate();
+    @Nullable
+    default Exception closeSilently() {
+        try {
+            close();
+            return null;
+        } catch (Exception e) {
+            return e;
+        }
+    }
 
     /**
-     * Registers this terminable with a terminable consumer (usually the plugin instance)
+     * Closes this resource, and prints the exception if one is thrown.
+     */
+    default void closeAndReportException() {
+        try {
+            close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Binds this terminable with a terminable consumer
      *
      * @param consumer the terminable consumer
      */
@@ -57,17 +85,4 @@ public interface Terminable extends AutoCloseable {
         consumer.bind(this);
     }
 
-    /**
-     * Used to help cleanup held terminable instances in registries
-     *
-     * @return true if this terminable has been terminated already
-     */
-    default boolean hasTerminated() {
-        return false;
-    }
-
-    @Override
-    default void close() {
-        terminate();
-    }
 }

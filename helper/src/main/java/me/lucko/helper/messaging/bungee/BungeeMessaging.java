@@ -34,15 +34,14 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
-import me.lucko.helper.Scheduler;
+import me.lucko.helper.Schedulers;
 import me.lucko.helper.internal.LoaderUtils;
-import me.lucko.helper.plugin.ExtendedJavaPlugin;
-import me.lucko.helper.terminable.registry.TerminableRegistry;
+import me.lucko.helper.plugin.HelperPlugin;
+import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.utils.Players;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import java.io.ByteArrayInputStream;
@@ -299,46 +298,42 @@ public final class BungeeMessaging implements PluginMessageListener {
         get().registerListener(customCallback);
     }
 
-    private final Plugin plugin;
-    private final TerminableRegistry terminableRegistry = TerminableRegistry.create();
+    private final HelperPlugin plugin;
+    private final CompositeTerminable terminableRegistry = CompositeTerminable.create();
     private final List<MessageCallback> listeners = new LinkedList<>();
     private final Set<MessageAgent> queuedMessages = ConcurrentHashMap.newKeySet();
     private final ReentrantLock lock = new ReentrantLock();
 
     private BungeeMessaging() {
-        plugin = LoaderUtils.getPlugin();
-        
-        if (plugin instanceof ExtendedJavaPlugin) {
-            ExtendedJavaPlugin ejp = (ExtendedJavaPlugin) plugin;
-            ejp.bindRunnable(() -> {
-                BungeeMessaging.instance = null;
-                terminableRegistry.terminate();
-            });
-        }
+        this.plugin = LoaderUtils.getPlugin();
+        this.plugin.bind(() -> {
+            BungeeMessaging.instance = null;
+            this.terminableRegistry.closeAndReportException();
+        });
 
-        plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, CHANNEL);
-        terminableRegistry.bindRunnable(() -> plugin.getServer().getMessenger().unregisterOutgoingPluginChannel(plugin, CHANNEL));
+        this.plugin.getServer().getMessenger().registerOutgoingPluginChannel(this.plugin, CHANNEL);
+        this.terminableRegistry.bind(() -> this.plugin.getServer().getMessenger().unregisterOutgoingPluginChannel(this.plugin, CHANNEL));
 
-        plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, CHANNEL, this);
-        terminableRegistry.bindRunnable(() -> plugin.getServer().getMessenger().unregisterIncomingPluginChannel(plugin, CHANNEL, this));
+        this.plugin.getServer().getMessenger().registerIncomingPluginChannel(this.plugin, CHANNEL, this);
+        this.terminableRegistry.bind(() -> this.plugin.getServer().getMessenger().unregisterIncomingPluginChannel(this.plugin, CHANNEL, this));
 
-        Scheduler.builder()
+        Schedulers.builder()
                 .sync()
                 .afterAndEvery(3, TimeUnit.SECONDS)
                 .run(() -> {
-                    if (queuedMessages.isEmpty()) {
+                    if (this.queuedMessages.isEmpty()) {
                         return;
                     }
 
                     Player p = Iterables.getFirst(Players.all(), null);
                     if (p != null) {
-                        queuedMessages.removeIf(ma -> {
+                        this.queuedMessages.removeIf(ma -> {
                             sendToChannel(ma, p);
                             return true;
                         });
                     }
                 })
-                .bindWith(terminableRegistry);
+                .bindWith(this.terminableRegistry);
     }
 
     @Override
@@ -355,9 +350,9 @@ public final class BungeeMessaging implements PluginMessageListener {
         // exclude the first value from the input stream
         inputStream.mark(/* ignored */ 0);
 
-        lock.lock();
+        this.lock.lock();
         try {
-            Iterator<MessageCallback> it = listeners.iterator();
+            Iterator<MessageCallback> it = this.listeners.iterator();
             while (it.hasNext()) {
                 MessageCallback e = it.next();
 
@@ -380,7 +375,7 @@ public final class BungeeMessaging implements PluginMessageListener {
                 }
             }
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
@@ -401,7 +396,7 @@ public final class BungeeMessaging implements PluginMessageListener {
             sendToChannel(agent, player);
         } else {
             // no players online, queue the message
-            queuedMessages.add(agent);
+            this.queuedMessages.add(agent);
         }
     }
 
@@ -411,7 +406,7 @@ public final class BungeeMessaging implements PluginMessageListener {
         agent.appendPayload(out);
 
         byte[] data = out.toByteArray();
-        player.sendPluginMessage(plugin, CHANNEL, data);
+        player.sendPluginMessage(this.plugin, CHANNEL, data);
 
         // register listener
         if (agent instanceof MessageCallback) {
@@ -421,11 +416,11 @@ public final class BungeeMessaging implements PluginMessageListener {
     }
 
     private void registerListener(MessageCallback callback) {
-        lock.lock();
+        this.lock.lock();
         try {
-            listeners.add(callback);
+            this.listeners.add(callback);
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
@@ -514,12 +509,12 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public Player getHandle() {
-            return player;
+            return this.player;
         }
 
         @Override
         public void appendPayload(ByteArrayDataOutput out) {
-            out.writeUTF(serverName);
+            out.writeUTF(this.serverName);
         }
     }
 
@@ -541,8 +536,8 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public void appendPayload(ByteArrayDataOutput out) {
-            out.writeUTF(playerName);
-            out.writeUTF(serverName);
+            out.writeUTF(this.playerName);
+            out.writeUTF(this.serverName);
         }
     }
 
@@ -564,19 +559,19 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public Player getHandle() {
-            return player;
+            return this.player;
         }
 
         @Override
         public boolean test(Player receiver, ByteArrayDataInput in) {
-            return receiver.getUniqueId().equals(player.getUniqueId());
+            return receiver.getUniqueId().equals(this.player.getUniqueId());
         }
 
         @Override
         public boolean accept(Player receiver, ByteArrayDataInput in) {
             String ip = in.readUTF();
             int port = in.readInt();
-            callback.accept(Maps.immutableEntry(ip, port));
+            this.callback.accept(Maps.immutableEntry(ip, port));
             return true;
         }
     }
@@ -599,19 +594,19 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public void appendPayload(ByteArrayDataOutput out) {
-            out.writeUTF(serverName);
+            out.writeUTF(this.serverName);
         }
 
         @Override
         public boolean test(Player receiver, ByteArrayDataInput in) {
-            return in.readUTF().equalsIgnoreCase(serverName);
+            return in.readUTF().equalsIgnoreCase(this.serverName);
         }
 
         @Override
         public boolean accept(Player receiver, ByteArrayDataInput in) {
             in.readUTF();
             int count = in.readInt();
-            callback.accept(count);
+            this.callback.accept(count);
             return true;
         }
     }
@@ -634,12 +629,12 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public void appendPayload(ByteArrayDataOutput out) {
-            out.writeUTF(serverName);
+            out.writeUTF(this.serverName);
         }
 
         @Override
         public boolean test(Player receiver, ByteArrayDataInput in) {
-            return in.readUTF().equalsIgnoreCase(serverName);
+            return in.readUTF().equalsIgnoreCase(this.serverName);
         }
 
         @Override
@@ -648,11 +643,11 @@ public final class BungeeMessaging implements PluginMessageListener {
             String csv = in.readUTF();
 
             if (csv.isEmpty()) {
-                callback.accept(ImmutableList.of());
+                this.callback.accept(ImmutableList.of());
                 return true;
             }
 
-            callback.accept(ImmutableList.copyOf(Splitter.on(", ").splitToList(csv)));
+            this.callback.accept(ImmutableList.copyOf(Splitter.on(", ").splitToList(csv)));
             return true;
         }
     }
@@ -676,11 +671,11 @@ public final class BungeeMessaging implements PluginMessageListener {
             String csv = in.readUTF();
 
             if (csv.isEmpty()) {
-                callback.accept(ImmutableList.of());
+                this.callback.accept(ImmutableList.of());
                 return true;
             }
 
-            callback.accept(ImmutableList.copyOf(Splitter.on(", ").splitToList(csv)));
+            this.callback.accept(ImmutableList.copyOf(Splitter.on(", ").splitToList(csv)));
             return true;
         }
     }
@@ -703,8 +698,8 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public void appendPayload(ByteArrayDataOutput out) {
-            out.writeUTF(playerName);
-            out.writeUTF(message);
+            out.writeUTF(this.playerName);
+            out.writeUTF(this.message);
         }
     }
 
@@ -724,7 +719,7 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public boolean accept(Player receiver, ByteArrayDataInput in) {
-            callback.accept(in.readUTF());
+            this.callback.accept(in.readUTF());
             return true;
         }
     }
@@ -747,18 +742,18 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public Player getHandle() {
-            return player;
+            return this.player;
         }
 
         @Override
         public boolean test(Player receiver, ByteArrayDataInput in) {
-            return receiver.getUniqueId().equals(player.getUniqueId());
+            return receiver.getUniqueId().equals(this.player.getUniqueId());
         }
 
         @Override
         public boolean accept(Player receiver, ByteArrayDataInput in) {
             String uuid = in.readUTF();
-            callback.accept(java.util.UUID.fromString(uuid));
+            this.callback.accept(java.util.UUID.fromString(uuid));
             return true;
         }
     }
@@ -781,19 +776,19 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public void appendPayload(ByteArrayDataOutput out) {
-            out.writeUTF(playerName);
+            out.writeUTF(this.playerName);
         }
 
         @Override
         public boolean test(Player receiver, ByteArrayDataInput in) {
-            return in.readUTF().equalsIgnoreCase(playerName);
+            return in.readUTF().equalsIgnoreCase(this.playerName);
         }
 
         @Override
         public boolean accept(Player receiver, ByteArrayDataInput in) {
             in.readUTF();
             String uuid = in.readUTF();
-            callback.accept(java.util.UUID.fromString(uuid));
+            this.callback.accept(java.util.UUID.fromString(uuid));
             return true;
         }
     }
@@ -816,12 +811,12 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public void appendPayload(ByteArrayDataOutput out) {
-            out.writeUTF(serverName);
+            out.writeUTF(this.serverName);
         }
 
         @Override
         public boolean test(Player receiver, ByteArrayDataInput in) {
-            return in.readUTF().equalsIgnoreCase(serverName);
+            return in.readUTF().equalsIgnoreCase(this.serverName);
         }
 
         @Override
@@ -829,7 +824,7 @@ public final class BungeeMessaging implements PluginMessageListener {
             in.readUTF();
             String ip = in.readUTF();
             int port = in.readInt();
-            callback.accept(Maps.immutableEntry(ip, port));
+            this.callback.accept(Maps.immutableEntry(ip, port));
             return true;
         }
     }
@@ -852,8 +847,8 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public void appendPayload(ByteArrayDataOutput out) {
-            out.writeUTF(playerName);
-            out.writeUTF(reason);
+            out.writeUTF(this.playerName);
+            out.writeUTF(this.reason);
         }
     }
 
@@ -883,10 +878,10 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public void appendPayload(ByteArrayDataOutput out) {
-            out.writeUTF(serverName);
-            out.writeUTF(channelName);
-            out.writeShort(data.length);
-            out.write(data);
+            out.writeUTF(this.serverName);
+            out.writeUTF(this.channelName);
+            out.writeShort(this.data.length);
+            out.write(this.data);
         }
     }
 
@@ -916,10 +911,10 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public void appendPayload(ByteArrayDataOutput out) {
-            out.writeUTF(playerName);
-            out.writeUTF(channelName);
-            out.writeShort(data.length);
-            out.write(data);
+            out.writeUTF(this.playerName);
+            out.writeUTF(this.channelName);
+            out.writeShort(this.data.length);
+            out.write(this.data);
         }
     }
 
@@ -934,7 +929,7 @@ public final class BungeeMessaging implements PluginMessageListener {
 
         @Override
         public String getSubChannel() {
-            return subChannel;
+            return this.subChannel;
         }
 
         @Override
@@ -943,7 +938,7 @@ public final class BungeeMessaging implements PluginMessageListener {
             byte[] data = new byte[len];
             in.readFully(data);
 
-            return callback.test(data);
+            return this.callback.test(data);
         }
     }
 

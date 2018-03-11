@@ -27,9 +27,6 @@ package me.lucko.helper.scoreboard;
 
 import me.lucko.helper.cache.Lazy;
 import me.lucko.helper.internal.LoaderUtils;
-import me.lucko.helper.plugin.ExtendedJavaPlugin;
-
-import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Contains a "global" scoreboard instance, lazily loaded on first request.
@@ -42,12 +39,7 @@ public final class GlobalScoreboard {
             throw new IllegalStateException("ProtocolLib not loaded");
         }
 
-        JavaPlugin plugin = LoaderUtils.getPlugin();
-        if (plugin instanceof ExtendedJavaPlugin) {
-            return new PacketScoreboard(((ExtendedJavaPlugin) plugin));
-        } else {
-            return new PacketScoreboard();
-        }
+        return new PacketScoreboard(LoaderUtils.getPlugin());
     });
 
     /**

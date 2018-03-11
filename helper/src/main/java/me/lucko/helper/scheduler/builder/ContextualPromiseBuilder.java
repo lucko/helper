@@ -23,39 +23,28 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.scheduler;
+package me.lucko.helper.scheduler.builder;
 
-import me.lucko.helper.Scheduler;
 import me.lucko.helper.promise.Promise;
-import me.lucko.helper.promise.ThreadContext;
 
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 
-class ContextualPromiseBuilderImpl implements ContextualPromiseBuilder {
-    private final ThreadContext context;
-
-    ContextualPromiseBuilderImpl(ThreadContext context) {
-        this.context = context;
-    }
-
-    @Nonnull
-    @Override
-    public <T> Promise<T> supply(@Nonnull Supplier<T> supplier) {
-        return Scheduler.supply(context, supplier);
-    }
+/**
+ * Builds instances of {@link Promise}, often combining parameters with
+ * variables already known by this instance.
+ */
+public interface ContextualPromiseBuilder {
 
     @Nonnull
-    @Override
-    public <T> Promise<T> call(@Nonnull Callable<T> callable) {
-        return Scheduler.call(context, callable);
-    }
+    <T> Promise<T> supply(@Nonnull Supplier<T> supplier);
 
     @Nonnull
-    @Override
-    public Promise<Void> run(@Nonnull Runnable runnable) {
-        return Scheduler.run(context, runnable);
-    }
+    <T> Promise<T> call(@Nonnull Callable<T> callable);
+
+    @Nonnull
+    Promise<Void> run(@Nonnull Runnable runnable);
+
 }

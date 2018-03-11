@@ -68,7 +68,7 @@ public class Item {
      */
     @Nonnull
     public Map<ClickType, Consumer<InventoryClickEvent>> getHandlers() {
-        return handlers;
+        return this.handlers;
     }
 
     /**
@@ -78,7 +78,7 @@ public class Item {
      */
     @Nonnull
     public ItemStack getItemStack() {
-        return itemStack;
+        return this.itemStack;
     }
 
     /**
@@ -97,9 +97,9 @@ public class Item {
         public Builder bind(@Nonnull ClickType type, @Nullable Consumer<InventoryClickEvent> handler) {
             Preconditions.checkNotNull(type, "type");
             if (handler != null) {
-                handlers.put(type, handler);
+                this.handlers.put(type, handler);
             } else {
-                handlers.remove(type);
+                this.handlers.remove(type);
             }
             return this;
         }
@@ -108,9 +108,9 @@ public class Item {
         public Builder bind(@Nonnull ClickType type, @Nullable Runnable handler) {
             Preconditions.checkNotNull(type, "type");
             if (handler != null) {
-                handlers.put(type, transformRunnable(handler));
+                this.handlers.put(type, transformRunnable(handler));
             } else {
-                handlers.remove(type);
+                this.handlers.remove(type);
             }
             return this;
         }
@@ -151,7 +151,7 @@ public class Item {
 
         @Nonnull
         public Item build() {
-            return new Item(handlers, itemStack);
+            return new Item(this.handlers, this.itemStack);
         }
     }
 

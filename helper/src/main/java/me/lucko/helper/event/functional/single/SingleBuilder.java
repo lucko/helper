@@ -65,13 +65,13 @@ class SingleBuilder<T extends Event> implements SingleSubscriptionBuilder<T> {
         for (ExpiryTestStage testPoint : testPoints) {
             switch (testPoint) {
                 case PRE:
-                    preExpiryTests.add(predicate);
+                    this.preExpiryTests.add(predicate);
                     break;
                 case POST_FILTER:
-                    midExpiryTests.add(predicate);
+                    this.midExpiryTests.add(predicate);
                     break;
                 case POST_HANDLE:
-                    postExpiryTests.add(predicate);
+                    this.postExpiryTests.add(predicate);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown ExpiryTestPoint: " + testPoint);

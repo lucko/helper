@@ -61,12 +61,12 @@ class MutableGsonConverter extends AbstractGsonConverter<HashMap<String, Object>
 
         @Override
         public void put(@Nullable K key, @Nullable V value) {
-            builder.put(key, value);
+            this.builder.put(key, value);
         }
 
         @Override
         public HashMap<K, V> build() {
-            return builder;
+            return this.builder;
         }
     }
 
@@ -75,12 +75,12 @@ class MutableGsonConverter extends AbstractGsonConverter<HashMap<String, Object>
 
         @Override
         public void add(@Nullable E element) {
-            builder.add(element);
+            this.builder.add(element);
         }
 
         @Override
         public ArrayList<E> build() {
-            return builder;
+            return this.builder;
         }
     }
 
@@ -89,12 +89,12 @@ class MutableGsonConverter extends AbstractGsonConverter<HashMap<String, Object>
 
         @Override
         public void add(@Nullable E element) {
-            builder.add(element);
+            this.builder.add(element);
         }
 
         @Override
         public HashSet<E> build() {
-            return builder;
+            return this.builder;
         }
     }
 }

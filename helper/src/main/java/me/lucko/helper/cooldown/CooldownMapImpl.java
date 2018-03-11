@@ -57,7 +57,7 @@ class CooldownMapImpl<T> implements CooldownMap<T> {
     @Nonnull
     @Override
     public Cooldown getBase() {
-        return base;
+        return this.base;
     }
 
     /**
@@ -72,14 +72,14 @@ class CooldownMapImpl<T> implements CooldownMap<T> {
     @Nonnull
     public Cooldown get(@Nonnull T key) {
         Preconditions.checkNotNull(key, "key");
-        return cache.getUnchecked(key);
+        return this.cache.getUnchecked(key);
     }
 
     @Override
     public void put(@Nonnull T key, @Nonnull Cooldown cooldown) {
         Preconditions.checkNotNull(key, "key");
-        Preconditions.checkArgument(cooldown.getTimeout() == base.getTimeout(), "different timeout");
-        cache.put(key, cooldown);
+        Preconditions.checkArgument(cooldown.getTimeout() == this.base.getTimeout(), "different timeout");
+        this.cache.put(key, cooldown);
     }
 
     /**
@@ -89,7 +89,7 @@ class CooldownMapImpl<T> implements CooldownMap<T> {
      */
     @Nonnull
     public Map<T, Cooldown> getAll() {
-        return cache.asMap();
+        return this.cache.asMap();
     }
 
     /* methods from Cooldown */

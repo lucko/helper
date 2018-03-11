@@ -29,6 +29,7 @@ import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
 import net.kyori.text.serializer.ComponentSerializers;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 import java.util.Arrays;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @SuppressWarnings("deprecation")
-public final class TextUtils {
+public final class Text {
 
     public static final char SECTION_CHAR = '\u00A7'; // §
     public static final char AMPERSAND_CHAR = '&';
@@ -73,7 +74,11 @@ public final class TextUtils {
         BukkitTextUtils.sendJsonMessage(senders, message);
     }
 
-    private TextUtils() {
+    public static String colorize(String s) {
+        return s == null ? null : ChatColor.translateAlternateColorCodes(AMPERSAND_CHAR, s);
+    }
+
+    private Text() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 

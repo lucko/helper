@@ -48,13 +48,13 @@ class FunctionalCommand extends AbstractCommand {
 
     @Override
     public void call(@Nonnull CommandContext<?> context) throws CommandInterruptException {
-        for (Predicate<CommandContext<?>> predicate : predicates) {
+        for (Predicate<CommandContext<?>> predicate : this.predicates) {
             if (!predicate.test(context)) {
                 return;
             }
         }
 
         //noinspection unchecked
-        handler.handle(context);
+        this.handler.handle(context);
     }
 }

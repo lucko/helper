@@ -31,7 +31,7 @@ import me.lucko.helper.js.HelperJsPlugin;
 import me.lucko.helper.menu.scheme.MenuScheme;
 import me.lucko.helper.menu.scheme.SchemeMapping;
 import me.lucko.helper.metadata.MetadataKey;
-import me.lucko.helper.utils.Color;
+import me.lucko.helper.text.Text;
 import me.lucko.scriptcontroller.bindings.BindingsBuilder;
 import me.lucko.scriptcontroller.bindings.BindingsSupplier;
 
@@ -52,7 +52,7 @@ public class HelperScriptBindings implements BindingsSupplier {
 
         // provide exports to access the exports registry & core server classes
         bindings.put("server", Bukkit.getServer());
-        bindings.put("plugin", plugin);
+        bindings.put("plugin", this.plugin);
         bindings.put("services", Bukkit.getServicesManager());
 
         // some util functions
@@ -63,7 +63,7 @@ public class HelperScriptBindings implements BindingsSupplier {
     }
 
     private static String colorize(Object object) {
-        return Color.colorize(object.toString());
+        return Text.colorize(object.toString());
     }
 
     private static <T> MetadataKey<T> newMetadataKey(Object id) {

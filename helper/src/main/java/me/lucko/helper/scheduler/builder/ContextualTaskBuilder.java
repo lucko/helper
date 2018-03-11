@@ -23,32 +23,25 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.scheduler.sync;
+package me.lucko.helper.scheduler.builder;
+
+import me.lucko.helper.scheduler.Scheduler;
+import me.lucko.helper.scheduler.Task;
+
+import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
 
 /**
- * A tool to synchronize code with the main server thread
- *
- * <p>It is highly recommended to use this interface with try-with-resource blocks.</p>
- *
- * @see me.lucko.helper.promise.ThreadContext#SYNC
+ * Queues execution of tasks using {@link Scheduler}, often combining parameters with
+ * variables already known by this instance.
  */
-public interface ServerThreadLock extends AutoCloseable {
+public interface ContextualTaskBuilder {
 
-    /**
-     * Blocks the current thread until a {@link ServerThreadLock} can be obtained.
-     *
-     * <p>Will attempt to return immediately if the calling thread is the main thread itself.</p>
-     *
-     * @return a lock
-     */
-    static ServerThreadLock obtain() {
-        return new ServerThreadLockImpl();
-    }
+    @Nonnull
+    Task consume(@Nonnull Consumer<Task> consumer);
 
-    /**
-     * Closes the lock, and allows the main thread to continue
-     */
-    @Override
-    void close();
+    @Nonnull
+    Task run(@Nonnull Runnable runnable);
 
 }

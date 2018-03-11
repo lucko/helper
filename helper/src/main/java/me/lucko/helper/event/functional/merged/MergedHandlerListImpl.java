@@ -48,18 +48,18 @@ class MergedHandlerListImpl<T> implements MergedHandlerList<T> {
     @Override
     public MergedHandlerList<T> biConsumer(@Nonnull BiConsumer<MergedSubscription<T>, ? super T> handler) {
         Preconditions.checkNotNull(handler, "handler");
-        handlers.add(handler);
+        this.handlers.add(handler);
         return this;
     }
 
     @Nonnull
     @Override
     public MergedSubscription<T> register() {
-        if (handlers.isEmpty()) {
+        if (this.handlers.isEmpty()) {
             throw new IllegalStateException("No handlers have been registered");
         }
 
-        HelperMergedEventListener<T> listener = new HelperMergedEventListener<>(builder, handlers);
+        HelperMergedEventListener<T> listener = new HelperMergedEventListener<>(this.builder, this.handlers);
         listener.register(LoaderUtils.getPlugin());
         return listener;
     }

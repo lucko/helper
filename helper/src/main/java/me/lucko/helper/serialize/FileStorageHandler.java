@@ -74,7 +74,7 @@ public abstract class FileStorageHandler<T> {
     protected abstract void saveToFile(Path path, T t);
 
     public Optional<T> load() {
-        File file = new File(dataFolder, fileName + fileExtension);
+        File file = new File(this.dataFolder, this.fileName + this.fileExtension);
         if (file.exists()) {
             return Optional.ofNullable(readFromFile(file.toPath()));
         } else {
@@ -83,13 +83,13 @@ public abstract class FileStorageHandler<T> {
     }
 
     public void saveAndBackup(T data) {
-        dataFolder.mkdirs();
-        File file = new File(dataFolder, fileName + fileExtension);
+        this.dataFolder.mkdirs();
+        File file = new File(this.dataFolder, this.fileName + this.fileExtension);
         if (file.exists()) {
-            File backupDir = new File(dataFolder, "backups");
+            File backupDir = new File(this.dataFolder, "backups");
             backupDir.mkdirs();
 
-            File backupFile = new File(backupDir, fileName + "-" + DATE_FORMAT.format(new Date(System.currentTimeMillis())) + fileExtension);
+            File backupFile = new File(backupDir, this.fileName + "-" + DATE_FORMAT.format(new Date(System.currentTimeMillis())) + this.fileExtension);
 
             try {
                 Files.move(file.toPath(), backupFile.toPath());
@@ -108,8 +108,8 @@ public abstract class FileStorageHandler<T> {
     }
 
     public void save(T data) {
-        dataFolder.mkdirs();
-        File file = new File(dataFolder, fileName + fileExtension);
+        this.dataFolder.mkdirs();
+        File file = new File(this.dataFolder, this.fileName + this.fileExtension);
         if (file.exists()) {
             file.delete();
         }

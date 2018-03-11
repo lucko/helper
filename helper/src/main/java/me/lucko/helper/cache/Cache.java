@@ -58,49 +58,49 @@ public final class Cache<T> implements Supplier<T> {
     @Override
     public T get() {
         // try to just read from the cached value
-        lock.readLock().lock();
+        this.lock.readLock().lock();
         try {
-            if (hasValue) {
-                return value;
+            if (this.hasValue) {
+                return this.value;
             }
         } finally {
             // we have to release the read lock, as it is not possible
             // to acquire the write lock whilst holding a read lock
-            lock.readLock().unlock();
+            this.lock.readLock().unlock();
         }
 
-        lock.writeLock().lock();
+        this.lock.writeLock().lock();
         try {
             // Since the lock was unlocked momentarily, we need
             // to check again for a cached value
-            if (hasValue) {
-                return value;
+            if (this.hasValue) {
+                return this.value;
             }
 
             // call the supplier and set the cached value
-            value = supplier.get();
-            return value;
+            this.value = this.supplier.get();
+            return this.value;
         } finally {
-            lock.writeLock().unlock();
+            this.lock.writeLock().unlock();
         }
     }
 
     public NullableOptional<T> getIfPresent() {
-        lock.readLock().lock();
+        this.lock.readLock().lock();
         try {
-            return hasValue ? NullableOptional.of(value) : NullableOptional.empty();
+            return this.hasValue ? NullableOptional.of(this.value) : NullableOptional.empty();
         } finally {
-            lock.readLock().unlock();
+            this.lock.readLock().unlock();
         }
     }
 
     public void invalidate() {
-        lock.writeLock().lock();
+        this.lock.writeLock().lock();
         try {
-            hasValue = false;
-            value = null;
+            this.hasValue = false;
+            this.value = null;
         } finally {
-            lock.writeLock().unlock();
+            this.lock.writeLock().unlock();
         }
     }
 }

@@ -82,12 +82,12 @@ public class ExpireAfterAccessValue<T> implements TransientValue<T> {
 
         // reset expiry time
         this.expireAt = System.currentTimeMillis() + this.millis;
-        return value;
+        return this.value;
     }
 
     @Override
     public boolean shouldExpire() {
-        return System.currentTimeMillis() > expireAt;
+        return System.currentTimeMillis() > this.expireAt;
     }
 
 }

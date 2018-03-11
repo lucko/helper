@@ -28,7 +28,7 @@ package me.lucko.helper.metadata;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.Events;
-import me.lucko.helper.Scheduler;
+import me.lucko.helper.Schedulers;
 import me.lucko.helper.metadata.type.BlockMetadataRegistry;
 import me.lucko.helper.metadata.type.EntityMetadataRegistry;
 import me.lucko.helper.metadata.type.PlayerMetadataRegistry;
@@ -70,7 +70,7 @@ public final class Metadata {
                     .handler(e -> StandardMetadataRegistries.PLAYER.remove(e.getPlayer().getUniqueId()));
 
             // cache housekeeping task
-            Scheduler.builder()
+            Schedulers.builder()
                     .async()
                     .afterAndEvery(1, TimeUnit.MINUTES)
                     .run(() -> {

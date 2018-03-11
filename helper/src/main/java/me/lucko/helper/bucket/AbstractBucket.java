@@ -102,25 +102,25 @@ public abstract class AbstractBucket<E> extends AbstractSet<E> implements Bucket
 
     @Override
     public int getPartitionCount() {
-        return size;
+        return this.size;
     }
 
     @Nonnull
     @Override
     public BucketPartition<E> getPartition(int index) {
-        return partitionView.get(index);
+        return this.partitionView.get(index);
     }
 
     @Nonnull
     @Override
     public List<BucketPartition<E>> getPartitions() {
-        return partitionView;
+        return this.partitionView;
     }
 
     @Nonnull
     @Override
     public Cycle<BucketPartition<E>> asCycle() {
-        return partitionCycle;
+        return this.partitionCycle;
     }
 
     @Override
@@ -129,21 +129,21 @@ public abstract class AbstractBucket<E> extends AbstractSet<E> implements Bucket
             throw new NullPointerException("Buckets do not accept null elements.");
         }
 
-        if (!content.add(e)) {
+        if (!this.content.add(e)) {
             return false;
         }
 
-        partitions.get(strategy.allocate(e, this)).add(e);
+        this.partitions.get(this.strategy.allocate(e, this)).add(e);
         return true;
     }
 
     @Override
     public boolean remove(Object o) {
-        if (!content.remove(o)) {
+        if (!this.content.remove(o)) {
            return false;
         }
 
-        for (Set<E> partition : partitions) {
+        for (Set<E> partition : this.partitions) {
             partition.remove(o);
         }
 
@@ -152,10 +152,10 @@ public abstract class AbstractBucket<E> extends AbstractSet<E> implements Bucket
 
     @Override
     public void clear() {
-        for (Set<E> partition : partitions) {
+        for (Set<E> partition : this.partitions) {
             partition.clear();
         }
-        content.clear();
+        this.content.clear();
     }
 
     @Nonnull
@@ -168,17 +168,17 @@ public abstract class AbstractBucket<E> extends AbstractSet<E> implements Bucket
 
     @Override
     public int size() {
-        return content.size();
+        return this.content.size();
     }
 
     @Override
     public boolean isEmpty() {
-        return content.isEmpty();
+        return this.content.isEmpty();
     }
 
     @Override
     public boolean contains(Object o) {
-        return content.contains(o);
+        return this.content.contains(o);
     }
 
 
@@ -189,39 +189,39 @@ public abstract class AbstractBucket<E> extends AbstractSet<E> implements Bucket
      * elements are also removed from their backing partition.
      */
     private final class BucketIterator implements Iterator<E> {
-        private final Iterator<E> delegate = content.iterator();
+        private final Iterator<E> delegate = AbstractBucket.this.content.iterator();
         private E current;
 
         @Override
         public boolean hasNext() {
-            return delegate.hasNext();
+            return this.delegate.hasNext();
         }
 
         @Override
         public E next() {
             // track the iterators cursor to handle #remove calls
-            current = delegate.next();
-            return current;
+            this.current = this.delegate.next();
+            return this.current;
         }
 
         @Override
         public void remove() {
-            if (current == null) {
+            if (this.current == null) {
                 throw new IllegalStateException();
             }
 
             // remove from the global collection
-            delegate.remove();
+            this.delegate.remove();
 
             // also remove the element from it's contained partition
-            for (Set<E> partition : partitions) {
-                partition.remove(current);
+            for (Set<E> partition : AbstractBucket.this.partitions) {
+                partition.remove(this.current);
             }
         }
 
         @Override
         public void forEachRemaining(Consumer<? super E> action) {
-            delegate.forEachRemaining(action);
+            this.delegate.forEachRemaining(action);
         }
     }
 
@@ -237,73 +237,73 @@ public abstract class AbstractBucket<E> extends AbstractSet<E> implements Bucket
 
         private SetView(Set<E> backing) {
             this.backing = backing;
-            this.index = partitions.indexOf(backing);
+            this.index = AbstractBucket.this.partitions.indexOf(backing);
         }
 
         @Override
         public int getPartitionIndex() {
-            return index;
+            return this.index;
         }
 
         @Override
         public Iterator<E> iterator() {
-            return new SetViewIterator(backing.iterator());
+            return new SetViewIterator(this.backing.iterator());
         }
 
         @Override
         public boolean remove(Object o) {
-            if (!backing.remove(o)) {
+            if (!this.backing.remove(o)) {
                 return false;
             }
 
             // also remove from the bucket content set
-            content.remove(o);
+            AbstractBucket.this.content.remove(o);
             return true;
         }
 
         @Override
         public void clear() {
             // remove the content of the backing from the bucket content set
-            content.removeAll(backing);
+            AbstractBucket.this.content.removeAll(this.backing);
             // then clear the backing
-            backing.clear();
+            this.backing.clear();
         }
 
         // just delegate
 
         @Override
         public int size() {
-            return backing.size();
+            return this.backing.size();
         }
 
         @Override
         public boolean isEmpty() {
-            return backing.isEmpty();
+            return this.backing.isEmpty();
         }
 
         @Override
         public boolean contains(Object o) {
-            return backing.contains(o);
+            return this.backing.contains(o);
         }
 
         @Override
         public Object[] toArray() {
-            return backing.toArray();
+            return this.backing.toArray();
         }
 
         @Override
         public <T> T[] toArray(@Nonnull T[] a) {
-            return backing.toArray(a);
+            return this.backing.toArray(a);
         }
 
         @Override
         public boolean containsAll(@Nonnull Collection<?> c) {
-            return backing.containsAll(c);
+            return this.backing.containsAll(c);
         }
 
         @Override
         public int hashCode() {
-            return backing.hashCode();
+            return this.backing.hashCode();
         }
     }
 
@@ -321,32 +321,32 @@ public abstract class AbstractBucket<E> extends AbstractSet<E> implements Bucket
 
         @Override
         public boolean hasNext() {
-            return delegate.hasNext();
+            return this.delegate.hasNext();
         }
 
         @Override
         public E next() {
             // track the iterators cursor to handle #remove calls
-            current = delegate.next();
-            return current;
+            this.current = this.delegate.next();
+            return this.current;
         }
 
         @Override
         public void remove() {
-            if (current == null) {
+            if (this.current == null) {
                 throw new IllegalStateException();
             }
 
             // remove from the backing partition
-            delegate.remove();
+            this.delegate.remove();
 
             // also remove from the bucket content set
-            content.remove(current);
+            AbstractBucket.this.content.remove(this.current);
         }
 
         @Override
         public void forEachRemaining(Consumer<? super E> action) {
-            delegate.forEachRemaining(action);
+            this.delegate.forEachRemaining(action);
         }
     }
 

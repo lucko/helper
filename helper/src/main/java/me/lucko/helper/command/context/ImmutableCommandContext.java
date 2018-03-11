@@ -49,13 +49,13 @@ public class ImmutableCommandContext<T extends CommandSender> implements Command
     @Nonnull
     @Override
     public T sender() {
-        return sender;
+        return this.sender;
     }
 
     @Nonnull
     @Override
     public ImmutableList<String> args() {
-        return args;
+        return this.args;
     }
 
     @Nonnull
@@ -67,15 +67,15 @@ public class ImmutableCommandContext<T extends CommandSender> implements Command
     @Nullable
     @Override
     public String rawArg(int index) {
-        if (index < 0 || index >= args.size()) {
+        if (index < 0 || index >= this.args.size()) {
             return null;
         }
-        return args.get(index);
+        return this.args.get(index);
     }
 
     @Nonnull
     @Override
     public String label() {
-        return label;
+        return this.label;
     }
 }

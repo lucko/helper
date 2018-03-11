@@ -43,28 +43,28 @@ final class SimpleMetadataKey<T> implements MetadataKey<T> {
 
     @Override
     public String getId() {
-        return id;
+        return this.id;
     }
 
     @Override
     public TypeToken<T> getType() {
-        return type;
+        return this.type;
     }
 
     @Override
     public T cast(Object object) throws ClassCastException {
         Preconditions.checkNotNull(object, "object");
         //noinspection unchecked
-        return (T) type.getRawType().cast(object);
+        return (T) this.type.getRawType().cast(object);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof SimpleMetadataKey && ((SimpleMetadataKey) obj).getId().equals(id);
+        return obj instanceof SimpleMetadataKey && ((SimpleMetadataKey) obj).getId().equals(this.id);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return this.id.hashCode();
     }
 }
