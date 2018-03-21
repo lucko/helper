@@ -26,10 +26,8 @@
 package me.lucko.helper.plugin;
 
 import me.lucko.helper.Commands;
-import me.lucko.helper.Helper;
+import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.utils.Players;
-
-import org.bukkit.plugin.Plugin;
 
 /**
  * Dummy plugin to make the server load this lib.
@@ -46,11 +44,9 @@ public class DummyHelperPlugin extends ExtendedJavaPlugin {
         Commands.create()
                 .handler(c -> {
                     Players.msg(c.sender(), "&7[&6helper&7] &7Running &6helper v" + getDescription().getVersion() + "&7.");
-                    for (Plugin pl : Helper.plugins().getPlugins()) {
-                        if (pl.getName().toLowerCase().startsWith("helper-")) {
-                            Players.msg(c.sender(), "&7[&6helper&7] &7Running &6" + pl.getName() + " v" + pl.getDescription().getVersion() + "&7.");
-                        }
-                    }
+                    LoaderUtils.getHelperImplementationPlugins().forEach(pl -> {
+                        Players.msg(c.sender(), "&7[&6helper&7] &7Running &6" + pl.getName() + " v" + pl.getDescription().getVersion() + "&7.");
+                    });
                 })
                 .register("helper");
     }
