@@ -25,12 +25,14 @@
 
 package me.lucko.helper.internal;
 
+import com.google.common.collect.Streams;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import me.lucko.helper.Helper;
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.gson.GsonSerializableConfigurateProxy;
 import me.lucko.helper.gson.configurate.JsonArraySerializer;
@@ -40,10 +42,16 @@ import me.lucko.helper.gson.configurate.JsonPrimitiveSerializer;
 import me.lucko.helper.plugin.HelperPlugin;
 
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializerCollection;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
@@ -66,6 +74,23 @@ public final class LoaderUtils {
             setup();
         }
         return plugin;
+    }
+
+    public static Set<Plugin> getHelperImplementationPlugins() {
+        return Streams.concat(
+                Stream.<Plugin>of(getPlugin()),
+                Arrays.stream(Helper.plugins().getPlugins())
+                        .filter(pl -> pl.getName().toLowerCase().startsWith("helper-"))
+        ).collect(Collectors.toSet());
+    }
+
+    public static Set<HelperPlugin> getHelperPlugins() {
+        return Streams.concat(
+                Stream.of(getPlugin()),
+                Arrays.stream(Helper.plugins().getPlugins())
+                        .filter(pl -> pl instanceof HelperPlugin)
+                        .map(pl -> (HelperPlugin) pl)
+        ).collect(Collectors.toSet());
     }
 
     @Nonnull
