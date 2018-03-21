@@ -18,6 +18,10 @@
     <description>JavaScript plugins using Nashorn.</description>
     <url>https://github.com/lucko/helper</url>
 
+    <properties>
+        <shade.pattern>me.lucko.helper.js.external.</shade.pattern>
+    </properties>
+
     <build>
         <defaultGoal>clean package</defaultGoal>
         <finalName>${project.name}</finalName>
@@ -68,6 +72,12 @@
                         <configuration>
                             <minimizeJar>false</minimizeJar>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>io.github.lukehutch.fastclasspathscanner</pattern>
+                                    <shadedPattern>${shade.pattern}fcs</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -116,7 +126,13 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>scriptcontroller</artifactId>
-            <version>1.0</version>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.lukehutch</groupId>
+            <artifactId>fast-classpath-scanner</artifactId>
+            <version>2.9.5</version>
             <scope>compile</scope>
         </dependency>
 
