@@ -6,5 +6,8 @@
 # or as a path relative to the root server directory.
 script-directory: 'plugins/helper-js/scripts/'
 
+# The name of the init script
+init-script: init.js
+
 # How often to poll for script changes
 poll-interval: 20
