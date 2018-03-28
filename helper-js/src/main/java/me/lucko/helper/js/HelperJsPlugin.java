@@ -89,7 +89,8 @@ public class HelperJsPlugin extends ExtendedJavaPlugin implements ScriptLoadingE
             // exclude craftbukkit classes
             "-org.bukkit.craftbukkit",
             // exclude helper-js dependencies (the classpath scanner itself)
-            "-me.lucko.helper.js.external"};
+            "-me.lucko.helper.js.external"
+    };
 
     private ScriptController controller;
     private ScriptEnvironment environment;
@@ -125,6 +126,7 @@ public class HelperJsPlugin extends ExtendedJavaPlugin implements ScriptLoadingE
                         .loadExecutor(this)
                         .runExecutor(Schedulers.sync())
                         .pollRate(Ticks.to(config.getLong("poll-interval", 20L), TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
+                        .initScript(config.getString("init-script", "init.js"))
                         .withBindings(new GeneralScriptBindings())
                         .withBindings(new HelperScriptBindings(this))
                         .withDefaultPackageImports(defaultPackages)
