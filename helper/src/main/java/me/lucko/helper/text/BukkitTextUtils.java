@@ -25,7 +25,7 @@
 
 package me.lucko.helper.text;
 
-import me.lucko.helper.utils.NmsUtil;
+import me.lucko.helper.reflect.ServerReflection;
 
 import net.kyori.text.Component;
 import net.kyori.text.serializer.ComponentSerializers;
@@ -45,7 +45,7 @@ import java.util.Collections;
  */
 class BukkitTextUtils {
 
-    private static final boolean CHAT_COMPATIBLE = !NmsUtil.getServerVersion().startsWith("v1_7_");
+    private static final boolean CHAT_COMPATIBLE = !ServerReflection.getServerVersion().startsWith("v1_7_");
 
     private static boolean setup = false;
     private static boolean triedAndFailed = false;
@@ -75,7 +75,7 @@ class BukkitTextUtils {
             }
         }
 
-        Class<?> packetChatClass = NmsUtil.nmsClass("PacketPlayOutChat");
+        Class<?> packetChatClass = ServerReflection.nmsClass("PacketPlayOutChat");
         Constructor[] packetConstructors = packetChatClass.getDeclaredConstructors();
         for (Constructor c : packetConstructors) {
             Class<?>[] parameters = c.getParameterTypes();
@@ -85,14 +85,14 @@ class BukkitTextUtils {
             }
         }
 
-        Class<?> baseComponentClass = NmsUtil.nmsClass("IChatBaseComponent");
+        Class<?> baseComponentClass = ServerReflection.nmsClass("IChatBaseComponent");
         Class<?> chatSerializerClass;
 
         if (baseComponentClass.getClasses().length > 0) {
             chatSerializerClass = baseComponentClass.getClasses()[0];
         } else {
             // 1.7 class is here instead.
-            chatSerializerClass = NmsUtil.nmsClass("ChatSerializer");
+            chatSerializerClass = ServerReflection.nmsClass("ChatSerializer");
         }
 
         SERIALIZE_METHOD = chatSerializerClass.getDeclaredMethod("a", String.class);

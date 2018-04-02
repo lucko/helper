@@ -26,7 +26,6 @@
 package me.lucko.helper.command.functional;
 
 import me.lucko.helper.command.Command;
-import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.command.CommandSender;
@@ -214,7 +213,7 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
     /**
      * Builds this {@link FunctionalCommandBuilder} into a {@link Command} instance.
      *
-     * The command will not be registered with the server until {@link Command#register(ExtendedJavaPlugin, String...)} is called.
+     * The command will not be registered with the server until {@link Command#register(String...)} is called.
      *
      * @param handler the command handler
      * @return the command instance.

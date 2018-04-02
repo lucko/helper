@@ -34,13 +34,6 @@
                 </includes>
             </resource>
             <resource>
-                <filtering>false</filtering>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>header.js</include>
-                </includes>
-            </resource>
-            <resource>
                 <directory>../</directory>
                 <filtering>false</filtering>
                 <includes>
@@ -126,7 +119,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>scriptcontroller</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

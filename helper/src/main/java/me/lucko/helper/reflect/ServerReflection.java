@@ -23,77 +23,132 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.reflect;
 
 import org.bukkit.Bukkit;
 
 import javax.annotation.Nonnull;
 
-public final class NmsUtil {
+/**
+ * Utility methods for working with "versioned" server classes.
+ *
+ * <p>Internal classes within the Minecraft server and CraftBukkit are relocated at build time
+ * to prevent developers from relying upon server internals. It is however sometimes useful to be
+ * able to interact with these classes (via reflection).</p>
+ */
+public final class ServerReflection {
 
+    /**
+     * The nms prefix (without the version component)
+     */
     public static final String NMS = "net.minecraft.server";
+
+    /**
+     * The obc prefix (without the version component)
+     */
     public static final String OBC = "org.bukkit.craftbukkit";
 
+    /**
+     * The server's "nms" version
+     */
     private static final String SERVER_VERSION;
+
+    /**
+     * The package component of the versioned nms/obc prefix
+     */
     private static final String SERVER_VERSION_PACKAGE_COMPONENT;
 
-    private static final String NMS_PREFIX;
-    private static final String OBC_PREFIX;
+    /**
+     * The versioned nms prefix
+     */
+    private static final String VERSIONED_NMS;
+
+    /**
+     * The versioned obc prefix
+     */
+    private static final String VERSIONED_OBC;
 
     static {
         String serverVersion = "";
-
-        Class<?> server = Bukkit.getServer().getClass();
-
         // check we're dealing with a "CraftServer" and that the server isn't non-versioned.
+        Class<?> server = Bukkit.getServer().getClass();
         if (server.getSimpleName().equals("CraftServer") && !server.getName().equals("org.bukkit.craftbukkit.CraftServer")) {
             String obcPackage = server.getPackage().getName();
-
             // check we're dealing with a craftbukkit implementation.
             if (obcPackage.startsWith("org.bukkit.craftbukkit.")) {
                 // return the nms version.
                 serverVersion = obcPackage.substring("org.bukkit.craftbukkit.".length());
             }
         }
-
         SERVER_VERSION = serverVersion;
 
+        // build the "package component" string
         if (SERVER_VERSION.isEmpty()) {
             SERVER_VERSION_PACKAGE_COMPONENT = ".";
         } else {
             SERVER_VERSION_PACKAGE_COMPONENT = "." + SERVER_VERSION + ".";
         }
 
-        NMS_PREFIX = NMS + SERVER_VERSION_PACKAGE_COMPONENT;
-        OBC_PREFIX = OBC + SERVER_VERSION_PACKAGE_COMPONENT;
+        // create the versioned nms/obc prefixes using the package component string
+        VERSIONED_NMS = NMS + SERVER_VERSION_PACKAGE_COMPONENT;
+        VERSIONED_OBC = OBC + SERVER_VERSION_PACKAGE_COMPONENT;
     }
 
+    /**
+     * Gets the server "nms" version.
+     *
+     * @return the server packaging version
+     */
     @Nonnull
     public static String getServerVersion() {
         return SERVER_VERSION;
     }
 
+    /**
+     * Prepends the versioned {@link #NMS} prefix to the given class name
+     *
+     * @param className the name of the class
+     * @return the full class name
+     */
     @Nonnull
     public static String nms(String className) {
-        return NMS_PREFIX.concat(className);
+        return VERSIONED_NMS + className;
     }
 
+    /**
+     * Prepends the versioned {@link #NMS} prefix to the given class name
+     *
+     * @param className the name of the class
+     * @return the class represented by the full class name
+     */
     @Nonnull
     public static Class<?> nmsClass(String className) throws ClassNotFoundException {
         return Class.forName(nms(className));
     }
 
+    /**
+     * Prepends the versioned {@link #OBC} prefix to the given class name
+     *
+     * @param className the name of the class
+     * @return the full class name
+     */
     @Nonnull
     public static String obc(String className) {
-        return OBC_PREFIX.concat(className);
+        return VERSIONED_OBC + className;
     }
 
+    /**
+     * Prepends the versioned {@link #OBC} prefix to the given class name
+     *
+     * @param className the name of the class
+     * @return the class represented by the full class name
+     */
     @Nonnull
     public static Class<?> obcClass(String className) throws ClassNotFoundException {
         return Class.forName(obc(className));
     }
 
-    private NmsUtil() {
+    private ServerReflection() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 
