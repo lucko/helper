@@ -75,7 +75,7 @@ import javax.annotation.Nonnull;
 /**
  * Uses {@link ScriptController} and helper to provide a javascript plugin environment for Bukkit.
  */
-public class HelperJsPlugin extends ExtendedJavaPlugin implements ScriptLoadingExecutor {
+public class HelperJsPlugin extends ExtendedJavaPlugin implements HelperJs {
 
     /**
      * The packages to import by default when each script is executed.
@@ -123,7 +123,7 @@ public class HelperJsPlugin extends ExtendedJavaPlugin implements ScriptLoadingE
         this.controller = ScriptController.builder()
                 .logger(SystemLogger.usingJavaLogger(getLogger()))
                 .defaultEnvironmentSettings(EnvironmentSettings.builder()
-                        .loadExecutor(this)
+                        .loadExecutor(new HelperLoadingExecutor())
                         .runExecutor(Schedulers.sync())
                         .pollRate(Ticks.to(config.getLong("poll-interval", 20L), TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
                         .initScript(config.getString("init-script", "init.js"))
@@ -157,23 +157,35 @@ public class HelperJsPlugin extends ExtendedJavaPlugin implements ScriptLoadingE
     }
 
     @Override
-    public AutoCloseable scheduleAtFixedRate(Runnable runnable, long l, TimeUnit timeUnit) {
-        return Schedulers.builder()
-                .async()
-                .after(0L)
-                .every(l, timeUnit)
-                .run(runnable);
+    public ScriptController getController() {
+        return this.controller;
     }
 
     @Override
-    public void execute(@Nonnull Runnable command) {
-        Schedulers.async().run(command);
+    public ScriptEnvironment getEnvironment() {
+        return this.environment;
+    }
+
+    private static final class HelperLoadingExecutor implements ScriptLoadingExecutor {
+        @Override
+        public AutoCloseable scheduleAtFixedRate(Runnable runnable, long l, TimeUnit timeUnit) {
+            return Schedulers.builder()
+                    .async()
+                    .after(0L)
+                    .every(l, timeUnit)
+                    .run(runnable);
+        }
+
+        @Override
+        public void execute(@Nonnull Runnable command) {
+            Schedulers.async().run(command);
+        }
     }
 
     /**
      * Some misc functions to help with using Java collections in JS
      */
-    public static class GeneralScriptBindings implements BindingsSupplier {
+    private static final class GeneralScriptBindings implements BindingsSupplier {
         private static final Supplier<ArrayList> ARRAY_LIST = ArrayList::new;
         private static final Supplier<LinkedList> LINKED_LIST = LinkedList::new;
         private static final Supplier<HashSet> HASH_SET = HashSet::new;
@@ -213,10 +225,10 @@ public class HelperJsPlugin extends ExtendedJavaPlugin implements ScriptLoadingE
     /**
      * Script bindings for helper utilities
      */
-    public static class HelperScriptBindings implements BindingsSupplier {
+    private static final class HelperScriptBindings implements BindingsSupplier {
         private final HelperJsPlugin plugin;
 
-        public HelperScriptBindings(HelperJsPlugin plugin) {
+        private HelperScriptBindings(HelperJsPlugin plugin) {
             this.plugin = plugin;
         }
 

@@ -249,10 +249,27 @@ public final class Predicates {
     }
 
     private enum ObjectPredicate implements Predicate<Object> {
-        ALWAYS_TRUE { public boolean test(Object o) { return true; } },
-        ALWAYS_FALSE { public boolean test(Object o) { return false; } },
-        IS_NULL { public boolean test(Object o) { return o == null; } },
-        NOT_NULL { public boolean test(Object o) { return o != null; } };
+        ALWAYS_TRUE {
+            @Override public boolean test(Object o) { return true; }
+            @Override public Predicate<? super Object> and(Predicate<? super Object> other) { return other; }
+            @Override public Predicate<? super Object> or(Predicate<? super Object> other) { return this; }
+            @Override public Predicate<? super Object> negate() { return ALWAYS_FALSE; }
+        },
+        ALWAYS_FALSE {
+            @Override public boolean test(Object o) { return false; }
+            @Override public Predicate<? super Object> and(Predicate<? super Object> other) { return this; }
+            @Override public Predicate<? super Object> or(Predicate<? super Object> other) { return other; }
+            @Override public Predicate<? super Object> negate() { return ALWAYS_TRUE; }
+        },
+
+        IS_NULL {
+            @Override public boolean test(Object o) { return o == null; }
+            @Override public Predicate<? super Object> negate() { return NOT_NULL; }
+        },
+        NOT_NULL {
+            @Override public boolean test(Object o) { return o != null; }
+            @Override public Predicate<? super Object> negate() { return IS_NULL; }
+        };
 
         <T> Predicate<T> cast() {
             //noinspection unchecked
