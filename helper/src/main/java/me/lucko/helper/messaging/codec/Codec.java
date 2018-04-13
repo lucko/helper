@@ -23,60 +23,31 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.messaging;
-
-import me.lucko.helper.terminable.Terminable;
-
-import java.util.Set;
-
-import javax.annotation.Nonnull;
+package me.lucko.helper.messaging.codec;
 
 /**
- * Represents an agent for interacting with a {@link Channel}s message streams.
+ * An object responsible for encoding and decoding a given type of message.
  *
- * @param <T> the channel message type
+ * @param <M> the message type
  */
-public interface ChannelAgent<T> extends Terminable {
+public interface Codec<M> {
 
     /**
-     * Gets the channel this agent is acting for.
+     * Encodes the message.
      *
-     * @return the parent channel
+     * @param message the message object
+     * @return the encoded form
+     * @throws EncodingException if encoding failed
      */
-    @Nonnull
-    Channel<T> getChannel();
+    byte[] encode(M message) throws EncodingException;
 
     /**
-     * Gets an immutable copy of the listeners currently held by this agent.
+     * Decodes the message.
      *
-     * @return the active listeners
+     * @param buf the encoded message
+     * @return the decoded object
+     * @throws EncodingException if decoding failed
      */
-    @Nonnull
-    Set<ChannelListener<T>> getListeners();
+    M decode(byte[] buf) throws EncodingException;
 
-    /**
-     * Gets if this agent has any active listeners.
-     *
-     * @return true if this agent has listeners
-     */
-    boolean hasListeners();
-
-    /**
-     * Adds a new listener to the channel;
-     *
-     * @param listener the listener to add
-     * @return true if successful
-     */
-    boolean addListener(@Nonnull ChannelListener<T> listener);
-
-    /**
-     * Removes a listener from the channel.
-     *
-     * @param listener the listener to remove
-     * @return true if successful
-     */
-    boolean removeListener(@Nonnull ChannelListener<T> listener);
-
-    @Override
-    void close();
 }

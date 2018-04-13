@@ -23,60 +23,24 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.messaging;
+package me.lucko.helper.messaging.codec;
 
-import me.lucko.helper.terminable.Terminable;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.util.Set;
-
-import javax.annotation.Nonnull;
-
-/**
- * Represents an agent for interacting with a {@link Channel}s message streams.
- *
- * @param <T> the channel message type
- */
-public interface ChannelAgent<T> extends Terminable {
+@Documented
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Message {
 
     /**
-     * Gets the channel this agent is acting for.
+     * Gets the codec used by this message.
      *
-     * @return the parent channel
+     * @return the codec
      */
-    @Nonnull
-    Channel<T> getChannel();
+    Class<? extends Codec<?>> codec();
 
-    /**
-     * Gets an immutable copy of the listeners currently held by this agent.
-     *
-     * @return the active listeners
-     */
-    @Nonnull
-    Set<ChannelListener<T>> getListeners();
-
-    /**
-     * Gets if this agent has any active listeners.
-     *
-     * @return true if this agent has listeners
-     */
-    boolean hasListeners();
-
-    /**
-     * Adds a new listener to the channel;
-     *
-     * @param listener the listener to add
-     * @return true if successful
-     */
-    boolean addListener(@Nonnull ChannelListener<T> listener);
-
-    /**
-     * Removes a listener from the channel.
-     *
-     * @param listener the listener to remove
-     * @return true if successful
-     */
-    boolean removeListener(@Nonnull ChannelListener<T> listener);
-
-    @Override
-    void close();
 }
