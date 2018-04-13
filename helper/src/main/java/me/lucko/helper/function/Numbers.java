@@ -25,10 +25,9 @@
 
 package me.lucko.helper.function;
 
-import com.google.common.base.Preconditions;
-
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
@@ -47,7 +46,7 @@ public final class Numbers {
 
     @Nullable
     public static Number parseNullable(@Nonnull String s) {
-        Preconditions.checkNotNull(s);
+        Objects.requireNonNull(s);
         try {
             return NumberFormat.getInstance().parse(s);
         } catch (ParseException e) {
@@ -64,7 +63,7 @@ public final class Numbers {
 
     @Nullable
     public static Integer parseIntegerNullable(@Nonnull String s) {
-        Preconditions.checkNotNull(s);
+        Objects.requireNonNull(s);
         try {
             return Integer.parseInt(s);
         } catch (NumberFormatException e) {
@@ -90,7 +89,7 @@ public final class Numbers {
 
     @Nullable
     public static Long parseLongNullable(@Nonnull String s) {
-        Preconditions.checkNotNull(s);
+        Objects.requireNonNull(s);
         try {
             return Long.parseLong(s);
         } catch (NumberFormatException e) {
@@ -116,7 +115,7 @@ public final class Numbers {
 
     @Nullable
     public static Float parseFloatNullable(@Nonnull String s) {
-        Preconditions.checkNotNull(s);
+        Objects.requireNonNull(s);
         try {
             return Float.parseFloat(s);
         } catch (NumberFormatException e) {
@@ -142,7 +141,7 @@ public final class Numbers {
 
     @Nullable
     public static Double parseDoubleNullable(@Nonnull String s) {
-        Preconditions.checkNotNull(s);
+        Objects.requireNonNull(s);
         try {
             return Double.parseDouble(s);
         } catch (NumberFormatException e) {
@@ -168,7 +167,7 @@ public final class Numbers {
 
     @Nullable
     public static Byte parseByteNullable(@Nonnull String s) {
-        Preconditions.checkNotNull(s);
+        Objects.requireNonNull(s);
         try {
             return Byte.parseByte(s);
         } catch (NumberFormatException e) {

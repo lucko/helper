@@ -42,6 +42,7 @@ import me.lucko.helper.promise.Promise;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
@@ -77,9 +78,9 @@ public class AbstractMessenger implements Messenger {
      * @param notifyUnsub the consumer to pass the names of channels which should be unsubscribed from
      */
     public AbstractMessenger(BiConsumer<String, byte[]> outgoingMessages, Consumer<String> notifySub, Consumer<String> notifyUnsub) {
-        this.outgoingMessages = Preconditions.checkNotNull(outgoingMessages, "outgoingMessages");
-        this.notifySub = Preconditions.checkNotNull(notifySub, "notifySub");
-        this.notifyUnsub = Preconditions.checkNotNull(notifyUnsub, "notifyUnsub");
+        this.outgoingMessages = Objects.requireNonNull(outgoingMessages, "outgoingMessages");
+        this.notifySub = Objects.requireNonNull(notifySub, "notifySub");
+        this.notifyUnsub = Objects.requireNonNull(notifyUnsub, "notifyUnsub");
     }
 
     /**
@@ -89,8 +90,8 @@ public class AbstractMessenger implements Messenger {
      * @param message the message
      */
     public void registerIncomingMessage(String channel, byte[] message) {
-        Preconditions.checkNotNull(channel, "channel");
-        Preconditions.checkNotNull(message, "message");
+        Objects.requireNonNull(channel, "channel");
+        Objects.requireNonNull(message, "message");
 
         for (Map.Entry<Map.Entry<String, TypeToken<?>>, AbstractChannel<?>> c : this.channels.asMap().entrySet()) {
             if (c.getKey().getKey().equals(channel)) {
@@ -103,9 +104,9 @@ public class AbstractMessenger implements Messenger {
     @SuppressWarnings("unchecked")
     @Override
     public <T> Channel<T> getChannel(@Nonnull String name, @Nonnull TypeToken<T> type) {
-        Preconditions.checkNotNull(name, "name");
+        Objects.requireNonNull(name, "name");
         Preconditions.checkArgument(!name.trim().isEmpty(), "name cannot be empty");
-        Preconditions.checkNotNull(type, "type");
+        Objects.requireNonNull(type, "type");
 
         return (Channel<T>) this.channels.getUnchecked(Maps.immutableEntry(name, type));
     }
@@ -147,7 +148,7 @@ public class AbstractMessenger implements Messenger {
         private void onIncomingMessage(byte[] message) {
             try {
                 T decoded = this.codec.decode(message);
-                Preconditions.checkNotNull(decoded, "decoded");
+                Objects.requireNonNull(decoded, "decoded");
 
                 for (AbstractChannelAgent<T> agent : this.agents) {
                     try {

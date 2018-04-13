@@ -25,9 +25,9 @@
 
 package me.lucko.helper.redis;
 
-import com.google.common.base.Preconditions;
-
 import org.bukkit.configuration.ConfigurationSection;
+
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -58,7 +58,7 @@ public final class RedisCredentials {
     private final String password;
 
     private RedisCredentials(@Nonnull String address, int port, @Nullable String password) {
-        this.address = Preconditions.checkNotNull(address);
+        this.address = Objects.requireNonNull(address);
         this.port = port;
         this.password = password == null ? "" : password;
     }

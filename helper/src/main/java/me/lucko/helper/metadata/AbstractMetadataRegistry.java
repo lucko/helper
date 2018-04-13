@@ -25,11 +25,11 @@
 
 package me.lucko.helper.metadata;
 
-import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
@@ -53,14 +53,14 @@ public class AbstractMetadataRegistry<T> implements MetadataRegistry<T> {
     @Nonnull
     @Override
     public MetadataMap provide(@Nonnull T id) {
-        Preconditions.checkNotNull(id, "id");
+        Objects.requireNonNull(id, "id");
         return this.cache.getUnchecked(id);
     }
 
     @Nonnull
     @Override
     public Optional<MetadataMap> get(@Nonnull T id) {
-        Preconditions.checkNotNull(id, "id");
+        Objects.requireNonNull(id, "id");
         return Optional.ofNullable(this.cache.getIfPresent(id));
     }
 

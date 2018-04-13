@@ -35,6 +35,7 @@ import me.lucko.helper.utils.Delegates;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -74,8 +75,8 @@ public interface SingleSubscriptionBuilder<T extends Event> extends Subscription
      */
     @Nonnull
     static <T extends Event> SingleSubscriptionBuilder<T> newBuilder(@Nonnull Class<T> eventClass, @Nonnull EventPriority priority) {
-        Preconditions.checkNotNull(eventClass, "eventClass");
-        Preconditions.checkNotNull(priority, "priority");
+        Objects.requireNonNull(eventClass, "eventClass");
+        Objects.requireNonNull(priority, "priority");
         return new SingleBuilder<>(eventClass, priority);
     }
 
@@ -90,7 +91,7 @@ public interface SingleSubscriptionBuilder<T extends Event> extends Subscription
     @Nonnull
     @Override
     default SingleSubscriptionBuilder<T> expireAfter(long duration, @Nonnull TimeUnit unit) {
-        Preconditions.checkNotNull(unit, "unit");
+        Objects.requireNonNull(unit, "unit");
         Preconditions.checkArgument(duration >= 1, "duration < 1");
         long expiry = Math.addExact(System.currentTimeMillis(), unit.toMillis(duration));
         return expireIf((handler, event) -> System.currentTimeMillis() > expiry, ExpiryTestStage.PRE);

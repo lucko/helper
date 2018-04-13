@@ -31,6 +31,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -74,13 +75,13 @@ class ComposedCooldownMapImpl<I, O> implements ComposedCooldownMap<I, O> {
      */
     @Nonnull
     public Cooldown get(@Nonnull I key) {
-        Preconditions.checkNotNull(key, "key");
+        Objects.requireNonNull(key, "key");
         return this.cache.getUnchecked(this.composeFunction.apply(key));
     }
 
     @Override
     public void put(@Nonnull O key, @Nonnull Cooldown cooldown) {
-        Preconditions.checkNotNull(key, "key");
+        Objects.requireNonNull(key, "key");
         Preconditions.checkArgument(cooldown.getTimeout() == this.base.getTimeout(), "different timeout");
         this.cache.put(key, cooldown);
     }

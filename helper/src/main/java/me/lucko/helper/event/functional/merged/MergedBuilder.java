@@ -25,7 +25,6 @@
 
 package me.lucko.helper.event.functional.merged;
 
-import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.event.MergedSubscription;
@@ -38,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -69,9 +69,9 @@ class MergedBuilder<T> implements MergedSubscriptionBuilder<T> {
     @Nonnull
     @Override
     public <E extends Event> MergedSubscriptionBuilder<T> bindEvent(@Nonnull Class<E> eventClass, @Nonnull EventPriority priority, @Nonnull Function<E, T> function) {
-        Preconditions.checkNotNull(eventClass, "eventClass");
-        Preconditions.checkNotNull(priority, "priority");
-        Preconditions.checkNotNull(function, "function");
+        Objects.requireNonNull(eventClass, "eventClass");
+        Objects.requireNonNull(priority, "priority");
+        Objects.requireNonNull(function, "function");
 
         this.mappings.put(eventClass, new MergedHandlerMapping<>(priority, function));
         return this;
@@ -80,8 +80,8 @@ class MergedBuilder<T> implements MergedSubscriptionBuilder<T> {
     @Nonnull
     @Override
     public MergedSubscriptionBuilder<T> expireIf(@Nonnull BiPredicate<MergedSubscription<T>, T> predicate, @Nonnull ExpiryTestStage... testPoints) {
-        Preconditions.checkNotNull(testPoints, "testPoints");
-        Preconditions.checkNotNull(predicate, "predicate");
+        Objects.requireNonNull(testPoints, "testPoints");
+        Objects.requireNonNull(predicate, "predicate");
         for (ExpiryTestStage testPoint : testPoints) {
             switch (testPoint) {
                 case PRE:
@@ -103,7 +103,7 @@ class MergedBuilder<T> implements MergedSubscriptionBuilder<T> {
     @Nonnull
     @Override
     public MergedSubscriptionBuilder<T> filter(@Nonnull Predicate<T> predicate) {
-        Preconditions.checkNotNull(predicate, "predicate");
+        Objects.requireNonNull(predicate, "predicate");
         this.filters.add(predicate);
         return this;
     }
@@ -111,7 +111,7 @@ class MergedBuilder<T> implements MergedSubscriptionBuilder<T> {
     @Nonnull
     @Override
     public MergedSubscriptionBuilder<T> exceptionConsumer(@Nonnull BiConsumer<Event, Throwable> exceptionConsumer) {
-        Preconditions.checkNotNull(exceptionConsumer, "exceptionConsumer");
+        Objects.requireNonNull(exceptionConsumer, "exceptionConsumer");
         this.exceptionConsumer = exceptionConsumer;
         return this;
     }

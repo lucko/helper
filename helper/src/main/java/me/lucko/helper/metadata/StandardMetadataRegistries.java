@@ -25,7 +25,6 @@
 
 package me.lucko.helper.metadata;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.metadata.type.BlockMetadataRegistry;
@@ -42,6 +41,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -70,21 +70,21 @@ final class StandardMetadataRegistries {
         @Nonnull
         @Override
         public MetadataMap provide(@Nonnull Player player) {
-            Preconditions.checkNotNull(player, "player");
+            Objects.requireNonNull(player, "player");
             return provide(player.getUniqueId());
         }
 
         @Nonnull
         @Override
         public Optional<MetadataMap> get(@Nonnull Player player) {
-            Preconditions.checkNotNull(player, "player");
+            Objects.requireNonNull(player, "player");
             return get(player.getUniqueId());
         }
 
         @Nonnull
         @Override
         public <K> Map<Player, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
-            Preconditions.checkNotNull(key, "key");
+            Objects.requireNonNull(key, "key");
             ImmutableMap.Builder<Player, K> ret = ImmutableMap.builder();
             this.cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
                 Player player = Players.getNullable(uuid);
@@ -101,21 +101,21 @@ final class StandardMetadataRegistries {
         @Nonnull
         @Override
         public MetadataMap provide(@Nonnull Entity entity) {
-            Preconditions.checkNotNull(entity, "entity");
+            Objects.requireNonNull(entity, "entity");
             return provide(entity.getUniqueId());
         }
 
         @Nonnull
         @Override
         public Optional<MetadataMap> get(@Nonnull Entity entity) {
-            Preconditions.checkNotNull(entity, "entity");
+            Objects.requireNonNull(entity, "entity");
             return get(entity.getUniqueId());
         }
 
         @Nonnull
         @Override
         public <K> Map<Entity, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
-            Preconditions.checkNotNull(key, "key");
+            Objects.requireNonNull(key, "key");
             ImmutableMap.Builder<Entity, K> ret = ImmutableMap.builder();
             this.cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
                 Entity entity = Bukkit.getEntity(uuid);
@@ -132,21 +132,21 @@ final class StandardMetadataRegistries {
         @Nonnull
         @Override
         public MetadataMap provide(@Nonnull Block block) {
-            Preconditions.checkNotNull(block, "block");
+            Objects.requireNonNull(block, "block");
             return provide(BlockPosition.of(block));
         }
 
         @Nonnull
         @Override
         public Optional<MetadataMap> get(@Nonnull Block block) {
-            Preconditions.checkNotNull(block, "block");
+            Objects.requireNonNull(block, "block");
             return get(BlockPosition.of(block));
         }
 
         @Nonnull
         @Override
         public <K> Map<BlockPosition, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
-            Preconditions.checkNotNull(key, "key");
+            Objects.requireNonNull(key, "key");
             ImmutableMap.Builder<BlockPosition, K> ret = ImmutableMap.builder();
             this.cache.asMap().forEach((pos, map) -> map.get(key).ifPresent(t -> ret.put(pos, t)));
             return ret.build();
@@ -158,21 +158,21 @@ final class StandardMetadataRegistries {
         @Nonnull
         @Override
         public MetadataMap provide(@Nonnull World world) {
-            Preconditions.checkNotNull(world, "world");
+            Objects.requireNonNull(world, "world");
             return provide(world.getUID());
         }
 
         @Nonnull
         @Override
         public Optional<MetadataMap> get(@Nonnull World world) {
-            Preconditions.checkNotNull(world, "world");
+            Objects.requireNonNull(world, "world");
             return get(world.getUID());
         }
 
         @Nonnull
         @Override
         public <K> Map<World, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
-            Preconditions.checkNotNull(key, "key");
+            Objects.requireNonNull(key, "key");
             ImmutableMap.Builder<World, K> ret = ImmutableMap.builder();
             this.cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
                 World world = Bukkit.getWorld(uuid);

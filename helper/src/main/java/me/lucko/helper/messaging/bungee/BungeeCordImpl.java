@@ -25,7 +25,6 @@
 
 package me.lucko.helper.messaging.bungee;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -49,6 +48,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -335,7 +335,7 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
 
     @Override
     public void registerForwardCallback(String channelName, Predicate<ByteArrayDataInput> callback) {
-        final Predicate<ByteArrayDataInput> cb = Preconditions.checkNotNull(callback, "callback");
+        final Predicate<ByteArrayDataInput> cb = Objects.requireNonNull(callback, "callback");
         ForwardCustomCallback customCallback = new ForwardCustomCallback(channelName, bytes -> cb.test(ByteStreams.newDataInput(bytes)));
         registerCallback(customCallback);
     }
@@ -413,8 +413,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final String serverName;
 
         private ConnectAgent(Player player, String serverName) {
-            this.player = Preconditions.checkNotNull(player, "player");
-            this.serverName = Preconditions.checkNotNull(serverName, "serverName");
+            this.player = Objects.requireNonNull(player, "player");
+            this.serverName = Objects.requireNonNull(serverName, "serverName");
         }
 
         @Override
@@ -440,8 +440,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final String serverName;
 
         private ConnectOtherAgent(String playerName, String serverName) {
-            this.playerName = Preconditions.checkNotNull(playerName, "playerName");
-            this.serverName = Preconditions.checkNotNull(serverName, "serverName");
+            this.playerName = Objects.requireNonNull(playerName, "playerName");
+            this.serverName = Objects.requireNonNull(serverName, "serverName");
         }
 
         @Override
@@ -463,8 +463,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final Promise<Map.Entry<String, Integer>> callback;
 
         private IPAgent(Player player, Promise<Map.Entry<String, Integer>> callback) {
-            this.player = Preconditions.checkNotNull(player, "player");
-            this.callback = Preconditions.checkNotNull(callback, "callback");
+            this.player = Objects.requireNonNull(player, "player");
+            this.callback = Objects.requireNonNull(callback, "callback");
         }
 
         @Override
@@ -498,8 +498,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final Promise<Integer> callback;
 
         private PlayerCountAgent(String serverName, Promise<Integer> callback) {
-            this.serverName = Preconditions.checkNotNull(serverName, "serverName");
-            this.callback = Preconditions.checkNotNull(callback, "callback");
+            this.serverName = Objects.requireNonNull(serverName, "serverName");
+            this.callback = Objects.requireNonNull(callback, "callback");
         }
 
         @Override
@@ -533,8 +533,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final Promise<List<String>> callback;
 
         private PlayerListAgent(String serverName, Promise<List<String>> callback) {
-            this.serverName = Preconditions.checkNotNull(serverName, "serverName");
-            this.callback = Preconditions.checkNotNull(callback, "callback");
+            this.serverName = Objects.requireNonNull(serverName, "serverName");
+            this.callback = Objects.requireNonNull(callback, "callback");
         }
 
         @Override
@@ -573,7 +573,7 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final Promise<List<String>> callback;
 
         private GetServersAgent(Promise<List<String>> callback) {
-            this.callback = Preconditions.checkNotNull(callback, "callback");
+            this.callback = Objects.requireNonNull(callback, "callback");
         }
 
         @Override
@@ -602,8 +602,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final String message;
 
         private PlayerMessageAgent(String playerName, String message) {
-            this.playerName = Preconditions.checkNotNull(playerName, "playerName");
-            this.message = Preconditions.checkNotNull(message, "message");
+            this.playerName = Objects.requireNonNull(playerName, "playerName");
+            this.message = Objects.requireNonNull(message, "message");
         }
 
         @Override
@@ -624,7 +624,7 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final Promise<String> callback;
 
         private GetServerAgent(Promise<String> callback) {
-            this.callback = Preconditions.checkNotNull(callback, "callback");
+            this.callback = Objects.requireNonNull(callback, "callback");
         }
 
         @Override
@@ -646,8 +646,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final Promise<UUID> callback;
 
         private UUIDAgent(Player player, Promise<UUID> callback) {
-            this.player = Preconditions.checkNotNull(player, "player");
-            this.callback = Preconditions.checkNotNull(callback, "callback");
+            this.player = Objects.requireNonNull(player, "player");
+            this.callback = Objects.requireNonNull(callback, "callback");
         }
 
         @Override
@@ -680,8 +680,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final Promise<UUID> callback;
 
         private UUIDOtherAgent(String playerName, Promise<UUID> callback) {
-            this.playerName = Preconditions.checkNotNull(playerName, "playerName");
-            this.callback = Preconditions.checkNotNull(callback, "callback");
+            this.playerName = Objects.requireNonNull(playerName, "playerName");
+            this.callback = Objects.requireNonNull(callback, "callback");
         }
 
         @Override
@@ -715,8 +715,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final Promise<Map.Entry<String, Integer>> callback;
 
         private ServerIPAgent(String serverName, Promise<Map.Entry<String, Integer>> callback) {
-            this.serverName = Preconditions.checkNotNull(serverName, "serverName");
-            this.callback = Preconditions.checkNotNull(callback, "callback");
+            this.serverName = Objects.requireNonNull(serverName, "serverName");
+            this.callback = Objects.requireNonNull(callback, "callback");
         }
 
         @Override
@@ -751,8 +751,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final String reason;
 
         private KickPlayerAgent(String playerName, String reason) {
-            this.playerName = Preconditions.checkNotNull(playerName, "playerName");
-            this.reason = Preconditions.checkNotNull(reason, "reason");
+            this.playerName = Objects.requireNonNull(playerName, "playerName");
+            this.reason = Objects.requireNonNull(reason, "reason");
         }
 
         @Override
@@ -775,15 +775,15 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final byte[] data;
 
         private ForwardAgent(String serverName, String channelName, byte[] data) {
-            this.serverName = Preconditions.checkNotNull(serverName, "serverName");
-            this.channelName = Preconditions.checkNotNull(channelName, "channelName");
+            this.serverName = Objects.requireNonNull(serverName, "serverName");
+            this.channelName = Objects.requireNonNull(channelName, "channelName");
             this.data = data;
         }
 
         private ForwardAgent(String serverName, String channelName, ByteArrayDataOutput data) {
-            this.serverName = Preconditions.checkNotNull(serverName, "serverName");
-            this.channelName = Preconditions.checkNotNull(channelName, "channelName");
-            this.data = Preconditions.checkNotNull(data, "data").toByteArray();
+            this.serverName = Objects.requireNonNull(serverName, "serverName");
+            this.channelName = Objects.requireNonNull(channelName, "channelName");
+            this.data = Objects.requireNonNull(data, "data").toByteArray();
         }
 
         @Override
@@ -808,15 +808,15 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final byte[] data;
 
         private ForwardToPlayerAgent(String playerName, String channelName, byte[] data) {
-            this.playerName = Preconditions.checkNotNull(playerName, "playerName");
-            this.channelName = Preconditions.checkNotNull(channelName, "channelName");
+            this.playerName = Objects.requireNonNull(playerName, "playerName");
+            this.channelName = Objects.requireNonNull(channelName, "channelName");
             this.data = data;
         }
 
         private ForwardToPlayerAgent(String playerName, String channelName, ByteArrayDataOutput data) {
-            this.playerName = Preconditions.checkNotNull(playerName, "playerName");
-            this.channelName = Preconditions.checkNotNull(channelName, "channelName");
-            this.data = Preconditions.checkNotNull(data, "data").toByteArray();
+            this.playerName = Objects.requireNonNull(playerName, "playerName");
+            this.channelName = Objects.requireNonNull(channelName, "channelName");
+            this.data = Objects.requireNonNull(data, "data").toByteArray();
         }
 
         @Override
@@ -838,8 +838,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         private final Predicate<byte[]> callback;
 
         private ForwardCustomCallback(String subChannel, Predicate<byte[]> callback) {
-            this.subChannel = Preconditions.checkNotNull(subChannel, "subChannel");
-            this.callback = Preconditions.checkNotNull(callback, "callback");
+            this.subChannel = Objects.requireNonNull(subChannel, "subChannel");
+            this.callback = Objects.requireNonNull(callback, "callback");
         }
 
         @Override

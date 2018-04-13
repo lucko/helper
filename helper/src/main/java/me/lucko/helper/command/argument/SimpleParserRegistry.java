@@ -25,7 +25,6 @@
 
 package me.lucko.helper.command.argument;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 
@@ -33,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -45,7 +45,7 @@ public class SimpleParserRegistry implements ArgumentParserRegistry {
     @Nonnull
     @Override
     public <T> Optional<ArgumentParser<T>> find(@Nonnull TypeToken<T> type) {
-        Preconditions.checkNotNull(type, "type");
+        Objects.requireNonNull(type, "type");
         List<ArgumentParser<?>> parsers = this.parsers.get(type);
         if (parsers == null || parsers.isEmpty()) {
             return Optional.empty();
@@ -58,7 +58,7 @@ public class SimpleParserRegistry implements ArgumentParserRegistry {
     @Nonnull
     @Override
     public <T> Collection<ArgumentParser<T>> findAll(@Nonnull TypeToken<T> type) {
-        Preconditions.checkNotNull(type, "type");
+        Objects.requireNonNull(type, "type");
         List<ArgumentParser<?>> parsers = this.parsers.get(type);
         if (parsers == null || parsers.isEmpty()) {
             return ImmutableList.of();
@@ -70,8 +70,8 @@ public class SimpleParserRegistry implements ArgumentParserRegistry {
 
     @Override
     public <T> void register(@Nonnull TypeToken<T> type, @Nonnull ArgumentParser<T> parser) {
-        Preconditions.checkNotNull(type, "type");
-        Preconditions.checkNotNull(parser, "parser");
+        Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(parser, "parser");
         List<ArgumentParser<?>> list = this.parsers.computeIfAbsent(type, t -> new CopyOnWriteArrayList<>());
         if (!list.contains(parser)) {
             list.add(parser);

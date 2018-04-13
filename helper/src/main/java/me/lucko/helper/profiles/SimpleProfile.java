@@ -25,8 +25,6 @@
 
 package me.lucko.helper.profiles;
 
-import com.google.common.base.Preconditions;
-
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,7 +43,7 @@ final class SimpleProfile implements Profile {
     private final long timestamp;
 
     SimpleProfile(@Nonnull UUID uniqueId, @Nullable String name) {
-        this.uniqueId = Preconditions.checkNotNull(uniqueId, "uniqueId");
+        this.uniqueId = Objects.requireNonNull(uniqueId, "uniqueId");
         this.name = name;
         this.timestamp = System.currentTimeMillis();
     }

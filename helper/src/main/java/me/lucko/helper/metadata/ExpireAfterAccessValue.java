@@ -27,6 +27,7 @@ package me.lucko.helper.metadata;
 
 import com.google.common.base.Preconditions;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -41,8 +42,8 @@ public class ExpireAfterAccessValue<T> implements TransientValue<T> {
 
     public static <T> ExpireAfterAccessValue<T> of(T value, long duration, TimeUnit unit) {
         Preconditions.checkArgument(duration >= 0, "duration must be >= 0");
-        Preconditions.checkNotNull(value, "value");
-        Preconditions.checkNotNull(unit, "unit");
+        Objects.requireNonNull(value, "value");
+        Objects.requireNonNull(unit, "unit");
 
         long millis = unit.toMillis(duration);
         return new ExpireAfterAccessValue<>(value, millis);
@@ -50,14 +51,14 @@ public class ExpireAfterAccessValue<T> implements TransientValue<T> {
 
     public static <T> Supplier<ExpireAfterAccessValue<T>> supplied(Supplier<? extends T> supplier, long duration, TimeUnit unit) {
         Preconditions.checkArgument(duration >= 0, "duration must be >= 0");
-        Preconditions.checkNotNull(supplier, "supplier");
-        Preconditions.checkNotNull(unit, "unit");
+        Objects.requireNonNull(supplier, "supplier");
+        Objects.requireNonNull(unit, "unit");
 
         long millis = unit.toMillis(duration);
 
         return () -> {
             T value = supplier.get();
-            Preconditions.checkNotNull(value, "value");
+            Objects.requireNonNull(value, "value");
 
             return new ExpireAfterAccessValue<>(value, millis);
         };

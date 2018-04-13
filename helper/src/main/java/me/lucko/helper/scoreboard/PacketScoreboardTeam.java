@@ -44,6 +44,7 @@ import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -108,12 +109,12 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
      * @param autoSubscribe if players should be automatically subscribed
      */
     public PacketScoreboardTeam(PacketScoreboard scoreboard, String id, String displayName, boolean autoSubscribe) {
-        Preconditions.checkNotNull(id, "id");
+        Objects.requireNonNull(id, "id");
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
 
-        this.scoreboard = Preconditions.checkNotNull(scoreboard, "scoreboard");
+        this.scoreboard = Objects.requireNonNull(scoreboard, "scoreboard");
         this.id = id;
-        this.displayName = trimName(Text.colorize(Preconditions.checkNotNull(displayName, "displayName")));
+        this.displayName = trimName(Text.colorize(Objects.requireNonNull(displayName, "displayName")));
         this.autoSubscribe = autoSubscribe;
     }
 
@@ -150,7 +151,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
     @Override
     public void setDisplayName(String displayName) {
-        Preconditions.checkNotNull(displayName, "displayName");
+        Objects.requireNonNull(displayName, "displayName");
         displayName = trimName(Text.colorize(displayName));
         if (this.displayName.equals(displayName)) {
             return;
@@ -167,7 +168,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
     @Override
     public void setPrefix(String prefix) {
-        Preconditions.checkNotNull(prefix, "prefix");
+        Objects.requireNonNull(prefix, "prefix");
         prefix = trimPrefixSuffix(Text.colorize(prefix));
         if (this.prefix.equals(prefix)) {
             return;
@@ -184,7 +185,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
     @Override
     public void setSuffix(String suffix) {
-        Preconditions.checkNotNull(suffix, "suffix");
+        Objects.requireNonNull(suffix, "suffix");
         suffix = trimPrefixSuffix(Text.colorize(suffix));
         if (this.suffix.equals(suffix)) {
             return;
@@ -231,7 +232,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
     @Override
     public void setNameTagVisibility(NameTagVisibility nameTagVisibility) {
-        Preconditions.checkNotNull(nameTagVisibility, "nameTagVisibility");
+        Objects.requireNonNull(nameTagVisibility, "nameTagVisibility");
         if (this.nameTagVisibility == nameTagVisibility) {
             return;
         }
@@ -247,7 +248,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
     @Override
     public void setCollisionRule(CollisionRule collisionRule) {
-        Preconditions.checkNotNull(collisionRule, "collisionRule");
+        Objects.requireNonNull(collisionRule, "collisionRule");
         if (this.collisionRule == collisionRule) {
             return;
         }
@@ -263,7 +264,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
     @Override
     public void setColor(ChatColor color) {
-        Preconditions.checkNotNull(color, "color");
+        Objects.requireNonNull(color, "color");
         if (this.color == color) {
             return;
         }
@@ -274,7 +275,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
     @Override
     public boolean addPlayer(String player) {
-        Preconditions.checkNotNull(player, "player");
+        Objects.requireNonNull(player, "player");
         player = trimMember(player);
         if (!this.players.add(player)) {
             return false;
@@ -286,7 +287,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
     @Override
     public boolean removePlayer(String player) {
-        Preconditions.checkNotNull(player, "player");
+        Objects.requireNonNull(player, "player");
         player = trimMember(player);
         if (!this.players.remove(player)) {
             return false;
@@ -298,7 +299,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
     @Override
     public boolean hasPlayer(String player) {
-        Preconditions.checkNotNull(player, "player");
+        Objects.requireNonNull(player, "player");
         return this.players.contains(trimMember(player));
     }
 

@@ -46,6 +46,7 @@ import org.bukkit.inventory.Inventory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -103,8 +104,8 @@ public abstract class Gui implements TerminableConsumer {
     private boolean valid = false;
 
     public Gui(Player player, int lines, String title) {
-        this.player = Preconditions.checkNotNull(player, "player");
-        this.initialTitle = Text.colorize(Preconditions.checkNotNull(title, "title"));
+        this.player = Objects.requireNonNull(player, "player");
+        this.initialTitle = Text.colorize(Objects.requireNonNull(title, "title"));
         this.inventory = Bukkit.createInventory(player, lines * 9, this.initialTitle);
         this.slots = new HashMap<>();
     }
@@ -174,15 +175,15 @@ public abstract class Gui implements TerminableConsumer {
     }
 
     public void setItems(Item item, int... slots) {
-        Preconditions.checkNotNull(item, "item");
+        Objects.requireNonNull(item, "item");
         for (int slot : slots) {
             setItem(slot, item);
         }
     }
 
     public void setItems(Iterable<Integer> slots, Item item) {
-        Preconditions.checkNotNull(item, "item");
-        Preconditions.checkNotNull(slots, "slots");
+        Objects.requireNonNull(item, "item");
+        Objects.requireNonNull(slots, "slots");
         for (int slot : slots) {
             setItem(slot, item);
         }
@@ -205,19 +206,19 @@ public abstract class Gui implements TerminableConsumer {
     }
 
     public void addItem(Item item) {
-        Preconditions.checkNotNull(item, "item");
+        Objects.requireNonNull(item, "item");
         getFirstEmptySlot().ifPresent(s -> s.applyFromItem(item));
     }
 
     public void addItems(Iterable<Item> items) {
-        Preconditions.checkNotNull(items, "items");
+        Objects.requireNonNull(items, "items");
         for (Item item : items) {
             addItem(item);
         }
     }
 
     public void fillWith(Item item) {
-        Preconditions.checkNotNull(item, "item");
+        Objects.requireNonNull(item, "item");
         for (int i = 0; i < this.inventory.getSize(); ++i) {
             setItem(i, item);
         }
@@ -234,7 +235,7 @@ public abstract class Gui implements TerminableConsumer {
     }
 
     public void removeItems(Iterable<Integer> slots) {
-        Preconditions.checkNotNull(slots, "slots");
+        Objects.requireNonNull(slots, "slots");
         for (int slot : slots) {
             removeItem(slot);
         }

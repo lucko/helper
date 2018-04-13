@@ -28,13 +28,14 @@ package me.lucko.helper.random;
 import com.google.common.base.Preconditions;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Stream;
 
 final class RandomSelectorImpl<E> implements RandomSelector<E> {
 
     static <E> RandomSelector<E> uniform(Collection<E> elements) {
-        Preconditions.checkNotNull(elements, "elements must not be null");
+        Objects.requireNonNull(elements, "elements must not be null");
         Preconditions.checkArgument(!elements.isEmpty(), "elements must not be empty");
 
         int size = elements.size();
@@ -45,8 +46,8 @@ final class RandomSelectorImpl<E> implements RandomSelector<E> {
     }
 
     static <E> RandomSelector<E> weighted(Collection<E> elements, Weigher<? super E> weigher) {
-        Preconditions.checkNotNull(elements, "elements must not be null");
-        Preconditions.checkNotNull(weigher, "weigher must not be null");
+        Objects.requireNonNull(elements, "elements must not be null");
+        Objects.requireNonNull(weigher, "weigher must not be null");
         Preconditions.checkArgument(!elements.isEmpty(), "elements must not be empty");
 
         int size = elements.size();
@@ -87,7 +88,7 @@ final class RandomSelectorImpl<E> implements RandomSelector<E> {
 
     @Override
     public Stream<E> stream(Random random) {
-        Preconditions.checkNotNull(random, "random must not be null");
+        Objects.requireNonNull(random, "random must not be null");
         return Stream.generate(() -> pick(random));
     }
 

@@ -25,7 +25,6 @@
 
 package me.lucko.helper.redis.plugin;
 
-import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.Schedulers;
@@ -43,6 +42,7 @@ import redis.clients.jedis.JedisPoolConfig;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -141,7 +141,7 @@ public class JedisWrapper implements HelperRedis {
     @Nonnull
     @Override
     public JedisPool getJedisPool() {
-        Preconditions.checkNotNull(this.jedisPool, "jedisPool");
+        Objects.requireNonNull(this.jedisPool, "jedisPool");
         return this.jedisPool;
     }
 

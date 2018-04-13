@@ -38,6 +38,8 @@ import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 
+import java.util.Objects;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -60,29 +62,29 @@ public final class ChunkPosition implements GsonSerializable {
     }
 
     public static ChunkPosition of(int x, int z, String world) {
-        Preconditions.checkNotNull(world, "world");
+        Objects.requireNonNull(world, "world");
         return new ChunkPosition(x, z, world);
     }
 
     public static ChunkPosition of(int x, int z, World world) {
-        Preconditions.checkNotNull(world, "world");
+        Objects.requireNonNull(world, "world");
         return of(x, z, world.getName());
     }
 
     public static ChunkPosition of(Vector2i vector, String world) {
-        Preconditions.checkNotNull(vector, "vector");
-        Preconditions.checkNotNull(world, "world");
+        Objects.requireNonNull(vector, "vector");
+        Objects.requireNonNull(world, "world");
         return of(vector.getX(), vector.getY(), world);
     }
 
     public static ChunkPosition of(Vector2i vector, World world) {
-        Preconditions.checkNotNull(vector, "vector");
-        Preconditions.checkNotNull(world, "world");
+        Objects.requireNonNull(vector, "vector");
+        Objects.requireNonNull(world, "world");
         return of(vector.getX(), vector.getY(), world);
     }
 
     public static ChunkPosition of(Chunk location) {
-        Preconditions.checkNotNull(location, "location");
+        Objects.requireNonNull(location, "location");
         return of(location.getX(), location.getZ(), location.getWorld().getName());
     }
 

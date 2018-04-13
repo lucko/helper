@@ -25,12 +25,13 @@
 
 package me.lucko.helper.messaging;
 
-import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.messaging.conversation.ConversationChannel;
 import me.lucko.helper.messaging.conversation.ConversationMessage;
 import me.lucko.helper.messaging.conversation.SimpleConversationChannel;
+
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 
@@ -76,7 +77,7 @@ public interface Messenger {
      */
     @Nonnull
     default <T> Channel<T> getChannel(@Nonnull String name, @Nonnull Class<T> clazz) {
-        return getChannel(name, TypeToken.of(Preconditions.checkNotNull(clazz)));
+        return getChannel(name, TypeToken.of(Objects.requireNonNull(clazz)));
     }
 
     /**
@@ -91,7 +92,7 @@ public interface Messenger {
      */
     @Nonnull
     default <T extends ConversationMessage, R extends ConversationMessage> ConversationChannel<T, R> getConversationChannel(@Nonnull String name, @Nonnull Class<T> clazz, @Nonnull Class<R> replyClazz) {
-        return getConversationChannel(name, TypeToken.of(Preconditions.checkNotNull(clazz)), TypeToken.of(Preconditions.checkNotNull(replyClazz)));
+        return getConversationChannel(name, TypeToken.of(Objects.requireNonNull(clazz)), TypeToken.of(Objects.requireNonNull(replyClazz)));
     }
 
 }

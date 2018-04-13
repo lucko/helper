@@ -25,8 +25,6 @@
 
 package me.lucko.helper;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.promise.Promise;
@@ -45,6 +43,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import co.aikar.timings.lib.MCTiming;
 
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -130,49 +129,49 @@ public final class Schedulers {
         @Nonnull
         @Override
         public <T> Promise<T> supply(@Nonnull Supplier<T> supplier) {
-            Preconditions.checkNotNull(supplier, "supplier");
+            Objects.requireNonNull(supplier, "supplier");
             return Promise.supplyingSync(supplier);
         }
 
         @Nonnull
         @Override
         public <T> Promise<T> call(@Nonnull Callable<T> callable) {
-            Preconditions.checkNotNull(callable, "callable");
+            Objects.requireNonNull(callable, "callable");
             return Promise.supplyingSync(Delegates.callableToSupplier(callable));
         }
 
         @Nonnull
         @Override
         public Promise<Void> run(@Nonnull Runnable runnable) {
-            Preconditions.checkNotNull(runnable, "runnable");
+            Objects.requireNonNull(runnable, "runnable");
             return Promise.supplyingSync(Delegates.runnableToSupplier(runnable));
         }
 
         @Nonnull
         @Override
         public <T> Promise<T> supplyLater(@Nonnull Supplier<T> supplier, long delay) {
-            Preconditions.checkNotNull(supplier, "supplier");
+            Objects.requireNonNull(supplier, "supplier");
             return Promise.supplyingDelayedSync(supplier, delay);
         }
 
         @Nonnull
         @Override
         public <T> Promise<T> callLater(@Nonnull Callable<T> callable, long delay) {
-            Preconditions.checkNotNull(callable, "callable");
+            Objects.requireNonNull(callable, "callable");
             return Promise.supplyingDelayedSync(Delegates.callableToSupplier(callable), delay);
         }
 
         @Nonnull
         @Override
         public Promise<Void> runLater(@Nonnull Runnable runnable, long delay) {
-            Preconditions.checkNotNull(runnable, "runnable");
+            Objects.requireNonNull(runnable, "runnable");
             return Promise.supplyingDelayedSync(Delegates.runnableToSupplier(runnable), delay);
         }
 
         @Nonnull
         @Override
         public Task runRepeating(@Nonnull Consumer<Task> consumer, long delay, long interval) {
-            Preconditions.checkNotNull(consumer, "consumer");
+            Objects.requireNonNull(consumer, "consumer");
             HelperTask task = new HelperTask(consumer);
             task.runTaskTimer(LoaderUtils.getPlugin(), delay, interval);
             return task;
@@ -181,7 +180,7 @@ public final class Schedulers {
         @Nonnull
         @Override
         public Task runRepeating(@Nonnull Runnable runnable, long delay, long interval) {
-            Preconditions.checkNotNull(runnable, "runnable");
+            Objects.requireNonNull(runnable, "runnable");
             return runRepeating(Delegates.runnableToConsumer(runnable), delay, interval);
         }
     }
@@ -202,50 +201,50 @@ public final class Schedulers {
         @Nonnull
         @Override
         public <T> Promise<T> supply(@Nonnull Supplier<T> supplier) {
-            Preconditions.checkNotNull(supplier, "supplier");
+            Objects.requireNonNull(supplier, "supplier");
             return Promise.supplyingAsync(supplier);
         }
 
         @Nonnull
         @Override
         public <T> Promise<T> call(@Nonnull Callable<T> callable) {
-            Preconditions.checkNotNull(callable, "callable");
+            Objects.requireNonNull(callable, "callable");
             return Promise.supplyingAsync(Delegates.callableToSupplier(callable));
         }
 
         @Nonnull
         @Override
         public Promise<Void> run(@Nonnull Runnable runnable) {
-            Preconditions.checkNotNull(runnable, "runnable");
+            Objects.requireNonNull(runnable, "runnable");
             return Promise.supplyingAsync(Delegates.runnableToSupplier(runnable));
         }
 
         @Nonnull
         @Override
         public <T> Promise<T> supplyLater(@Nonnull Supplier<T> supplier, long delay) {
-            Preconditions.checkNotNull(supplier, "supplier");
+            Objects.requireNonNull(supplier, "supplier");
             return Promise.supplyingDelayedAsync(supplier, delay);
         }
 
         @Nonnull
         @Override
         public <T> Promise<T> callLater(@Nonnull Callable<T> callable, long delay) {
-            Preconditions.checkNotNull(callable, "callable");
+            Objects.requireNonNull(callable, "callable");
             return Promise.supplyingDelayedAsync(Delegates.callableToSupplier(callable), delay);
         }
 
         @Nonnull
         @Override
         public Promise<Void> runLater(@Nonnull Runnable runnable, long delay) {
-            Preconditions.checkNotNull(runnable, "runnable");
+            Objects.requireNonNull(runnable, "runnable");
             return Promise.supplyingDelayedAsync(Delegates.runnableToSupplier(runnable), delay);
         }
 
         @Nonnull
         @Override
         public Task runRepeating(@Nonnull Consumer<Task> consumer, long delay, long interval) {
-            Preconditions.checkNotNull(consumer, "consumer");
-            Preconditions.checkNotNull(consumer, "consumer");
+            Objects.requireNonNull(consumer, "consumer");
+            Objects.requireNonNull(consumer, "consumer");
             HelperTask task = new HelperTask(consumer);
             task.runTaskTimerAsynchronously(LoaderUtils.getPlugin(), delay, interval);
             return task;
@@ -254,7 +253,7 @@ public final class Schedulers {
         @Nonnull
         @Override
         public Task runRepeating(@Nonnull Runnable runnable, long delay, long interval) {
-            Preconditions.checkNotNull(runnable, "runnable");
+            Objects.requireNonNull(runnable, "runnable");
             return runRepeating(Delegates.runnableToConsumer(runnable), delay, interval);
         }
     }

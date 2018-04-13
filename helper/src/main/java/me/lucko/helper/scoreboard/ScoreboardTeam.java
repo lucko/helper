@@ -25,13 +25,12 @@
 
 package me.lucko.helper.scoreboard;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -204,7 +203,7 @@ public interface ScoreboardTeam {
      * @return true if the player was added successfully
      */
     default boolean addPlayer(Player player) {
-        return addPlayer(Preconditions.checkNotNull(player, "player").getName());
+        return addPlayer(Objects.requireNonNull(player, "player").getName());
     }
 
     /**
@@ -214,7 +213,7 @@ public interface ScoreboardTeam {
      * @return true if the player was removed successfully
      */
     default boolean removePlayer(Player player) {
-        return removePlayer(Preconditions.checkNotNull(player, "player").getName());
+        return removePlayer(Objects.requireNonNull(player, "player").getName());
     }
 
     /**
@@ -224,7 +223,7 @@ public interface ScoreboardTeam {
      * @return true if the player is a member
      */
     default boolean hasPlayer(Player player) {
-        return hasPlayer(Preconditions.checkNotNull(player, "player").getName());
+        return hasPlayer(Objects.requireNonNull(player, "player").getName());
     }
 
     /**

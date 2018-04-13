@@ -25,7 +25,6 @@
 
 package me.lucko.helper.sql.plugin;
 
-import com.google.common.base.Preconditions;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -34,6 +33,7 @@ import me.lucko.helper.sql.HelperDataSource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -73,13 +73,13 @@ public class HikariWrapper implements HelperDataSource {
     @Nonnull
     @Override
     public HikariDataSource getHikari() {
-        return Preconditions.checkNotNull(this.hikari, "hikari");
+        return Objects.requireNonNull(this.hikari, "hikari");
     }
 
     @Nonnull
     @Override
     public Connection getConnection() throws SQLException {
-        return Preconditions.checkNotNull(getHikari().getConnection(), "connection is null");
+        return Objects.requireNonNull(getHikari().getConnection(), "connection is null");
     }
 
     @Override

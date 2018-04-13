@@ -25,8 +25,6 @@
 
 package me.lucko.helper.event.functional.single;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.event.SingleSubscription;
 import me.lucko.helper.event.functional.ExpiryTestStage;
 
@@ -35,6 +33,7 @@ import org.bukkit.event.EventPriority;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -60,8 +59,8 @@ class SingleBuilder<T extends Event> implements SingleSubscriptionBuilder<T> {
     @Nonnull
     @Override
     public SingleSubscriptionBuilder<T> expireIf(@Nonnull BiPredicate<SingleSubscription<T>, T> predicate, @Nonnull ExpiryTestStage... testPoints) {
-        Preconditions.checkNotNull(testPoints, "testPoints");
-        Preconditions.checkNotNull(predicate, "predicate");
+        Objects.requireNonNull(testPoints, "testPoints");
+        Objects.requireNonNull(predicate, "predicate");
         for (ExpiryTestStage testPoint : testPoints) {
             switch (testPoint) {
                 case PRE:
@@ -83,7 +82,7 @@ class SingleBuilder<T extends Event> implements SingleSubscriptionBuilder<T> {
     @Nonnull
     @Override
     public SingleSubscriptionBuilder<T> filter(@Nonnull Predicate<T> predicate) {
-        Preconditions.checkNotNull(predicate, "predicate");
+        Objects.requireNonNull(predicate, "predicate");
         this.filters.add(predicate);
         return this;
     }
@@ -91,7 +90,7 @@ class SingleBuilder<T extends Event> implements SingleSubscriptionBuilder<T> {
     @Nonnull
     @Override
     public SingleSubscriptionBuilder<T> exceptionConsumer(@Nonnull BiConsumer<? super T, Throwable> exceptionConsumer) {
-        Preconditions.checkNotNull(exceptionConsumer, "exceptionConsumer");
+        Objects.requireNonNull(exceptionConsumer, "exceptionConsumer");
         this.exceptionConsumer = exceptionConsumer;
         return this;
     }

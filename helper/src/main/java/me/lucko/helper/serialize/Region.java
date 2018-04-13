@@ -34,6 +34,8 @@ import me.lucko.helper.gson.JsonBuilder;
 
 import org.bukkit.Location;
 
+import java.util.Objects;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -54,8 +56,8 @@ public final class Region implements GsonSerializable {
     }
 
     public static Region of(Position a, Position b) {
-        Preconditions.checkNotNull(a, "a");
-        Preconditions.checkNotNull(b, "b");
+        Objects.requireNonNull(a, "a");
+        Objects.requireNonNull(b, "b");
 
         if (!a.getWorld().equals(b.getWorld())) {
             throw new IllegalArgumentException("positions are in different worlds");
@@ -81,12 +83,12 @@ public final class Region implements GsonSerializable {
     }
 
     public boolean inRegion(Position pos) {
-        Preconditions.checkNotNull(pos, "pos");
+        Objects.requireNonNull(pos, "pos");
         return pos.getWorld().equals(this.min.getWorld()) && inRegion(pos.getX(), pos.getY(), pos.getZ());
     }
 
     public boolean inRegion(Location loc) {
-        Preconditions.checkNotNull(loc, "loc");
+        Objects.requireNonNull(loc, "loc");
         return loc.getWorld().getName().equals(this.min.getWorld()) && inRegion(loc.getX(), loc.getY(), loc.getZ());
     }
 

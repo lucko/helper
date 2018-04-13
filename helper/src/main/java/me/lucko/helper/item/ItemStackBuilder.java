@@ -25,8 +25,6 @@
 
 package me.lucko.helper.item;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.menu.Item;
 import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
@@ -45,6 +43,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
@@ -71,7 +70,7 @@ public final class ItemStackBuilder {
     }
 
     private ItemStackBuilder(ItemStack itemStack) {
-        this.itemStack = Preconditions.checkNotNull(itemStack, "itemStack");
+        this.itemStack = Objects.requireNonNull(itemStack, "itemStack");
     }
 
     public ItemStackBuilder transform(Consumer<ItemStack> is) {
