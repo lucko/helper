@@ -34,12 +34,15 @@ import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.Schedulers;
-import me.lucko.helper.gson.GsonProvider;
+import me.lucko.helper.messaging.codec.Codec;
+import me.lucko.helper.messaging.codec.GZipCodec;
+import me.lucko.helper.messaging.codec.GsonCodec;
+import me.lucko.helper.messaging.codec.Message;
+import me.lucko.helper.promise.Promise;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -51,7 +54,7 @@ import javax.annotation.Nullable;
  * An abstract implementation of {@link Messenger}.
  *
  * <p>Outgoing messages are passed to a {@link BiConsumer} to be passed on.</p>
- * <p>Incoming messages can be distributed using {@link #registerIncomingMessage(String, String)}.</p>
+ * <p>Incoming messages can be distributed using {@link #registerIncomingMessage(String, byte[])}.</p>
  */
 @NonnullByDefault
 public class AbstractMessenger implements Messenger {
@@ -60,7 +63,7 @@ public class AbstractMessenger implements Messenger {
     private final LoadingCache<Map.Entry<String, TypeToken<?>>, AbstractChannel<?>> channels = CacheBuilder.newBuilder().build(new ChannelLoader());
 
     // consumer for outgoing messages. accepts in the format [channel name, message]
-    private final BiConsumer<String, String> outgoingMessages;
+    private final BiConsumer<String, byte[]> outgoingMessages;
     // consumer for channel names which should be subscribed to.
     private final Consumer<String> notifySub;
     // consumer for channel names which should be unsubscribed from.
@@ -73,7 +76,7 @@ public class AbstractMessenger implements Messenger {
      * @param notifySub the consumer to pass the names of channels which should be subscribed to
      * @param notifyUnsub the consumer to pass the names of channels which should be unsubscribed from
      */
-    public AbstractMessenger(BiConsumer<String, String> outgoingMessages, Consumer<String> notifySub, Consumer<String> notifyUnsub) {
+    public AbstractMessenger(BiConsumer<String, byte[]> outgoingMessages, Consumer<String> notifySub, Consumer<String> notifyUnsub) {
         this.outgoingMessages = Preconditions.checkNotNull(outgoingMessages, "outgoingMessages");
         this.notifySub = Preconditions.checkNotNull(notifySub, "notifySub");
         this.notifyUnsub = Preconditions.checkNotNull(notifyUnsub, "notifyUnsub");
@@ -85,7 +88,7 @@ public class AbstractMessenger implements Messenger {
      * @param channel the channel the message was received on
      * @param message the message
      */
-    public void registerIncomingMessage(String channel, String message) {
+    public void registerIncomingMessage(String channel, byte[] message) {
         Preconditions.checkNotNull(channel, "channel");
         Preconditions.checkNotNull(message, "message");
 
@@ -107,10 +110,30 @@ public class AbstractMessenger implements Messenger {
         return (Channel<T>) this.channels.getUnchecked(Maps.immutableEntry(name, type));
     }
 
+    private static <T> Codec<T> getCodec(TypeToken<T> type) {
+        Class<? super T> rawType = type.getRawType();
+        do {
+            Message message = rawType.getAnnotation(Message.class);
+            if (message != null) {
+                Class<? extends Codec<?>> codec = message.codec();
+                try {
+                    //noinspection unchecked
+                    return (Codec<T>) codec.newInstance();
+                } catch (InstantiationException | IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        } while ((rawType = rawType.getSuperclass()) != null);
+
+        return new GsonCodec<>(type);
+    }
+
     private static class AbstractChannel<T> implements Channel<T> {
         private final AbstractMessenger messenger;
         private final String name;
         private final TypeToken<T> type;
+        private final Codec<T> codec;
+
         private final Set<AbstractChannelAgent<T>> agents = ConcurrentHashMap.newKeySet();
         private boolean subscribed = false;
 
@@ -118,11 +141,12 @@ public class AbstractMessenger implements Messenger {
             this.messenger = messenger;
             this.name = name;
             this.type = type;
+            this.codec = new GZipCodec<>(AbstractMessenger.getCodec(type));
         }
 
-        private void onIncomingMessage(String message) {
+        private void onIncomingMessage(byte[] message) {
             try {
-                T decoded = GsonProvider.standard().fromJson(message, this.type.getType());
+                T decoded = this.codec.decode(message);
                 Preconditions.checkNotNull(decoded, "decoded");
 
                 for (AbstractChannelAgent<T> agent : this.agents) {
@@ -168,6 +192,12 @@ public class AbstractMessenger implements Messenger {
             return this.type;
         }
 
+        @Nonnull
+        @Override
+        public Codec<T> getCodec() {
+            return this.codec;
+        }
+
         @Override
         public ChannelAgent<T> newAgent() {
             AbstractChannelAgent<T> agent = new AbstractChannelAgent<>(this);
@@ -176,17 +206,12 @@ public class AbstractMessenger implements Messenger {
         }
 
         @Override
-        public CompletableFuture<Boolean> sendMessage(T message) {
-            return CompletableFuture.supplyAsync(() -> GsonProvider.standard().toJson(message, this.type.getType()))
-                    .thenApply(m -> {
-                        try {
-                            this.messenger.outgoingMessages.accept(this.name, m);
-                            return true;
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            return false;
-                        }
-                    });
+        public Promise<Void> sendMessage(T message) {
+            return Schedulers.async().call(() -> {
+                byte[] buf = this.codec.encode(message);
+                this.messenger.outgoingMessages.accept(this.name, buf);
+                return null;
+            });
         }
     }
 

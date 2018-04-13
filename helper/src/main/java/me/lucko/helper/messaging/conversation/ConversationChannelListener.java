@@ -23,60 +23,26 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.messaging;
-
-import me.lucko.helper.terminable.Terminable;
-
-import java.util.Set;
+package me.lucko.helper.messaging.conversation;
 
 import javax.annotation.Nonnull;
 
 /**
- * Represents an agent for interacting with a {@link Channel}s message streams.
+ * Represents an object listening to messages sent on the conversation channel.
  *
  * @param <T> the channel message type
  */
-public interface ChannelAgent<T> extends Terminable {
+@FunctionalInterface
+public interface ConversationChannelListener<T extends ConversationMessage, R extends ConversationMessage> {
 
     /**
-     * Gets the channel this agent is acting for.
+     * Called when a message is posted to this listener.
      *
-     * @return the parent channel
-     */
-    @Nonnull
-    Channel<T> getChannel();
-
-    /**
-     * Gets an immutable copy of the listeners currently held by this agent.
+     * <p>This method is called asynchronously.</p>
      *
-     * @return the active listeners
+     * @param agent the agent which forwarded the message.
+     * @param message the message
      */
-    @Nonnull
-    Set<ChannelListener<T>> getListeners();
+    ConversationReply<R> onMessage(@Nonnull ConversationChannelAgent<T, R> agent, @Nonnull T message);
 
-    /**
-     * Gets if this agent has any active listeners.
-     *
-     * @return true if this agent has listeners
-     */
-    boolean hasListeners();
-
-    /**
-     * Adds a new listener to the channel;
-     *
-     * @param listener the listener to add
-     * @return true if successful
-     */
-    boolean addListener(@Nonnull ChannelListener<T> listener);
-
-    /**
-     * Removes a listener from the channel.
-     *
-     * @param listener the listener to remove
-     * @return true if successful
-     */
-    boolean removeListener(@Nonnull ChannelListener<T> listener);
-
-    @Override
-    void close();
 }

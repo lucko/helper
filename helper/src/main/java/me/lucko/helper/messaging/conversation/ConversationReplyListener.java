@@ -23,60 +23,58 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.messaging;
+package me.lucko.helper.messaging.conversation;
 
-import me.lucko.helper.terminable.Terminable;
-
-import java.util.Set;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 
 /**
- * Represents an agent for interacting with a {@link Channel}s message streams.
+ * Represents an object listening for replies sent on the conversation channel.
  *
- * @param <T> the channel message type
+ * @param <R> the reply type
  */
-public interface ChannelAgent<T> extends Terminable {
+public interface ConversationReplyListener<R extends ConversationMessage> {
 
     /**
-     * Gets the channel this agent is acting for.
+     * Called when a message is posted to this listener.
      *
-     * @return the parent channel
+     * <p>This method is called asynchronously.</p>
+     *
+     * @param reply the reply message
+     * @return the action to take
      */
     @Nonnull
-    Channel<T> getChannel();
+    RegistrationAction onReply(@Nonnull R reply);
 
     /**
-     * Gets an immutable copy of the listeners currently held by this agent.
+     * Called when the listener times out.
      *
-     * @return the active listeners
+     * <p>A listener times out if the "timeout wait period" passes before the listener is
+     * unregistered by other means.</p>
+     *
+     * <p>"unregistered by other means" refers to the listener being stopped after a message was
+     * passed to {@link #onReply(ConversationMessage)} and {@link RegistrationAction#STOP_LISTENING} being
+     * returned.</p>
+     *
+     * @param replies the replies which have been received
      */
-    @Nonnull
-    Set<ChannelListener<T>> getListeners();
+    void onTimeout(@Nonnull List<R> replies);
 
     /**
-     * Gets if this agent has any active listeners.
-     *
-     * @return true if this agent has listeners
+     * Defines the actions to take after receiving a reply in a {@link ConversationReplyListener}.
      */
-    boolean hasListeners();
+    enum RegistrationAction {
 
-    /**
-     * Adds a new listener to the channel;
-     *
-     * @param listener the listener to add
-     * @return true if successful
-     */
-    boolean addListener(@Nonnull ChannelListener<T> listener);
+        /**
+         * Marks that the listener should continue listening for replies
+         */
+        CONTINUE_LISTENING,
 
-    /**
-     * Removes a listener from the channel.
-     *
-     * @param listener the listener to remove
-     * @return true if successful
-     */
-    boolean removeListener(@Nonnull ChannelListener<T> listener);
+        /**
+         * Marks that the listener should stop listening for replies
+         */
+        STOP_LISTENING
 
-    @Override
-    void close();
+    }
 }

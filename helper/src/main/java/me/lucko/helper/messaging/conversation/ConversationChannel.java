@@ -23,24 +23,24 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.messaging;
+package me.lucko.helper.messaging.conversation;
 
-import com.google.common.reflect.TypeToken;
-
-import me.lucko.helper.interfaces.TypeAware;
-import me.lucko.helper.messaging.codec.Codec;
+import me.lucko.helper.messaging.Channel;
+import me.lucko.helper.messaging.ChannelAgent;
 import me.lucko.helper.promise.Promise;
+import me.lucko.helper.terminable.Terminable;
+
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
 /**
- * Represents an individual messaging channel.
+ * An extension of {@link Channel} providing an abstraction for two-way "conversations".
  *
- * <p>Channels can be subscribed to through a {@link ChannelAgent}.</p>
- *
- * @param <T> the channel message type
+ * @param <T> the outgoing message type
+ * @param <R> the reply message type
  */
-public interface Channel<T> extends TypeAware<T> {
+public interface ConversationChannel<T extends ConversationMessage, R extends ConversationMessage> extends Terminable {
 
     /**
      * Gets the name of the channel.
@@ -51,21 +51,20 @@ public interface Channel<T> extends TypeAware<T> {
     String getName();
 
     /**
-     * Gets the channels message type.
+     * Gets the channel for primary outgoing messages.
      *
-     * @return the channels message type.
+     * @return the outgoing channel
      */
-    @Override
     @Nonnull
-    TypeToken<T> getType();
+    Channel<T> getOutgoingChannel();
 
     /**
-     * Gets the channels codec.
+     * Gets the channel replies are sent on.
      *
-     * @return the codec
+     * @return the reply channel
      */
     @Nonnull
-    Codec<T> getCodec();
+    Channel<R> getReplyChannel();
 
     /**
      * Creates a new {@link ChannelAgent} for this channel.
@@ -73,18 +72,23 @@ public interface Channel<T> extends TypeAware<T> {
      * @return a new channel agent.
      */
     @Nonnull
-    ChannelAgent<T> newAgent();
+    ConversationChannelAgent<T, R> newAgent();
 
     /**
      * Sends a new message to the channel.
      *
-     * <p>This method will return immediately, and the future will be completed
+     * <p>This method will return immediately, and the promise will be completed
      * once the message has been sent.</p>
      *
      * @param message the message to dispatch
+     * @param replyListener the reply listener
+     * @param timeoutDuration the timeout duration for the reply listener
+     * @param unit the unit of timeoutDuration
      * @return a promise which will complete when the message has sent.
      */
     @Nonnull
-    Promise<Void> sendMessage(@Nonnull T message);
+    Promise<Void> sendMessage(@Nonnull T message, @Nonnull ConversationReplyListener<R> replyListener, long timeoutDuration, @Nonnull TimeUnit unit);
 
+    @Override
+    void close();
 }

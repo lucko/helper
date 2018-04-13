@@ -23,60 +23,27 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.messaging;
+package me.lucko.helper.messaging.conversation;
 
-import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.messaging.codec.Codec;
 
-import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
 /**
- * Represents an agent for interacting with a {@link Channel}s message streams.
+ * Represents a message sent via a {@link ConversationChannel}.
  *
- * @param <T> the channel message type
+ * <p>The conversation id should be serialised by the messages {@link Codec}.</p>
  */
-public interface ChannelAgent<T> extends Terminable {
+public interface ConversationMessage {
 
     /**
-     * Gets the channel this agent is acting for.
+     * Gets the ID of the conversation
      *
-     * @return the parent channel
+     * @return the conversation id
      */
     @Nonnull
-    Channel<T> getChannel();
+    UUID getConversationId();
 
-    /**
-     * Gets an immutable copy of the listeners currently held by this agent.
-     *
-     * @return the active listeners
-     */
-    @Nonnull
-    Set<ChannelListener<T>> getListeners();
-
-    /**
-     * Gets if this agent has any active listeners.
-     *
-     * @return true if this agent has listeners
-     */
-    boolean hasListeners();
-
-    /**
-     * Adds a new listener to the channel;
-     *
-     * @param listener the listener to add
-     * @return true if successful
-     */
-    boolean addListener(@Nonnull ChannelListener<T> listener);
-
-    /**
-     * Removes a listener from the channel.
-     *
-     * @param listener the listener to remove
-     * @return true if successful
-     */
-    boolean removeListener(@Nonnull ChannelListener<T> listener);
-
-    @Override
-    void close();
 }

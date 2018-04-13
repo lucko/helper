@@ -28,6 +28,10 @@ package me.lucko.helper.messaging;
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
+import me.lucko.helper.messaging.conversation.ConversationChannel;
+import me.lucko.helper.messaging.conversation.ConversationMessage;
+import me.lucko.helper.messaging.conversation.SimpleConversationChannel;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -36,7 +40,7 @@ import javax.annotation.Nonnull;
 public interface Messenger {
 
     /**
-     * Gets a messaging channel by name.
+     * Gets a channel by name.
      *
      * @param name the name of the channel.
      * @param type the channel message typetoken
@@ -46,8 +50,24 @@ public interface Messenger {
     @Nonnull
     <T> Channel<T> getChannel(@Nonnull String name, @Nonnull TypeToken<T> type);
 
+
     /**
-     * Gets a messaging channel by name.
+     * Gets a conversation channel by name.
+     *
+     * @param name the name of the channel
+     * @param type the channel outgoing message typetoken
+     * @param replyType the channel incoming (reply) message typetoken
+     * @param <T> the channel message type
+     * @param <R> the channel reply type
+     * @return a conversation channel
+     */
+    @Nonnull
+    default <T extends ConversationMessage, R extends ConversationMessage> ConversationChannel<T, R> getConversationChannel(@Nonnull String name, @Nonnull TypeToken<T> type, @Nonnull TypeToken<R> replyType) {
+        return new SimpleConversationChannel<>(this, name, type, replyType);
+    }
+
+    /**
+     * Gets a channel by name.
      *
      * @param name the name of the channel.
      * @param clazz the channel message class
@@ -60,14 +80,18 @@ public interface Messenger {
     }
 
     /**
-     * Gets a messaging channel by name, with the String type.
+     * Gets a conversation channel by name.
      *
-     * @param name the name of the channel.
-     * @return a string channel
+     * @param name the name of the channel
+     * @param clazz the channel outgoing message class
+     * @param replyClazz the channel incoming (reply) message class
+     * @param <T> the channel message type
+     * @param <R> the channel reply type
+     * @return a conversation channel
      */
     @Nonnull
-    default Channel<String> getChannel(@Nonnull String name) {
-        return getChannel(name, String.class);
+    default <T extends ConversationMessage, R extends ConversationMessage> ConversationChannel<T, R> getConversationChannel(@Nonnull String name, @Nonnull Class<T> clazz, @Nonnull Class<R> replyClazz) {
+        return getConversationChannel(name, TypeToken.of(Preconditions.checkNotNull(clazz)), TypeToken.of(Preconditions.checkNotNull(replyClazz)));
     }
 
 }
