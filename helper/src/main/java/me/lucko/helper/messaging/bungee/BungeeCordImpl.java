@@ -35,8 +35,8 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
 import me.lucko.helper.Schedulers;
-import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.plugin.HelperPlugin;
+import me.lucko.helper.promise.Promise;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.utils.Players;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
@@ -54,38 +54,18 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
-/**
- * Wrapper class for the BungeeCord Plugin Messaging API, providing callbacks to read response data
- *
- * <p>See: https://www.spigotmc.org/wiki/bukkit-bungee-plugin-messaging-channel and
- * https://github.com/SpigotMC/BungeeCord/blob/master/proxy/src/main/java/net/md_5/bungee/connection/DownstreamBridge.java#L223</p>
- */
 @NonnullByDefault
-public final class BungeeMessaging implements PluginMessageListener {
+public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
 
-    @Nullable
-    private static BungeeMessaging instance = null;
-    private static synchronized BungeeMessaging get() {
-        if (instance == null) {
-            instance = new BungeeMessaging();
-        }
-        return instance;
-    }
-
-    /**
-     * Server name to represent all servers on the proxy
+    /*
+     * See:
+     * - https://www.spigotmc.org/wiki/bukkit-bungee-plugin-messaging-channel
+     * - https://github.com/SpigotMC/BungeeCord/blob/master/proxy/src/main/java/net/md_5/bungee/connection/DownstreamBridge.java#L223
      */
-    public static final String ALL_SERVERS = "ALL";
-
-    /**
-     * Server name to represent only the online servers on the proxy
-     */
-    public static final String ONLINE_SERVERS = "ONLINE";
 
     /**
      * The name of the BungeeCord plugin channel
@@ -93,247 +73,42 @@ public final class BungeeMessaging implements PluginMessageListener {
     private static final String CHANNEL = "BungeeCord";
 
     /**
-     * Registers a message agent with the handler
-     *
-     * @param agent the agent to register
+     * The plugin instance
      */
-    private static void register(MessageAgent agent) {
-        get().sendMessage(agent);
-    }
-
-    /**
-     * Connects a player to said subserver
-     *
-     * @param player the player to connect
-     * @param serverName the name of the server to connect to
-     */
-    public static void connect(Player player, String serverName) {
-        register(new ConnectAgent(player, serverName));
-    }
-
-    /**
-     * Connects a named player to said subserver
-     *
-     * @param playerName the username of the player to connect
-     * @param serverName the name of the server to connect to
-     */
-    public static void connectOther(String playerName, String serverName) {
-        register(new ConnectOtherAgent(playerName, serverName));
-    }
-
-    /**
-     * Get the real IP of a player
-     *
-     * @param player the player to get the IP of
-     * @param callback a callback to consume the ip and port
-     */
-    public static void ip(Player player, Consumer<Map.Entry<String, Integer>> callback) {
-        register(new IPAgent(player, callback));
-    }
-
-    /**
-     * Gets the amount of players on a certain server, or all servers
-     *
-     * @param serverName the name of the server to get the player count for. Use {@link #ALL_SERVERS} to get the global count
-     * @param callback a callback to consume the count
-     */
-    public static void playerCount(String serverName, Consumer<Integer> callback) {
-        register(new PlayerCountAgent(serverName, callback));
-    }
-
-    /**
-     * Gets a list of players connected on a certain server, or all servers.
-     *
-     * @param serverName the name of the server to get the player list for. Use {@link #ALL_SERVERS} to get the global list
-     * @param callback a callback to consume the player list
-     */
-    public static void playerList(String serverName, Consumer<List<String>> callback) {
-        register(new PlayerListAgent(serverName, callback));
-    }
-
-    /**
-     * Get a list of server name strings, as defined in the BungeeCord config
-     *
-     * @param callback a callback to consume the list of server names
-     */
-    public static void getServers(Consumer<List<String>> callback) {
-        register(new GetServersAgent(callback));
-    }
-
-    /**
-     * Send a message (as in chat message) to the specified player
-     *
-     * @param playerName the username of the player to send the message to
-     * @param message the message to send
-     */
-    public static void message(String playerName, String message) {
-        register(new PlayerMessageAgent(playerName, message));
-    }
-
-    /**
-     * Gets this servers name, as defined in the BungeeCord config
-     *
-     * @param callback a callback to consume the name
-     */
-    public static void getServer(Consumer<String> callback) {
-        register(new GetServerAgent(callback));
-    }
-
-    /**
-     * Get the UUID of a player
-     *
-     * @param player the player to get the uuid of
-     * @param callback a callback to consume the uuid
-     */
-    public static void uuid(Player player, Consumer<UUID> callback) {
-        register(new UUIDAgent(player, callback));
-    }
-
-    /**
-     * Get the UUID of any player connected to the proxy
-     *
-     * @param playerName the username of the player to get the uuid of
-     * @param callback a callback to consume the uuid
-     */
-    public static void uuidOther(String playerName, Consumer<UUID> callback) {
-        register(new UUIDOtherAgent(playerName, callback));
-    }
-
-    /**
-     * Get the IP of any server connected to the proxy
-     *
-     * @param serverName the name of the server to get the ip of
-     * @param callback a callback to consume the ip and port
-     */
-    public static void serverIp(String serverName, Consumer<Map.Entry<String, Integer>> callback) {
-        register(new ServerIPAgent(serverName, callback));
-    }
-
-    /**
-     * Kick a player from the proxy
-     *
-     * @param playerName the username of the player to kick
-     * @param reason the reason to display to the player when they are kicked
-     */
-    public static void kickPlayer(String playerName, String reason) {
-        register(new KickPlayerAgent(playerName, reason));
-    }
-
-    /**
-     * Sends a custom plugin message to a given server.
-     *
-     * <p>You can use {@link #registerForwardCallbackRaw(String, Predicate)} to register listeners on a given subchannel.</p>
-     *
-     * @param serverName the name of the server to send to. use {@link #ALL_SERVERS} to send to all servers, or {@link #ONLINE_SERVERS} to only send to servers which are online.
-     * @param channelName the name of the subchannel
-     * @param data the data to send
-     */
-    public static void forward(String serverName, String channelName, byte[] data) {
-        register(new ForwardAgent(serverName, channelName, data));
-    }
-
-    /**
-     * Sends a custom plugin message to a given server.
-     *
-     * <p>You can use {@link #registerForwardCallback(String, Predicate)} to register listeners on a given subchannel.</p>
-     *
-     * @param serverName the name of the server to send to. use {@link #ALL_SERVERS} to send to all servers, or {@link #ONLINE_SERVERS} to only send to servers which are online.
-     * @param channelName the name of the subchannel
-     * @param data the data to send
-     */
-    public static void forward(String serverName, String channelName, ByteArrayDataOutput data) {
-        register(new ForwardAgent(serverName, channelName, data));
-    }
-
-    /**
-     * Sends a custom plugin message to a given server.
-     *
-     * <p>You can use {@link #registerForwardCallbackRaw(String, Predicate)} to register listeners on a given subchannel.</p>
-     *
-     * @param playerName the username of a player. BungeeCord will send the forward message to their server.
-     * @param channelName the name of the subchannel
-     * @param data the data to send
-     */
-    public static void forwardToPlayer(String playerName, String channelName, byte[] data) {
-        register(new ForwardToPlayerAgent(playerName, channelName, data));
-    }
-
-    /**
-     * Sends a custom plugin message to a given server.
-     *
-     * <p>You can use {@link #registerForwardCallback(String, Predicate)} to register listeners on a given subchannel.</p>
-     *
-     * @param playerName the username of a player. BungeeCord will send the forward message to their server.
-     * @param channelName the name of the subchannel
-     * @param data the data to send
-     */
-    public static void forwardToPlayer(String playerName, String channelName, ByteArrayDataOutput data) {
-        register(new ForwardToPlayerAgent(playerName, channelName, data));
-    }
-
-    /**
-     * Registers a callback to listen for messages sent on forwarded subchannels.
-     *
-     * <p>Use {@link #forward(String, String, byte[])} to dispatch messages.</p>
-     *
-     * @param channelName the name of the channel to listen on
-     * @param callback the callback. the predicate should return true when the callback should be unregistered.
-     */
-    public static void registerForwardCallbackRaw(String channelName, Predicate<byte[]> callback) {
-        ForwardCustomCallback customCallback = new ForwardCustomCallback(channelName, callback);
-        get().registerListener(customCallback);
-    }
-
-    /**
-     * Registers a callback to listen for messages sent on forwarded subchannels.
-     *
-     * <p>Use {@link #forward(String, String, ByteArrayDataOutput)} to dispatch messages.</p>
-     *
-     * @param channelName the name of the channel to listen on
-     * @param callback the callback. the predicate should return true when the callback should be unregistered.
-     */
-    public static void registerForwardCallback(String channelName, Predicate<ByteArrayDataInput> callback) {
-        final Predicate<ByteArrayDataInput> cb = Preconditions.checkNotNull(callback, "callback");
-        ForwardCustomCallback customCallback = new ForwardCustomCallback(channelName, bytes -> cb.test(ByteStreams.newDataInput(bytes)));
-        get().registerListener(customCallback);
-    }
-
     private final HelperPlugin plugin;
-    private final CompositeTerminable terminableRegistry = CompositeTerminable.create();
+
+    /**
+     * The registered listeners
+     */
     private final List<MessageCallback> listeners = new LinkedList<>();
-    private final Set<MessageAgent> queuedMessages = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Lock to guard the 'listeners' list
+     */
     private final ReentrantLock lock = new ReentrantLock();
 
-    private BungeeMessaging() {
-        this.plugin = LoaderUtils.getPlugin();
-        this.plugin.bind(() -> {
-            BungeeMessaging.instance = null;
-            this.terminableRegistry.closeAndReportException();
-        });
+    /**
+     * Messages to be sent
+     */
+    private final Set<MessageAgent> queuedMessages = ConcurrentHashMap.newKeySet();
+
+    public BungeeCordImpl(HelperPlugin plugin) {
+        this.plugin = plugin;
 
         this.plugin.getServer().getMessenger().registerOutgoingPluginChannel(this.plugin, CHANNEL);
-        this.terminableRegistry.bind(() -> this.plugin.getServer().getMessenger().unregisterOutgoingPluginChannel(this.plugin, CHANNEL));
-
         this.plugin.getServer().getMessenger().registerIncomingPluginChannel(this.plugin, CHANNEL, this);
-        this.terminableRegistry.bind(() -> this.plugin.getServer().getMessenger().unregisterIncomingPluginChannel(this.plugin, CHANNEL, this));
 
-        Schedulers.builder()
-                .sync()
-                .afterAndEvery(3, TimeUnit.SECONDS)
-                .run(() -> {
-                    if (this.queuedMessages.isEmpty()) {
-                        return;
-                    }
-
-                    Player p = Iterables.getFirst(Players.all(), null);
-                    if (p != null) {
-                        this.queuedMessages.removeIf(ma -> {
-                            sendToChannel(ma, p);
-                            return true;
-                        });
-                    }
+        plugin.bind(CompositeTerminable.create()
+                .with(() -> {
+                    this.plugin.getServer().getMessenger().unregisterOutgoingPluginChannel(this.plugin, CHANNEL);
+                    this.plugin.getServer().getMessenger().unregisterIncomingPluginChannel(this.plugin, CHANNEL, this);
                 })
-                .bindWith(this.terminableRegistry);
+                .with(Schedulers.builder()
+                        .sync()
+                        .afterAndEvery(3, TimeUnit.SECONDS)
+                        .run(this::flushQueuedMessages)
+                )
+        );
     }
 
     @Override
@@ -342,34 +117,42 @@ public final class BungeeMessaging implements PluginMessageListener {
             return;
         }
 
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
+        // create an input stream from the recieved data
+        ByteArrayInputStream byteIn = new ByteArrayInputStream(data);
 
-        ByteArrayDataInput in = ByteStreams.newDataInput(inputStream);
+        // create a data input instance
+        ByteArrayDataInput in = ByteStreams.newDataInput(byteIn);
+
+        // read the subchannel & mark the beginning of the stream at this point, so we can reset to this position later
         String subChannel = in.readUTF();
+        byteIn.mark(/* ignored */ 0);
 
-        // exclude the first value from the input stream
-        inputStream.mark(/* ignored */ 0);
-
+        // pass the incoming message to all registered listeners
         this.lock.lock();
         try {
             Iterator<MessageCallback> it = this.listeners.iterator();
             while (it.hasNext()) {
                 MessageCallback e = it.next();
 
+                // check if the subchannel is valid
                 if (!e.getSubChannel().equals(subChannel)) {
                     continue;
                 }
 
-                inputStream.reset();
-                boolean accepted = e.test(player, in);
+                // reset the inputstream to the start position
+                byteIn.reset();
 
+                // test if the data should be "passed" to the callback
+                boolean accepted = e.testResponse(player, in);
                 if (!accepted) {
                     continue;
                 }
 
-                inputStream.reset();
-                boolean shouldRemove = e.accept(player, in);
+                // reset again
+                byteIn.reset();
 
+                // pass the data to the callback
+                boolean shouldRemove = e.acceptResponse(player, in);
                 if (shouldRemove) {
                     it.remove();
                 }
@@ -379,7 +162,13 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
     }
 
+    /**
+     * Sends (or queues the sending of) the message encapsulated by the given message agent
+     *
+     * @param agent the agent
+     */
     private void sendMessage(MessageAgent agent) {
+        // check if the agent has a specific player handle to use when sending the message
         Player player = agent.getHandle();
         if (player != null) {
             if (!player.isOnline()) {
@@ -400,28 +189,155 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
     }
 
-    private void sendToChannel(MessageAgent agent, Player player) {
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF(agent.getSubChannel());
-        agent.appendPayload(out);
+    private void flushQueuedMessages() {
+        if (this.queuedMessages.isEmpty()) {
+            return;
+        }
 
-        byte[] data = out.toByteArray();
-        player.sendPluginMessage(this.plugin, CHANNEL, data);
-
-        // register listener
-        if (agent instanceof MessageCallback) {
-            MessageCallback callback = (MessageCallback) agent;
-            registerListener(callback);
+        Player p = Iterables.getFirst(Players.all(), null);
+        if (p != null) {
+            this.queuedMessages.removeIf(ma -> {
+                sendToChannel(ma, p);
+                return true;
+            });
         }
     }
 
-    private void registerListener(MessageCallback callback) {
+    private void sendToChannel(MessageAgent agent, Player player) {
+        // create a new data output stream for the message
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+        // write the channel
+        out.writeUTF(agent.getSubChannel());
+        // append the agents data
+        agent.appendPayload(out);
+
+        byte[] buf = out.toByteArray();
+        player.sendPluginMessage(this.plugin, CHANNEL, buf);
+
+        // if the agent is also a MessageCallback, register it
+        if (agent instanceof MessageCallback) {
+            MessageCallback callback = (MessageCallback) agent;
+            registerCallback(callback);
+        }
+    }
+
+    private void registerCallback(MessageCallback callback) {
         this.lock.lock();
         try {
             this.listeners.add(callback);
         } finally {
             this.lock.unlock();
         }
+    }
+
+    @Override
+    public void connect(Player player, String serverName) {
+        sendMessage(new ConnectAgent(player, serverName));
+    }
+
+    @Override
+    public void connectOther(String playerName, String serverName) {
+        sendMessage(new ConnectOtherAgent(playerName, serverName));
+    }
+
+    @Override
+    public Promise<Map.Entry<String, Integer>> ip(Player player) {
+        Promise<Map.Entry<String, Integer>> fut = Promise.empty();
+        sendMessage(new IPAgent(player, fut));
+        return fut;
+    }
+
+    @Override
+    public Promise<Integer> playerCount(String serverName) {
+        Promise<Integer> fut = Promise.empty();
+        sendMessage(new PlayerCountAgent(serverName, fut));
+        return fut;
+    }
+
+    @Override
+    public Promise<List<String>> playerList(String serverName) {
+        Promise<List<String>> fut = Promise.empty();
+        sendMessage(new PlayerListAgent(serverName, fut));
+        return fut;
+    }
+
+    @Override
+    public Promise<List<String>> getServers() {
+        Promise<List<String>> fut = Promise.empty();
+        sendMessage(new GetServersAgent(fut));
+        return fut;
+    }
+
+    @Override
+    public void message(String playerName, String message) {
+        sendMessage(new PlayerMessageAgent(playerName, message));
+    }
+
+    @Override
+    public Promise<String> getServer() {
+        Promise<String> fut = Promise.empty();
+        sendMessage(new GetServerAgent(fut));
+        return fut;
+    }
+
+    @Override
+    public Promise<UUID> uuid(Player player) {
+        Promise<UUID> fut = Promise.empty();
+        sendMessage(new UUIDAgent(player, fut));
+        return fut;
+    }
+
+    @Override
+    public Promise<UUID> uuidOther(String playerName) {
+        Promise<UUID> fut = Promise.empty();
+        sendMessage(new UUIDOtherAgent(playerName, fut));
+        return fut;
+    }
+
+    @Override
+    public Promise<Map.Entry<String, Integer>> serverIp(String serverName) {
+        Promise<Map.Entry<String, Integer>> fut = Promise.empty();
+        sendMessage(new ServerIPAgent(serverName, fut));
+        return fut;
+    }
+
+    @Override
+    public void kickPlayer(String playerName, String reason) {
+        sendMessage(new KickPlayerAgent(playerName, reason));
+    }
+
+    @Override
+    public void forward(String serverName, String channelName, byte[] data) {
+        sendMessage(new ForwardAgent(serverName, channelName, data));
+    }
+
+    @Override
+    public void forward(String serverName, String channelName, ByteArrayDataOutput data) {
+        sendMessage(new ForwardAgent(serverName, channelName, data));
+    }
+
+    @Override
+    public void forwardToPlayer(String playerName, String channelName, byte[] data) {
+        sendMessage(new ForwardToPlayerAgent(playerName, channelName, data));
+    }
+
+    @Override
+    public void forwardToPlayer(String playerName, String channelName, ByteArrayDataOutput data) {
+        sendMessage(new ForwardToPlayerAgent(playerName, channelName, data));
+    }
+
+    @Override
+    public void registerForwardCallbackRaw(String channelName, Predicate<byte[]> callback) {
+        ForwardCustomCallback customCallback = new ForwardCustomCallback(channelName, callback);
+        registerCallback(customCallback);
+    }
+
+    @Override
+    public void registerForwardCallback(String channelName, Predicate<ByteArrayDataInput> callback) {
+        final Predicate<ByteArrayDataInput> cb = Preconditions.checkNotNull(callback, "callback");
+        ForwardCustomCallback customCallback = new ForwardCustomCallback(channelName, bytes -> cb.test(ByteStreams.newDataInput(bytes)));
+        registerCallback(customCallback);
     }
 
     /**
@@ -454,7 +370,6 @@ public final class BungeeMessaging implements PluginMessageListener {
         default void appendPayload(ByteArrayDataOutput out) {
 
         }
-
     }
 
     /**
@@ -476,7 +391,7 @@ public final class BungeeMessaging implements PluginMessageListener {
          * @param in the input data
          * @return true if the data is applicable
          */
-        default boolean test(Player receiver, ByteArrayDataInput in) {
+        default boolean testResponse(Player receiver, ByteArrayDataInput in) {
             return true;
         }
 
@@ -487,7 +402,7 @@ public final class BungeeMessaging implements PluginMessageListener {
          * @param in the input data
          * @return if the callback should be de-registered
          */
-        boolean accept(Player receiver, ByteArrayDataInput in);
+        boolean acceptResponse(Player receiver, ByteArrayDataInput in);
 
     }
 
@@ -545,9 +460,9 @@ public final class BungeeMessaging implements PluginMessageListener {
         private static final String CHANNEL = "IP";
 
         private final Player player;
-        private final Consumer<Map.Entry<String, Integer>> callback;
+        private final Promise<Map.Entry<String, Integer>> callback;
 
-        private IPAgent(Player player, Consumer<Map.Entry<String, Integer>> callback) {
+        private IPAgent(Player player, Promise<Map.Entry<String, Integer>> callback) {
             this.player = Preconditions.checkNotNull(player, "player");
             this.callback = Preconditions.checkNotNull(callback, "callback");
         }
@@ -563,15 +478,15 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
 
         @Override
-        public boolean test(Player receiver, ByteArrayDataInput in) {
+        public boolean testResponse(Player receiver, ByteArrayDataInput in) {
             return receiver.getUniqueId().equals(this.player.getUniqueId());
         }
 
         @Override
-        public boolean accept(Player receiver, ByteArrayDataInput in) {
+        public boolean acceptResponse(Player receiver, ByteArrayDataInput in) {
             String ip = in.readUTF();
             int port = in.readInt();
-            this.callback.accept(Maps.immutableEntry(ip, port));
+            this.callback.supply(Maps.immutableEntry(ip, port));
             return true;
         }
     }
@@ -580,9 +495,9 @@ public final class BungeeMessaging implements PluginMessageListener {
         private static final String CHANNEL = "PlayerCount";
 
         private final String serverName;
-        private final Consumer<Integer> callback;
+        private final Promise<Integer> callback;
 
-        private PlayerCountAgent(String serverName, Consumer<Integer> callback) {
+        private PlayerCountAgent(String serverName, Promise<Integer> callback) {
             this.serverName = Preconditions.checkNotNull(serverName, "serverName");
             this.callback = Preconditions.checkNotNull(callback, "callback");
         }
@@ -598,15 +513,15 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
 
         @Override
-        public boolean test(Player receiver, ByteArrayDataInput in) {
+        public boolean testResponse(Player receiver, ByteArrayDataInput in) {
             return in.readUTF().equalsIgnoreCase(this.serverName);
         }
 
         @Override
-        public boolean accept(Player receiver, ByteArrayDataInput in) {
+        public boolean acceptResponse(Player receiver, ByteArrayDataInput in) {
             in.readUTF();
             int count = in.readInt();
-            this.callback.accept(count);
+            this.callback.supply(count);
             return true;
         }
     }
@@ -615,9 +530,9 @@ public final class BungeeMessaging implements PluginMessageListener {
         private static final String CHANNEL = "PlayerList";
 
         private final String serverName;
-        private final Consumer<List<String>> callback;
+        private final Promise<List<String>> callback;
 
-        private PlayerListAgent(String serverName, Consumer<List<String>> callback) {
+        private PlayerListAgent(String serverName, Promise<List<String>> callback) {
             this.serverName = Preconditions.checkNotNull(serverName, "serverName");
             this.callback = Preconditions.checkNotNull(callback, "callback");
         }
@@ -633,21 +548,21 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
 
         @Override
-        public boolean test(Player receiver, ByteArrayDataInput in) {
+        public boolean testResponse(Player receiver, ByteArrayDataInput in) {
             return in.readUTF().equalsIgnoreCase(this.serverName);
         }
 
         @Override
-        public boolean accept(Player receiver, ByteArrayDataInput in) {
+        public boolean acceptResponse(Player receiver, ByteArrayDataInput in) {
             in.readUTF();
             String csv = in.readUTF();
 
             if (csv.isEmpty()) {
-                this.callback.accept(ImmutableList.of());
+                this.callback.supply(ImmutableList.of());
                 return true;
             }
 
-            this.callback.accept(ImmutableList.copyOf(Splitter.on(", ").splitToList(csv)));
+            this.callback.supply(ImmutableList.copyOf(Splitter.on(", ").splitToList(csv)));
             return true;
         }
     }
@@ -655,9 +570,9 @@ public final class BungeeMessaging implements PluginMessageListener {
     private static final class GetServersAgent implements MessageAgent, MessageCallback {
         private static final String CHANNEL = "GetServers";
         
-        private final Consumer<List<String>> callback;
+        private final Promise<List<String>> callback;
 
-        private GetServersAgent(Consumer<List<String>> callback) {
+        private GetServersAgent(Promise<List<String>> callback) {
             this.callback = Preconditions.checkNotNull(callback, "callback");
         }
 
@@ -667,15 +582,15 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
 
         @Override
-        public boolean accept(Player receiver, ByteArrayDataInput in) {
+        public boolean acceptResponse(Player receiver, ByteArrayDataInput in) {
             String csv = in.readUTF();
 
             if (csv.isEmpty()) {
-                this.callback.accept(ImmutableList.of());
+                this.callback.supply(ImmutableList.of());
                 return true;
             }
 
-            this.callback.accept(ImmutableList.copyOf(Splitter.on(", ").splitToList(csv)));
+            this.callback.supply(ImmutableList.copyOf(Splitter.on(", ").splitToList(csv)));
             return true;
         }
     }
@@ -706,9 +621,9 @@ public final class BungeeMessaging implements PluginMessageListener {
     private static final class GetServerAgent implements MessageAgent, MessageCallback {
         private static final String CHANNEL = "GetServer";
 
-        private final Consumer<String> callback;
+        private final Promise<String> callback;
 
-        private GetServerAgent(Consumer<String> callback) {
+        private GetServerAgent(Promise<String> callback) {
             this.callback = Preconditions.checkNotNull(callback, "callback");
         }
 
@@ -718,8 +633,8 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
 
         @Override
-        public boolean accept(Player receiver, ByteArrayDataInput in) {
-            this.callback.accept(in.readUTF());
+        public boolean acceptResponse(Player receiver, ByteArrayDataInput in) {
+            this.callback.supply(in.readUTF());
             return true;
         }
     }
@@ -728,9 +643,9 @@ public final class BungeeMessaging implements PluginMessageListener {
         private static final String CHANNEL = "UUID";
 
         private final Player player;
-        private final Consumer<java.util.UUID> callback;
+        private final Promise<UUID> callback;
 
-        private UUIDAgent(Player player, Consumer<java.util.UUID> callback) {
+        private UUIDAgent(Player player, Promise<UUID> callback) {
             this.player = Preconditions.checkNotNull(player, "player");
             this.callback = Preconditions.checkNotNull(callback, "callback");
         }
@@ -746,14 +661,14 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
 
         @Override
-        public boolean test(Player receiver, ByteArrayDataInput in) {
+        public boolean testResponse(Player receiver, ByteArrayDataInput in) {
             return receiver.getUniqueId().equals(this.player.getUniqueId());
         }
 
         @Override
-        public boolean accept(Player receiver, ByteArrayDataInput in) {
+        public boolean acceptResponse(Player receiver, ByteArrayDataInput in) {
             String uuid = in.readUTF();
-            this.callback.accept(java.util.UUID.fromString(uuid));
+            this.callback.supply(UUID.fromString(uuid));
             return true;
         }
     }
@@ -762,9 +677,9 @@ public final class BungeeMessaging implements PluginMessageListener {
         private static final String CHANNEL = "UUIDOther";
 
         private final String playerName;
-        private final Consumer<java.util.UUID> callback;
+        private final Promise<UUID> callback;
 
-        private UUIDOtherAgent(String playerName, Consumer<java.util.UUID> callback) {
+        private UUIDOtherAgent(String playerName, Promise<UUID> callback) {
             this.playerName = Preconditions.checkNotNull(playerName, "playerName");
             this.callback = Preconditions.checkNotNull(callback, "callback");
         }
@@ -780,15 +695,15 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
 
         @Override
-        public boolean test(Player receiver, ByteArrayDataInput in) {
+        public boolean testResponse(Player receiver, ByteArrayDataInput in) {
             return in.readUTF().equalsIgnoreCase(this.playerName);
         }
 
         @Override
-        public boolean accept(Player receiver, ByteArrayDataInput in) {
+        public boolean acceptResponse(Player receiver, ByteArrayDataInput in) {
             in.readUTF();
             String uuid = in.readUTF();
-            this.callback.accept(java.util.UUID.fromString(uuid));
+            this.callback.supply(UUID.fromString(uuid));
             return true;
         }
     }
@@ -797,9 +712,9 @@ public final class BungeeMessaging implements PluginMessageListener {
         private static final String CHANNEL = "ServerIP";
 
         private final String serverName;
-        private final Consumer<Map.Entry<String, Integer>> callback;
+        private final Promise<Map.Entry<String, Integer>> callback;
 
-        private ServerIPAgent(String serverName, Consumer<Map.Entry<String, Integer>> callback) {
+        private ServerIPAgent(String serverName, Promise<Map.Entry<String, Integer>> callback) {
             this.serverName = Preconditions.checkNotNull(serverName, "serverName");
             this.callback = Preconditions.checkNotNull(callback, "callback");
         }
@@ -815,16 +730,16 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
 
         @Override
-        public boolean test(Player receiver, ByteArrayDataInput in) {
+        public boolean testResponse(Player receiver, ByteArrayDataInput in) {
             return in.readUTF().equalsIgnoreCase(this.serverName);
         }
 
         @Override
-        public boolean accept(Player receiver, ByteArrayDataInput in) {
+        public boolean acceptResponse(Player receiver, ByteArrayDataInput in) {
             in.readUTF();
             String ip = in.readUTF();
             int port = in.readInt();
-            this.callback.accept(Maps.immutableEntry(ip, port));
+            this.callback.supply(Maps.immutableEntry(ip, port));
             return true;
         }
     }
@@ -933,7 +848,7 @@ public final class BungeeMessaging implements PluginMessageListener {
         }
 
         @Override
-        public boolean accept(Player receiver, ByteArrayDataInput in) {
+        public boolean acceptResponse(Player receiver, ByteArrayDataInput in) {
             short len = in.readShort();
             byte[] data = new byte[len];
             in.readFully(data);

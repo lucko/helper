@@ -38,7 +38,6 @@ import lilypad.client.connect.api.request.RequestException;
 import lilypad.client.connect.api.request.impl.MessageRequest;
 import lilypad.client.connect.api.request.impl.RedirectRequest;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -58,7 +57,7 @@ public class LilyPadWrapper implements HelperLilyPad {
                 (channel, message) -> {
                     try {
                         connect.request(new MessageRequest(Collections.emptyList(), channel, message));
-                    } catch (RequestException | UnsupportedEncodingException e) {
+                    } catch (RequestException e) {
                         e.printStackTrace();
                     }
                 },
@@ -79,14 +78,7 @@ public class LilyPadWrapper implements HelperLilyPad {
     @EventListener
     public void onMessage(MessageEvent event) {
         String channel = event.getChannel();
-        String message;
-        try {
-            message = event.getMessageAsString();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            return;
-        }
-
+        byte[] message = event.getMessage();
         this.messenger.registerIncomingMessage(channel, message);
     }
 
