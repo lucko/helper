@@ -36,11 +36,12 @@ import me.lucko.helper.redis.RedisCredentials;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.utils.Log;
 
+import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.JedisPubSub;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -83,7 +84,7 @@ public class JedisWrapper implements HelperRedis {
                 try (Jedis jedis = getJedis()) {
                     try {
                         JedisWrapper.this.listener = new PubSubListener();
-                        jedis.subscribe(JedisWrapper.this.listener, "helper-redis-dummy");
+                        jedis.psubscribe(JedisWrapper.this.listener, "helper-redis-dummy".getBytes(StandardCharsets.UTF_8));
                     } catch (Exception e) {
                         // Attempt to unsubscribe this instance and try again.
                         new RuntimeException("Error subscribing to listener", e).printStackTrace();
@@ -113,7 +114,7 @@ public class JedisWrapper implements HelperRedis {
             }
 
             for (String channel : this.channels) {
-                listener.subscribe(channel);
+                listener.subscribe(channel.getBytes(StandardCharsets.UTF_8));
             }
 
         }, 2L, 2L).bindWith(this.registry);
@@ -121,18 +122,18 @@ public class JedisWrapper implements HelperRedis {
         this.messenger = new AbstractMessenger(
                 (channel, message) -> {
                     try (Jedis jedis = getJedis()) {
-                        jedis.publish(channel, message);
+                        jedis.publish(channel.getBytes(StandardCharsets.UTF_8), message);
                     }
                 },
                 channel -> {
                     Log.info("[helper-redis] Subscribing to channel: " + channel);
                     this.channels.add(channel);
-                    JedisWrapper.this.listener.subscribe(channel);
+                    JedisWrapper.this.listener.subscribe(channel.getBytes(StandardCharsets.UTF_8));
                 },
                 channel -> {
                     Log.info("[helper-redis] Unsubscribing from channel: " + channel);
                     this.channels.remove(channel);
-                    JedisWrapper.this.listener.unsubscribe(channel);
+                    JedisWrapper.this.listener.unsubscribe(channel.getBytes(StandardCharsets.UTF_8));
                 }
         );
     }
@@ -170,33 +171,36 @@ public class JedisWrapper implements HelperRedis {
         return this.messenger.getChannel(name, type);
     }
 
-    private final class PubSubListener extends JedisPubSub {
+    private final class PubSubListener extends BinaryJedisPubSub {
         private Set<String> subscribed = ConcurrentHashMap.newKeySet();
 
         @Override
-        public void subscribe(String... channels) {
-            for (String channel : channels) {
-                if (this.subscribed.add(channel)) {
+        public void subscribe(byte[]... channels) {
+            for (byte[] channel : channels) {
+                String channelName = new String(channel, StandardCharsets.UTF_8).intern();
+                if (this.subscribed.add(channelName)) {
                     super.subscribe(channel);
                 }
             }
         }
 
         @Override
-        public void onSubscribe(String channel, int subscribedChannels) {
-            Log.info("[helper-redis] Subscribed to channel: " + channel);
+        public void onSubscribe(byte[] channel, int subscribedChannels) {
+            Log.info("[helper-redis] Subscribed to channel: " + new String(channel, StandardCharsets.UTF_8));
         }
 
         @Override
-        public void onUnsubscribe(String channel, int subscribedChannels) {
-            Log.info("[helper-redis] Unsubscribed from channel: " + channel);
-            this.subscribed.remove(channel);
+        public void onUnsubscribe(byte[] channel, int subscribedChannels) {
+            String channelName = new String(channel, StandardCharsets.UTF_8);
+            Log.info("[helper-redis] Unsubscribed from channel: " + channelName);
+            this.subscribed.remove(channelName);
         }
 
         @Override
-        public void onMessage(String channel, String message) {
+        public void onMessage(byte[] channel, byte[] message) {
+            String channelName = new String(channel, StandardCharsets.UTF_8);
             try {
-                JedisWrapper.this.messenger.registerIncomingMessage(channel, message);
+                JedisWrapper.this.messenger.registerIncomingMessage(channelName, message);
             } catch (Exception e) {
                 e.printStackTrace();
             }

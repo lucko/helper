@@ -66,9 +66,9 @@ class LilypadNetworkImpl implements LilypadNetwork {
     public LilypadNetworkImpl(HelperLilyPad lilyPad) {
         this.lilyPad = lilyPad;
 
-        Channel<ServerCodec> serverChannel = lilyPad.getChannel("hlp-server", ServerCodec.class);
+        Channel<ServerMessage> serverChannel = lilyPad.getChannel("hlp-server", ServerMessage.class);
 
-        ChannelAgent<ServerCodec> serverChannelAgent = serverChannel.newAgent();
+        ChannelAgent<ServerMessage> serverChannelAgent = serverChannel.newAgent();
         serverChannelAgent.bindWith(this.compositeTerminable);
         serverChannelAgent.addListener((agent, message) -> this.servers.computeIfAbsent(message.id, Server::new).loadData(message));
 
@@ -76,7 +76,7 @@ class LilypadNetworkImpl implements LilypadNetwork {
                 .async()
                 .afterAndEvery(3, TimeUnit.SECONDS)
                 .run(() -> {
-                    ServerCodec msg = new ServerCodec();
+                    ServerMessage msg = new ServerMessage();
                     msg.time = System.currentTimeMillis();
                     msg.id = lilyPad.getId();
                     msg.groups = new ArrayList<>(lilyPad.getGroups());
@@ -137,7 +137,7 @@ class LilypadNetworkImpl implements LilypadNetwork {
             this.id = id;
         }
 
-        private void loadData(ServerCodec msg) {
+        private void loadData(ServerMessage msg) {
             this.lastPing = msg.time;
             this.groups = ImmutableSet.copyOf(msg.groups);
 
@@ -177,7 +177,7 @@ class LilypadNetworkImpl implements LilypadNetwork {
         }
     }
 
-    private static final class ServerCodec {
+    private static final class ServerMessage {
         public String id;
         public List<String> groups;
         public long time;
