@@ -25,13 +25,12 @@
 
 package me.lucko.helper.event.functional.merged;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.event.MergedSubscription;
 import me.lucko.helper.internal.LoaderUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import javax.annotation.Nonnull;
@@ -47,7 +46,7 @@ class MergedHandlerListImpl<T> implements MergedHandlerList<T> {
     @Nonnull
     @Override
     public MergedHandlerList<T> biConsumer(@Nonnull BiConsumer<MergedSubscription<T>, ? super T> handler) {
-        Preconditions.checkNotNull(handler, "handler");
+        Objects.requireNonNull(handler, "handler");
         this.handlers.add(handler);
         return this;
     }

@@ -25,13 +25,12 @@
 
 package me.lucko.helper.profiles;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.promise.Promise;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -101,7 +100,7 @@ public interface ProfileRepository {
      */
     @Nonnull
     default Map<UUID, Profile> getProfiles(@Nonnull Iterable<UUID> uniqueIds) {
-        Preconditions.checkNotNull(uniqueIds, "uniqueIds");
+        Objects.requireNonNull(uniqueIds, "uniqueIds");
         Map<UUID, Profile> ret = new HashMap<>();
         for (UUID uniqueId : uniqueIds) {
             Profile profile = getProfile(uniqueId);
@@ -124,7 +123,7 @@ public interface ProfileRepository {
      */
     @Nonnull
     default Map<String, Profile> getProfilesByName(@Nonnull Iterable<String> names) {
-        Preconditions.checkNotNull(names, "names");
+        Objects.requireNonNull(names, "names");
         Map<String, Profile> ret = new HashMap<>();
         for (String name : names) {
             getProfile(name).ifPresent(p -> ret.put(name, p));

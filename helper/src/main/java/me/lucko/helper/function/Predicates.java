@@ -25,8 +25,6 @@
 
 package me.lucko.helper.function;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.Collection;
@@ -53,8 +51,8 @@ public final class Predicates {
      * @return a composed predicate
      */
     public static <A, B> Predicate<A> compose(Function<A, ? extends B> function, Predicate<B> predicate) {
-        Preconditions.checkNotNull(function, "function");
-        Preconditions.checkNotNull(predicate, "predicate");
+        Objects.requireNonNull(function, "function");
+        Objects.requireNonNull(predicate, "predicate");
         return input -> predicate.test(function.apply(input));
     }
 

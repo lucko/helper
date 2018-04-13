@@ -25,8 +25,7 @@
 
 package me.lucko.helper.cache;
 
-import com.google.common.base.Preconditions;
-
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -40,11 +39,11 @@ import java.util.function.Supplier;
 public final class Lazy<T> implements Supplier<T> {
 
     public static <T> Lazy<T> suppliedBy(Supplier<T> supplier) {
-        return new Lazy<>(Preconditions.checkNotNull(supplier, "supplier"));
+        return new Lazy<>(Objects.requireNonNull(supplier, "supplier"));
     }
 
     public static <T> Lazy<T> of(T value) {
-        return new Lazy<>(Preconditions.checkNotNull(value, "value"));
+        return new Lazy<>(Objects.requireNonNull(value, "value"));
     }
 
     private volatile Supplier<T> supplier;

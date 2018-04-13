@@ -25,13 +25,13 @@
 
 package me.lucko.helper.gson;
 
-import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.Reader;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 
@@ -67,12 +67,12 @@ public final class GsonProvider {
 
     @Nonnull
     public static JsonObject readObject(@Nonnull Reader reader) {
-        return Preconditions.checkNotNull(standard().fromJson(reader, JsonObject.class));
+        return Objects.requireNonNull(standard().fromJson(reader, JsonObject.class));
     }
 
     @Nonnull
     public static JsonObject readObject(@Nonnull String s) {
-        return Preconditions.checkNotNull(standard().fromJson(s, JsonObject.class));
+        return Objects.requireNonNull(standard().fromJson(s, JsonObject.class));
     }
 
     public static void writeObject(@Nonnull Appendable writer, @Nonnull JsonObject object) {
@@ -93,12 +93,12 @@ public final class GsonProvider {
 
     @Nonnull
     public static String toString(@Nonnull JsonElement element) {
-        return Preconditions.checkNotNull(standard().toJson(element));
+        return Objects.requireNonNull(standard().toJson(element));
     }
 
     @Nonnull
     public static String toStringPretty(@Nonnull JsonElement element) {
-        return Preconditions.checkNotNull(prettyPrinting().toJson(element));
+        return Objects.requireNonNull(prettyPrinting().toJson(element));
     }
 
     private GsonProvider() {

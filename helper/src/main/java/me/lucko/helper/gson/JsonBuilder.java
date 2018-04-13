@@ -25,7 +25,6 @@
 
 package me.lucko.helper.gson;
 
-import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -35,6 +34,7 @@ import com.google.gson.JsonPrimitive;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -59,7 +59,7 @@ public final class JsonBuilder {
      * @return a new builder
      */
     public static JsonObjectBuilder object(JsonObject object, boolean copy) {
-        Preconditions.checkNotNull(object, "object");
+        Objects.requireNonNull(object, "object");
 
         if (copy) {
             return object().addAll(object, true);
@@ -77,7 +77,7 @@ public final class JsonBuilder {
      * @return a new builder
      */
     public static JsonObjectBuilder object(JsonObject object) {
-        Preconditions.checkNotNull(object, "object");
+        Objects.requireNonNull(object, "object");
         return object(object, false);
     }
 
@@ -100,7 +100,7 @@ public final class JsonBuilder {
      * @return a new builder
      */
     public static JsonArrayBuilder array(JsonArray array, boolean copy) {
-        Preconditions.checkNotNull(array, "array");
+        Objects.requireNonNull(array, "array");
 
         if (copy) {
             return array().addAll(array, true);
@@ -118,7 +118,7 @@ public final class JsonBuilder {
      * @return a new builder
      */
     public static JsonArrayBuilder array(JsonArray array) {
-        Preconditions.checkNotNull(array, "array");
+        Objects.requireNonNull(array, "array");
         return array(array, false);
     }
 
@@ -198,7 +198,7 @@ public final class JsonBuilder {
      * @throws NullPointerException if value is null
      */
     public static JsonPrimitive primitiveNonNull(String value) {
-        Preconditions.checkNotNull(value, "value");
+        Objects.requireNonNull(value, "value");
         return new JsonPrimitive(value);
     }
 
@@ -212,7 +212,7 @@ public final class JsonBuilder {
      * @throws NullPointerException if value is null
      */
     public static JsonPrimitive primitiveNonNull(Number value) {
-        Preconditions.checkNotNull(value, "value");
+        Objects.requireNonNull(value, "value");
         return new JsonPrimitive(value);
     }
 
@@ -226,7 +226,7 @@ public final class JsonBuilder {
      * @throws NullPointerException if value is null
      */
     public static JsonPrimitive primitiveNonNull(Boolean value) {
-        Preconditions.checkNotNull(value, "value");
+        Objects.requireNonNull(value, "value");
         return new JsonPrimitive(value);
     }
 
@@ -240,7 +240,7 @@ public final class JsonBuilder {
      * @throws NullPointerException if value is null
      */
     public static JsonPrimitive primitiveNonNull(Character value) {
-        Preconditions.checkNotNull(value, "value");
+        Objects.requireNonNull(value, "value");
         return new JsonPrimitive(value);
     }
 
@@ -312,7 +312,7 @@ public final class JsonBuilder {
 
         @Override
         default void accept(Map.Entry<String, JsonElement> entry) {
-            Preconditions.checkNotNull(entry, "entry");
+            Objects.requireNonNull(entry, "entry");
             add(entry.getKey(), entry.getValue());
         }
 
@@ -374,7 +374,7 @@ public final class JsonBuilder {
         }
 
         default <T extends JsonElement> JsonObjectBuilder addAll(Iterable<Map.Entry<String, T>> iterable, boolean deepCopy) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, T> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -389,7 +389,7 @@ public final class JsonBuilder {
         }
 
         default <T extends JsonElement> JsonObjectBuilder addAll(Stream<Map.Entry<String, T>> stream, boolean deepCopy) {
-            Preconditions.checkNotNull(stream, "stream");
+            Objects.requireNonNull(stream, "stream");
             stream.forEach(e -> {
                 if (e == null || e.getKey() == null) {
                     return;
@@ -404,7 +404,7 @@ public final class JsonBuilder {
         }
 
         default JsonObjectBuilder addAll(JsonObject object, boolean deepCopy) {
-            Preconditions.checkNotNull(object, "object");
+            Objects.requireNonNull(object, "object");
             return addAll(object.entrySet(), deepCopy);
         }
 
@@ -413,7 +413,7 @@ public final class JsonBuilder {
         }
 
         default <T extends GsonSerializable> JsonObjectBuilder addAllSerializables(Iterable<Map.Entry<String, T>> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, T> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -424,7 +424,7 @@ public final class JsonBuilder {
         }
 
         default JsonObjectBuilder addAllStrings(Iterable<Map.Entry<String, String>> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, String> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -435,7 +435,7 @@ public final class JsonBuilder {
         }
 
         default <T extends Number> JsonObjectBuilder addAllNumbers(Iterable<Map.Entry<String, T>> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, T> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -446,7 +446,7 @@ public final class JsonBuilder {
         }
 
         default JsonObjectBuilder addAllBooleans(Iterable<Map.Entry<String, Boolean>> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, Boolean> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -457,7 +457,7 @@ public final class JsonBuilder {
         }
 
         default JsonObjectBuilder addAllCharacters(Iterable<Map.Entry<String, Character>> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, Character> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -468,7 +468,7 @@ public final class JsonBuilder {
         }
 
         default <T extends JsonElement> JsonObjectBuilder addAllIfAbsent(Iterable<Map.Entry<String, T>> iterable, boolean deepCopy) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, T> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -483,7 +483,7 @@ public final class JsonBuilder {
         }
 
         default <T extends JsonElement> JsonObjectBuilder addAllIfAbsent(Stream<Map.Entry<String, T>> stream, boolean deepCopy) {
-            Preconditions.checkNotNull(stream, "stream");
+            Objects.requireNonNull(stream, "stream");
             stream.forEach(e -> {
                 if (e == null || e.getKey() == null) {
                     return;
@@ -498,7 +498,7 @@ public final class JsonBuilder {
         }
 
         default JsonObjectBuilder addAllIfAbsent(JsonObject object, boolean deepCopy) {
-            Preconditions.checkNotNull(object, "object");
+            Objects.requireNonNull(object, "object");
             return addAllIfAbsent(object.entrySet(), deepCopy);
         }
 
@@ -507,7 +507,7 @@ public final class JsonBuilder {
         }
 
         default <T extends GsonSerializable> JsonObjectBuilder addAllSerializablesIfAbsent(Iterable<Map.Entry<String, T>> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, T> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -518,7 +518,7 @@ public final class JsonBuilder {
         }
 
         default JsonObjectBuilder addAllStringsIfAbsent(Iterable<Map.Entry<String, String>> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, String> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -529,7 +529,7 @@ public final class JsonBuilder {
         }
 
         default <T extends Number> JsonObjectBuilder addAllNumbersIfAbsent(Iterable<Map.Entry<String, T>> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, T> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -540,7 +540,7 @@ public final class JsonBuilder {
         }
 
         default JsonObjectBuilder addAllBooleansIfAbsent(Iterable<Map.Entry<String, Boolean>> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, Boolean> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -551,7 +551,7 @@ public final class JsonBuilder {
         }
 
         default JsonObjectBuilder addAllCharactersIfAbsent(Iterable<Map.Entry<String, Character>> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Map.Entry<String, Character> e : iterable) {
                 if (e == null || e.getKey() == null) {
                     continue;
@@ -602,7 +602,7 @@ public final class JsonBuilder {
         }
 
         default <T extends JsonElement> JsonArrayBuilder addAll(Iterable<T> iterable, boolean copy) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (T e : iterable) {
                 add(e, copy);
             }
@@ -614,7 +614,7 @@ public final class JsonBuilder {
         }
 
         default <T extends JsonElement> JsonArrayBuilder addAll(Stream<T> stream, boolean copy) {
-            Preconditions.checkNotNull(stream, "iterable");
+            Objects.requireNonNull(stream, "iterable");
             stream.forEach(e -> add(e, copy));
             return this;
         }
@@ -624,7 +624,7 @@ public final class JsonBuilder {
         }
 
         default <T extends GsonSerializable> JsonArrayBuilder addSerializables(Iterable<T> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (T e : iterable) {
                 add(e);
             }
@@ -632,7 +632,7 @@ public final class JsonBuilder {
         }
 
         default JsonArrayBuilder addStrings(Iterable<String> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (String e : iterable) {
                 add(e);
             }
@@ -640,7 +640,7 @@ public final class JsonBuilder {
         }
 
         default <T extends Number> JsonArrayBuilder addNumbers(Iterable<T> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (T e : iterable) {
                 add(e);
             }
@@ -648,7 +648,7 @@ public final class JsonBuilder {
         }
 
         default JsonArrayBuilder addBooleans(Iterable<Boolean> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Boolean e : iterable) {
                 add(e);
             }
@@ -656,7 +656,7 @@ public final class JsonBuilder {
         }
 
         default JsonArrayBuilder addCharacters(Iterable<Character> iterable) {
-            Preconditions.checkNotNull(iterable, "iterable");
+            Objects.requireNonNull(iterable, "iterable");
             for (Character e : iterable) {
                 add(e);
             }
@@ -676,7 +676,7 @@ public final class JsonBuilder {
 
         @Override
         public JsonObjectBuilder add(String property, @Nullable JsonElement value, boolean copy) {
-            Preconditions.checkNotNull(property, "property");
+            Objects.requireNonNull(property, "property");
             if (value == null) {
                 value = nullValue();
             }
@@ -693,7 +693,7 @@ public final class JsonBuilder {
 
         @Override
         public JsonObjectBuilder addIfAbsent(String property, @Nullable JsonElement value, boolean copy) {
-            Preconditions.checkNotNull(property, "property");
+            Objects.requireNonNull(property, "property");
             if (this.handle.has(property)) {
                 return this;
             }

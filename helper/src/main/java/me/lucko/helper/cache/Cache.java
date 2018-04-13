@@ -25,10 +25,9 @@
 
 package me.lucko.helper.cache;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.utils.NullableOptional;
 
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
@@ -43,7 +42,7 @@ import java.util.function.Supplier;
 public final class Cache<T> implements Supplier<T> {
 
     public static <T> Cache<T> suppliedBy(Supplier<T> supplier) {
-        return new Cache<>(Preconditions.checkNotNull(supplier, "supplier"));
+        return new Cache<>(Objects.requireNonNull(supplier, "supplier"));
     }
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();

@@ -25,13 +25,13 @@
 
 package me.lucko.helper.metadata;
 
-import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.cooldown.Cooldown;
 import me.lucko.helper.interfaces.TypeAware;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -53,8 +53,8 @@ public interface MetadataKey<T> extends TypeAware<T> {
      * @return a new metadata key
      */
     static <T> MetadataKey<T> create(String id, TypeToken<T> type) {
-        Preconditions.checkNotNull(id, "id");
-        Preconditions.checkNotNull(type, "type");
+        Objects.requireNonNull(id, "id");
+        Objects.requireNonNull(type, "type");
         return new SimpleMetadataKey<>(id, type);
     }
 

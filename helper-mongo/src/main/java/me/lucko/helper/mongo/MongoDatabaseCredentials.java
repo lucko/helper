@@ -25,9 +25,9 @@
 
 package me.lucko.helper.mongo;
 
-import com.google.common.base.Preconditions;
-
 import org.bukkit.configuration.ConfigurationSection;
+
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 
@@ -59,11 +59,11 @@ public final class MongoDatabaseCredentials {
     private final String password;
 
     private MongoDatabaseCredentials(@Nonnull String address, int port, @Nonnull String database, @Nonnull String username, @Nonnull String password) {
-        this.address = Preconditions.checkNotNull(address);
+        this.address = Objects.requireNonNull(address);
         this.port = port;
-        this.database = Preconditions.checkNotNull(database);
-        this.username = Preconditions.checkNotNull(username);
-        this.password = Preconditions.checkNotNull(password);
+        this.database = Objects.requireNonNull(database);
+        this.username = Objects.requireNonNull(username);
+        this.password = Objects.requireNonNull(password);
     }
 
     @Nonnull

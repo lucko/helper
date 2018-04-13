@@ -25,8 +25,6 @@
 
 package me.lucko.helper.plugin;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.config.Configs;
 import me.lucko.helper.internal.LoaderUtils;
@@ -44,6 +42,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import java.io.File;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
@@ -112,7 +111,7 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     @Nonnull
     @Override
     public <T extends Listener> T registerListener(@Nonnull T listener) {
-        Preconditions.checkNotNull(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
         getServer().getPluginManager().registerEvents(listener, this);
         return listener;
     }
@@ -139,8 +138,8 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     @Nonnull
     @Override
     public <T> T provideService(@Nonnull Class<T> clazz, @Nonnull T instance) {
-        Preconditions.checkNotNull(clazz, "clazz");
-        Preconditions.checkNotNull(instance, "instance");
+        Objects.requireNonNull(clazz, "clazz");
+        Objects.requireNonNull(instance, "instance");
         return provideService(clazz, instance, ServicePriority.Normal);
     }
 
@@ -148,15 +147,15 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     @Nullable
     @Override
     public <T> T getPlugin(@Nonnull String name, @Nonnull Class<T> pluginClass) {
-        Preconditions.checkNotNull(name, "name");
-        Preconditions.checkNotNull(pluginClass, "pluginClass");
+        Objects.requireNonNull(name, "name");
+        Objects.requireNonNull(pluginClass, "pluginClass");
         return (T) getServer().getPluginManager().getPlugin(name);
     }
 
     @Nonnull
     @Override
     public File getBundledFile(@Nonnull String name) {
-        Preconditions.checkNotNull(name, "name");
+        Objects.requireNonNull(name, "name");
         getDataFolder().mkdirs();
         File file = new File(getDataFolder(), name);
         if (!file.exists()) {
@@ -168,14 +167,14 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     @Nonnull
     @Override
     public YamlConfiguration loadConfig(@Nonnull String file) {
-        Preconditions.checkNotNull(file, "file");
+        Objects.requireNonNull(file, "file");
         return YamlConfiguration.loadConfiguration(getBundledFile(file));
     }
 
     @Nonnull
     @Override
     public ConfigurationNode loadConfigNode(@Nonnull String file) {
-        Preconditions.checkNotNull(file, "file");
+        Objects.requireNonNull(file, "file");
         return Configs.yamlLoad(getBundledFile(file));
     }
 

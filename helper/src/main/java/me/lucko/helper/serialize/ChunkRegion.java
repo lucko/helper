@@ -32,6 +32,8 @@ import com.google.gson.JsonObject;
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.gson.JsonBuilder;
 
+import java.util.Objects;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -52,8 +54,8 @@ public final class ChunkRegion implements GsonSerializable {
     }
 
     public static ChunkRegion of(ChunkPosition a, ChunkPosition b) {
-        Preconditions.checkNotNull(a, "a");
-        Preconditions.checkNotNull(b, "b");
+        Objects.requireNonNull(a, "a");
+        Objects.requireNonNull(b, "b");
 
         if (!a.getWorld().equals(b.getWorld())) {
             throw new IllegalArgumentException("positions are in different worlds");
@@ -77,7 +79,7 @@ public final class ChunkRegion implements GsonSerializable {
     }
 
     public boolean inRegion(ChunkPosition pos) {
-        Preconditions.checkNotNull(pos, "pos");
+        Objects.requireNonNull(pos, "pos");
         return pos.getWorld().equals(this.min.getWorld()) && inRegion(pos.getX(), pos.getZ());
     }
 

@@ -44,6 +44,7 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -61,7 +62,7 @@ class SimpleHologram implements Hologram {
     private Consumer<Player> clickCallback = null;
 
     SimpleHologram(Position position, List<String> lines) {
-        this.position = Preconditions.checkNotNull(position, "position");
+        this.position = Objects.requireNonNull(position, "position");
         updateLines(lines);
     }
 
@@ -170,7 +171,7 @@ class SimpleHologram implements Hologram {
 
     @Override
     public void updatePosition(@Nonnull Position position) {
-        Preconditions.checkNotNull(position, "position");
+        Objects.requireNonNull(position, "position");
         if (this.position.equals(position)) {
             return;
         }
@@ -182,7 +183,7 @@ class SimpleHologram implements Hologram {
 
     @Override
     public void updateLines(@Nonnull List<String> lines) {
-        Preconditions.checkNotNull(lines, "lines");
+        Objects.requireNonNull(lines, "lines");
         Preconditions.checkArgument(!lines.isEmpty(), "lines cannot be empty");
         for (String line : lines) {
             Preconditions.checkArgument(line != null, "null line");

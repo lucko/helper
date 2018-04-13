@@ -31,6 +31,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
 
@@ -71,13 +72,13 @@ class CooldownMapImpl<T> implements CooldownMap<T> {
      */
     @Nonnull
     public Cooldown get(@Nonnull T key) {
-        Preconditions.checkNotNull(key, "key");
+        Objects.requireNonNull(key, "key");
         return this.cache.getUnchecked(key);
     }
 
     @Override
     public void put(@Nonnull T key, @Nonnull Cooldown cooldown) {
-        Preconditions.checkNotNull(key, "key");
+        Objects.requireNonNull(key, "key");
         Preconditions.checkArgument(cooldown.getTimeout() == this.base.getTimeout(), "different timeout");
         this.cache.put(key, cooldown);
     }

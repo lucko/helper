@@ -25,9 +25,8 @@
 
 package me.lucko.helper.cooldown;
 
-import com.google.common.base.Preconditions;
-
 import java.util.Map;
+import java.util.Objects;
 import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
 
@@ -48,7 +47,7 @@ public interface CooldownMap<T> {
      */
     @Nonnull
     static <T> CooldownMap<T> create(@Nonnull Cooldown base) {
-        Preconditions.checkNotNull(base, "base");
+        Objects.requireNonNull(base, "base");
         return new CooldownMapImpl<>(base);
     }
 

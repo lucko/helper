@@ -25,8 +25,6 @@
 
 package me.lucko.helper.event.functional.single;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.event.SingleSubscription;
 import me.lucko.helper.internal.LoaderUtils;
 
@@ -34,6 +32,7 @@ import org.bukkit.event.Event;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import javax.annotation.Nonnull;
@@ -49,7 +48,7 @@ class SingleHandlerListImpl<T extends Event> implements SingleHandlerList<T> {
     @Nonnull
     @Override
     public SingleHandlerList<T> biConsumer(@Nonnull BiConsumer<SingleSubscription<T>, ? super T> handler) {
-        Preconditions.checkNotNull(handler, "handler");
+        Objects.requireNonNull(handler, "handler");
         this.handlers.add(handler);
         return this;
     }

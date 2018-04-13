@@ -25,8 +25,6 @@
 
 package me.lucko.helper.metadata;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.Events;
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.metadata.type.BlockMetadataRegistry;
@@ -43,6 +41,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -132,7 +131,7 @@ public final class Metadata {
      */
     @Nonnull
     public static MetadataMap provide(@Nonnull Object obj) {
-        Preconditions.checkNotNull(obj, "obj");
+        Objects.requireNonNull(obj, "obj");
         if (obj instanceof Player) {
             return provideForPlayer(((Player) obj));
         } else if (obj instanceof UUID) {
@@ -160,7 +159,7 @@ public final class Metadata {
      */
     @Nonnull
     public static Optional<MetadataMap> get(@Nonnull Object obj) {
-        Preconditions.checkNotNull(obj, "obj");
+        Objects.requireNonNull(obj, "obj");
         if (obj instanceof Player) {
             return getForPlayer(((Player) obj));
         } else if (obj instanceof UUID) {

@@ -26,7 +26,6 @@
 package me.lucko.helper.serialize;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -35,6 +34,8 @@ import me.lucko.helper.gson.JsonBuilder;
 
 import org.bukkit.Location;
 import org.bukkit.World;
+
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,18 +52,18 @@ public final class VectorPoint implements GsonSerializable {
     }
 
     public static VectorPoint of(Vector3d position, Direction direction) {
-        Preconditions.checkNotNull(position, "position");
-        Preconditions.checkNotNull(direction, "direction");
+        Objects.requireNonNull(position, "position");
+        Objects.requireNonNull(direction, "direction");
         return new VectorPoint(position, direction);
     }
 
     public static VectorPoint of(Location location) {
-        Preconditions.checkNotNull(location, "location");
+        Objects.requireNonNull(location, "location");
         return of(Position.of(location).toVector(), Direction.from(location));
     }
 
     public static VectorPoint of(Point point) {
-        Preconditions.checkNotNull(point, "point");
+        Objects.requireNonNull(point, "point");
         return of(point.getPosition().toVector(), point.getDirection());
     }
 
@@ -102,7 +103,7 @@ public final class VectorPoint implements GsonSerializable {
     }
 
     public Point withWorld(String world) {
-        Preconditions.checkNotNull(world, "world");
+        Objects.requireNonNull(world, "world");
         return Point.of(Position.of(this.position, world), this.direction);
     }
 

@@ -25,8 +25,6 @@
 
 package me.lucko.helper.menu;
 
-import com.google.common.base.Preconditions;
-
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.timings.Timings;
 
@@ -39,6 +37,7 @@ import co.aikar.timings.lib.MCTiming;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -109,7 +108,7 @@ public class SimpleSlot implements Slot {
      */
     @Override
     public Slot applyFromItem(Item item) {
-        Preconditions.checkNotNull(item, "item");
+        Objects.requireNonNull(item, "item");
         setItem(item.getItemStack());
         clearBindings();
         bindAllConsumers(item.getHandlers().entrySet());
@@ -146,7 +145,7 @@ public class SimpleSlot implements Slot {
     @Nonnull
     @Override
     public Slot setItem(@Nonnull ItemStack item) {
-        Preconditions.checkNotNull(item, "item");
+        Objects.requireNonNull(item, "item");
         this.gui.getHandle().setItem(this.id, item);
         return this;
     }
@@ -202,8 +201,8 @@ public class SimpleSlot implements Slot {
     @Nonnull
     @Override
     public Slot bind(@Nonnull ClickType type, @Nonnull Consumer<InventoryClickEvent> handler) {
-        Preconditions.checkNotNull(type, "type");
-        Preconditions.checkNotNull(handler, "handler");
+        Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(handler, "handler");
         this.handlers.computeIfAbsent(type, t -> ConcurrentHashMap.newKeySet()).add(handler);
         return this;
     }
@@ -211,8 +210,8 @@ public class SimpleSlot implements Slot {
     @Nonnull
     @Override
     public Slot bind(@Nonnull ClickType type, @Nonnull Runnable handler) {
-        Preconditions.checkNotNull(type, "type");
-        Preconditions.checkNotNull(handler, "handler");
+        Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(handler, "handler");
         this.handlers.computeIfAbsent(type, t -> ConcurrentHashMap.newKeySet()).add(Item.transformRunnable(handler));
         return this;
     }
@@ -238,7 +237,7 @@ public class SimpleSlot implements Slot {
     @Nonnull
     @Override
     public <T extends Runnable> Slot bindAllRunnables(@Nonnull Iterable<Map.Entry<ClickType, T>> handlers) {
-        Preconditions.checkNotNull(handlers, "handlers");
+        Objects.requireNonNull(handlers, "handlers");
         for (Map.Entry<ClickType, T> handler : handlers) {
             bind(handler.getKey(), handler.getValue());
         }
@@ -248,7 +247,7 @@ public class SimpleSlot implements Slot {
     @Nonnull
     @Override
     public <T extends Consumer<InventoryClickEvent>> Slot bindAllConsumers(@Nonnull Iterable<Map.Entry<ClickType, T>> handlers) {
-        Preconditions.checkNotNull(handlers, "handlers");
+        Objects.requireNonNull(handlers, "handlers");
         for (Map.Entry<ClickType, T> handler : handlers) {
             bind(handler.getKey(), handler.getValue());
         }

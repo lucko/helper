@@ -27,7 +27,6 @@ package me.lucko.helper.profiles.plugin;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 
 import me.lucko.helper.Events;
@@ -56,6 +55,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -189,7 +189,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
     @Nonnull
     @Override
     public Profile getProfile(@Nonnull UUID uniqueId) {
-        Preconditions.checkNotNull(uniqueId, "uniqueId");
+        Objects.requireNonNull(uniqueId, "uniqueId");
         Profile profile = this.profileMap.getIfPresent(uniqueId);
         if (profile == null) {
             profile = new ImmutableProfile(uniqueId, null, 0);
@@ -200,7 +200,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
     @Nonnull
     @Override
     public Optional<Profile> getProfile(@Nonnull String name) {
-        Preconditions.checkNotNull(name, "name");
+        Objects.requireNonNull(name, "name");
         for (Profile profile : this.profileMap.asMap().values()) {
             if (profile.getName().isPresent() && profile.getName().get().equalsIgnoreCase(name)) {
                 return Optional.of(profile);
@@ -218,7 +218,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
     @Nonnull
     @Override
     public Promise<Profile> lookupProfile(@Nonnull UUID uniqueId) {
-        Preconditions.checkNotNull(uniqueId, "uniqueId");
+        Objects.requireNonNull(uniqueId, "uniqueId");
         Profile profile = getProfile(uniqueId);
         if (profile.getName().isPresent()) {
             return Promise.completed(profile);
@@ -248,7 +248,7 @@ public class ProfilesPlugin extends ExtendedJavaPlugin implements ProfileReposit
     @Nonnull
     @Override
     public Promise<Optional<Profile>> lookupProfile(@Nonnull String name) {
-        Preconditions.checkNotNull(name, "name");
+        Objects.requireNonNull(name, "name");
 
         Optional<Profile> profile = getProfile(name);
         if (profile.isPresent()) {

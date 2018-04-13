@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -92,13 +93,13 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
      * @param autoSubscribe if players should be automatically subscribed
      */
     public PacketScoreboardObjective(PacketScoreboard scoreboard, String id, String displayName, DisplaySlot displaySlot, boolean autoSubscribe) {
-        Preconditions.checkNotNull(id, "id");
+        Objects.requireNonNull(id, "id");
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
 
-        this.scoreboard = Preconditions.checkNotNull(scoreboard, "scoreboard");
+        this.scoreboard = Objects.requireNonNull(scoreboard, "scoreboard");
         this.id = id;
-        this.displayName = trimName(Text.colorize(Preconditions.checkNotNull(displayName, "displayName")));
-        this.displaySlot = Preconditions.checkNotNull(displaySlot, "displaySlot");
+        this.displayName = trimName(Text.colorize(Objects.requireNonNull(displayName, "displayName")));
+        this.displaySlot = Objects.requireNonNull(displaySlot, "displaySlot");
         this.autoSubscribe = autoSubscribe;
     }
 
@@ -136,7 +137,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
     @Override
     public void setDisplayName(String displayName) {
-        Preconditions.checkNotNull(displayName, "displayName");
+        Objects.requireNonNull(displayName, "displayName");
         displayName = trimName(Text.colorize(displayName));
         if (this.displayName.equals(displayName)) {
             return;
@@ -153,7 +154,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
     @Override
     public void setDisplaySlot(DisplaySlot displaySlot) {
-        Preconditions.checkNotNull(displaySlot, "displaySlot");
+        Objects.requireNonNull(displaySlot, "displaySlot");
         if (this.displaySlot == displaySlot) {
             return;
         }
@@ -169,20 +170,20 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
     @Override
     public boolean hasScore(String name) {
-        Preconditions.checkNotNull(name, "name");
+        Objects.requireNonNull(name, "name");
         return this.scores.containsKey(trimScore(Text.colorize(name)));
     }
 
     @Nullable
     @Override
     public Integer getScore(String name) {
-        Preconditions.checkNotNull(name, "name");
+        Objects.requireNonNull(name, "name");
         return this.scores.get(trimScore(Text.colorize(name)));
     }
 
     @Override
     public void setScore(String name, int value) {
-        Preconditions.checkNotNull(name, "name");
+        Objects.requireNonNull(name, "name");
         name = trimScore(Text.colorize(name));
 
         Integer oldValue = this.scores.put(name, value);
@@ -195,7 +196,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
     @Override
     public boolean removeScore(String name) {
-        Preconditions.checkNotNull(name, "name");
+        Objects.requireNonNull(name, "name");
         name = trimScore(Text.colorize(name));
 
         if (this.scores.remove(name) == null) {
@@ -218,7 +219,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
     @Override
     public void applyScores(Map<String, Integer> scores) {
-        Preconditions.checkNotNull(scores, "scores");
+        Objects.requireNonNull(scores, "scores");
 
         Set<String> toRemove = new HashSet<>(getScores().keySet());
         for (Map.Entry<String, Integer> score : scores.entrySet()) {
@@ -239,7 +240,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
     @Override
     public void applyLines(Collection<String> lines) {
-        Preconditions.checkNotNull(lines, "lines");
+        Objects.requireNonNull(lines, "lines");
         Map<String, Integer> scores = new HashMap<>();
         int i = lines.size();
         for (String line : lines) {
@@ -250,7 +251,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
     @Override
     public void subscribe(Player player) {
-        Preconditions.checkNotNull(player, "player");
+        Objects.requireNonNull(player, "player");
         this.scoreboard.sendPacket(newObjectivePacket(UpdateType.CREATE), player);
         this.scoreboard.sendPacket(newDisplaySlotPacket(getDisplaySlot()), player);
         for (Map.Entry<String, Integer> score : getScores().entrySet()) {
@@ -266,7 +267,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
 
     @Override
     public void unsubscribe(Player player, boolean fast) {
-        Preconditions.checkNotNull(player, "player");
+        Objects.requireNonNull(player, "player");
         if (!this.subscribed.remove(player) || fast) {
             return;
         }

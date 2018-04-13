@@ -25,9 +25,8 @@
 
 package me.lucko.helper.metadata;
 
-import com.google.common.base.Preconditions;
-
 import java.lang.ref.SoftReference;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -40,16 +39,16 @@ import javax.annotation.Nullable;
 public final class SoftValue<T> implements TransientValue<T> {
 
     public static <T> SoftValue<T> of(T value) {
-        Preconditions.checkNotNull(value, "value");
+        Objects.requireNonNull(value, "value");
         return new SoftValue<>(value);
     }
 
     public static <T> Supplier<SoftValue<T>> supplied(Supplier<? extends T> supplier) {
-        Preconditions.checkNotNull(supplier, "supplier");
+        Objects.requireNonNull(supplier, "supplier");
 
         return () -> {
             T value = supplier.get();
-            Preconditions.checkNotNull(value, "value");
+            Objects.requireNonNull(value, "value");
 
             return new SoftValue<>(value);
         };

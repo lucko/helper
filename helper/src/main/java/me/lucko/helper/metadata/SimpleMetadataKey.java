@@ -25,10 +25,11 @@
 
 package me.lucko.helper.metadata;
 
-import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.utils.annotation.NonnullByDefault;
+
+import java.util.Objects;
 
 @NonnullByDefault
 final class SimpleMetadataKey<T> implements MetadataKey<T> {
@@ -53,7 +54,7 @@ final class SimpleMetadataKey<T> implements MetadataKey<T> {
 
     @Override
     public T cast(Object object) throws ClassCastException {
-        Preconditions.checkNotNull(object, "object");
+        Objects.requireNonNull(object, "object");
         //noinspection unchecked
         return (T) this.type.getRawType().cast(object);
     }

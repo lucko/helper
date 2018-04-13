@@ -25,7 +25,6 @@
 
 package me.lucko.helper.serialize;
 
-import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -34,6 +33,8 @@ import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.gson.JsonBuilder;
 
 import org.bukkit.Location;
+
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -50,13 +51,13 @@ public final class Point implements GsonSerializable {
     }
 
     public static Point of(Position position, Direction direction) {
-        Preconditions.checkNotNull(position, "position");
-        Preconditions.checkNotNull(direction, "direction");
+        Objects.requireNonNull(position, "position");
+        Objects.requireNonNull(direction, "direction");
         return new Point(position, direction);
     }
 
     public static Point of(Location location) {
-        Preconditions.checkNotNull(location, "location");
+        Objects.requireNonNull(location, "location");
         return of(Position.of(location), Direction.from(location));
     }
 
