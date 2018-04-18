@@ -26,7 +26,7 @@
 package me.lucko.helper.plugin;
 
 import me.lucko.helper.Schedulers;
-import me.lucko.helper.config.Configs;
+import me.lucko.helper.config.ConfigFactory;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.maven.LibraryLoader;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
@@ -152,12 +152,16 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
         return (T) getServer().getPluginManager().getPlugin(name);
     }
 
+    private File getRelativeFile(@Nonnull String name) {
+        getDataFolder().mkdirs();
+        return new File(getDataFolder(), name);
+    }
+
     @Nonnull
     @Override
     public File getBundledFile(@Nonnull String name) {
         Objects.requireNonNull(name, "name");
-        getDataFolder().mkdirs();
-        File file = new File(getDataFolder(), name);
+        File file = getRelativeFile(name);
         if (!file.exists()) {
             saveResource(name, false);
         }
@@ -175,7 +179,17 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     @Override
     public ConfigurationNode loadConfigNode(@Nonnull String file) {
         Objects.requireNonNull(file, "file");
-        return Configs.yamlLoad(getBundledFile(file));
+        return ConfigFactory.yaml().load(getBundledFile(file));
+    }
+
+    @Nonnull
+    @Override
+    public <T> T setupConfig(@Nonnull String file, @Nonnull T configObject) {
+        Objects.requireNonNull(file, "file");
+        Objects.requireNonNull(configObject, "configObject");
+        File f = getRelativeFile(file);
+        ConfigFactory.yaml().load(f, configObject);
+        return configObject;
     }
 
     @Nonnull

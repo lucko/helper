@@ -143,6 +143,16 @@ public interface HelperPlugin extends Plugin, TerminableConsumer {
     ConfigurationNode loadConfigNode(@Nonnull String file);
 
     /**
+     * Populates a config object.
+     *
+     * @param file the name of the file
+     * @param configObject the config object
+     * @param <T> the config object type
+     */
+    @Nonnull
+    <T> T setupConfig(@Nonnull String file, @Nonnull T configObject);
+
+    /**
      * Gets the plugin's class loader
      *
      * @return the class loader
