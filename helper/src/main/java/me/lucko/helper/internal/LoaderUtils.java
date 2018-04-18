@@ -27,21 +27,17 @@ package me.lucko.helper.internal;
 
 import com.google.common.collect.Streams;
 import com.google.common.reflect.TypeToken;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonElement;
 
 import me.lucko.helper.Helper;
+import me.lucko.helper.config.BukkitTypeSerializer;
+import me.lucko.helper.config.GsonTypeSerializer;
+import me.lucko.helper.config.HelperTypeSerializer;
 import me.lucko.helper.gson.GsonSerializable;
-import me.lucko.helper.gson.GsonSerializableConfigurateProxy;
-import me.lucko.helper.gson.configurate.JsonArraySerializer;
-import me.lucko.helper.gson.configurate.JsonNullSerializer;
-import me.lucko.helper.gson.configurate.JsonObjectSerializer;
-import me.lucko.helper.gson.configurate.JsonPrimitiveSerializer;
 import me.lucko.helper.plugin.HelperPlugin;
 
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -109,17 +105,11 @@ public final class LoaderUtils {
         // cache main thread in this class
         getMainThread();
 
-        // register configurate serializers
-
+        // register our serializers
         TypeSerializerCollection defs = TypeSerializers.getDefaultSerializers();
-
-        defs.registerType(TypeToken.of(JsonArray.class), JsonArraySerializer.INSTANCE);
-        defs.registerType(TypeToken.of(JsonObject.class), JsonObjectSerializer.INSTANCE);
-        defs.registerType(TypeToken.of(JsonPrimitive.class), JsonPrimitiveSerializer.INSTANCE);
-        defs.registerType(TypeToken.of(JsonNull.class), JsonNullSerializer.INSTANCE);
-
-        defs.registerType(TypeToken.of(GsonSerializable.class), GsonSerializableConfigurateProxy.INSTANCE);
-
+        defs.registerType(TypeToken.of(JsonElement.class), GsonTypeSerializer.INSTANCE);
+        defs.registerType(TypeToken.of(GsonSerializable.class), HelperTypeSerializer.INSTANCE);
+        defs.registerType(TypeToken.of(ConfigurationSerializable.class), BukkitTypeSerializer.INSTANCE);
     }
 
     private LoaderUtils() {

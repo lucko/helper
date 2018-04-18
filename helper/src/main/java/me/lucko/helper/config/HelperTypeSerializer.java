@@ -23,43 +23,36 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.gson.configurate;
+package me.lucko.helper.config;
 
 import com.google.common.reflect.TypeToken;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
-import com.google.gson.JsonPrimitive;
 
-import me.lucko.helper.gson.converter.GsonConverters;
+import me.lucko.helper.gson.GsonSerializable;
 
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 
-public class JsonPrimitiveSerializer implements TypeSerializer<JsonPrimitive> {
-    public static final JsonPrimitiveSerializer INSTANCE = new JsonPrimitiveSerializer();
+import javax.annotation.Nonnull;
 
-    private JsonPrimitiveSerializer() {
+public final class HelperTypeSerializer implements TypeSerializer<GsonSerializable> {
+    private static final TypeToken<JsonElement> JSON_ELEMENT_TYPE = TypeToken.of(JsonElement.class);
+
+    @Nonnull
+    public static final HelperTypeSerializer INSTANCE = new HelperTypeSerializer();
+
+    private HelperTypeSerializer() {
     }
 
     @Override
-    public JsonPrimitive deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
-        Object value = node.getValue(JsonNull.INSTANCE);
-        if (value instanceof String) {
-            return new JsonPrimitive(((String) value));
-        } else if (value instanceof Character) {
-            return new JsonPrimitive(((Character) value));
-        } else if (value instanceof Boolean) {
-            return new JsonPrimitive(((Boolean) value));
-        } else if (value instanceof Number) {
-            return new JsonPrimitive(((Number) value));
-        } else {
-            throw new ObjectMappingException("Unable to wrap object: " + value.getClass());
-        }
+    public GsonSerializable deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
+        return GsonSerializable.deserializeRaw(type.getRawType(), node.getValue(JSON_ELEMENT_TYPE, JsonNull.INSTANCE));
     }
 
     @Override
-    public void serialize(TypeToken<?> type, JsonPrimitive primitive, ConfigurationNode node) throws ObjectMappingException {
-        node.setValue(GsonConverters.IMMUTABLE.unwarpPrimitive(primitive));
+    public void serialize(TypeToken<?> type, GsonSerializable s, ConfigurationNode node) throws ObjectMappingException {
+        node.setValue(JSON_ELEMENT_TYPE, s.serialize());
     }
-
 }

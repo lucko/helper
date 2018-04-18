@@ -23,34 +23,22 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.gson;
+package me.lucko.helper.config;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
+public class ConfigurationException extends RuntimeException {
 
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.objectmapping.ObjectMappingException;
-import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
-
-import javax.annotation.Nonnull;
-
-public final class GsonSerializableConfigurateProxy implements TypeSerializer<GsonSerializable> {
-    private static final TypeToken<JsonElement> JSON_ELEMENT_TYPE = TypeToken.of(JsonElement.class);
-
-    @Nonnull
-    public static final GsonSerializableConfigurateProxy INSTANCE = new GsonSerializableConfigurateProxy();
-
-    private GsonSerializableConfigurateProxy() {
+    public ConfigurationException() {
     }
 
-    @Override
-    public GsonSerializable deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
-        return GsonSerializable.deserializeRaw(type.getRawType(), node.getValue(JSON_ELEMENT_TYPE, JsonNull.INSTANCE));
+    public ConfigurationException(String message) {
+        super(message);
     }
 
-    @Override
-    public void serialize(TypeToken<?> type, GsonSerializable s, ConfigurationNode node) throws ObjectMappingException {
-        node.setValue(JSON_ELEMENT_TYPE, s.serialize());
+    public ConfigurationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ConfigurationException(Throwable cause) {
+        super(cause);
     }
 }

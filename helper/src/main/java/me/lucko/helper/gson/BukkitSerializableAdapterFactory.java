@@ -25,7 +25,6 @@
 
 package me.lucko.helper.gson;
 
-import com.google.common.math.DoubleMath;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
@@ -107,21 +106,17 @@ public final class BukkitSerializableAdapterFactory implements TypeAdapterFactor
                 }
 
                 if (entry.getValue() instanceof Number) {
-                    Number value = (Number) entry.getValue();
+                    double doubleVal = ((Number) entry.getValue()).doubleValue();
+                    int intVal = (int) doubleVal;
+                    long longVal = (long) doubleVal;
 
-                    // cast gson's number interpretation down to integer if possible
-                    if (value instanceof Double && DoubleMath.isMathematicalInteger(value.doubleValue())) {
-                        value = value.intValue();
+                    if (intVal == doubleVal) {
+                        entry.setValue(intVal);
+                    } else if (longVal == doubleVal) {
+                        entry.setValue(longVal);
+                    } else {
+                        entry.setValue(doubleVal);
                     }
-
-                    if (value instanceof Long) {
-                        long l = value.longValue();
-                        if (l <= Integer.MAX_VALUE && l >= Integer.MIN_VALUE) {
-                            value = value.intValue();
-                        }
-                    }
-
-                    entry.setValue(value);
                 }
             }
         }
