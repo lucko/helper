@@ -37,6 +37,12 @@ import java.util.UUID;
  */
 public interface LilypadNetwork extends Terminable {
 
+    /**
+     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
+     *
+     * @param lilyPad the lilypad instance
+     * @return the new network
+     */
     static LilypadNetwork create(HelperLilyPad lilyPad) {
         return new LilypadNetworkImpl(lilyPad);
     }
@@ -62,4 +68,6 @@ public interface LilypadNetwork extends Terminable {
      */
     int getOverallPlayerCount();
 
+    @Override
+    void close();
 }

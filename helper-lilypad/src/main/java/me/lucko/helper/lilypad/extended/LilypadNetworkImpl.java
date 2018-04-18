@@ -58,14 +58,10 @@ import javax.annotation.Nonnull;
 class LilypadNetworkImpl implements LilypadNetwork {
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
-    private final HelperLilyPad lilyPad;
-
     private final Map<String, Server> servers = new ConcurrentHashMap<>();
     private int overallPlayerCount = 0;
 
     public LilypadNetworkImpl(HelperLilyPad lilyPad) {
-        this.lilyPad = lilyPad;
-
         Channel<ServerMessage> serverChannel = lilyPad.getChannel("hlp-server", ServerMessage.class);
 
         ChannelAgent<ServerMessage> serverChannelAgent = serverChannel.newAgent();
@@ -178,9 +174,9 @@ class LilypadNetworkImpl implements LilypadNetwork {
     }
 
     private static final class ServerMessage {
-        public String id;
-        public List<String> groups;
-        public long time;
-        public Map<UUID, String> players;
+        private String id;
+        private List<String> groups;
+        private long time;
+        private Map<UUID, String> players;
     }
 }
