@@ -25,7 +25,6 @@
 
 package me.lucko.helper.internal;
 
-import com.google.common.collect.Streams;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonElement;
 
@@ -73,7 +72,7 @@ public final class LoaderUtils {
     }
 
     public static Set<Plugin> getHelperImplementationPlugins() {
-        return Streams.concat(
+        return Stream.concat(
                 Stream.<Plugin>of(getPlugin()),
                 Arrays.stream(Helper.plugins().getPlugins())
                         .filter(pl -> pl.getName().toLowerCase().startsWith("helper-"))
@@ -81,7 +80,7 @@ public final class LoaderUtils {
     }
 
     public static Set<HelperPlugin> getHelperPlugins() {
-        return Streams.concat(
+        return Stream.concat(
                 Stream.of(getPlugin()),
                 Arrays.stream(Helper.plugins().getPlugins())
                         .filter(pl -> pl instanceof HelperPlugin)
