@@ -16,6 +16,7 @@
         <module>helper-lilypad</module>
         <module>helper-js</module>
         <module>helper-profiles</module>
+        <module>helper-extras</module>
     </modules>
 
     <name>helper-parent</name>
