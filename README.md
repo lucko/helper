@@ -1,5 +1,5 @@
 ![](https://i.imgur.com/zllxTFp.png "Banner")
-# helper [![Build Status](https://ci.lucko.me/job/helper/badge/icon)](https://ci.lucko.me/job/helper/)
+# helper [![Build Status](https://ci.lucko.me/job/helper/badge/icon)](https://ci.lucko.me/job/helper/) [![Discord](https://img.shields.io/badge/chat-on%20discord-blue.svg)](https://discord.gg/Rnbpc7s)
 A collection of utilities and extended APIs to support the rapid and easy development of Bukkit plugins.
 
 ### Modules
