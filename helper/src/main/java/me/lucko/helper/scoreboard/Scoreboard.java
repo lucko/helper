@@ -43,8 +43,10 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * Gets the global scoreboard instance.
      *
      * @return the global scoreboard instance
+     * @deprecated in favour of using the {@link PacketScoreboardProvider} service.
      */
     @Nonnull
+    @Deprecated
     static PacketScoreboard get() {
         return GlobalScoreboard.get();
     }

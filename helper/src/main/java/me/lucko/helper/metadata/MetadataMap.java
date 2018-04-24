@@ -46,7 +46,7 @@ public interface MetadataMap {
 
     @Nonnull
     static MetadataMap create() {
-        return new SimpleMetadataMap();
+        return new MetadataMapImpl();
     }
 
     /**

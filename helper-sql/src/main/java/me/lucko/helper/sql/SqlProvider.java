@@ -28,7 +28,7 @@ package me.lucko.helper.sql;
 import javax.annotation.Nonnull;
 
 /**
- * Provides {@link HelperDataSource} instances.
+ * Provides {@link Sql} instances.
  */
 public interface SqlProvider {
 
@@ -38,7 +38,7 @@ public interface SqlProvider {
      * @return the global datasource.
      */
     @Nonnull
-    HelperDataSource getDataSource();
+    Sql getSql();
 
     /**
      * Constructs a new datasource using the given credentials.
@@ -50,7 +50,7 @@ public interface SqlProvider {
      * @return a new datasource
      */
     @Nonnull
-    HelperDataSource getDataSource(@Nonnull DatabaseCredentials credentials);
+    Sql getSql(@Nonnull DatabaseCredentials credentials);
 
     /**
      * Gets the global database credentials being used for the global datasource.

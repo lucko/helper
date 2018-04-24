@@ -72,7 +72,7 @@ public interface HelperPlugin extends Plugin, TerminableConsumer {
      * @param <T> the class type
      * @return the service
      */
-    @Nullable
+    @Nonnull
     <T> T getService(@Nonnull Class<T> service);
 
     /**
@@ -97,6 +97,14 @@ public interface HelperPlugin extends Plugin, TerminableConsumer {
      */
     @Nonnull
     <T> T provideService(@Nonnull Class<T> clazz, @Nonnull T instance);
+
+    /**
+     * Gets if a given plugin is enabled.
+     *
+     * @param name the name of the plugin
+     * @return if the plugin is enabled
+     */
+    boolean isPluginEnabled(@Nonnull String name);
 
     /**
      * Gets a plugin instance for the given plugin name

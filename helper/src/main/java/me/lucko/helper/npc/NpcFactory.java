@@ -23,50 +23,43 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.npc;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.profiles.Profile;
 import me.lucko.helper.terminable.Terminable;
 
-import java.util.Map;
-import java.util.UUID;
+import org.bukkit.Location;
+
+import javax.annotation.Nonnull;
 
 /**
- * Represents the interface for an extended LilyPad network.
+ * Represents an object which can create {@link Npc}s.
  */
-public interface LilypadNetwork extends Terminable {
+public interface NpcFactory extends Terminable {
 
     /**
-     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
+     * Spawns a NPC at the given location
      *
-     * @param lilyPad the lilypad instance
-     * @return the new network
+     * @param location the location to spawn the npc at
+     * @param nametag the nametag to give the npc
+     * @param skinPlayer the username of the player whose skin the NPC should have
+     * @return the created npc
+     * @deprecated in favour of {@link #spawnNpc(Location, String, String, String)}
      */
-    static LilypadNetwork create(LilyPad lilyPad) {
-        return new LilypadNetworkImpl(lilyPad);
-    }
+    @Nonnull
+    @Deprecated
+    Npc spawnNpc(@Nonnull Location location, @Nonnull String nametag, @Nonnull String skinPlayer);
 
     /**
-     * Gets the known servers in the network
+     * Spawns a NPC at the given location
      *
-     * @return the known servers
+     * @param location the location to spawn the npc at
+     * @param nametag the nametag to give the npc
+     * @param skinTextures the skin textures the NPC should have
+     * @param skinSignature the signature of the provided textures
+     * @return the created npc
      */
-    Map<String, LilypadServer> getServers();
-
-    /**
-     * Gets the players known to be online in the network.
-     *
-     * @return the known online players
-     */
-    Map<UUID, Profile> getOnlinePlayers();
-
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
-    int getOverallPlayerCount();
+    @Nonnull
+    Npc spawnNpc(@Nonnull Location location, @Nonnull String nametag, @Nonnull String skinTextures, @Nonnull String skinSignature);
 
     @Override
     void close();

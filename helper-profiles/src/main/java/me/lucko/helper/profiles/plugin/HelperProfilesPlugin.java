@@ -23,51 +23,37 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.profiles.plugin;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.profiles.Profile;
-import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.plugin.ExtendedJavaPlugin;
+import me.lucko.helper.profiles.ProfileRepository;
+import me.lucko.helper.sql.DatabaseCredentials;
+import me.lucko.helper.sql.Sql;
+import me.lucko.helper.sql.SqlProvider;
 
-import java.util.Map;
-import java.util.UUID;
+import org.bukkit.configuration.file.YamlConfiguration;
 
-/**
- * Represents the interface for an extended LilyPad network.
- */
-public interface LilypadNetwork extends Terminable {
-
-    /**
-     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
-     *
-     * @param lilyPad the lilypad instance
-     * @return the new network
-     */
-    static LilypadNetwork create(LilyPad lilyPad) {
-        return new LilypadNetworkImpl(lilyPad);
-    }
-
-    /**
-     * Gets the known servers in the network
-     *
-     * @return the known servers
-     */
-    Map<String, LilypadServer> getServers();
-
-    /**
-     * Gets the players known to be online in the network.
-     *
-     * @return the known online players
-     */
-    Map<UUID, Profile> getOnlinePlayers();
-
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
-    int getOverallPlayerCount();
+public class HelperProfilesPlugin extends ExtendedJavaPlugin {
 
     @Override
-    void close();
+    protected void enable() {
+        SqlProvider sqlProvider = getService(SqlProvider.class);
+        Sql sql;
+
+        // load sql instance
+        YamlConfiguration config = loadConfig("config.yml");
+        if (config.getBoolean("use-global-credentials", true)) {
+            sql = sqlProvider.getSql();
+        } else {
+            sql = sqlProvider.getSql(DatabaseCredentials.fromConfig(config));
+        }
+
+        // init the table
+        String tableName = config.getString("table-name", "helper_profiles");
+        int preloadAmount = config.getInt("preload-amount", 2000);
+
+        // provide the ProfileRepository service
+        provideService(ProfileRepository.class, bindModule(new HelperProfileRepository(sql, tableName, preloadAmount)));
+    }
+
 }

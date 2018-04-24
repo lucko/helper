@@ -28,7 +28,7 @@ package me.lucko.helper.redis;
 import javax.annotation.Nonnull;
 
 /**
- * Provides {@link HelperRedis} instances.
+ * Provides {@link Redis} instances.
  */
 public interface RedisProvider {
 
@@ -38,7 +38,7 @@ public interface RedisProvider {
      * @return the global redis instance.
      */
     @Nonnull
-    HelperRedis getRedis();
+    Redis getRedis();
 
     /**
      * Constructs a new redis instance using the given credentials.
@@ -50,7 +50,7 @@ public interface RedisProvider {
      * @return a new redis instance
      */
     @Nonnull
-    HelperRedis getRedis(@Nonnull RedisCredentials credentials);
+    Redis getRedis(@Nonnull RedisCredentials credentials);
 
     /**
      * Gets the global redis credentials being used for the global redis instance.

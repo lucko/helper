@@ -23,51 +23,27 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.lilypad.plugin;
 
 import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.profiles.Profile;
-import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.messaging.InstanceData;
+import me.lucko.helper.messaging.Messenger;
+import me.lucko.helper.plugin.ExtendedJavaPlugin;
 
-import java.util.Map;
-import java.util.UUID;
+import lilypad.client.connect.api.Connect;
 
-/**
- * Represents the interface for an extended LilyPad network.
- */
-public interface LilypadNetwork extends Terminable {
-
-    /**
-     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
-     *
-     * @param lilyPad the lilypad instance
-     * @return the new network
-     */
-    static LilypadNetwork create(LilyPad lilyPad) {
-        return new LilypadNetworkImpl(lilyPad);
-    }
-
-    /**
-     * Gets the known servers in the network
-     *
-     * @return the known servers
-     */
-    Map<String, LilypadServer> getServers();
-
-    /**
-     * Gets the players known to be online in the network.
-     *
-     * @return the known online players
-     */
-    Map<UUID, Profile> getOnlinePlayers();
-
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
-    int getOverallPlayerCount();
+public class HelperLilyPadPlugin extends ExtendedJavaPlugin {
 
     @Override
-    void close();
+    protected void enable() {
+        Connect connect = getService(Connect.class);
+        LilyPad globalLilyPad = new HelperLilyPad(connect);
+
+        // expose all instances as services.
+        provideService(LilyPad.class, globalLilyPad);
+        provideService(Messenger.class, globalLilyPad);
+        provideService(InstanceData.class, globalLilyPad);
+
+        getLogger().info("Hooked with LilyPad-Connect");
+    }
 }

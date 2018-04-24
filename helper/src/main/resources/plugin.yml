@@ -2,7 +2,7 @@ name: helper
 author: Luck
 version: ${project.version}
 description: ${project.description}
-main: me.lucko.helper.plugin.DummyHelperPlugin
+main: me.lucko.helper.internal.StandalonePlugin
 website: https://github.com/lucko/helper
 load: STARTUP
-softdepend: [ProtocolLib]
+softdepend: [ProtocolLib, Citizens, ViaVersion]

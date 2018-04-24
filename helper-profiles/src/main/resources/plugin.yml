@@ -2,7 +2,7 @@ name: helper-profiles
 author: Luck
 version: ${project.version}
 description: ${project.description}
-main: me.lucko.helper.profiles.plugin.ProfilesPlugin
+main: me.lucko.helper.profiles.plugin.HelperProfilesPlugin
 website: https://github.com/lucko/helper
 load: STARTUP
 depend: [helper, helper-sql]

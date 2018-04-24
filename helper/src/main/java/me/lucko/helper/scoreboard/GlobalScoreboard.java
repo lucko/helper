@@ -25,31 +25,26 @@
 
 package me.lucko.helper.scoreboard;
 
-import me.lucko.helper.cache.Lazy;
-import me.lucko.helper.internal.LoaderUtils;
+import me.lucko.helper.Services;
 
 /**
  * Contains a "global" scoreboard instance, lazily loaded on first request.
+ *
+ * @deprecated in favour of using the {@link PacketScoreboardProvider} service.
  */
+@Deprecated
 public final class GlobalScoreboard {
-    private static final Lazy<PacketScoreboard> SCOREBOARD = Lazy.suppliedBy(() -> {
-        try {
-            Class.forName("com.comphenix.protocol.ProtocolManager");
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("ProtocolLib not loaded");
-        }
-
-        return new PacketScoreboard(LoaderUtils.getPlugin());
-    });
 
     /**
      * Gets the global scoreboard
      *
      * @return a scoreboard instance
      * @throws IllegalStateException if ProtocolLib is not loaded
+     * @deprecated in favour of using the {@link PacketScoreboardProvider} service.
      */
+    @Deprecated
     public static PacketScoreboard get() {
-        return SCOREBOARD.get();
+        return Services.load(PacketScoreboardProvider.class).getScoreboard();
     }
 
     private GlobalScoreboard() {

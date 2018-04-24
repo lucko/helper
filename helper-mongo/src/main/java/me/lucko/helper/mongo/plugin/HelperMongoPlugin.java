@@ -23,41 +23,46 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.mongo;
+package me.lucko.helper.mongo.plugin;
+
+import me.lucko.helper.mongo.Mongo;
+import me.lucko.helper.mongo.MongoDatabaseCredentials;
+import me.lucko.helper.mongo.MongoProvider;
+import me.lucko.helper.plugin.ExtendedJavaPlugin;
 
 import javax.annotation.Nonnull;
 
-/**
- * Provides {@link Mongo} instances.
- */
-public interface MongoProvider {
+public class HelperMongoPlugin extends ExtendedJavaPlugin implements MongoProvider {
+    private MongoDatabaseCredentials globalCredentials;
+    private Mongo globalDataSource;
 
-    /**
-     * Gets the global datasource.
-     *
-     * @return the global datasource.
-     */
+    @Override
+    protected void enable() {
+        this.globalCredentials = MongoDatabaseCredentials.fromConfig(loadConfig("config.yml"));
+        this.globalDataSource = getMongo(this.globalCredentials);
+        this.globalDataSource.bindWith(this);
+
+        // expose all instances as services.
+        provideService(MongoProvider.class, this);
+        provideService(MongoDatabaseCredentials.class, this.globalCredentials);
+        provideService(Mongo.class, this.globalDataSource);
+    }
+
     @Nonnull
-    Mongo getMongo();
+    @Override
+    public Mongo getMongo() {
+        return this.globalDataSource;
+    }
 
-    /**
-     * Constructs a new datasource using the given credentials.
-     *
-     * <p>These instances are not cached, and a new datasource is created each
-     * time this method is called.</p>
-     *
-     * @param credentials the credentials for the database
-     * @return a new datasource
-     */
     @Nonnull
-    Mongo getMongo(@Nonnull MongoDatabaseCredentials credentials);
+    @Override
+    public Mongo getMongo(@Nonnull MongoDatabaseCredentials credentials) {
+        return new HelperMongo(credentials);
+    }
 
-    /**
-     * Gets the global database credentials being used for the global datasource.
-     *
-     * @return the global credentials
-     */
     @Nonnull
-    MongoDatabaseCredentials getGlobalCredentials();
-
+    @Override
+    public MongoDatabaseCredentials getGlobalCredentials() {
+        return this.globalCredentials;
+    }
 }

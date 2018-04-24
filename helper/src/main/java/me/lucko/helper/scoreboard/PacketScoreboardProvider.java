@@ -23,51 +23,29 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.scoreboard;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.profiles.Profile;
-import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.plugin.HelperPlugin;
 
-import java.util.Map;
-import java.util.UUID;
+import javax.annotation.Nonnull;
 
 /**
- * Represents the interface for an extended LilyPad network.
+ * Implementation of {@link ScoreboardProvider} for {@link PacketScoreboard}s.
  */
-public interface LilypadNetwork extends Terminable {
+public final class PacketScoreboardProvider implements ScoreboardProvider {
+    private final HelperPlugin plugin;
+    private PacketScoreboard scoreboard = null;
 
-    /**
-     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
-     *
-     * @param lilyPad the lilypad instance
-     * @return the new network
-     */
-    static LilypadNetwork create(LilyPad lilyPad) {
-        return new LilypadNetworkImpl(lilyPad);
+    public PacketScoreboardProvider(HelperPlugin plugin) {
+        this.plugin = plugin;
     }
 
-    /**
-     * Gets the known servers in the network
-     *
-     * @return the known servers
-     */
-    Map<String, LilypadServer> getServers();
-
-    /**
-     * Gets the players known to be online in the network.
-     *
-     * @return the known online players
-     */
-    Map<UUID, Profile> getOnlinePlayers();
-
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
-    int getOverallPlayerCount();
-
+    @Nonnull
     @Override
-    void close();
+    public synchronized PacketScoreboard getScoreboard() {
+        if (this.scoreboard == null) {
+            this.scoreboard = new PacketScoreboard(this.plugin);
+        }
+        return this.scoreboard;
+    }
 }

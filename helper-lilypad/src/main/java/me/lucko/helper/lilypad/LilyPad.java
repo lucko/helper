@@ -23,51 +23,46 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.lilypad;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.profiles.Profile;
-import me.lucko.helper.terminable.Terminable;
+import me.lucko.helper.messaging.InstanceData;
+import me.lucko.helper.messaging.Messenger;
 
-import java.util.Map;
-import java.util.UUID;
+import org.bukkit.entity.Player;
+
+import lilypad.client.connect.api.Connect;
+
+import javax.annotation.Nonnull;
 
 /**
- * Represents the interface for an extended LilyPad network.
+ * Represents a hook with LilyPad {@link Connect}.
  */
-public interface LilypadNetwork extends Terminable {
+public interface LilyPad extends Messenger, InstanceData {
 
     /**
-     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
+     * Gets the JedisPool instance backing the redis instance
      *
-     * @param lilyPad the lilypad instance
-     * @return the new network
+     * @return the JedisPool instance
      */
-    static LilypadNetwork create(LilyPad lilyPad) {
-        return new LilypadNetworkImpl(lilyPad);
+    @Nonnull
+    Connect getConnect();
+
+    /**
+     * Requests that a certain player is moved to the given server.
+     *
+     * @param serverId the id of the server
+     * @param playerUsername the username of the player
+     */
+    void redirectPlayer(@Nonnull String serverId, @Nonnull String playerUsername);
+
+    /**
+     * Requests that a certain player is moved to the given server.
+     *
+     * @param serverId the id of the server
+     * @param player the player
+     */
+    default void redirectPlayer(@Nonnull String serverId, @Nonnull Player player) {
+        redirectPlayer(serverId, player.getName());
     }
 
-    /**
-     * Gets the known servers in the network
-     *
-     * @return the known servers
-     */
-    Map<String, LilypadServer> getServers();
-
-    /**
-     * Gets the players known to be online in the network.
-     *
-     * @return the known online players
-     */
-    Map<UUID, Profile> getOnlinePlayers();
-
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
-    int getOverallPlayerCount();
-
-    @Override
-    void close();
 }

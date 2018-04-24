@@ -78,11 +78,11 @@ public final class Helper {
 
     @Nullable
     public static <T> T serviceNullable(Class<T> clazz) {
-        return services().load(clazz);
+        return Services.get(clazz).orElse(null);
     }
 
     public static <T> Optional<T> service(Class<T> clazz) {
-        return Optional.ofNullable(serviceNullable(clazz));
+        return Services.get(clazz);
     }
 
     public static void executeCommand(String command) {
