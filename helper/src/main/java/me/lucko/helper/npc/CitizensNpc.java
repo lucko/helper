@@ -23,51 +23,23 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.npc;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.profiles.Profile;
-import me.lucko.helper.terminable.Terminable;
+import net.citizensnpcs.api.npc.NPC;
 
-import java.util.Map;
-import java.util.UUID;
+import javax.annotation.Nonnull;
 
 /**
- * Represents the interface for an extended LilyPad network.
+ * A special implementation of {@link Npc} using Citizens.
  */
-public interface LilypadNetwork extends Terminable {
+public interface CitizensNpc extends Npc {
 
     /**
-     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
+     * Gets the "real" citizens NPC instance
      *
-     * @param lilyPad the lilypad instance
-     * @return the new network
+     * @return the npc
      */
-    static LilypadNetwork create(LilyPad lilyPad) {
-        return new LilypadNetworkImpl(lilyPad);
-    }
+    @Nonnull
+    NPC getNpc();
 
-    /**
-     * Gets the known servers in the network
-     *
-     * @return the known servers
-     */
-    Map<String, LilypadServer> getServers();
-
-    /**
-     * Gets the players known to be online in the network.
-     *
-     * @return the known online players
-     */
-    Map<UUID, Profile> getOnlinePlayers();
-
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
-    int getOverallPlayerCount();
-
-    @Override
-    void close();
 }

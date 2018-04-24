@@ -94,11 +94,13 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
 
     public BungeeCordImpl(HelperPlugin plugin) {
         this.plugin = plugin;
+    }
 
+    private synchronized void ensureSetup() {
         this.plugin.getServer().getMessenger().registerOutgoingPluginChannel(this.plugin, CHANNEL);
         this.plugin.getServer().getMessenger().registerIncomingPluginChannel(this.plugin, CHANNEL, this);
 
-        plugin.bind(CompositeTerminable.create()
+        this.plugin.bind(CompositeTerminable.create()
                 .with(() -> {
                     this.plugin.getServer().getMessenger().unregisterOutgoingPluginChannel(this.plugin, CHANNEL);
                     this.plugin.getServer().getMessenger().unregisterIncomingPluginChannel(this.plugin, CHANNEL, this);
@@ -223,6 +225,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
     }
 
     private void registerCallback(MessageCallback callback) {
+        ensureSetup();
+
         this.lock.lock();
         try {
             this.listeners.add(callback);

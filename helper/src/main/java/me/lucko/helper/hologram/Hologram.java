@@ -25,18 +25,15 @@
 
 package me.lucko.helper.hologram;
 
-import com.google.common.base.Preconditions;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
+import me.lucko.helper.Services;
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.Terminable;
 
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -61,24 +58,11 @@ public interface Hologram extends Terminable, GsonSerializable {
      */
     @Nonnull
     static Hologram create(@Nonnull Position position, @Nonnull List<String> lines) {
-        return new SimpleHologram(position, lines);
+        return Services.load(HologramFactory.class).newHologram(position, lines);
     }
 
     static Hologram deserialize(JsonElement element) {
-        Preconditions.checkArgument(element.isJsonObject());
-        JsonObject object = element.getAsJsonObject();
-
-        Preconditions.checkArgument(object.has("position"));
-        Preconditions.checkArgument(object.has("lines"));
-
-        Position position = Position.deserialize(object.get("position"));
-        JsonArray lineArray = object.get("lines").getAsJsonArray();
-        List<String> lines = new ArrayList<>();
-        for (JsonElement e : lineArray) {
-            lines.add(e.getAsString());
-        }
-
-        return create(position, lines);
+        return Services.load(HologramFactory.class).deserialize(element);
     }
 
     /**

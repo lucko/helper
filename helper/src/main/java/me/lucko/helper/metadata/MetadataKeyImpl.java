@@ -23,51 +23,49 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.metadata;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.profiles.Profile;
-import me.lucko.helper.terminable.Terminable;
+import com.google.common.reflect.TypeToken;
 
-import java.util.Map;
-import java.util.UUID;
+import me.lucko.helper.utils.annotation.NonnullByDefault;
 
-/**
- * Represents the interface for an extended LilyPad network.
- */
-public interface LilypadNetwork extends Terminable {
+import java.util.Objects;
 
-    /**
-     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
-     *
-     * @param lilyPad the lilypad instance
-     * @return the new network
-     */
-    static LilypadNetwork create(LilyPad lilyPad) {
-        return new LilypadNetworkImpl(lilyPad);
+@NonnullByDefault
+final class MetadataKeyImpl<T> implements MetadataKey<T> {
+
+    private final String id;
+    private final TypeToken<T> type;
+
+    MetadataKeyImpl(String id, TypeToken<T> type) {
+        this.id = id.toLowerCase();
+        this.type = type;
     }
 
-    /**
-     * Gets the known servers in the network
-     *
-     * @return the known servers
-     */
-    Map<String, LilypadServer> getServers();
-
-    /**
-     * Gets the players known to be online in the network.
-     *
-     * @return the known online players
-     */
-    Map<UUID, Profile> getOnlinePlayers();
-
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
-    int getOverallPlayerCount();
+    @Override
+    public String getId() {
+        return this.id;
+    }
 
     @Override
-    void close();
+    public TypeToken<T> getType() {
+        return this.type;
+    }
+
+    @Override
+    public T cast(Object object) throws ClassCastException {
+        Objects.requireNonNull(object, "object");
+        //noinspection unchecked
+        return (T) this.type.getRawType().cast(object);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof MetadataKeyImpl && ((MetadataKeyImpl) obj).getId().equals(this.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.id.hashCode();
+    }
 }

@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.event.SingleSubscription;
-import me.lucko.helper.lilypad.HelperLilyPad;
+import me.lucko.helper.lilypad.LilyPad;
 import me.lucko.helper.messaging.conversation.ConversationChannel;
 import me.lucko.helper.messaging.conversation.ConversationChannelAgent;
 import me.lucko.helper.messaging.conversation.ConversationMessage;
@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 
 class RedirectSystemImpl implements RedirectSystem {
-    private final HelperLilyPad lilyPad;
+    private final LilyPad lilyPad;
 
     private final ConversationChannel<RequestMessage, ResponseMessage> channel;
     private final ConversationChannelAgent<RequestMessage, ResponseMessage> agent;
@@ -68,7 +68,7 @@ class RedirectSystemImpl implements RedirectSystem {
 
     private RequestHandler handler = new AllowAllHandler();
 
-    RedirectSystemImpl(HelperLilyPad lilyPad) {
+    RedirectSystemImpl(LilyPad lilyPad) {
         this.lilyPad = lilyPad;
 
         this.channel = this.lilyPad.getConversationChannel("hlp-redirect", RequestMessage.class, ResponseMessage.class);

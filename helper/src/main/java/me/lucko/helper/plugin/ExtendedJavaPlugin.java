@@ -26,6 +26,7 @@
 package me.lucko.helper.plugin;
 
 import me.lucko.helper.Schedulers;
+import me.lucko.helper.Services;
 import me.lucko.helper.config.ConfigFactory;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.maven.LibraryLoader;
@@ -122,25 +123,27 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
         return CommandMapUtil.registerCommand(this, command, aliases);
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public <T> T getService(@Nonnull Class<T> service) {
-        return getServer().getServicesManager().load(service);
+        return Services.load(service);
     }
 
     @Nonnull
     @Override
     public <T> T provideService(@Nonnull Class<T> clazz, @Nonnull T instance, @Nonnull ServicePriority priority) {
-        getServer().getServicesManager().register(clazz, instance, this, priority);
-        return instance;
+        return Services.provide(clazz, instance, this, priority);
     }
 
     @Nonnull
     @Override
     public <T> T provideService(@Nonnull Class<T> clazz, @Nonnull T instance) {
-        Objects.requireNonNull(clazz, "clazz");
-        Objects.requireNonNull(instance, "instance");
         return provideService(clazz, instance, ServicePriority.Normal);
+    }
+
+    @Override
+    public boolean isPluginEnabled(@Nonnull String name) {
+        return getServer().getPluginManager().isPluginEnabled(name);
     }
 
     @SuppressWarnings("unchecked")

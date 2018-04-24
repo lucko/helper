@@ -12,7 +12,7 @@
 
     <artifactId>helper</artifactId>
     <packaging>jar</packaging>
-    <version>5.1.0</version>
+    <version>5.2.0</version>
 
     <name>helper</name>
     <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
@@ -280,6 +280,31 @@
             <version>4.3.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <!-- citizens -->
+        <dependency>
+            <groupId>net.citizensnpcs</groupId>
+            <artifactId>citizens</artifactId>
+            <version>2.0.22-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- viaversion -->
+        <dependency>
+            <groupId>us.myles</groupId>
+            <artifactId>viaversion</artifactId>
+            <version>1.3.0</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>viaversion-repo</id>
+            <url>https://repo.viaversion.com</url>
+        </repository>
+        <repository>
+            <id>aikar-repo</id>
+            <url>http://repo.aikar.co/nexus/content/groups/aikar/</url>
+        </repository>
+    </repositories>
 
 </project>

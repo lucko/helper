@@ -27,7 +27,7 @@ package me.lucko.helper.lilypad.redirect;
 
 import com.google.common.collect.ImmutableMap;
 
-import me.lucko.helper.lilypad.HelperLilyPad;
+import me.lucko.helper.lilypad.LilyPad;
 import me.lucko.helper.profiles.Profile;
 import me.lucko.helper.promise.Promise;
 import me.lucko.helper.terminable.Terminable;
@@ -53,7 +53,7 @@ public interface RedirectSystem extends Terminable {
      * @param lilyPad the lilypad instance.
      * @return the new system
      */
-    static RedirectSystem create(HelperLilyPad lilyPad) {
+    static RedirectSystem create(LilyPad lilyPad) {
         return new RedirectSystemImpl(lilyPad);
     }
 

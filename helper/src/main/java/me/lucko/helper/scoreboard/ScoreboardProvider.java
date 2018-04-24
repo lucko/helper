@@ -23,51 +23,21 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.scoreboard;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.profiles.Profile;
-import me.lucko.helper.terminable.Terminable;
-
-import java.util.Map;
-import java.util.UUID;
+import javax.annotation.Nonnull;
 
 /**
- * Represents the interface for an extended LilyPad network.
+ * An object which provides {@link Scoreboard} instances.
  */
-public interface LilypadNetwork extends Terminable {
+public interface ScoreboardProvider {
 
     /**
-     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
+     * Gets the scoreboard provided by this instance.
      *
-     * @param lilyPad the lilypad instance
-     * @return the new network
+     * @return the scoreboard
      */
-    static LilypadNetwork create(LilyPad lilyPad) {
-        return new LilypadNetworkImpl(lilyPad);
-    }
+    @Nonnull
+    Scoreboard<?, ?> getScoreboard();
 
-    /**
-     * Gets the known servers in the network
-     *
-     * @return the known servers
-     */
-    Map<String, LilypadServer> getServers();
-
-    /**
-     * Gets the players known to be online in the network.
-     *
-     * @return the known online players
-     */
-    Map<UUID, Profile> getOnlinePlayers();
-
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
-    int getOverallPlayerCount();
-
-    @Override
-    void close();
 }

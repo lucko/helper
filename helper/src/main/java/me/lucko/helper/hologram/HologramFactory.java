@@ -23,51 +23,39 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.hologram;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.profiles.Profile;
-import me.lucko.helper.terminable.Terminable;
+import com.google.gson.JsonElement;
 
-import java.util.Map;
-import java.util.UUID;
+import me.lucko.helper.gson.GsonSerializable;
+import me.lucko.helper.serialize.Position;
+
+import java.util.List;
+
+import javax.annotation.Nonnull;
 
 /**
- * Represents the interface for an extended LilyPad network.
+ * A object which can create {@link Hologram}s.
  */
-public interface LilypadNetwork extends Terminable {
+public interface HologramFactory {
 
     /**
-     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
+     * Creates a new hologram.
      *
-     * @param lilyPad the lilypad instance
-     * @return the new network
+     * @param position the position of the hologram
+     * @param lines the initial lines to display
+     * @return the new hologram
      */
-    static LilypadNetwork create(LilyPad lilyPad) {
-        return new LilypadNetworkImpl(lilyPad);
-    }
+    @Nonnull
+    Hologram newHologram(@Nonnull Position position, @Nonnull List<String> lines);
 
     /**
-     * Gets the known servers in the network
+     * Deserializes a hologram instance from its {@link GsonSerializable serialized} form.
      *
-     * @return the known servers
+     * @param element the data
+     * @return the hologram
      */
-    Map<String, LilypadServer> getServers();
+    @Nonnull
+    Hologram deserialize(JsonElement element);
 
-    /**
-     * Gets the players known to be online in the network.
-     *
-     * @return the known online players
-     */
-    Map<UUID, Profile> getOnlinePlayers();
-
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
-    int getOverallPlayerCount();
-
-    @Override
-    void close();
 }

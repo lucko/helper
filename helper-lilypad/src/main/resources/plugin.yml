@@ -2,7 +2,7 @@ name: helper-lilypad
 author: Luck
 version: ${project.version}
 description: ${project.description}
-main: me.lucko.helper.lilypad.plugin.LilyPadPlugin
+main: me.lucko.helper.lilypad.plugin.HelperLilyPadPlugin
 website: https://github.com/lucko/helper
 load: STARTUP
 depend: [helper, LilyPad-Connect]

@@ -28,7 +28,7 @@ package me.lucko.helper.lilypad.extended;
 import com.google.common.collect.ImmutableSet;
 
 import me.lucko.helper.Schedulers;
-import me.lucko.helper.lilypad.HelperLilyPad;
+import me.lucko.helper.lilypad.LilyPad;
 import me.lucko.helper.messaging.Channel;
 import me.lucko.helper.messaging.ChannelAgent;
 import me.lucko.helper.profiles.Profile;
@@ -61,7 +61,7 @@ class LilypadNetworkImpl implements LilypadNetwork {
     private final Map<String, Server> servers = new ConcurrentHashMap<>();
     private int overallPlayerCount = 0;
 
-    public LilypadNetworkImpl(HelperLilyPad lilyPad) {
+    public LilypadNetworkImpl(LilyPad lilyPad) {
         Channel<ServerMessage> serverChannel = lilyPad.getChannel("hlp-server", ServerMessage.class);
 
         ChannelAgent<ServerMessage> serverChannelAgent = serverChannel.newAgent();
@@ -87,7 +87,7 @@ class LilypadNetworkImpl implements LilypadNetwork {
                 .afterAndEvery(3, TimeUnit.SECONDS)
                 .run(() -> {
                     try {
-                        GetPlayersResult result = lilyPad.getLilyPadConnect().request(new GetPlayersRequest()).await();
+                        GetPlayersResult result = lilyPad.getConnect().request(new GetPlayersRequest()).await();
                         this.overallPlayerCount = result.getCurrentPlayers();
                     } catch (InterruptedException | RequestException e) {
                         e.printStackTrace();

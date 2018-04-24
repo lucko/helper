@@ -55,7 +55,7 @@ public interface MetadataKey<T> extends TypeAware<T> {
     static <T> MetadataKey<T> create(String id, TypeToken<T> type) {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(type, "type");
-        return new SimpleMetadataKey<>(id, type);
+        return new MetadataKeyImpl<>(id, type);
     }
 
     /**

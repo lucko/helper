@@ -23,51 +23,67 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.mongo;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.profiles.Profile;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoDatabase;
+
 import me.lucko.helper.terminable.Terminable;
 
-import java.util.Map;
-import java.util.UUID;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
+
+import javax.annotation.Nonnull;
 
 /**
- * Represents the interface for an extended LilyPad network.
+ * Represents an individual Mongo datasource, created by the library.
  */
-public interface LilypadNetwork extends Terminable {
+public interface Mongo extends Terminable {
 
     /**
-     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
+     * Gets the client instance backing the datasource
      *
-     * @param lilyPad the lilypad instance
-     * @return the new network
+     * @return the client instance
      */
-    static LilypadNetwork create(LilyPad lilyPad) {
-        return new LilypadNetworkImpl(lilyPad);
-    }
+    @Nonnull
+    MongoClient getClient();
 
     /**
-     * Gets the known servers in the network
+     * Gets the main database in use by the instance.
      *
-     * @return the known servers
+     * @return the main database
      */
-    Map<String, LilypadServer> getServers();
+    @Nonnull
+    MongoDatabase getDatabase();
 
     /**
-     * Gets the players known to be online in the network.
+     * Gets a specific database instance
      *
-     * @return the known online players
+     * @param name the name of the database
+     * @return the database
      */
-    Map<UUID, Profile> getOnlinePlayers();
+    MongoDatabase getDatabase(String name);
 
     /**
-     * Gets a cached overall player count
+     * Gets the Morphia instance for this datasource
      *
-     * @return the player count
+     * @return the morphia instance
      */
-    int getOverallPlayerCount();
+    Morphia getMorphia();
 
-    @Override
-    void close();
+    /**
+     * Gets the main Morphia datastore in use by the instance
+     *
+     * @return the main datastore
+     */
+    Datastore getMorphiaDatastore();
+
+    /**
+     * Gets a specific Morphia datastore instance
+     *
+     * @param name the name of the database
+     * @return the datastore
+     */
+    Datastore getMorphiaDatastore(String name);
+
 }

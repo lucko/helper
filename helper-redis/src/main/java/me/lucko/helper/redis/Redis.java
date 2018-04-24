@@ -23,51 +23,35 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.redis;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.profiles.Profile;
+import me.lucko.helper.messaging.Messenger;
 import me.lucko.helper.terminable.Terminable;
 
-import java.util.Map;
-import java.util.UUID;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+
+import javax.annotation.Nonnull;
 
 /**
- * Represents the interface for an extended LilyPad network.
+ * Represents an individual redis instance, created by the library.
  */
-public interface LilypadNetwork extends Terminable {
+public interface Redis extends Terminable, Messenger {
 
     /**
-     * Creates a new {@link LilypadNetwork} instance. These should be shared if possible.
+     * Gets the JedisPool instance backing the redis instance
      *
-     * @param lilyPad the lilypad instance
-     * @return the new network
+     * @return the JedisPool instance
      */
-    static LilypadNetwork create(LilyPad lilyPad) {
-        return new LilypadNetworkImpl(lilyPad);
-    }
+    @Nonnull
+    JedisPool getJedisPool();
 
     /**
-     * Gets the known servers in the network
+     * Gets a Jedis instance from the JedisPool.
      *
-     * @return the known servers
+     * @return a jedis instance
      */
-    Map<String, LilypadServer> getServers();
+    @Nonnull
+    Jedis getJedis();
 
-    /**
-     * Gets the players known to be online in the network.
-     *
-     * @return the known online players
-     */
-    Map<UUID, Profile> getOnlinePlayers();
-
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
-    int getOverallPlayerCount();
-
-    @Override
-    void close();
 }

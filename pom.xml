@@ -16,7 +16,6 @@
         <module>helper-lilypad</module>
         <module>helper-js</module>
         <module>helper-profiles</module>
-        <module>helper-extras</module>
     </modules>
 
     <name>helper-parent</name>
@@ -125,10 +124,6 @@
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
-        </repository>
-        <repository>
-            <id>aikar-repo</id>
-            <url>http://repo.aikar.co/nexus/content/groups/aikar/</url>
         </repository>
     </repositories>
 
