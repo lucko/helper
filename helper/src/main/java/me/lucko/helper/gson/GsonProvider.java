@@ -29,6 +29,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.Reader;
 import java.util.Objects;
@@ -40,14 +41,14 @@ import javax.annotation.Nonnull;
  */
 public final class GsonProvider {
 
-    private static final Gson STANDARD = new GsonBuilder()
+    private static final Gson STANDARD_GSON = new GsonBuilder()
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
             .registerTypeAdapterFactory(BukkitSerializableAdapterFactory.INSTANCE)
             .serializeNulls()
             .disableHtmlEscaping()
             .create();
 
-    private static final Gson PRETTY_PRINT = new GsonBuilder()
+    private static final Gson PRETTY_PRINT_GSON = new GsonBuilder()
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
             .registerTypeAdapterFactory(BukkitSerializableAdapterFactory.INSTANCE)
             .serializeNulls()
@@ -55,24 +56,31 @@ public final class GsonProvider {
             .setPrettyPrinting()
             .create();
 
+    private static final JsonParser PARSER = new JsonParser();
+
     @Nonnull
     public static Gson standard() {
-        return STANDARD;
+        return STANDARD_GSON;
     }
 
     @Nonnull
     public static Gson prettyPrinting() {
-        return PRETTY_PRINT;
+        return PRETTY_PRINT_GSON;
+    }
+
+    @Nonnull
+    public static JsonParser parser() {
+        return PARSER;
     }
 
     @Nonnull
     public static JsonObject readObject(@Nonnull Reader reader) {
-        return Objects.requireNonNull(standard().fromJson(reader, JsonObject.class));
+        return PARSER.parse(reader).getAsJsonObject();
     }
 
     @Nonnull
     public static JsonObject readObject(@Nonnull String s) {
-        return Objects.requireNonNull(standard().fromJson(s, JsonObject.class));
+        return PARSER.parse(s).getAsJsonObject();
     }
 
     public static void writeObject(@Nonnull Appendable writer, @Nonnull JsonObject object) {
