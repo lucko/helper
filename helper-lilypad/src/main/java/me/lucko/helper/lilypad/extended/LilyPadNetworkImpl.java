@@ -55,13 +55,13 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-class LilypadNetworkImpl implements LilypadNetwork {
+class LilyPadNetworkImpl implements LilyPadNetwork {
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
     private final Map<String, Server> servers = new ConcurrentHashMap<>();
     private int overallPlayerCount = 0;
 
-    public LilypadNetworkImpl(LilyPad lilyPad) {
+    public LilyPadNetworkImpl(LilyPad lilyPad) {
         Channel<ServerMessage> serverChannel = lilyPad.getChannel("hlp-server", ServerMessage.class);
 
         ChannelAgent<ServerMessage> serverChannelAgent = serverChannel.newAgent();
@@ -97,14 +97,14 @@ class LilypadNetworkImpl implements LilypadNetwork {
     }
 
     @Override
-    public Map<String, LilypadServer> getServers() {
+    public Map<String, LilyPadServer> getServers() {
         return Collections.unmodifiableMap(this.servers);
     }
 
     @Override
     public Map<UUID, Profile> getOnlinePlayers() {
         Map<UUID, Profile> players = new HashMap<>();
-        for (LilypadServer server : this.servers.values()) {
+        for (LilyPadServer server : this.servers.values()) {
             for (Profile profile : server.getOnlinePlayers()) {
                 players.put(profile.getUniqueId(), profile);
             }
@@ -122,7 +122,7 @@ class LilypadNetworkImpl implements LilypadNetwork {
         this.compositeTerminable.closeAndReportException();
     }
 
-    private static final class Server implements LilypadServer {
+    private static final class Server implements LilyPadServer {
         private final String id;
 
         private long lastPing = 0;

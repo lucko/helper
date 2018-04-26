@@ -64,7 +64,7 @@ public final class GsonSerializableAdapterFactory implements TypeAdapterFactory 
 
             @Override
             public GsonSerializable read(JsonReader in) throws IOException {
-                JsonElement element = gson.fromJson(in, JsonElement.class);
+                JsonElement element = GsonProvider.parser().parse(in);
 
                 try {
                     //noinspection unchecked

@@ -25,35 +25,49 @@
 
 package me.lucko.helper.lilypad.extended;
 
-import me.lucko.helper.messaging.InstanceData;
+import me.lucko.helper.lilypad.LilyPad;
 import me.lucko.helper.profiles.Profile;
+import me.lucko.helper.terminable.Terminable;
 
-import java.util.Set;
+import java.util.Map;
+import java.util.UUID;
 
 /**
- * Represents an individual server within a {@link LilypadNetwork}.
+ * Represents the interface for an extended LilyPad network.
  */
-public interface LilypadServer extends InstanceData {
+public interface LilyPadNetwork extends Terminable {
 
     /**
-     * Gets if the server is currently online
+     * Creates a new {@link LilyPadNetwork} instance. These should be shared if possible.
      *
-     * @return if the server is online
+     * @param lilyPad the lilypad instance
+     * @return the new network
      */
-    boolean isOnline();
+    static LilyPadNetwork create(LilyPad lilyPad) {
+        return new LilyPadNetworkImpl(lilyPad);
+    }
 
     /**
-     * Gets the time the last ping was received from this server.
+     * Gets the known servers in the network
      *
-     * @return the time of the last time, as a unix timestamp in milliseconds
+     * @return the known servers
      */
-    long getLastPing();
+    Map<String, LilyPadServer> getServers();
 
     /**
-     * Gets the players known to be online on this server.
+     * Gets the players known to be online in the network.
      *
-     * @return the online players.
+     * @return the known online players
      */
-    Set<Profile> getOnlinePlayers();
+    Map<UUID, Profile> getOnlinePlayers();
 
+    /**
+     * Gets a cached overall player count
+     *
+     * @return the player count
+     */
+    int getOverallPlayerCount();
+
+    @Override
+    void close();
 }
