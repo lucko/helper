@@ -2,7 +2,7 @@ name: helper-sql
 author: Luck
 version: ${project.version}
 description: ${project.description}
-main: me.lucko.helper.sql.plugin.SqlPlugin
+main: me.lucko.helper.sql.plugin.HelperSqlPlugin
 website: https://github.com/lucko/helper
 load: STARTUP
 depend: [helper]
