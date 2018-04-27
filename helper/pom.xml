@@ -80,10 +80,10 @@
                                     <include>com.flowpowered:flow-math</include>
                                     <include>co.aikar:minecraft-timings</include>
                                     <include>net.kyori:text</include>
-                                    <include>ninja.leaping.configurate:configurate-core</include>
-                                    <include>ninja.leaping.configurate:configurate-yaml</include>
-                                    <include>ninja.leaping.configurate:configurate-gson</include>
-                                    <include>ninja.leaping.configurate:configurate-hocon</include>
+                                    <include>me.lucko.configurate:configurate-core</include>
+                                    <include>me.lucko.configurate:configurate-yaml</include>
+                                    <include>me.lucko.configurate:configurate-gson</include>
+                                    <include>me.lucko.configurate:configurate-hocon</include>
                                     <include>com.typesafe:config</include>
                                 </includes>
                             </artifactSet>
