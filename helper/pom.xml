@@ -166,9 +166,9 @@
         </dependency>
         <!-- configurate -->
         <dependency>
-            <groupId>ninja.leaping.configurate</groupId>
+            <groupId>me.lucko.configurate</groupId>
             <artifactId>configurate-core</artifactId>
-            <version>3.3</version>
+            <version>3.5-SNAPSHOT</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
@@ -179,14 +179,14 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>ninja.leaping.configurate</groupId>
+            <groupId>me.lucko.configurate</groupId>
             <artifactId>configurate-yaml</artifactId>
-            <version>3.3</version>
+            <version>3.5-SNAPSHOT</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
-                    <groupId>ninja.leaping.configurate</groupId>
+                    <groupId>me.lucko.configurate</groupId>
                     <artifactId>configurate-core</artifactId>
                 </exclusion>
                 <exclusion>
@@ -196,14 +196,14 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>ninja.leaping.configurate</groupId>
+            <groupId>me.lucko.configurate</groupId>
             <artifactId>configurate-gson</artifactId>
-            <version>3.3</version>
+            <version>3.5-SNAPSHOT</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
-                    <groupId>ninja.leaping.configurate</groupId>
+                    <groupId>me.lucko.configurate</groupId>
                     <artifactId>configurate-core</artifactId>
                 </exclusion>
                 <exclusion>
@@ -213,14 +213,14 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>ninja.leaping.configurate</groupId>
+            <groupId>me.lucko.configurate</groupId>
             <artifactId>configurate-hocon</artifactId>
-            <version>3.3</version>
+            <version>3.5-SNAPSHOT</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
-                    <groupId>ninja.leaping.configurate</groupId>
+                    <groupId>me.lucko.configurate</groupId>
                     <artifactId>configurate-core</artifactId>
                 </exclusion>
             </exclusions>
