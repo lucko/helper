@@ -30,6 +30,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
+import me.lucko.helper.reflect.ServerReflection;
 import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -52,6 +53,8 @@ import java.util.Set;
  */
 @NonnullByDefault
 public class PacketScoreboardTeam implements ScoreboardTeam {
+
+    private static final boolean SUPPORTS_COLLISION_RULE = !ServerReflection.getServerVersion().equals("1_8_R3");
 
     // the display name value in teams if limited to 32 chars
     private static final int MAX_NAME_LENGTH = 32;
@@ -398,8 +401,10 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
         // set nametag visibility - String Enum (32)
         packet.getStrings().write(4, getNameTagVisibility().getProtocolName());
 
-        // set collision rule - String Enum (32)
-        packet.getStrings().write(5, getCollisionRule().getProtocolName());
+        if (SUPPORTS_COLLISION_RULE) {
+            // set collision rule - String Enum (32)
+            packet.getStrings().write(5, getCollisionRule().getProtocolName());
+        }
 
         // set color - byte - For colors, the same Chat colors (0-15). -1 indicates RESET/no color.
         packet.getIntegers().write(0, COLOR_CODES.getOrDefault(getColor(), -1));

@@ -104,7 +104,7 @@ public interface HelperPlugin extends Plugin, TerminableConsumer {
      * @param name the name of the plugin
      * @return if the plugin is enabled
      */
-    boolean isPluginEnabled(@Nonnull String name);
+    boolean isPluginPresent(@Nonnull String name);
 
     /**
      * Gets a plugin instance for the given plugin name
