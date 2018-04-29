@@ -53,6 +53,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.server.PluginEnableEvent;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -67,10 +68,19 @@ import javax.annotation.Nullable;
 public class CitizensNpcFactory implements NpcFactory {
     private static final MetadataKey<Boolean> RECENT_NPC_CLICK_KEY = MetadataKey.createBooleanKey("helper-recent-npc-click");
 
-    private final NPCRegistry npcRegistry;
+    private NPCRegistry npcRegistry;
     private final CompositeTerminable registry = CompositeTerminable.create();
 
     public CitizensNpcFactory() {
+
+        // create an enable hook for citizens
+        Events.subscribe(PluginEnableEvent.class)
+                .filter(e -> e.getPlugin().getName().equals("Citizens"))
+                .expireAfter(1) // only call once
+                .handler(e -> init());
+    }
+
+    private void init() {
         // create npc registry
         this.npcRegistry = CitizensAPI.createNamedNPCRegistry("helper", new MemoryNPCDataStore());
 

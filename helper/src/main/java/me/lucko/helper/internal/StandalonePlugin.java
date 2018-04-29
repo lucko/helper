@@ -66,20 +66,20 @@ public final class StandalonePlugin extends ExtendedJavaPlugin {
         // provide default service implementations
         provideService(HologramFactory.class, new BukkitHologramFactory());
         provideService(BungeeCord.class, new BungeeCordImpl(this));
-        if (isPluginEnabled("ProtocolLib")) {
+        if (isPluginPresent("ProtocolLib")) {
             PacketScoreboardProvider scoreboardProvider = new PacketScoreboardProvider(this);
             provideService(ScoreboardProvider.class, scoreboardProvider);
             provideService(PacketScoreboardProvider.class, scoreboardProvider);
-        }
-        if (isPluginEnabled("Citizens")) {
-            NpcFactory npcManager = bind(new CitizensNpcFactory());
-            provideService(NpcFactory.class, npcManager);
-        }
-        if (isPluginEnabled("ProtocolLib")) {
+
             SignPromptFactory signPromptFactory = new ProtocolSignPromptFactory();
             provideService(SignPromptFactory.class, signPromptFactory);
         }
-        if (isPluginEnabled("ViaVersion")) {
+        if (isPluginPresent("Citizens")) {
+            CitizensNpcFactory npcManager = bind(new CitizensNpcFactory());
+            provideService(NpcFactory.class, npcManager);
+            provideService(CitizensNpcFactory.class, npcManager);
+        }
+        if (isPluginPresent("ViaVersion")) {
             BossBarFactory bossBarFactory = new ViaBossBarFactory();
             provideService(BossBarFactory.class, bossBarFactory);
         } else if (classExists("org.bukkit.boss.BossBar")) {

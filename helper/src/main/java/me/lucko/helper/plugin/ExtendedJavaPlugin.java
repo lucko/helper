@@ -142,8 +142,8 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     }
 
     @Override
-    public boolean isPluginEnabled(@Nonnull String name) {
-        return getServer().getPluginManager().isPluginEnabled(name);
+    public boolean isPluginPresent(@Nonnull String name) {
+        return getServer().getPluginManager().getPlugin(name) != null;
     }
 
     @SuppressWarnings("unchecked")

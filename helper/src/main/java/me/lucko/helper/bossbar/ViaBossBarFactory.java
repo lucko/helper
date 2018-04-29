@@ -32,7 +32,6 @@ import me.lucko.helper.utils.Players;
 import org.bukkit.entity.Player;
 
 import us.myles.ViaVersion.api.Via;
-import us.myles.ViaVersion.api.ViaAPI;
 import us.myles.ViaVersion.api.boss.BossColor;
 import us.myles.ViaVersion.api.boss.BossStyle;
 
@@ -46,16 +45,11 @@ import javax.annotation.Nonnull;
  * Implementation of {@link BossBarFactory} using ViaVersion.
  */
 public class ViaBossBarFactory implements BossBarFactory {
-    private final ViaAPI<?> viaApi;
-
-    public ViaBossBarFactory() {
-        this.viaApi = Via.getAPI();
-    }
 
     @Nonnull
     @Override
     public BossBar newBossBar() {
-        return new ViaBossBar(this.viaApi.createBossBar("null", convertColor(BossBarColor.defaultColor()), convertStyle(BossBarStyle.defaultStyle())));
+        return new ViaBossBar(Via.getAPI().createBossBar("null", convertColor(BossBarColor.defaultColor()), convertStyle(BossBarStyle.defaultStyle())));
     }
 
     private static class ViaBossBar implements BossBar {
