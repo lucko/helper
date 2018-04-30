@@ -30,7 +30,8 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
-import me.lucko.helper.reflect.ServerReflection;
+import me.lucko.helper.reflect.MinecraftVersion;
+import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -54,7 +55,8 @@ import java.util.Set;
 @NonnullByDefault
 public class PacketScoreboardTeam implements ScoreboardTeam {
 
-    private static final boolean SUPPORTS_COLLISION_RULE = !ServerReflection.getServerVersion().equals("v1_8_R3");
+    // anything >= v1.9 supports the collision rule in the update packet.
+    private static final boolean SUPPORTS_COLLISION_RULE = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_9);
 
     // the display name value in teams if limited to 32 chars
     private static final int MAX_NAME_LENGTH = 32;
