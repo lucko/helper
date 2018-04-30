@@ -54,7 +54,7 @@ import java.util.Set;
 @NonnullByDefault
 public class PacketScoreboardTeam implements ScoreboardTeam {
 
-    private static final boolean SUPPORTS_COLLISION_RULE = !ServerReflection.getServerVersion().equals("1_8_R3");
+    private static final boolean SUPPORTS_COLLISION_RULE = !ServerReflection.getServerVersion().equals("v1_8_R3");
 
     // the display name value in teams if limited to 32 chars
     private static final int MAX_NAME_LENGTH = 32;
