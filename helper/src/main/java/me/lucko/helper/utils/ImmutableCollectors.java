@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.Comparator;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collector;
 
@@ -58,6 +59,20 @@ public final class ImmutableCollectors {
             ImmutableSet.Builder::build
     );
 
+    private static final Collector<Map.Entry<Object, Object>, ImmutableMap.Builder<Object, Object>, ImmutableMap<Object, Object>> MAP = Collector.of(
+            ImmutableMap.Builder::new,
+            (r, t) -> r.put(t.getKey(), t.getValue()),
+            (l, r) -> l.putAll(r.build()),
+            ImmutableMap.Builder::build
+    );
+
+    private static final Collector<Map.Entry<Object, Object>, ImmutableBiMap.Builder<Object, Object>, ImmutableBiMap<Object, Object>> BIMAP = Collector.of(
+            ImmutableBiMap.Builder::new,
+            (r, t) -> r.put(t.getKey(), t.getValue()),
+            (l, r) -> l.putAll(r.build()),
+            ImmutableBiMap.Builder::build
+    );
+
     public static <T> Collector<T, ImmutableList.Builder<T>, ImmutableList<T>> toList() {
         //noinspection unchecked
         return (Collector) LIST;
@@ -66,6 +81,16 @@ public final class ImmutableCollectors {
     public static <T> Collector<T, ImmutableSet.Builder<T>, ImmutableSet<T>> toSet() {
         //noinspection unchecked
         return (Collector) SET;
+    }
+
+    public static <K, V> Collector<Map.Entry<? extends K, ? extends V>, ImmutableMap.Builder<K, V>, ImmutableMap<K, V>> toMap() {
+        //noinspection unchecked
+        return (Collector) MAP;
+    }
+
+    public static <K, V> Collector<Map.Entry<? extends K, ? extends V>, ImmutableBiMap.Builder<K, V>, ImmutableBiMap<K, V>> toBiMap() {
+        //noinspection unchecked
+        return (Collector) BIMAP;
     }
 
     public static <E> Collector<E, ?, ImmutableSortedSet<E>> toSortedSet(Comparator<? super E> comparator) {
