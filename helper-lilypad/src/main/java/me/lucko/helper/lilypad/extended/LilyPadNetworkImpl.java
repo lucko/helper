@@ -35,6 +35,7 @@ import me.lucko.helper.profiles.Profile;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.utils.Players;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 
@@ -77,6 +78,7 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
                     msg.id = lilyPad.getId();
                     msg.groups = new ArrayList<>(lilyPad.getGroups());
                     msg.players = Players.stream().collect(Collectors.toMap(Entity::getUniqueId, HumanEntity::getName));
+                    msg.maxPlayers = Bukkit.getMaxPlayers();
 
                     serverChannel.sendMessage(msg);
                 })
@@ -128,6 +130,7 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
         private long lastPing = 0;
         private Set<String> groups = ImmutableSet.of();
         private Set<Profile> players = ImmutableSet.of();
+        private int maxPlayers = 0;
 
         public Server(String id) {
             this.id = id;
@@ -142,6 +145,7 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
                 players.add(Profile.create(p.getKey(), p.getValue()));
             }
             this.players = players.build();
+            this.maxPlayers = msg.maxPlayers;
         }
 
         @Nonnull
@@ -171,6 +175,11 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
         public Set<Profile> getOnlinePlayers() {
             return this.players;
         }
+
+        @Override
+        public int getMaxPlayers() {
+            return this.maxPlayers;
+        }
     }
 
     private static final class ServerMessage {
@@ -178,5 +187,6 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
         private List<String> groups;
         private long time;
         private Map<UUID, String> players;
+        private int maxPlayers;
     }
 }

@@ -56,4 +56,11 @@ public interface LilyPadServer extends InstanceData {
      */
     Set<Profile> getOnlinePlayers();
 
+    /**
+     * Gets the maximum amount of players allowed on this server.
+     *
+     * @return the max players
+     */
+    int getMaxPlayers();
+
 }
