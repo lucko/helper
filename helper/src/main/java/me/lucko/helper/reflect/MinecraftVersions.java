@@ -88,17 +88,14 @@ public final class MinecraftVersions {
     public static final MinecraftVersion v1_4_2 = MinecraftVersion.parse("1.4.2");
 
     /**
-     * The version of the runtime
-     */
-    static final MinecraftVersion RUNTIME_VERSION = parseServerVersion(Bukkit.getVersion());
-
-
-
-
-    /**
      * Regular expression used to parse version strings.
      */
     private static final Pattern VERSION_PATTERN = Pattern.compile(".*\\(.*MC.\\s*([a-zA-z0-9\\-\\.]+)\\s*\\)");
+
+    /**
+     * The version of the runtime
+     */
+    static final MinecraftVersion RUNTIME_VERSION = parseServerVersion(Bukkit.getVersion());
 
     private static MinecraftVersion parseServerVersion(String serverVersion) {
         Matcher version = VERSION_PATTERN.matcher(serverVersion);
