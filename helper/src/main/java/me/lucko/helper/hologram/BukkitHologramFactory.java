@@ -32,6 +32,8 @@ import com.google.gson.JsonObject;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.gson.JsonBuilder;
+import me.lucko.helper.reflect.MinecraftVersion;
+import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.text.Text;
@@ -137,19 +139,21 @@ public class BukkitHologramFactory implements HologramFactory {
                         }
                     });
 
-                    ArmorStand as = loc.getWorld().spawn(loc, ArmorStand.class, stand -> {
-                        stand.setSmall(true);
-                        stand.setMarker(true);
-                        stand.setArms(false);
-                        stand.setBasePlate(false);
-                        stand.setGravity(false);
-                        stand.setVisible(false);
-                        stand.setAI(false);
-                        stand.setCollidable(false);
-                        stand.setInvulnerable(true);
-                        stand.setCustomName(line);
-                        stand.setCustomNameVisible(true);
-                    });
+                    ArmorStand as = loc.getWorld().spawn(loc, ArmorStand.class);
+                    as.setSmall(true);
+                    as.setMarker(true);
+                    as.setArms(false);
+                    as.setBasePlate(false);
+                    as.setGravity(false);
+                    as.setVisible(false);
+                    as.setCustomName(line);
+                    as.setCustomNameVisible(true);
+
+                    if (MinecraftVersion.getRuntimeVersion().isAfter(MinecraftVersions.v1_8)) {
+                        as.setAI(false);
+                        as.setCollidable(false);
+                        as.setInvulnerable(true);
+                    }
 
                     this.spawnedEntities.add(as);
                 } else {
