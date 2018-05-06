@@ -26,8 +26,6 @@
 package me.lucko.helper.hologram;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import me.lucko.helper.Events;
@@ -61,25 +59,6 @@ public class BukkitHologramFactory implements HologramFactory {
     @Override
     public Hologram newHologram(@Nonnull Position position, @Nonnull List<String> lines) {
         return new BukkitHologram(position, lines);
-    }
-
-    @Nonnull
-    @Override
-    public Hologram deserialize(JsonElement element) {
-        Preconditions.checkArgument(element.isJsonObject());
-        JsonObject object = element.getAsJsonObject();
-
-        Preconditions.checkArgument(object.has("position"));
-        Preconditions.checkArgument(object.has("lines"));
-
-        Position position = Position.deserialize(object.get("position"));
-        JsonArray lineArray = object.get("lines").getAsJsonArray();
-        List<String> lines = new ArrayList<>();
-        for (JsonElement e : lineArray) {
-            lines.add(e.getAsString());
-        }
-
-        return newHologram(position, lines);
     }
 
     private static class BukkitHologram implements Hologram {
@@ -149,7 +128,7 @@ public class BukkitHologramFactory implements HologramFactory {
                     as.setCustomName(line);
                     as.setCustomNameVisible(true);
 
-                    if (MinecraftVersion.getRuntimeVersion().isAfter(MinecraftVersions.v1_8)) {
+                    if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_9)) {
                         as.setAI(false);
                         as.setCollidable(false);
                         as.setInvulnerable(true);
