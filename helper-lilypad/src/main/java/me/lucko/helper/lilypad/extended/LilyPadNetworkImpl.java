@@ -79,6 +79,7 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
                     msg.groups = new ArrayList<>(lilyPad.getGroups());
                     msg.players = Players.stream().collect(Collectors.toMap(Entity::getUniqueId, HumanEntity::getName));
                     msg.maxPlayers = Bukkit.getMaxPlayers();
+                    msg.whitelisted = Bukkit.hasWhitelist();
 
                     serverChannel.sendMessage(msg);
                 })
@@ -131,6 +132,7 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
         private Set<String> groups = ImmutableSet.of();
         private Set<Profile> players = ImmutableSet.of();
         private int maxPlayers = 0;
+        private boolean whitelisted = false;
 
         public Server(String id) {
             this.id = id;
@@ -146,6 +148,7 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
             }
             this.players = players.build();
             this.maxPlayers = msg.maxPlayers;
+            this.whitelisted = msg.whitelisted;
         }
 
         @Nonnull
@@ -180,6 +183,11 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
         public int getMaxPlayers() {
             return this.maxPlayers;
         }
+
+        @Override
+        public boolean isWhitelisted() {
+            return this.whitelisted;
+        }
     }
 
     private static final class ServerMessage {
@@ -188,5 +196,6 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
         private long time;
         private Map<UUID, String> players;
         private int maxPlayers;
+        private boolean whitelisted;
     }
 }
