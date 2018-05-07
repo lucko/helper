@@ -25,47 +25,50 @@
 
 package me.lucko.helper.hologram;
 
-import com.google.gson.JsonElement;
-
-import me.lucko.helper.Services;
-import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.serialize.Position;
+import me.lucko.helper.terminable.Terminable;
 
-import java.util.List;
+import org.bukkit.entity.Player;
+
+import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * A simple hologram utility.
+ * Base interface for holograms.
  */
-public interface Hologram extends BaseHologram, GsonSerializable {
+public interface BaseHologram extends Terminable {
 
     /**
-     * Creates and returns a new hologram
-     *
-     * <p>Note: the hologram will not be spawned automatically.</p>
-     *
-     * @param position the position of the hologram
-     * @param lines the initial lines to display
-     * @return the new hologram.
+     * Spawns the hologram
      */
-    @Nonnull
-    static Hologram create(@Nonnull Position position, @Nonnull List<String> lines) {
-        return Services.load(HologramFactory.class).newHologram(position, lines);
-    }
-
-    static Hologram deserialize(JsonElement element) {
-        return Services.load(HologramFactory.class).deserialize(element);
-    }
+    void spawn();
 
     /**
-     * Updates the lines displayed by this hologram
-     *
-     * <p>This method does not refresh the actual hologram display. {@link #spawn()} must be called for these changes
-     * to apply.</p>
-     *
-     * @param lines the new lines
+     * Despawns the hologram
      */
-    void updateLines(@Nonnull List<String> lines);
+    void despawn();
+
+    /**
+     * Check if the hologram is currently spawned
+     *
+     * @return true if spawned and active, or false otherwise
+     */
+    boolean isSpawned();
+
+    /**
+     * Updates the position of the hologram and respawns it
+     *
+     * @param position the new position
+     */
+    void updatePosition(@Nonnull Position position);
+
+    /**
+     * Sets a click callback for this hologram
+     *
+     * @param clickCallback the click callback, or null to unregister any existing callback
+     */
+    void setClickCallback(@Nullable Consumer<Player> clickCallback);
 
 }

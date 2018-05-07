@@ -23,12 +23,8 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.hologram;
+package me.lucko.helper.hologram.individual;
 
-import com.google.gson.JsonElement;
-
-import me.lucko.helper.Services;
-import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.serialize.Position;
 
 import java.util.List;
@@ -36,36 +32,18 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 /**
- * A simple hologram utility.
+ * A object which can create {@link IndividualHologram}s.
  */
-public interface Hologram extends BaseHologram, GsonSerializable {
+public interface IndividualHologramFactory {
 
     /**
-     * Creates and returns a new hologram
-     *
-     * <p>Note: the hologram will not be spawned automatically.</p>
+     * Creates a new hologram.
      *
      * @param position the position of the hologram
-     * @param lines the initial lines to display
-     * @return the new hologram.
+     * @param lines the lines to display
+     * @return the new hologram
      */
     @Nonnull
-    static Hologram create(@Nonnull Position position, @Nonnull List<String> lines) {
-        return Services.load(HologramFactory.class).newHologram(position, lines);
-    }
-
-    static Hologram deserialize(JsonElement element) {
-        return Services.load(HologramFactory.class).deserialize(element);
-    }
-
-    /**
-     * Updates the lines displayed by this hologram
-     *
-     * <p>This method does not refresh the actual hologram display. {@link #spawn()} must be called for these changes
-     * to apply.</p>
-     *
-     * @param lines the new lines
-     */
-    void updateLines(@Nonnull List<String> lines);
+    IndividualHologram newHologram(@Nonnull Position position, @Nonnull List<HologramLine> lines);
 
 }

@@ -23,49 +23,42 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.hologram;
+package me.lucko.helper.hologram.individual;
 
-import com.google.gson.JsonElement;
+import org.bukkit.entity.Player;
 
-import me.lucko.helper.Services;
-import me.lucko.helper.gson.GsonSerializable;
-import me.lucko.helper.serialize.Position;
-
-import java.util.List;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
 /**
- * A simple hologram utility.
+ * Represents a line in a hologram.
  */
-public interface Hologram extends BaseHologram, GsonSerializable {
+public interface HologramLine {
 
     /**
-     * Creates and returns a new hologram
+     * Returns a hologram line that doesn't change between players.
      *
-     * <p>Note: the hologram will not be spawned automatically.</p>
-     *
-     * @param position the position of the hologram
-     * @param lines the initial lines to display
-     * @return the new hologram.
+     * @param text the text to display
+     * @return the line
      */
     @Nonnull
-    static Hologram create(@Nonnull Position position, @Nonnull List<String> lines) {
-        return Services.load(HologramFactory.class).newHologram(position, lines);
+    static HologramLine fixed(@Nonnull String text) {
+        return viewer -> text;
     }
 
-    static Hologram deserialize(JsonElement element) {
-        return Services.load(HologramFactory.class).deserialize(element);
+    @Nonnull
+    static HologramLine fromFunction(@Nonnull Function<Player, String> function) {
+        return function::apply;
     }
 
     /**
-     * Updates the lines displayed by this hologram
+     * Gets the string representation of the line, for the given player.
      *
-     * <p>This method does not refresh the actual hologram display. {@link #spawn()} must be called for these changes
-     * to apply.</p>
-     *
-     * @param lines the new lines
+     * @param viewer the player
+     * @return the line
      */
-    void updateLines(@Nonnull List<String> lines);
+    @Nonnull
+    String resolve(Player viewer);
 
 }
