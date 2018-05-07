@@ -31,6 +31,8 @@ import me.lucko.helper.bossbar.BukkitBossBarFactory;
 import me.lucko.helper.bossbar.ViaBossBarFactory;
 import me.lucko.helper.hologram.BukkitHologramFactory;
 import me.lucko.helper.hologram.HologramFactory;
+import me.lucko.helper.hologram.individual.IndividualHologramFactory;
+import me.lucko.helper.hologram.individual.PacketIndividualHologramFactory;
 import me.lucko.helper.messaging.bungee.BungeeCord;
 import me.lucko.helper.messaging.bungee.BungeeCordImpl;
 import me.lucko.helper.npc.CitizensNpcFactory;
@@ -38,7 +40,7 @@ import me.lucko.helper.npc.NpcFactory;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.scoreboard.PacketScoreboardProvider;
 import me.lucko.helper.scoreboard.ScoreboardProvider;
-import me.lucko.helper.signprompt.ProtocolSignPromptFactory;
+import me.lucko.helper.signprompt.PacketSignPromptFactory;
 import me.lucko.helper.signprompt.SignPromptFactory;
 import me.lucko.helper.utils.Players;
 
@@ -71,8 +73,11 @@ public final class StandalonePlugin extends ExtendedJavaPlugin {
             provideService(ScoreboardProvider.class, scoreboardProvider);
             provideService(PacketScoreboardProvider.class, scoreboardProvider);
 
-            SignPromptFactory signPromptFactory = new ProtocolSignPromptFactory();
+            SignPromptFactory signPromptFactory = new PacketSignPromptFactory();
             provideService(SignPromptFactory.class, signPromptFactory);
+
+            IndividualHologramFactory hologramFactory = new PacketIndividualHologramFactory();
+            provideService(IndividualHologramFactory.class, hologramFactory);
         }
         if (isPluginPresent("Citizens")) {
             CitizensNpcFactory npcManager = bind(new CitizensNpcFactory());

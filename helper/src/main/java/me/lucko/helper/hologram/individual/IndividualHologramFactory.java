@@ -25,15 +25,8 @@
 
 package me.lucko.helper.hologram.individual;
 
-import com.google.common.base.Preconditions;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.serialize.Position;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -47,34 +40,10 @@ public interface IndividualHologramFactory {
      * Creates a new hologram.
      *
      * @param position the position of the hologram
-     * @param lines the initial lines to display
+     * @param lines the lines to display
      * @return the new hologram
      */
     @Nonnull
-    IndividualHologram newHologram(@Nonnull Position position, @Nonnull List<String> lines);
-
-    /**
-     * Deserializes a hologram instance from its {@link GsonSerializable serialized} form.
-     *
-     * @param element the data
-     * @return the hologram
-     */
-    @Nonnull
-    default IndividualHologram deserialize(JsonElement element) {
-        Preconditions.checkArgument(element.isJsonObject());
-        JsonObject object = element.getAsJsonObject();
-
-        Preconditions.checkArgument(object.has("position"));
-        Preconditions.checkArgument(object.has("lines"));
-
-        Position position = Position.deserialize(object.get("position"));
-        JsonArray lineArray = object.get("lines").getAsJsonArray();
-        List<String> lines = new ArrayList<>();
-        for (JsonElement e : lineArray) {
-            lines.add(e.getAsString());
-        }
-
-        return newHologram(position, lines);
-    }
+    IndividualHologram newHologram(@Nonnull Position position, @Nonnull List<HologramLine> lines);
 
 }

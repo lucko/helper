@@ -25,18 +25,18 @@
 
 package me.lucko.helper.hologram.individual;
 
-import com.google.gson.JsonElement;
-
 import me.lucko.helper.Services;
-import me.lucko.helper.hologram.Hologram;
+import me.lucko.helper.hologram.BaseHologram;
 import me.lucko.helper.serialize.Position;
+
+import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-public interface IndividualHologram extends Hologram {
+public interface IndividualHologram extends BaseHologram {
 
     /**
      * Creates and returns a new individual hologram
@@ -48,34 +48,41 @@ public interface IndividualHologram extends Hologram {
      * @return the new hologram.
      */
     @Nonnull
-    static IndividualHologram create(@Nonnull Position position, @Nonnull List<String> lines) {
+    static IndividualHologram create(@Nonnull Position position, @Nonnull List<HologramLine> lines) {
         return Services.load(IndividualHologramFactory.class).newHologram(position, lines);
     }
 
-    static IndividualHologram deserialize(JsonElement element) {
-        return Services.load(IndividualHologramFactory.class).deserialize(element);
-    }
+    /**
+     * Updates the lines displayed by this hologram
+     *
+     * <p>This method does not refresh the actual hologram display. {@link #spawn()} must be called for these changes
+     * to apply.</p>
+     *
+     * @param lines the new lines
+     */
+    void updateLines(@Nonnull List<HologramLine> lines);
 
     /**
      * Returns a copy of the available viewers of the hologram.
      *
-     * @return a {@link Set} of player names.
+     * @return a {@link Set} of players.
      */
-    Set<String> getViewers();
+    @Nonnull
+    Set<Player> getViewers();
 
     /**
      * Adds a viewer to the hologram.
      *
-     * @param name
+     * @param player the player
      */
-    void addViewer(String name);
+    void addViewer(@Nonnull Player player);
 
     /**
      * Removes a viewer from the hologram.
      *
-     * @param name
+     * @param player the player
      */
-    void removeViewer(String name);
+    void removeViewer(@Nonnull Player player);
 
     /**
      * Check if there are any viewers for the hologram.
