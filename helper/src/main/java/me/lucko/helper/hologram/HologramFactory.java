@@ -54,6 +54,16 @@ public interface HologramFactory {
     Hologram newHologram(@Nonnull Position position, @Nonnull List<String> lines);
 
     /**
+     * Creates a new client side hologram.
+     *
+     * @param position the position of the hologram
+     * @param lines the initial lines to display
+     * @return the new hologram
+     */
+    @Nonnull
+    IndividualHologram newIndividualHologram(@Nonnull Position position, @Nonnull List<String> lines);
+
+    /**
      * Deserializes a hologram instance from its {@link GsonSerializable serialized} form.
      *
      * @param element the data
@@ -76,5 +86,4 @@ public interface HologramFactory {
 
         return newHologram(position, lines);
     }
-
 }
