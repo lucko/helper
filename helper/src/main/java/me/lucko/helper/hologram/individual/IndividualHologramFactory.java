@@ -23,7 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.hologram;
+package me.lucko.helper.hologram.individual;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
@@ -39,9 +39,9 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 /**
- * A object which can create {@link Hologram}s.
+ * A object which can create {@link IndividualHologram}s.
  */
-public interface HologramFactory {
+public interface IndividualHologramFactory {
 
     /**
      * Creates a new hologram.
@@ -51,7 +51,7 @@ public interface HologramFactory {
      * @return the new hologram
      */
     @Nonnull
-    Hologram newHologram(@Nonnull Position position, @Nonnull List<String> lines);
+    IndividualHologram newHologram(@Nonnull Position position, @Nonnull List<String> lines);
 
     /**
      * Deserializes a hologram instance from its {@link GsonSerializable serialized} form.
@@ -60,7 +60,7 @@ public interface HologramFactory {
      * @return the hologram
      */
     @Nonnull
-    default Hologram deserialize(JsonElement element) {
+    default IndividualHologram deserialize(JsonElement element) {
         Preconditions.checkArgument(element.isJsonObject());
         JsonObject object = element.getAsJsonObject();
 

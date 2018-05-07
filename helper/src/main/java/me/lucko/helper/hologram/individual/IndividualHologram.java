@@ -23,58 +23,66 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.hologram;
+package me.lucko.helper.hologram.individual;
 
-import com.google.common.base.Preconditions;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
-import me.lucko.helper.gson.GsonSerializable;
+import me.lucko.helper.Services;
+import me.lucko.helper.hologram.Hologram;
 import me.lucko.helper.serialize.Position;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-/**
- * A object which can create {@link Hologram}s.
- */
-public interface HologramFactory {
+public interface IndividualHologram extends Hologram {
 
     /**
-     * Creates a new hologram.
+     * Creates and returns a new individual hologram
+     *
+     * <p>Note: the hologram will not be spawned automatically.</p>
      *
      * @param position the position of the hologram
      * @param lines the initial lines to display
-     * @return the new hologram
+     * @return the new hologram.
      */
     @Nonnull
-    Hologram newHologram(@Nonnull Position position, @Nonnull List<String> lines);
-
-    /**
-     * Deserializes a hologram instance from its {@link GsonSerializable serialized} form.
-     *
-     * @param element the data
-     * @return the hologram
-     */
-    @Nonnull
-    default Hologram deserialize(JsonElement element) {
-        Preconditions.checkArgument(element.isJsonObject());
-        JsonObject object = element.getAsJsonObject();
-
-        Preconditions.checkArgument(object.has("position"));
-        Preconditions.checkArgument(object.has("lines"));
-
-        Position position = Position.deserialize(object.get("position"));
-        JsonArray lineArray = object.get("lines").getAsJsonArray();
-        List<String> lines = new ArrayList<>();
-        for (JsonElement e : lineArray) {
-            lines.add(e.getAsString());
-        }
-
-        return newHologram(position, lines);
+    static IndividualHologram create(@Nonnull Position position, @Nonnull List<String> lines) {
+        return Services.load(IndividualHologramFactory.class).newHologram(position, lines);
     }
 
+    static IndividualHologram deserialize(JsonElement element) {
+        return Services.load(IndividualHologramFactory.class).deserialize(element);
+    }
+
+    /**
+     * Returns a copy of the available viewers of the hologram.
+     *
+     * @return a {@link Set} of player names.
+     */
+    Set<String> getViewers();
+
+    /**
+     * Adds a viewer to the hologram.
+     *
+     * @param name
+     */
+    void addViewer(String name);
+
+    /**
+     * Removes a viewer from the hologram.
+     *
+     * @param name
+     */
+    void removeViewer(String name);
+
+    /**
+     * Check if there are any viewers for the hologram.
+     *
+     * @return any viewers
+     */
+    default boolean hasViewers() {
+        return this.getViewers().size() > 0;
+    }
 }
