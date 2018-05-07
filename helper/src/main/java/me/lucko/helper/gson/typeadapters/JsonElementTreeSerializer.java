@@ -23,36 +23,34 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.config;
+package me.lucko.helper.gson.typeadapters;
 
-import com.google.common.reflect.TypeToken;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 
-import me.lucko.helper.gson.GsonSerializable;
+import me.lucko.helper.datatree.DataTree;
+import me.lucko.helper.datatree.GsonDataTree;
 
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.objectmapping.ObjectMappingException;
-import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
+import java.lang.reflect.Type;
 
-import javax.annotation.Nonnull;
+public final class JsonElementTreeSerializer implements JsonSerializer<DataTree>, JsonDeserializer<DataTree> {
+    public static final JsonElementTreeSerializer INSTANCE = new JsonElementTreeSerializer();
 
-public final class HelperTypeSerializer implements TypeSerializer<GsonSerializable> {
-    private static final TypeToken<JsonElement> JSON_ELEMENT_TYPE = TypeToken.of(JsonElement.class);
+    private JsonElementTreeSerializer() {
 
-    @Nonnull
-    public static final HelperTypeSerializer INSTANCE = new HelperTypeSerializer();
-
-    private HelperTypeSerializer() {
     }
 
     @Override
-    public GsonSerializable deserialize(TypeToken<?> type, ConfigurationNode node) throws ObjectMappingException {
-        return GsonSerializable.deserializeRaw(type.getRawType(), node.getValue(JSON_ELEMENT_TYPE, JsonNull.INSTANCE));
+    public DataTree deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        return DataTree.from(json);
     }
 
     @Override
-    public void serialize(TypeToken<?> type, GsonSerializable s, ConfigurationNode node) throws ObjectMappingException {
-        node.setValue(JSON_ELEMENT_TYPE, s.serialize());
+    public JsonElement serialize(DataTree src, Type typeOfSrc, JsonSerializationContext context) {
+        return ((GsonDataTree) src).getElement();
     }
 }

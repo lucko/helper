@@ -23,7 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.config;
+package me.lucko.helper.config.typeserializers;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -43,12 +43,9 @@ import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
-
 public final class GsonTypeSerializer implements TypeSerializer<JsonElement> {
     private static final TypeToken<JsonElement> TYPE = TypeToken.of(JsonElement.class);
 
-    @Nonnull
     public static final GsonTypeSerializer INSTANCE = new GsonTypeSerializer();
 
     private GsonTypeSerializer() {

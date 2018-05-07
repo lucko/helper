@@ -25,6 +25,17 @@
 
 package me.lucko.helper.config;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.JsonElement;
+
+import me.lucko.helper.config.typeserializers.BukkitTypeSerializer;
+import me.lucko.helper.config.typeserializers.GsonTypeSerializer;
+import me.lucko.helper.config.typeserializers.HelperTypeSerializer;
+import me.lucko.helper.config.typeserializers.JsonTreeTypeSerializer;
+import me.lucko.helper.datatree.DataTree;
+import me.lucko.helper.gson.GsonSerializable;
+
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.yaml.snakeyaml.DumperOptions;
 
 import ninja.leaping.configurate.ConfigurationNode;
@@ -34,6 +45,8 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMapper;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializerCollection;
+import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 import java.io.File;
@@ -53,12 +66,14 @@ public abstract class ConfigFactory<N extends ConfigurationNode, L extends Confi
         @Nonnull
         @Override
         public YAMLConfigurationLoader loader(@Nonnull Path path) {
-            return YAMLConfigurationLoader.builder()
+            YAMLConfigurationLoader.Builder builder = YAMLConfigurationLoader.builder()
                     .setFlowStyle(DumperOptions.FlowStyle.BLOCK)
                     .setIndent(2)
                     .setSource(() -> Files.newBufferedReader(path, StandardCharsets.UTF_8))
-                    .setSink(() -> Files.newBufferedWriter(path, StandardCharsets.UTF_8))
-                    .build();
+                    .setSink(() -> Files.newBufferedWriter(path, StandardCharsets.UTF_8));
+
+            builder.setDefaultOptions(builder.getDefaultOptions().setSerializers(TYPE_SERIALIZERS));
+            return builder.build();
         }
     };
 
@@ -66,11 +81,13 @@ public abstract class ConfigFactory<N extends ConfigurationNode, L extends Confi
         @Nonnull
         @Override
         public GsonConfigurationLoader loader(@Nonnull Path path) {
-            return GsonConfigurationLoader.builder()
+            GsonConfigurationLoader.Builder builder = GsonConfigurationLoader.builder()
                     .setIndent(2)
                     .setSource(() -> Files.newBufferedReader(path, StandardCharsets.UTF_8))
-                    .setSink(() -> Files.newBufferedWriter(path, StandardCharsets.UTF_8))
-                    .build();
+                    .setSink(() -> Files.newBufferedWriter(path, StandardCharsets.UTF_8));
+
+            builder.setDefaultOptions(builder.getDefaultOptions().setSerializers(TYPE_SERIALIZERS));
+            return builder.build();
         }
     };
 
@@ -78,12 +95,22 @@ public abstract class ConfigFactory<N extends ConfigurationNode, L extends Confi
         @Nonnull
         @Override
         public HoconConfigurationLoader loader(@Nonnull Path path) {
-            return HoconConfigurationLoader.builder()
+            HoconConfigurationLoader.Builder builder = HoconConfigurationLoader.builder()
                     .setSource(() -> Files.newBufferedReader(path, StandardCharsets.UTF_8))
-                    .setSink(() -> Files.newBufferedWriter(path, StandardCharsets.UTF_8))
-                    .build();
+                    .setSink(() -> Files.newBufferedWriter(path, StandardCharsets.UTF_8));
+
+            builder.setDefaultOptions(builder.getDefaultOptions().setSerializers(TYPE_SERIALIZERS));
+            return builder.build();
         }
     };
+
+    private static final TypeSerializerCollection TYPE_SERIALIZERS = TypeSerializers.newCollection();
+    static {
+        TYPE_SERIALIZERS.registerType(TypeToken.of(JsonElement.class), GsonTypeSerializer.INSTANCE);
+        TYPE_SERIALIZERS.registerType(TypeToken.of(GsonSerializable.class), HelperTypeSerializer.INSTANCE);
+        TYPE_SERIALIZERS.registerType(TypeToken.of(ConfigurationSerializable.class), BukkitTypeSerializer.INSTANCE);
+        TYPE_SERIALIZERS.registerType(TypeToken.of(DataTree.class), JsonTreeTypeSerializer.INSTANCE);
+    }
 
     @Nonnull
     public static ConfigFactory<ConfigurationNode, YAMLConfigurationLoader> yaml() {
