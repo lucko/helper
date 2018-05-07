@@ -63,4 +63,10 @@ public interface LilyPadServer extends InstanceData {
      */
     int getMaxPlayers();
 
+    /**
+     * Gets whether the server is currently whitelisted.
+     *
+     * @return if the server is whitelisted
+     */
+    boolean isWhitelisted();
 }
