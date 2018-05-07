@@ -38,6 +38,6 @@ public interface ScoreboardProvider {
      * @return the scoreboard
      */
     @Nonnull
-    Scoreboard<?, ?> getScoreboard();
+    Scoreboard getScoreboard();
 
 }

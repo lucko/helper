@@ -154,6 +154,10 @@ public final class BlockPosition implements GsonSerializable {
         return ChunkPosition.of(this.x >> 4, this.z >> 4, this.world);
     }
 
+    public boolean contains(Position position) {
+        return equals(position.floor());
+    }
+
     public BlockPosition getRelative(BlockFace face) {
         Objects.requireNonNull(face, "face");
         return BlockPosition.of(this.x + face.getModX(), this.y + face.getModY(), this.z + face.getModZ(), this.world);

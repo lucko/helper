@@ -118,6 +118,14 @@ public final class ChunkPosition implements GsonSerializable {
         return Helper.world(this.world).get().getChunkAt(this.x, this.z);
     }
 
+    public boolean contains(BlockPosition block) {
+        return equals(block.toChunk());
+    }
+
+    public boolean contains(Position position) {
+        return equals(position.floor().toChunk());
+    }
+
     public BlockPosition getBlock(int x, int y, int z) {
         return BlockPosition.of((this.x << 4) | (x & 0xF), y, (this.z << 4) | (z & 0xF), this.world);
     }
