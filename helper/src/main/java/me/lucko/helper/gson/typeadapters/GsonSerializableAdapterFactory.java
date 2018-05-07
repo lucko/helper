@@ -23,7 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.gson;
+package me.lucko.helper.gson.typeadapters;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -33,14 +33,13 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
+import me.lucko.helper.gson.GsonProvider;
+import me.lucko.helper.gson.GsonSerializable;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-import javax.annotation.Nonnull;
-
 public final class GsonSerializableAdapterFactory implements TypeAdapterFactory {
-
-    @Nonnull
     public static final GsonSerializableAdapterFactory INSTANCE = new GsonSerializableAdapterFactory();
 
     private GsonSerializableAdapterFactory() {

@@ -31,6 +31,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import me.lucko.helper.datatree.DataTree;
+import me.lucko.helper.gson.typeadapters.BukkitSerializableAdapterFactory;
+import me.lucko.helper.gson.typeadapters.GsonSerializableAdapterFactory;
+import me.lucko.helper.gson.typeadapters.JsonElementTreeSerializer;
+
 import java.io.Reader;
 import java.util.Objects;
 
@@ -49,6 +54,7 @@ public final class GsonProvider {
             .create();
 
     private static final Gson PRETTY_PRINT_GSON = new GsonBuilder()
+            .registerTypeHierarchyAdapter(DataTree.class, JsonElementTreeSerializer.INSTANCE)
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
             .registerTypeAdapterFactory(BukkitSerializableAdapterFactory.INSTANCE)
             .serializeNulls()

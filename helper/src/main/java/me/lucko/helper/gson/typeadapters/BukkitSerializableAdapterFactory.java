@@ -23,7 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.gson;
+package me.lucko.helper.gson.typeadapters;
 
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
@@ -39,11 +39,7 @@ import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
-
 public final class BukkitSerializableAdapterFactory implements TypeAdapterFactory {
-
-    @Nonnull
     public static final BukkitSerializableAdapterFactory INSTANCE = new BukkitSerializableAdapterFactory();
 
     private BukkitSerializableAdapterFactory() {
