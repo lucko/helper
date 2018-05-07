@@ -55,11 +55,11 @@ import javax.annotation.Nonnull;
 /**
  * Implementation of {@link SignPromptFactory} using ProtocolLib.
  */
-public class ProtocolSignPromptFactory implements SignPromptFactory {
+public class PacketSignPromptFactory implements SignPromptFactory {
     private final HelperPlugin plugin;
     private final ProtocolManager protocolManager;
 
-    public ProtocolSignPromptFactory() {
+    public PacketSignPromptFactory() {
         this.plugin = LoaderUtils.getPlugin();
         this.protocolManager = ProtocolLibrary.getProtocolManager();
     }
@@ -108,12 +108,12 @@ public class ProtocolSignPromptFactory implements SignPromptFactory {
         // we need to ensure that the callback is only called once.
         private final AtomicBoolean active = new AtomicBoolean(true);
 
-        private final ProtocolSignPromptFactory factory;
+        private final PacketSignPromptFactory factory;
         private final Player player;
         private final ResponseHandler responseHandler;
         private final Location signLocation;
 
-        private SignChangeListener(ProtocolSignPromptFactory factory, Player player, ResponseHandler responseHandler, Location signLocation) {
+        private SignChangeListener(PacketSignPromptFactory factory, Player player, ResponseHandler responseHandler, Location signLocation) {
             super(factory.plugin, PacketType.Play.Client.UPDATE_SIGN);
             this.factory = factory;
             this.player = player;

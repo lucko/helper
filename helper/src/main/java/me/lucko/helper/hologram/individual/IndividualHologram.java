@@ -23,25 +23,23 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.hologram;
-
-import com.google.gson.JsonElement;
+package me.lucko.helper.hologram.individual;
 
 import me.lucko.helper.Services;
-import me.lucko.helper.gson.GsonSerializable;
+import me.lucko.helper.hologram.BaseHologram;
 import me.lucko.helper.serialize.Position;
 
+import org.bukkit.entity.Player;
+
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-/**
- * A simple hologram utility.
- */
-public interface Hologram extends BaseHologram, GsonSerializable {
+public interface IndividualHologram extends BaseHologram {
 
     /**
-     * Creates and returns a new hologram
+     * Creates and returns a new individual hologram
      *
      * <p>Note: the hologram will not be spawned automatically.</p>
      *
@@ -50,12 +48,8 @@ public interface Hologram extends BaseHologram, GsonSerializable {
      * @return the new hologram.
      */
     @Nonnull
-    static Hologram create(@Nonnull Position position, @Nonnull List<String> lines) {
-        return Services.load(HologramFactory.class).newHologram(position, lines);
-    }
-
-    static Hologram deserialize(JsonElement element) {
-        return Services.load(HologramFactory.class).deserialize(element);
+    static IndividualHologram create(@Nonnull Position position, @Nonnull List<HologramLine> lines) {
+        return Services.load(IndividualHologramFactory.class).newHologram(position, lines);
     }
 
     /**
@@ -66,6 +60,36 @@ public interface Hologram extends BaseHologram, GsonSerializable {
      *
      * @param lines the new lines
      */
-    void updateLines(@Nonnull List<String> lines);
+    void updateLines(@Nonnull List<HologramLine> lines);
 
+    /**
+     * Returns a copy of the available viewers of the hologram.
+     *
+     * @return a {@link Set} of players.
+     */
+    @Nonnull
+    Set<Player> getViewers();
+
+    /**
+     * Adds a viewer to the hologram.
+     *
+     * @param player the player
+     */
+    void addViewer(@Nonnull Player player);
+
+    /**
+     * Removes a viewer from the hologram.
+     *
+     * @param player the player
+     */
+    void removeViewer(@Nonnull Player player);
+
+    /**
+     * Check if there are any viewers for the hologram.
+     *
+     * @return any viewers
+     */
+    default boolean hasViewers() {
+        return this.getViewers().size() > 0;
+    }
 }

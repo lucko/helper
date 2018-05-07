@@ -36,6 +36,7 @@ import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.text.Text;
 
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -61,8 +62,7 @@ public class BukkitHologramFactory implements HologramFactory {
         return new BukkitHologram(position, lines);
     }
 
-    private static class BukkitHologram implements Hologram {
-
+    private static final class BukkitHologram implements Hologram {
         private Position position;
         private final List<String> lines = new ArrayList<>();
         private final List<ArmorStand> spawnedEntities = new ArrayList<>();
@@ -110,6 +110,12 @@ public class BukkitHologramFactory implements HologramFactory {
                 if (i >= this.spawnedEntities.size()) {
                     // add a new line
                     Location loc = getNewLinePosition().toLocation();
+
+                    // ensure the hologram's chunk is loaded.
+                    Chunk chunk = loc.getChunk();
+                    if (!chunk.isLoaded()) {
+                        chunk.load();
+                    }
 
                     // remove any armorstands already at this location. (leftover from a server restart)
                     loc.getWorld().getNearbyEntities(loc, 1.0, 1.0, 1.0).forEach(e -> {
