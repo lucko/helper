@@ -53,7 +53,7 @@ import javax.annotation.Nullable;
  * <p>This class as well as all returned instances are thread safe.</p>
  */
 @NonnullByDefault
-public class PacketScoreboard implements Scoreboard<PacketScoreboardTeam, PacketScoreboardObjective> {
+public class PacketScoreboard implements Scoreboard {
     private final ProtocolManager protocolManager;
 
     // teams & objectives shared by all players.

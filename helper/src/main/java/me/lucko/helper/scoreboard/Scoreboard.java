@@ -1,5 +1,5 @@
 /*
- * This file is part of helper, licensed under the MIT License.
+ * This file is part of helper, licensed under the MIScoreboardTeam License.
  *
  *  Copyright (c) lucko (Luck) <luck@lucko.me>
  *  Copyright (c) contributors
@@ -14,12 +14,12 @@
  *  The above copyright notice and this permission notice shall be included in all
  *  copies or substantial portions of the Software.
  *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUScoreboardTeam WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUScoreboardTeam NOScoreboardTeam LIMITED TScoreboardObjective THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NScoreboardObjective EVENScoreboardTeam SHALL THE
+ *  AUTHORS OR COPYRIGHScoreboardTeam HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORScoreboardTeam OR OTHERWISE, ARISING FROM,
+ *  OUScoreboardTeam OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *  SOFTWARE.
  */
 
@@ -37,7 +37,7 @@ import javax.annotation.Nullable;
  * Represents a Scoreboard on the server
  */
 @NonnullByDefault
-public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObjective> {
+public interface Scoreboard {
 
     /**
      * Gets the global scoreboard instance.
@@ -60,7 +60,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the new team
      * @throws IllegalStateException if a team with the same id already exists
      */
-    T createTeam(String id, String title, boolean autoSubscribe);
+    ScoreboardTeam createTeam(String id, String title, boolean autoSubscribe);
 
     /**
      * Creates a new scoreboard team
@@ -70,7 +70,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the new team
      * @throws IllegalStateException if a team with the same id already exists
      */
-    default T createTeam(String id, String title) {
+    default ScoreboardTeam createTeam(String id, String title) {
         return createTeam(id, title, true);
     }
 
@@ -81,7 +81,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @param autoSubscribe if players should be automatically subscribed
      * @return the new team
      */
-    default T createTeam(String title, boolean autoSubscribe) {
+    default ScoreboardTeam createTeam(String title, boolean autoSubscribe) {
         return createTeam(Long.toHexString(System.nanoTime()), title, autoSubscribe);
     }
 
@@ -91,7 +91,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @param title the initial title for the team
      * @return the new team
      */
-    default T createTeam(String title) {
+    default ScoreboardTeam createTeam(String title) {
         return createTeam(title, true);
     }
 
@@ -102,7 +102,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the team, if present, otherwise null
      */
     @Nullable
-    T getTeam(String id);
+    ScoreboardTeam getTeam(String id);
 
     /**
      * Removes a scoreboard team from this scoreboard
@@ -122,7 +122,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the new objective
      * @throws IllegalStateException if an objective with the same id already exists
      */
-    O createObjective(String id, String title, DisplaySlot displaySlot, boolean autoSubscribe);
+    ScoreboardObjective createObjective(String id, String title, DisplaySlot displaySlot, boolean autoSubscribe);
 
     /**
      * Creates a new scoreboard objective
@@ -133,7 +133,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the new objective
      * @throws IllegalStateException if an objective with the same id already exists
      */
-    default O createObjective(String id, String title, DisplaySlot displaySlot) {
+    default ScoreboardObjective createObjective(String id, String title, DisplaySlot displaySlot) {
         return createObjective(id, title, displaySlot, true);
     }
 
@@ -145,7 +145,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @param autoSubscribe if players should be automatically subscribed
      * @return the new objective
      */
-    default O createObjective(String title, DisplaySlot displaySlot, boolean autoSubscribe) {
+    default ScoreboardObjective createObjective(String title, DisplaySlot displaySlot, boolean autoSubscribe) {
         return createObjective(Long.toHexString(System.nanoTime()), title, displaySlot, autoSubscribe);
     }
 
@@ -156,7 +156,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @param displaySlot the display slot to use for this objective
      * @return the new objective
      */
-    default O createObjective(String title, DisplaySlot displaySlot) {
+    default ScoreboardObjective createObjective(String title, DisplaySlot displaySlot) {
         return createObjective(title, displaySlot, true);
     }
 
@@ -167,7 +167,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the objective, if present, otherwise null
      */
     @Nullable
-    O getObjective(String id);
+    ScoreboardObjective getObjective(String id);
 
     /**
      * Removes a scoreboard objective from this scoreboard
@@ -187,7 +187,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the new team
      * @throws IllegalStateException if a team with the same id already exists
      */
-    T createPlayerTeam(Player player, String id, String title, boolean autoSubscribe);
+    ScoreboardTeam createPlayerTeam(Player player, String id, String title, boolean autoSubscribe);
 
     /**
      * Creates a new per-player scoreboard team
@@ -198,7 +198,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the new team
      * @throws IllegalStateException if a team with the same id already exists
      */
-    default T createPlayerTeam(Player player, String id, String title) {
+    default ScoreboardTeam createPlayerTeam(Player player, String id, String title) {
         return createPlayerTeam(player, id, title, true);
     }
 
@@ -210,7 +210,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @param autoSubscribe if players should be automatically subscribed
      * @return the new team
      */
-    default T createPlayerTeam(Player player, String title, boolean autoSubscribe) {
+    default ScoreboardTeam createPlayerTeam(Player player, String title, boolean autoSubscribe) {
         return createPlayerTeam(player, Long.toHexString(System.nanoTime()), title, autoSubscribe);
     }
 
@@ -221,7 +221,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @param title the initial title of the team
      * @return the new team
      */
-    default T createPlayerTeam(Player player, String title) {
+    default ScoreboardTeam createPlayerTeam(Player player, String title) {
         return createPlayerTeam(player, title, true);
     }
 
@@ -233,7 +233,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the team, if present, otherwise null
      */
     @Nullable
-    T getPlayerTeam(Player player, String id);
+    ScoreboardTeam getPlayerTeam(Player player, String id);
 
     /**
      * Removes a per-player scoreboard team from this scoreboard
@@ -255,7 +255,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the new objective
      * @throws IllegalStateException if an objective with the same id already exists
      */
-    O createPlayerObjective(Player player, String id, String title, DisplaySlot displaySlot, boolean autoSubscribe);
+    ScoreboardObjective createPlayerObjective(Player player, String id, String title, DisplaySlot displaySlot, boolean autoSubscribe);
 
     /**
      * Creates a new per-player scoreboard objective
@@ -267,7 +267,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the new objective
      * @throws IllegalStateException if an objective with the same id already exists
      */
-    default O createPlayerObjective(Player player, String id, String title, DisplaySlot displaySlot) {
+    default ScoreboardObjective createPlayerObjective(Player player, String id, String title, DisplaySlot displaySlot) {
         return createPlayerObjective(player, id, title, displaySlot, true);
     }
 
@@ -279,7 +279,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @param displaySlot the display slot to use for this objective
      * @return the new objective
      */
-    default O createPlayerObjective(Player player, String title, DisplaySlot displaySlot, boolean autoSubscribe) {
+    default ScoreboardObjective createPlayerObjective(Player player, String title, DisplaySlot displaySlot, boolean autoSubscribe) {
         return createPlayerObjective(player, Long.toHexString(System.nanoTime()), title, displaySlot, autoSubscribe);
     }
 
@@ -291,7 +291,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @param displaySlot the display slot to use for this objective
      * @return the new objective
      */
-    default O createPlayerObjective(Player player, String title, DisplaySlot displaySlot) {
+    default ScoreboardObjective createPlayerObjective(Player player, String title, DisplaySlot displaySlot) {
         return createPlayerObjective(player, title, displaySlot, true);
     }
 
@@ -303,7 +303,7 @@ public interface Scoreboard<T extends ScoreboardTeam, O extends ScoreboardObject
      * @return the objective, if present, otherwise null
      */
     @Nullable
-    O getPlayerObjective(Player player, String id);
+    ScoreboardObjective getPlayerObjective(Player player, String id);
 
     /**
      * Removes a per-player scoreboard objective from this scoreboard
