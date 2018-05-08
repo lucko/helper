@@ -30,7 +30,6 @@ import me.lucko.helper.utils.annotation.NonnullByDefault;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -38,18 +37,6 @@ import javax.annotation.Nullable;
  */
 @NonnullByDefault
 public interface Scoreboard {
-
-    /**
-     * Gets the global scoreboard instance.
-     *
-     * @return the global scoreboard instance
-     * @deprecated in favour of using the {@link PacketScoreboardProvider} service.
-     */
-    @Nonnull
-    @Deprecated
-    static PacketScoreboard get() {
-        return GlobalScoreboard.get();
-    }
 
     /**
      * Creates a new scoreboard team
