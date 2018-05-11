@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
@@ -67,6 +68,7 @@ class RedirectSystemImpl implements RedirectSystem {
     private boolean ensureJoinedViaQueue = true;
 
     private RequestHandler handler = new AllowAllHandler();
+    private final List<RedirectParameterProvider> defaultParameters = new CopyOnWriteArrayList<>();
 
     RedirectSystemImpl(LilyPad lilyPad) {
         this.lilyPad = lilyPad;
@@ -125,6 +127,13 @@ class RedirectSystemImpl implements RedirectSystem {
         req.username = profile.getName().orElseThrow(() -> new IllegalArgumentException("Profile missing username"));
         req.params = new HashMap<>(params);
 
+        // include default parameters
+        for (RedirectParameterProvider defaultProvider : this.defaultParameters) {
+            for (Map.Entry<String, String> ent : defaultProvider.provide(profile).entrySet()) {
+                req.params.putIfAbsent(ent.getKey(), ent.getValue());
+            }
+        }
+
         Promise<ReceivedResponse> promise = Promise.empty();
 
         // send req and await reply.
@@ -148,6 +157,11 @@ class RedirectSystemImpl implements RedirectSystem {
     @Override
     public void setHandler(@Nonnull RequestHandler handler) {
         this.handler = Objects.requireNonNull(handler, "handler");
+    }
+
+    @Override
+    public void addDefaultParameterProvider(@Nonnull RedirectParameterProvider provider) {
+        this.defaultParameters.add(provider);
     }
 
     @Override
