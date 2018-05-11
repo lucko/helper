@@ -129,7 +129,7 @@ class RedirectSystemImpl implements RedirectSystem {
 
         // include default parameters
         for (RedirectParameterProvider defaultProvider : this.defaultParameters) {
-            for (Map.Entry<String, String> ent : defaultProvider.provide(profile).entrySet()) {
+            for (Map.Entry<String, String> ent : defaultProvider.provide(profile, serverId).entrySet()) {
                 req.params.putIfAbsent(ent.getKey(), ent.getValue());
             }
         }
