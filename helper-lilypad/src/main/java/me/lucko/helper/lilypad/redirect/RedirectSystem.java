@@ -87,6 +87,13 @@ public interface RedirectSystem extends Terminable {
     void setHandler(@Nonnull RequestHandler handler);
 
     /**
+     * Adds a default parameter provider.
+     *
+     * @param provider the provider
+     */
+    void addDefaultParameterProvider(@Nonnull RedirectParameterProvider provider);
+
+    /**
      * Sets if the system should ensure that incoming connections were made (and accepted) by the
      * redirect system.
      *
