@@ -43,6 +43,6 @@ public interface RedirectParameterProvider {
      * @return the params
      */
     @Nonnull
-    Map<String, String> provide(@Nonnull Profile profile);
+    Map<String, String> provide(@Nonnull Profile profile, @Nonnull String serverId);
 
 }
