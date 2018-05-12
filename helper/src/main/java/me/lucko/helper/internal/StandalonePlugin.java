@@ -76,8 +76,12 @@ public final class StandalonePlugin extends ExtendedJavaPlugin {
             SignPromptFactory signPromptFactory = new PacketSignPromptFactory();
             provideService(SignPromptFactory.class, signPromptFactory);
 
-            IndividualHologramFactory hologramFactory = new PacketIndividualHologramFactory();
-            provideService(IndividualHologramFactory.class, hologramFactory);
+            try {
+                IndividualHologramFactory hologramFactory = new PacketIndividualHologramFactory();
+                provideService(IndividualHologramFactory.class, hologramFactory);
+            } catch (Throwable t) {
+                // ignore??
+            }
         }
         if (isPluginPresent("Citizens")) {
             CitizensNpcFactory npcManager = bind(new CitizensNpcFactory());
