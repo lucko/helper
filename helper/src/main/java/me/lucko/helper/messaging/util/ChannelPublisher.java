@@ -29,6 +29,7 @@ import me.lucko.helper.Schedulers;
 import me.lucko.helper.messaging.Channel;
 import me.lucko.helper.promise.ThreadContext;
 import me.lucko.helper.scheduler.Task;
+import me.lucko.helper.terminable.Terminable;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +42,7 @@ import javax.annotation.Nonnull;
  *
  * @param <T> the message type
  */
-public final class ChannelPublisher<T> implements AutoCloseable {
+public final class ChannelPublisher<T> implements Terminable {
 
     /**
      * Creates a new channel publisher.
@@ -55,7 +56,7 @@ public final class ChannelPublisher<T> implements AutoCloseable {
      * @return a channel publisher
      */
     @Nonnull
-    static <T> ChannelPublisher<T> create(@Nonnull Channel<T> channel, long duration, @Nonnull TimeUnit unit, @Nonnull ThreadContext threadContext, @Nonnull Supplier<? extends T> supplier) {
+    public static <T> ChannelPublisher<T> create(@Nonnull Channel<T> channel, long duration, @Nonnull TimeUnit unit, @Nonnull ThreadContext threadContext, @Nonnull Supplier<? extends T> supplier) {
         Objects.requireNonNull(channel, "channel");
         Objects.requireNonNull(unit, "unit");
         Objects.requireNonNull(threadContext, "threadContext");
@@ -75,7 +76,7 @@ public final class ChannelPublisher<T> implements AutoCloseable {
      * @return a channel publisher
      */
     @Nonnull
-    static <T> ChannelPublisher<T> create(@Nonnull Channel<T> channel, long duration, @Nonnull TimeUnit unit, @Nonnull Supplier<? extends T> supplier) {
+    public static <T> ChannelPublisher<T> create(@Nonnull Channel<T> channel, long duration, @Nonnull TimeUnit unit, @Nonnull Supplier<? extends T> supplier) {
         return create(channel, duration, unit, ThreadContext.ASYNC, supplier);
     }
 

@@ -108,6 +108,10 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
     public Map<UUID, Profile> getOnlinePlayers() {
         Map<UUID, Profile> players = new HashMap<>();
         for (LilyPadServer server : this.servers.values()) {
+            if (!server.isOnline()) {
+                continue;
+            }
+
             for (Profile profile : server.getOnlinePlayers()) {
                 players.put(profile.getUniqueId(), profile);
             }
