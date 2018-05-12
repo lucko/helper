@@ -208,7 +208,7 @@ public class CitizensNpcFactory implements NpcFactory {
         private Consumer<Player> clickCallback = null;
         private Npc npc = null;
 
-        private ClickableTrait() {
+        public ClickableTrait() {
             super("helper_clickable");
         }
 
