@@ -30,6 +30,7 @@ import com.google.common.cache.CacheBuilder;
 
 import me.lucko.helper.messaging.Channel;
 import me.lucko.helper.messaging.ChannelAgent;
+import me.lucko.helper.terminable.Terminable;
 
 import java.util.Collections;
 import java.util.Map;
@@ -47,7 +48,7 @@ import javax.annotation.Nullable;
  * @param <K> the key type
  * @param <V> the value type
  */
-public final class MappedChannelReceiver<T, K, V> implements AutoCloseable {
+public final class MappedChannelReceiver<T, K, V> implements Terminable {
 
     /**
      * Creates a new expiring mapped channel receiver.
