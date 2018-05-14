@@ -171,7 +171,6 @@ public class HelperJsPlugin extends ExtendedJavaPlugin implements HelperJs {
         public AutoCloseable scheduleAtFixedRate(Runnable runnable, long l, TimeUnit timeUnit) {
             return Schedulers.builder()
                     .async()
-                    .after(0L)
                     .every(l, timeUnit)
                     .run(runnable);
         }

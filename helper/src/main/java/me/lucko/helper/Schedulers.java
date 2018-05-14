@@ -27,14 +27,13 @@ package me.lucko.helper;
 
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
-import me.lucko.helper.promise.Promise;
 import me.lucko.helper.promise.ThreadContext;
 import me.lucko.helper.scheduler.HelperExecutors;
 import me.lucko.helper.scheduler.Scheduler;
 import me.lucko.helper.scheduler.Task;
+import me.lucko.helper.scheduler.Ticks;
 import me.lucko.helper.scheduler.builder.TaskBuilder;
 import me.lucko.helper.timings.Timings;
-import me.lucko.helper.utils.Delegates;
 import me.lucko.helper.utils.Log;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -44,11 +43,11 @@ import org.bukkit.scheduler.BukkitScheduler;
 import co.aikar.timings.lib.MCTiming;
 
 import java.util.Objects;
-import java.util.concurrent.Callable;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 
@@ -128,60 +127,17 @@ public final class Schedulers {
 
         @Nonnull
         @Override
-        public <T> Promise<T> supply(@Nonnull Supplier<T> supplier) {
-            Objects.requireNonNull(supplier, "supplier");
-            return Promise.supplyingSync(supplier);
-        }
-
-        @Nonnull
-        @Override
-        public <T> Promise<T> call(@Nonnull Callable<T> callable) {
-            Objects.requireNonNull(callable, "callable");
-            return Promise.supplyingSync(Delegates.callableToSupplier(callable));
-        }
-
-        @Nonnull
-        @Override
-        public Promise<Void> run(@Nonnull Runnable runnable) {
-            Objects.requireNonNull(runnable, "runnable");
-            return Promise.supplyingSync(Delegates.runnableToSupplier(runnable));
-        }
-
-        @Nonnull
-        @Override
-        public <T> Promise<T> supplyLater(@Nonnull Supplier<T> supplier, long delay) {
-            Objects.requireNonNull(supplier, "supplier");
-            return Promise.supplyingDelayedSync(supplier, delay);
-        }
-
-        @Nonnull
-        @Override
-        public <T> Promise<T> callLater(@Nonnull Callable<T> callable, long delay) {
-            Objects.requireNonNull(callable, "callable");
-            return Promise.supplyingDelayedSync(Delegates.callableToSupplier(callable), delay);
-        }
-
-        @Nonnull
-        @Override
-        public Promise<Void> runLater(@Nonnull Runnable runnable, long delay) {
-            Objects.requireNonNull(runnable, "runnable");
-            return Promise.supplyingDelayedSync(Delegates.runnableToSupplier(runnable), delay);
-        }
-
-        @Nonnull
-        @Override
-        public Task runRepeating(@Nonnull Consumer<Task> consumer, long delay, long interval) {
+        public Task runRepeating(@Nonnull Consumer<Task> consumer, long delayTicks, long intervalTicks) {
             Objects.requireNonNull(consumer, "consumer");
             HelperTask task = new HelperTask(consumer);
-            task.runTaskTimer(LoaderUtils.getPlugin(), delay, interval);
+            task.runTaskTimer(LoaderUtils.getPlugin(), delayTicks, intervalTicks);
             return task;
         }
 
         @Nonnull
         @Override
-        public Task runRepeating(@Nonnull Runnable runnable, long delay, long interval) {
-            Objects.requireNonNull(runnable, "runnable");
-            return runRepeating(Delegates.runnableToConsumer(runnable), delay, interval);
+        public Task runRepeating(@Nonnull Consumer<Task> consumer, long delay, @Nonnull TimeUnit delayUnit, long interval, @Nonnull TimeUnit intervalUnit) {
+            return runRepeating(consumer, Ticks.from(delay, delayUnit), Ticks.from(interval, intervalUnit));
         }
     }
 
@@ -200,62 +156,20 @@ public final class Schedulers {
 
         @Nonnull
         @Override
-        public <T> Promise<T> supply(@Nonnull Supplier<T> supplier) {
-            Objects.requireNonNull(supplier, "supplier");
-            return Promise.supplyingAsync(supplier);
-        }
-
-        @Nonnull
-        @Override
-        public <T> Promise<T> call(@Nonnull Callable<T> callable) {
-            Objects.requireNonNull(callable, "callable");
-            return Promise.supplyingAsync(Delegates.callableToSupplier(callable));
-        }
-
-        @Nonnull
-        @Override
-        public Promise<Void> run(@Nonnull Runnable runnable) {
-            Objects.requireNonNull(runnable, "runnable");
-            return Promise.supplyingAsync(Delegates.runnableToSupplier(runnable));
-        }
-
-        @Nonnull
-        @Override
-        public <T> Promise<T> supplyLater(@Nonnull Supplier<T> supplier, long delay) {
-            Objects.requireNonNull(supplier, "supplier");
-            return Promise.supplyingDelayedAsync(supplier, delay);
-        }
-
-        @Nonnull
-        @Override
-        public <T> Promise<T> callLater(@Nonnull Callable<T> callable, long delay) {
-            Objects.requireNonNull(callable, "callable");
-            return Promise.supplyingDelayedAsync(Delegates.callableToSupplier(callable), delay);
-        }
-
-        @Nonnull
-        @Override
-        public Promise<Void> runLater(@Nonnull Runnable runnable, long delay) {
-            Objects.requireNonNull(runnable, "runnable");
-            return Promise.supplyingDelayedAsync(Delegates.runnableToSupplier(runnable), delay);
-        }
-
-        @Nonnull
-        @Override
-        public Task runRepeating(@Nonnull Consumer<Task> consumer, long delay, long interval) {
-            Objects.requireNonNull(consumer, "consumer");
+        public Task runRepeating(@Nonnull Consumer<Task> consumer, long delayTicks, long intervalTicks) {
             Objects.requireNonNull(consumer, "consumer");
             HelperTask task = new HelperTask(consumer);
-            task.runTaskTimerAsynchronously(LoaderUtils.getPlugin(), delay, interval);
+            task.runTaskTimerAsynchronously(LoaderUtils.getPlugin(), delayTicks, intervalTicks);
             return task;
         }
 
         @Nonnull
         @Override
-        public Task runRepeating(@Nonnull Runnable runnable, long delay, long interval) {
-            Objects.requireNonNull(runnable, "runnable");
-            return runRepeating(Delegates.runnableToConsumer(runnable), delay, interval);
+        public Task runRepeating(@Nonnull Consumer<Task> consumer, long delay, @Nonnull TimeUnit delayUnit, long interval, @Nonnull TimeUnit intervalUnit) {
+            Objects.requireNonNull(consumer, "consumer");
+            return new HelperAsyncTask(consumer, delay, delayUnit, interval, intervalUnit);
         }
+
     }
 
     private static class HelperTask extends BukkitRunnable implements Task {
@@ -263,7 +177,7 @@ public final class Schedulers {
         private final MCTiming timing;
 
         private final AtomicInteger counter = new AtomicInteger(0);
-        private final AtomicBoolean shouldStop = new AtomicBoolean(false);
+        private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
         private HelperTask(Consumer<Task> backingTask) {
             this.backingTask = backingTask;
@@ -272,7 +186,7 @@ public final class Schedulers {
 
         @Override
         public void run() {
-            if (this.shouldStop.get()) {
+            if (this.cancelled.get()) {
                 cancel();
                 return;
             }
@@ -285,7 +199,7 @@ public final class Schedulers {
                 e.printStackTrace();
             }
 
-            if (this.shouldStop.get()) {
+            if (this.cancelled.get()) {
                 cancel();
             }
         }
@@ -297,7 +211,7 @@ public final class Schedulers {
 
         @Override
         public boolean stop() {
-            return !this.shouldStop.getAndSet(true);
+            return !this.cancelled.getAndSet(true);
         }
 
         @Override
@@ -307,7 +221,60 @@ public final class Schedulers {
 
         @Override
         public boolean isClosed() {
-            return this.shouldStop.get();
+            return this.cancelled.get();
+        }
+    }
+
+    private static class HelperAsyncTask implements Runnable, Task {
+        private final Consumer<Task> backingTask;
+        private final ScheduledFuture<?> future;
+
+        private final AtomicInteger counter = new AtomicInteger(0);
+        private final AtomicBoolean cancelled = new AtomicBoolean(false);
+
+        private HelperAsyncTask(Consumer<Task> backingTask, long delay, TimeUnit delayUnit, long interval, TimeUnit intervalUnit) {
+            this.backingTask = backingTask;
+            this.future = HelperExecutors.asyncHelper().scheduleAtFixedRate(this, delayUnit.toNanos(delay), intervalUnit.toNanos(interval), TimeUnit.NANOSECONDS);
+        }
+
+        @Override
+        public void run() {
+            if (this.cancelled.get()) {
+                return;
+            }
+
+            try {
+                this.backingTask.accept(this);
+                this.counter.incrementAndGet();
+            } catch (Throwable e) {
+                Log.severe("[SCHEDULER] Exception thrown whilst executing task");
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public int getTimesRan() {
+            return this.counter.get();
+        }
+
+        @Override
+        public boolean stop() {
+            if (!this.cancelled.getAndSet(true)) {
+                this.future.cancel(false);
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public int getBukkitId() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isClosed() {
+            return this.cancelled.get();
         }
     }
 
