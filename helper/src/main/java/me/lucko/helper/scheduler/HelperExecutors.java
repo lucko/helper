@@ -37,9 +37,8 @@ import org.bukkit.Bukkit;
 import co.aikar.timings.lib.MCTiming;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.function.Consumer;
 
 /**
@@ -53,13 +52,13 @@ public final class HelperExecutors {
 
     private static final Executor SYNC_BUKKIT = new BukkitSyncExecutor();
     private static final Executor ASYNC_BUKKIT = new BukkitAsyncExecutor();
-    private static final Executor ASYNC_HELPER = new HelperAsyncExecutor();
+    private static final ScheduledExecutorService ASYNC_HELPER = new HelperAsyncExecutor();
 
     public static Executor sync() {
         return SYNC_BUKKIT;
     }
 
-    public static Executor asyncHelper() {
+    public static ScheduledExecutorService asyncHelper() {
         return ASYNC_HELPER;
     }
 
@@ -81,9 +80,9 @@ public final class HelperExecutors {
         }
     }
 
-    private static final class HelperAsyncExecutor extends ThreadPoolExecutor {
+    private static final class HelperAsyncExecutor extends ScheduledThreadPoolExecutor {
         private HelperAsyncExecutor() {
-            super(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), new ThreadFactoryBuilder().setNameFormat("helper-scheduler-%d").build());
+            super(16, new ThreadFactoryBuilder().setNameFormat("helper-scheduler-%d").build());
         }
 
         @Override

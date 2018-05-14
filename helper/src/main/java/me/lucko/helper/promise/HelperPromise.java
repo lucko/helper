@@ -28,6 +28,7 @@ package me.lucko.helper.promise;
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.scheduler.HelperExecutors;
+import me.lucko.helper.scheduler.Ticks;
 import me.lucko.helper.utils.Log;
 
 import org.bukkit.Bukkit;
@@ -49,24 +50,24 @@ import javax.annotation.Nullable;
  *
  * @param <V> the result type
  */
-class HelperPromise<V> implements Promise<V> {
+final class HelperPromise<V> implements Promise<V> {
     private static final Consumer<Throwable> EXCEPTION_CONSUMER = throwable -> {
         Log.severe("[SCHEDULER] Exception thrown whilst executing task");
         throwable.printStackTrace();
     };
 
     @Nonnull
-    public static <U> HelperPromise<U> empty() {
+    static <U> HelperPromise<U> empty() {
         return new HelperPromise<>();
     }
 
     @Nonnull
-    public static <U> HelperPromise<U> completed(@Nullable U value) {
+    static <U> HelperPromise<U> completed(@Nullable U value) {
         return new HelperPromise<>(value);
     }
 
     @Nonnull
-    public static <U> HelperPromise<U> exceptionally(@Nonnull Throwable t) {
+    static <U> HelperPromise<U> exceptionally(@Nonnull Throwable t) {
         return new HelperPromise<>(t);
     }
 
@@ -112,19 +113,35 @@ class HelperPromise<V> implements Promise<V> {
         HelperExecutors.asyncHelper().execute(runnable);
     }
 
-    private void executeDelayedSync(@Nonnull Runnable runnable, long delay) {
-        if (delay <= 0) {
+    private void executeDelayedSync(@Nonnull Runnable runnable, long delayTicks) {
+        if (delayTicks <= 0) {
             executeSync(runnable);
         } else {
-            Bukkit.getScheduler().runTaskLater(LoaderUtils.getPlugin(), HelperExecutors.wrapRunnable(runnable), delay);
+            Bukkit.getScheduler().runTaskLater(LoaderUtils.getPlugin(), HelperExecutors.wrapRunnable(runnable), delayTicks);
         }
     }
 
-    private void executeDelayedAsync(@Nonnull Runnable runnable, long delay) {
+    private void executeDelayedAsync(@Nonnull Runnable runnable, long delayTicks) {
+        if (delayTicks <= 0) {
+            executeAsync(runnable);
+        } else {
+            Bukkit.getScheduler().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), HelperExecutors.wrapRunnable(runnable), delayTicks);
+        }
+    }
+
+    private void executeDelayedSync(@Nonnull Runnable runnable, long delay, TimeUnit unit) {
+        if (delay <= 0) {
+            executeSync(runnable);
+        } else {
+            Bukkit.getScheduler().runTaskLater(LoaderUtils.getPlugin(), HelperExecutors.wrapRunnable(runnable), Ticks.from(delay, unit));
+        }
+    }
+
+    private void executeDelayedAsync(@Nonnull Runnable runnable, long delay, TimeUnit unit) {
         if (delay <= 0) {
             executeAsync(runnable);
         } else {
-            Bukkit.getScheduler().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), HelperExecutors.wrapRunnable(runnable), delay);
+            HelperExecutors.asyncHelper().schedule(HelperExecutors.wrapRunnable(runnable), delay, unit);
         }
     }
 
@@ -231,17 +248,33 @@ class HelperPromise<V> implements Promise<V> {
 
     @Nonnull
     @Override
-    public Promise<V> supplyDelayedSync(@Nonnull Supplier<V> supplier, long delay) {
+    public Promise<V> supplyDelayedSync(@Nonnull Supplier<V> supplier, long delayTicks) {
         markAsSupplied();
-        executeDelayedSync(new SupplyRunnable(supplier), delay);
+        executeDelayedSync(new SupplyRunnable(supplier), delayTicks);
         return this;
     }
 
     @Nonnull
     @Override
-    public Promise<V> supplyDelayedAsync(@Nonnull Supplier<V> supplier, long delay) {
+    public Promise<V> supplyDelayedSync(@Nonnull Supplier<V> supplier, long delay, @Nonnull TimeUnit unit) {
         markAsSupplied();
-        executeDelayedAsync(new SupplyRunnable(supplier), delay);
+        executeDelayedSync(new SupplyRunnable(supplier), delay, unit);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public Promise<V> supplyDelayedAsync(@Nonnull Supplier<V> supplier, long delayTicks) {
+        markAsSupplied();
+        executeDelayedAsync(new SupplyRunnable(supplier), delayTicks);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public Promise<V> supplyDelayedAsync(@Nonnull Supplier<V> supplier, long delay, @Nonnull TimeUnit unit) {
+        markAsSupplied();
+        executeDelayedAsync(new SupplyRunnable(supplier), delay, unit);
         return this;
     }
 
@@ -275,13 +308,13 @@ class HelperPromise<V> implements Promise<V> {
 
     @Nonnull
     @Override
-    public <U> Promise<U> thenApplyDelayedSync(@Nonnull Function<? super V, ? extends U> fn, long delay) {
+    public <U> Promise<U> thenApplyDelayedSync(@Nonnull Function<? super V, ? extends U> fn, long delayTicks) {
         HelperPromise<U> promise = empty();
         this.fut.whenComplete((value, t) -> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                executeDelayedSync(new ApplyRunnable<>(promise, fn, value), delay);
+                executeDelayedSync(new ApplyRunnable<>(promise, fn, value), delayTicks);
             }
         });
         return promise;
@@ -289,13 +322,41 @@ class HelperPromise<V> implements Promise<V> {
 
     @Nonnull
     @Override
-    public <U> Promise<U> thenApplyDelayedAsync(@Nonnull Function<? super V, ? extends U> fn, long delay) {
+    public <U> Promise<U> thenApplyDelayedSync(@Nonnull Function<? super V, ? extends U> fn, long delay, @Nonnull TimeUnit unit) {
         HelperPromise<U> promise = empty();
         this.fut.whenComplete((value, t) -> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                executeDelayedAsync(new ApplyRunnable<>(promise, fn, value), delay);
+                executeDelayedSync(new ApplyRunnable<>(promise, fn, value), delay, unit);
+            }
+        });
+        return promise;
+    }
+
+    @Nonnull
+    @Override
+    public <U> Promise<U> thenApplyDelayedAsync(@Nonnull Function<? super V, ? extends U> fn, long delayTicks) {
+        HelperPromise<U> promise = empty();
+        this.fut.whenComplete((value, t) -> {
+            if (t != null) {
+                promise.completeExceptionally(t);
+            } else {
+                executeDelayedAsync(new ApplyRunnable<>(promise, fn, value), delayTicks);
+            }
+        });
+        return promise;
+    }
+
+    @Nonnull
+    @Override
+    public <U> Promise<U> thenApplyDelayedAsync(@Nonnull Function<? super V, ? extends U> fn, long delay, @Nonnull TimeUnit unit) {
+        HelperPromise<U> promise = empty();
+        this.fut.whenComplete((value, t) -> {
+            if (t != null) {
+                promise.completeExceptionally(t);
+            } else {
+                executeDelayedAsync(new ApplyRunnable<>(promise, fn, value), delay, unit);
             }
         });
         return promise;
@@ -331,13 +392,13 @@ class HelperPromise<V> implements Promise<V> {
 
     @Nonnull
     @Override
-    public <U> Promise<U> thenComposeDelayedSync(@Nonnull Function<? super V, ? extends Promise<U>> fn, long delay) {
+    public <U> Promise<U> thenComposeDelayedSync(@Nonnull Function<? super V, ? extends Promise<U>> fn, long delayTicks) {
         HelperPromise<U> promise = empty();
         this.fut.whenComplete((value, t) -> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                executeDelayedSync(new ComposeRunnable<>(promise, fn, value, true), delay);
+                executeDelayedSync(new ComposeRunnable<>(promise, fn, value, true), delayTicks);
             }
         });
         return promise;
@@ -345,13 +406,41 @@ class HelperPromise<V> implements Promise<V> {
 
     @Nonnull
     @Override
-    public <U> Promise<U> thenComposeDelayedAsync(@Nonnull Function<? super V, ? extends Promise<U>> fn, long delay) {
+    public <U> Promise<U> thenComposeDelayedSync(@Nonnull Function<? super V, ? extends Promise<U>> fn, long delay, @Nonnull TimeUnit unit) {
         HelperPromise<U> promise = empty();
         this.fut.whenComplete((value, t) -> {
             if (t != null) {
                 promise.completeExceptionally(t);
             } else {
-                executeDelayedAsync(new ComposeRunnable<>(promise, fn, value, false), delay);
+                executeDelayedSync(new ComposeRunnable<>(promise, fn, value, true), delay, unit);
+            }
+        });
+        return promise;
+    }
+
+    @Nonnull
+    @Override
+    public <U> Promise<U> thenComposeDelayedAsync(@Nonnull Function<? super V, ? extends Promise<U>> fn, long delayTicks) {
+        HelperPromise<U> promise = empty();
+        this.fut.whenComplete((value, t) -> {
+            if (t != null) {
+                promise.completeExceptionally(t);
+            } else {
+                executeDelayedAsync(new ComposeRunnable<>(promise, fn, value, false), delayTicks);
+            }
+        });
+        return promise;
+    }
+
+    @Nonnull
+    @Override
+    public <U> Promise<U> thenComposeDelayedAsync(@Nonnull Function<? super V, ? extends Promise<U>> fn, long delay, @Nonnull TimeUnit unit) {
+        HelperPromise<U> promise = empty();
+        this.fut.whenComplete((value, t) -> {
+            if (t != null) {
+                promise.completeExceptionally(t);
+            } else {
+                executeDelayedAsync(new ComposeRunnable<>(promise, fn, value, false), delay, unit);
             }
         });
         return promise;
@@ -387,13 +476,13 @@ class HelperPromise<V> implements Promise<V> {
 
     @Nonnull
     @Override
-    public Promise<V> exceptionallyDelayedSync(@Nonnull Function<Throwable, ? extends V> fn, long delay) {
+    public Promise<V> exceptionallyDelayedSync(@Nonnull Function<Throwable, ? extends V> fn, long delayTicks) {
         HelperPromise<V> promise = empty();
         this.fut.whenComplete((value, t) -> {
             if (t == null) {
                 promise.complete(value);
             } else {
-                executeDelayedSync(new ExceptionallyRunnable<>(promise, fn, t), delay);
+                executeDelayedSync(new ExceptionallyRunnable<>(promise, fn, t), delayTicks);
             }
         });
         return promise;
@@ -401,13 +490,41 @@ class HelperPromise<V> implements Promise<V> {
 
     @Nonnull
     @Override
-    public Promise<V> exceptionallyDelayedAsync(@Nonnull Function<Throwable, ? extends V> fn, long delay) {
+    public Promise<V> exceptionallyDelayedSync(@Nonnull Function<Throwable, ? extends V> fn, long delay, @Nonnull TimeUnit unit) {
         HelperPromise<V> promise = empty();
         this.fut.whenComplete((value, t) -> {
             if (t == null) {
                 promise.complete(value);
             } else {
-                executeDelayedAsync(new ExceptionallyRunnable<>(promise, fn, t), delay);
+                executeDelayedSync(new ExceptionallyRunnable<>(promise, fn, t), delay, unit);
+            }
+        });
+        return promise;
+    }
+
+    @Nonnull
+    @Override
+    public Promise<V> exceptionallyDelayedAsync(@Nonnull Function<Throwable, ? extends V> fn, long delayTicks) {
+        HelperPromise<V> promise = empty();
+        this.fut.whenComplete((value, t) -> {
+            if (t == null) {
+                promise.complete(value);
+            } else {
+                executeDelayedAsync(new ExceptionallyRunnable<>(promise, fn, t), delayTicks);
+            }
+        });
+        return promise;
+    }
+
+    @Nonnull
+    @Override
+    public Promise<V> exceptionallyDelayedAsync(@Nonnull Function<Throwable, ? extends V> fn, long delay, @Nonnull TimeUnit unit) {
+        HelperPromise<V> promise = empty();
+        this.fut.whenComplete((value, t) -> {
+            if (t == null) {
+                promise.complete(value);
+            } else {
+                executeDelayedAsync(new ExceptionallyRunnable<>(promise, fn, t), delay, unit);
             }
         });
         return promise;

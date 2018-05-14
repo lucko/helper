@@ -106,7 +106,7 @@ public interface TaskBuilder {
          * @return a delayed builder
          */
         @Nonnull
-        TaskBuilder.Delayed after(long ticks);
+        TaskBuilder.DelayedTick after(long ticks);
 
         /**
          * Marks that the new task should run after the specified delay,
@@ -117,7 +117,7 @@ public interface TaskBuilder {
          * @return a delayed builder
          */
         @Nonnull
-        TaskBuilder.Delayed after(long duration, @Nonnull TimeUnit unit);
+        TaskBuilder.DelayedTime after(long duration, @Nonnull TimeUnit unit);
 
         /**
          * Marks that the new task should run after the specified delay,
@@ -148,9 +148,7 @@ public interface TaskBuilder {
          * @return a delayed builder
          */
         @Nonnull
-        default ContextualTaskBuilder every(long ticks) {
-            return after(0).every(ticks);
-        }
+        ContextualTaskBuilder every(long ticks);
 
         /**
          * Marks that the new task should start running instantly, but repeat on the specified interval,
@@ -161,9 +159,7 @@ public interface TaskBuilder {
          * @return a delayed builder
          */
         @Nonnull
-        default ContextualTaskBuilder every(long duration, @Nonnull TimeUnit unit) {
-            return after(0).every(duration, unit);
-        }
+        ContextualTaskBuilder every(long duration, @Nonnull TimeUnit unit);
 
     }
 
@@ -175,6 +171,10 @@ public interface TaskBuilder {
      */
     interface Delayed extends ContextualPromiseBuilder {
 
+    }
+
+    interface DelayedTick extends Delayed {
+
         /**
          * Marks that the new task should repeat on the specified interval,
          * and returns the next builder in the chain.
@@ -184,6 +184,10 @@ public interface TaskBuilder {
          */
         @Nonnull
         ContextualTaskBuilder every(long ticks);
+
+    }
+
+    interface DelayedTime extends Delayed {
 
         /**
          * Marks that the new task should repeat on the specified interval,
