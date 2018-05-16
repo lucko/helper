@@ -169,7 +169,6 @@ public final class Schedulers {
             Objects.requireNonNull(consumer, "consumer");
             return new HelperAsyncTask(consumer, delay, delayUnit, interval, intervalUnit);
         }
-
     }
 
     private static class HelperTask extends BukkitRunnable implements Task {

@@ -47,6 +47,7 @@ import javax.annotation.Nonnull;
 public final class GsonProvider {
 
     private static final Gson STANDARD_GSON = new GsonBuilder()
+            .registerTypeHierarchyAdapter(DataTree.class, JsonElementTreeSerializer.INSTANCE)
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
             .registerTypeAdapterFactory(BukkitSerializableAdapterFactory.INSTANCE)
             .serializeNulls()
