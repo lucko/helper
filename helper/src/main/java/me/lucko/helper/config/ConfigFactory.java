@@ -113,6 +113,11 @@ public abstract class ConfigFactory<N extends ConfigurationNode, L extends Confi
     }
 
     @Nonnull
+    public static TypeSerializerCollection typeSerializers() {
+        return TYPE_SERIALIZERS;
+    }
+
+    @Nonnull
     public static ConfigFactory<ConfigurationNode, YAMLConfigurationLoader> yaml() {
         return YAML;
     }
