@@ -29,11 +29,15 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonElement;
 
 import me.lucko.helper.config.typeserializers.BukkitTypeSerializer;
+import me.lucko.helper.config.typeserializers.ColoredStringTypeSerializer;
 import me.lucko.helper.config.typeserializers.GsonTypeSerializer;
 import me.lucko.helper.config.typeserializers.HelperTypeSerializer;
 import me.lucko.helper.config.typeserializers.JsonTreeTypeSerializer;
+import me.lucko.helper.config.typeserializers.TextTypeSerializer;
 import me.lucko.helper.datatree.DataTree;
 import me.lucko.helper.gson.GsonSerializable;
+
+import net.kyori.text.Component;
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.yaml.snakeyaml.DumperOptions;
@@ -111,6 +115,8 @@ public abstract class ConfigFactory<N extends ConfigurationNode, L extends Confi
         helperSerializers.registerType(TypeToken.of(GsonSerializable.class), HelperTypeSerializer.INSTANCE);
         helperSerializers.registerType(TypeToken.of(ConfigurationSerializable.class), BukkitTypeSerializer.INSTANCE);
         helperSerializers.registerType(TypeToken.of(DataTree.class), JsonTreeTypeSerializer.INSTANCE);
+        helperSerializers.registerType(TypeToken.of(String.class), ColoredStringTypeSerializer.INSTANCE);
+        helperSerializers.registerType(TypeToken.of(Component.class), TextTypeSerializer.INSTANCE);
 
         TYPE_SERIALIZERS = helperSerializers.newChild();
     }
