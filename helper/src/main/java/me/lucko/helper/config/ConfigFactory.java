@@ -104,12 +104,15 @@ public abstract class ConfigFactory<N extends ConfigurationNode, L extends Confi
         }
     };
 
-    private static final TypeSerializerCollection TYPE_SERIALIZERS = TypeSerializers.newCollection();
+    private static final TypeSerializerCollection TYPE_SERIALIZERS;
     static {
-        TYPE_SERIALIZERS.registerType(TypeToken.of(JsonElement.class), GsonTypeSerializer.INSTANCE);
-        TYPE_SERIALIZERS.registerType(TypeToken.of(GsonSerializable.class), HelperTypeSerializer.INSTANCE);
-        TYPE_SERIALIZERS.registerType(TypeToken.of(ConfigurationSerializable.class), BukkitTypeSerializer.INSTANCE);
-        TYPE_SERIALIZERS.registerType(TypeToken.of(DataTree.class), JsonTreeTypeSerializer.INSTANCE);
+        TypeSerializerCollection helperSerializers = TypeSerializers.newCollection();
+        helperSerializers.registerType(TypeToken.of(JsonElement.class), GsonTypeSerializer.INSTANCE);
+        helperSerializers.registerType(TypeToken.of(GsonSerializable.class), HelperTypeSerializer.INSTANCE);
+        helperSerializers.registerType(TypeToken.of(ConfigurationSerializable.class), BukkitTypeSerializer.INSTANCE);
+        helperSerializers.registerType(TypeToken.of(DataTree.class), JsonTreeTypeSerializer.INSTANCE);
+
+        TYPE_SERIALIZERS = helperSerializers.newChild();
     }
 
     @Nonnull
