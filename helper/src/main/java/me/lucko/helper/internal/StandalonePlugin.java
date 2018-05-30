@@ -48,6 +48,7 @@ import me.lucko.helper.utils.Players;
  * Standalone plugin which provides the helper library at runtime for other plugins
  * on the server to use.
  */
+@HelperImplementationPlugin
 public final class StandalonePlugin extends ExtendedJavaPlugin {
     public StandalonePlugin() {
         getLogger().info("Initialized helper v" + getDescription().getVersion());

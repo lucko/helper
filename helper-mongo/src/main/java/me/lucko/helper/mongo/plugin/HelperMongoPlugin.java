@@ -25,6 +25,7 @@
 
 package me.lucko.helper.mongo.plugin;
 
+import me.lucko.helper.internal.HelperImplementationPlugin;
 import me.lucko.helper.mongo.Mongo;
 import me.lucko.helper.mongo.MongoDatabaseCredentials;
 import me.lucko.helper.mongo.MongoProvider;
@@ -32,6 +33,7 @@ import me.lucko.helper.plugin.ExtendedJavaPlugin;
 
 import javax.annotation.Nonnull;
 
+@HelperImplementationPlugin
 public class HelperMongoPlugin extends ExtendedJavaPlugin implements MongoProvider {
     private MongoDatabaseCredentials globalCredentials;
     private Mongo globalDataSource;

@@ -25,6 +25,7 @@
 
 package me.lucko.helper.redis.plugin;
 
+import me.lucko.helper.internal.HelperImplementationPlugin;
 import me.lucko.helper.messaging.Messenger;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.redis.Redis;
@@ -35,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.Nonnull;
 
+@HelperImplementationPlugin
 public class HelperRedisPlugin extends ExtendedJavaPlugin implements RedisProvider {
     private RedisCredentials globalCredentials;
     private Redis globalRedis;

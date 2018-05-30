@@ -25,6 +25,7 @@
 
 package me.lucko.helper.profiles.plugin;
 
+import me.lucko.helper.internal.HelperImplementationPlugin;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.profiles.ProfileRepository;
 import me.lucko.helper.sql.DatabaseCredentials;
@@ -33,6 +34,7 @@ import me.lucko.helper.sql.SqlProvider;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 
+@HelperImplementationPlugin
 public class HelperProfilesPlugin extends ExtendedJavaPlugin {
 
     @Override

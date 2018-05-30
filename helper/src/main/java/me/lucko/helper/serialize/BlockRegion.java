@@ -78,7 +78,7 @@ public final class BlockRegion implements GsonSerializable {
         this.max = BlockPosition.of(Math.max(a.getX(), b.getX()), Math.max(a.getY(), b.getY()), Math.max(a.getZ(), b.getZ()), a.getWorld());
 
         this.width = this.max.getX() - this.min.getX();
-        this.height = this.max.getY() - this.min.getX();
+        this.height = this.max.getY() - this.min.getY();
         this.depth = this.max.getZ() - this.min.getZ();
     }
 

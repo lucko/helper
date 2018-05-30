@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.Schedulers;
+import me.lucko.helper.internal.HelperImplementationPlugin;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.menu.scheme.MenuScheme;
 import me.lucko.helper.menu.scheme.SchemeMapping;
@@ -75,6 +76,7 @@ import javax.annotation.Nonnull;
 /**
  * Uses {@link ScriptController} and helper to provide a javascript plugin environment for Bukkit.
  */
+@HelperImplementationPlugin
 public class HelperJsPlugin extends ExtendedJavaPlugin implements HelperJs {
 
     /**

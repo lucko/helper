@@ -23,29 +23,19 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.plugin;
+package me.lucko.helper.internal;
 
-import me.lucko.helper.internal.HelperImplementationPlugin;
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.messaging.InstanceData;
-import me.lucko.helper.messaging.Messenger;
-import me.lucko.helper.plugin.ExtendedJavaPlugin;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import lilypad.client.connect.api.Connect;
-
-@HelperImplementationPlugin
-public class HelperLilyPadPlugin extends ExtendedJavaPlugin {
-
-    @Override
-    protected void enable() {
-        Connect connect = getService(Connect.class);
-        LilyPad globalLilyPad = new HelperLilyPad(connect);
-
-        // expose all instances as services.
-        provideService(LilyPad.class, globalLilyPad);
-        provideService(Messenger.class, globalLilyPad);
-        provideService(InstanceData.class, globalLilyPad);
-
-        getLogger().info("Hooked with LilyPad-Connect");
-    }
+/**
+ * Used to mark a helper implementation plugin.
+ *
+ * <p>For internal use only.</p>
+ */
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface HelperImplementationPlugin {
 }

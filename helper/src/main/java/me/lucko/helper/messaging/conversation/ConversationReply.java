@@ -59,7 +59,8 @@ public final class ConversationReply<R extends ConversationMessage> {
      * @return the new reply encapsulation
      */
     public static <R extends ConversationMessage> ConversationReply<R> of(R reply) {
-        return new ConversationReply<>(CompletableFuture.completedFuture(reply));
+        Objects.requireNonNull(reply, "reply");
+        return new ConversationReply<>(Promise.completed(reply));
     }
 
     /**
@@ -73,7 +74,8 @@ public final class ConversationReply<R extends ConversationMessage> {
      * @return the new reply encapsulation
      */
     public static <R extends ConversationMessage> ConversationReply<R> ofCompletableFuture(CompletableFuture<R> futureReply) {
-        return new ConversationReply<>(futureReply);
+        Objects.requireNonNull(futureReply, "futureReply");
+        return new ConversationReply<>(Promise.wrapFuture(futureReply));
     }
 
     /**
@@ -87,12 +89,13 @@ public final class ConversationReply<R extends ConversationMessage> {
      * @return the new reply encapsulation
      */
     public static <R extends ConversationMessage> ConversationReply<R> ofPromise(Promise<R> promiseReply) {
-        return new ConversationReply<>(promiseReply.toCompletableFuture());
+        Objects.requireNonNull(promiseReply, "promiseReply");
+        return new ConversationReply<>(promiseReply);
     }
 
-    private final CompletableFuture<R> reply;
+    private final Promise<R> reply;
 
-    private ConversationReply(CompletableFuture<R> reply) {
+    private ConversationReply(Promise<R> reply) {
         this.reply = reply;
     }
 
@@ -112,7 +115,7 @@ public final class ConversationReply<R extends ConversationMessage> {
      * @throws IllegalStateException if this object doesn't {@link #hasReply() have a reply}
      */
     @Nonnull
-    public CompletableFuture<R> getReply() {
+    public Promise<R> getReply() {
         if (this.reply == null) {
             throw new IllegalStateException("No reply present");
         }
