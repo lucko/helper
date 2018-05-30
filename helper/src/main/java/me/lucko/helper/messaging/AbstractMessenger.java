@@ -208,6 +208,7 @@ public class AbstractMessenger implements Messenger {
 
         @Override
         public Promise<Void> sendMessage(T message) {
+            Objects.requireNonNull(message, "message");
             return Schedulers.async().call(() -> {
                 byte[] buf = this.codec.encode(message);
                 this.messenger.outgoingMessages.accept(this.name, buf);
