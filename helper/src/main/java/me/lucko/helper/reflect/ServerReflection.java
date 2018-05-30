@@ -54,19 +54,9 @@ public final class ServerReflection {
     private static final String SERVER_VERSION;
 
     /**
-     * The package component of the versioned nms/obc prefix
+     * The server's "nms" version
      */
-    private static final String SERVER_VERSION_PACKAGE_COMPONENT;
-
-    /**
-     * The versioned nms prefix
-     */
-    private static final String VERSIONED_NMS;
-
-    /**
-     * The versioned obc prefix
-     */
-    private static final String VERSIONED_OBC;
+    private static final NmsVersion NMS_VERSION;
 
     static {
         String serverVersion = "";
@@ -82,16 +72,11 @@ public final class ServerReflection {
         }
         SERVER_VERSION = serverVersion;
 
-        // build the "package component" string
         if (SERVER_VERSION.isEmpty()) {
-            SERVER_VERSION_PACKAGE_COMPONENT = ".";
+            NMS_VERSION = NmsVersion.NONE;
         } else {
-            SERVER_VERSION_PACKAGE_COMPONENT = "." + SERVER_VERSION + ".";
+            NMS_VERSION = NmsVersion.valueOf(serverVersion);
         }
-
-        // create the versioned nms/obc prefixes using the package component string
-        VERSIONED_NMS = NMS + SERVER_VERSION_PACKAGE_COMPONENT;
-        VERSIONED_OBC = OBC + SERVER_VERSION_PACKAGE_COMPONENT;
     }
 
     /**
@@ -105,6 +90,16 @@ public final class ServerReflection {
     }
 
     /**
+     * Gets the server "nms" version.
+     *
+     * @return the server packaging version
+     */
+    @Nonnull
+    public static NmsVersion getNmsVersion() {
+        return NMS_VERSION;
+    }
+
+    /**
      * Prepends the versioned {@link #NMS} prefix to the given class name
      *
      * @param className the name of the class
@@ -112,7 +107,7 @@ public final class ServerReflection {
      */
     @Nonnull
     public static String nms(String className) {
-        return VERSIONED_NMS + className;
+        return NMS_VERSION.nms(className);
     }
 
     /**
@@ -123,7 +118,7 @@ public final class ServerReflection {
      */
     @Nonnull
     public static Class<?> nmsClass(String className) throws ClassNotFoundException {
-        return Class.forName(nms(className));
+        return NMS_VERSION.nmsClass(className);
     }
 
     /**
@@ -134,7 +129,7 @@ public final class ServerReflection {
      */
     @Nonnull
     public static String obc(String className) {
-        return VERSIONED_OBC + className;
+        return NMS_VERSION.obc(className);
     }
 
     /**
@@ -145,7 +140,7 @@ public final class ServerReflection {
      */
     @Nonnull
     public static Class<?> obcClass(String className) throws ClassNotFoundException {
-        return Class.forName(obc(className));
+        return NMS_VERSION.obcClass(className);
     }
 
     private ServerReflection() {
