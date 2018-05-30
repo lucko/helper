@@ -25,6 +25,10 @@
 
 package me.lucko.helper.promise;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.scheduler.HelperExecutors;
@@ -33,8 +37,12 @@ import me.lucko.helper.utils.Log;
 
 import org.bukkit.Bukkit;
 
+import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -71,6 +79,50 @@ final class HelperPromise<V> implements Promise<V> {
         return new HelperPromise<>(t);
     }
 
+    @Nonnull
+    static <U> Promise<U> wrapFuture(@Nonnull Future<U> future) {
+        if (future instanceof CompletableFuture<?>) {
+            return new HelperPromise<>(((CompletableFuture<U>) future).thenApply(Function.identity()));
+
+        } else if (future instanceof CompletionStage<?>) {
+            //noinspection unchecked
+            CompletionStage<U> fut = (CompletionStage<U>) future;
+            return new HelperPromise<>(fut.toCompletableFuture().thenApply(Function.identity()));
+
+        } else if (future instanceof ListenableFuture<?>) {
+            ListenableFuture<U> fut = (ListenableFuture<U>) future;
+            HelperPromise<U> promise = empty();
+            promise.supplied.set(true);
+
+            Futures.addCallback(fut, new FutureCallback<U>() {
+                @Override
+                public void onSuccess(@Nullable U result) {
+                    promise.complete(result);
+                }
+
+                @Override
+                public void onFailure(@Nonnull Throwable t) {
+                    promise.completeExceptionally(t);
+                }
+            });
+
+            return promise;
+
+        } else {
+            if (future.isDone()) {
+                try {
+                    return completed(future.get());
+                } catch (ExecutionException e) {
+                    return exceptionally(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                return Promise.supplyingExceptionallyAsync(future::get);
+            }
+        }
+    }
+
     /**
      * If the promise is currently being supplied
      */
@@ -85,18 +137,26 @@ final class HelperPromise<V> implements Promise<V> {
      * The completable future backing this promise
      */
     @Nonnull
-    private final CompletableFuture<V> fut = new CompletableFuture<>();
+    private final CompletableFuture<V> fut;
 
-    private HelperPromise() {}
+    private HelperPromise() {
+        this.fut = new CompletableFuture<>();
+    }
 
     private HelperPromise(@Nullable V v) {
+        this.fut = CompletableFuture.completedFuture(v);
         this.supplied.set(true);
-        this.fut.complete(v);
     }
 
     private HelperPromise(@Nonnull Throwable t) {
+        (this.fut = new CompletableFuture<>()).completeExceptionally(t);
         this.supplied.set(true);
-        this.fut.completeExceptionally(t);
+    }
+
+    private HelperPromise(@Nonnull CompletableFuture<V> fut) {
+        this.fut = Objects.requireNonNull(fut, "future");
+        this.supplied.set(true);
+        this.cancelled.set(fut.isCancelled());
     }
 
     /* utility methods */
@@ -275,6 +335,54 @@ final class HelperPromise<V> implements Promise<V> {
     public Promise<V> supplyDelayedAsync(@Nonnull Supplier<V> supplier, long delay, @Nonnull TimeUnit unit) {
         markAsSupplied();
         executeDelayedAsync(new SupplyRunnable(supplier), delay, unit);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public Promise<V> supplyExceptionallySync(@Nonnull Callable<V> callable) {
+        markAsSupplied();
+        executeSync(new ThrowingSupplyRunnable(callable));
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public Promise<V> supplyExceptionallyAsync(@Nonnull Callable<V> callable) {
+        markAsSupplied();
+        executeAsync(new ThrowingSupplyRunnable(callable));
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public Promise<V> supplyExceptionallyDelayedSync(@Nonnull Callable<V> callable, long delayTicks) {
+        markAsSupplied();
+        executeDelayedSync(new ThrowingSupplyRunnable(callable), delayTicks);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public Promise<V> supplyExceptionallyDelayedSync(@Nonnull Callable<V> callable, long delay, @Nonnull TimeUnit unit) {
+        markAsSupplied();
+        executeDelayedSync(new ThrowingSupplyRunnable(callable), delay, unit);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public Promise<V> supplyExceptionallyDelayedAsync(@Nonnull Callable<V> callable, long delayTicks) {
+        markAsSupplied();
+        executeDelayedAsync(new ThrowingSupplyRunnable(callable), delayTicks);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public Promise<V> supplyExceptionallyDelayedAsync(@Nonnull Callable<V> callable, long delay, @Nonnull TimeUnit unit) {
+        markAsSupplied();
+        executeDelayedAsync(new ThrowingSupplyRunnable(callable), delay, unit);
         return this;
     }
 
@@ -531,6 +639,27 @@ final class HelperPromise<V> implements Promise<V> {
     }
 
     /* delegating behaviour runnables */
+
+    private final class ThrowingSupplyRunnable implements Runnable, Delegate<Callable<V>> {
+        private final Callable<V> supplier;
+        private ThrowingSupplyRunnable(Callable<V> supplier) {
+            this.supplier = supplier;
+        }
+        @Override public Callable<V> getDelegate() { return this.supplier; }
+
+        @Override
+        public void run() {
+            if (HelperPromise.this.cancelled.get()) {
+                return;
+            }
+            try {
+                HelperPromise.this.fut.complete(this.supplier.call());
+            } catch (Throwable t) {
+                EXCEPTION_CONSUMER.accept(t);
+                HelperPromise.this.fut.completeExceptionally(t);
+            }
+        }
+    }
 
     private final class SupplyRunnable implements Runnable, Delegate<Supplier<V>> {
         private final Supplier<V> supplier;

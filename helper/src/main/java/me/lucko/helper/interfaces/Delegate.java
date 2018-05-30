@@ -33,9 +33,9 @@ package me.lucko.helper.interfaces;
 public interface Delegate<T> {
 
     static Object resolve(Object obj) {
-        if (obj instanceof Delegate) {
-            Delegate delegateObject = (Delegate) obj;
-            return resolve(delegateObject.getDelegate());
+        while (obj instanceof Delegate<?>) {
+            Delegate<?> delegate = (Delegate<?>) obj;
+            obj = delegate.getDelegate();
         }
         return obj;
     }

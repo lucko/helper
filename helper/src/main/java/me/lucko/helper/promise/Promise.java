@@ -28,6 +28,7 @@ package me.lucko.helper.promise;
 import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.utils.Delegates;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -72,6 +73,7 @@ public interface Promise<V> extends Future<V>, Terminable {
      *
      * @return a new promise
      */
+    @Nonnull
     static Promise<Void> start() {
         return HelperPromise.completed(null);
     }
@@ -95,8 +97,28 @@ public interface Promise<V> extends Future<V>, Terminable {
      * @param <U> the result type
      * @return the new completed promise
      */
+    @Nonnull
     static <U> Promise<U> exceptionally(@Nonnull Throwable exception) {
         return HelperPromise.exceptionally(exception);
+    }
+
+    /**
+     * Returns a Promise which represents the given future.
+     *
+     * <p>The implementation will make an attempt to wrap the future without creating a new process
+     * to await the result (by casting to {@link java.util.concurrent.CompletionStage} or
+     * {@link com.google.common.util.concurrent.ListenableFuture}).</p>
+     *
+     * <p>Calls to {@link #cancel() cancel} the returned promise will not affected the wrapped
+     * future.</p>
+     *
+     * @param future the future to wrap
+     * @param <U> the result type
+     * @return the new promise
+     */
+    @Nonnull
+    static <U> Promise<U> wrapFuture(@Nonnull Future<U> future) {
+        return HelperPromise.wrapFuture(future);
     }
 
     /**
@@ -234,6 +256,141 @@ public interface Promise<V> extends Future<V>, Terminable {
         return p.supplyDelayedAsync(supplier, delay, unit);
     }
 
+    /**
+     * Returns a new Promise, and schedules it's population via the given callable.
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param callable the value callable
+     * @param <U> the result type
+     * @return the promise
+     */
+    @Nonnull
+    static <U> Promise<U> supplyingExceptionally(@Nonnull ThreadContext context, @Nonnull Callable<U> callable) {
+        Promise<U> p = empty();
+        return p.supplyExceptionally(context, callable);
+    }
+
+    /**
+     * Returns a new Promise, and schedules it's population via the given callable.
+     *
+     * @param callable the value callable
+     * @param <U> the result type
+     * @return the promise
+     */
+    @Nonnull
+    static <U> Promise<U> supplyingExceptionallySync(@Nonnull Callable<U> callable) {
+        Promise<U> p = empty();
+        return p.supplyExceptionallySync(callable);
+    }
+
+    /**
+     * Returns a new Promise, and schedules it's population via the given callable.
+     *
+     * @param callable the value callable
+     * @param <U> the result type
+     * @return the promise
+     */
+    @Nonnull
+    static <U> Promise<U> supplyingExceptionallyAsync(@Nonnull Callable<U> callable) {
+        Promise<U> p = empty();
+        return p.supplyExceptionallyAsync(callable);
+    }
+
+    /**
+     * Returns a new Promise, and schedules it's population via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param callable the value callable
+     * @param delayTicks the delay in ticks
+     * @param <U> the result type
+     * @return the promise
+     */
+    @Nonnull
+    static <U> Promise<U> supplyingExceptionallyDelayed(@Nonnull ThreadContext context, @Nonnull Callable<U> callable, long delayTicks) {
+        Promise<U> p = empty();
+        return p.supplyExceptionallyDelayed(context, callable, delayTicks);
+    }
+
+    /**
+     * Returns a new Promise, and schedules it's population via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param callable the value callable
+     * @param delay the delay
+     * @param unit the unit of delay
+     * @param <U> the result type
+     * @return the promise
+     */
+    @Nonnull
+    static <U> Promise<U> supplyingExceptionallyDelayed(@Nonnull ThreadContext context, @Nonnull Callable<U> callable, long delay, @Nonnull TimeUnit unit) {
+        Promise<U> p = empty();
+        return p.supplyExceptionallyDelayed(context, callable, delay, unit);
+    }
+
+    /**
+     * Returns a new Promise, and schedules it's population via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param callable the value callable
+     * @param delayTicks the delay in ticks
+     * @param <U> the result type
+     * @return the promise
+     */
+    @Nonnull
+    static <U> Promise<U> supplyingExceptionallyDelayedSync(@Nonnull Callable<U> callable, long delayTicks) {
+        Promise<U> p = empty();
+        return p.supplyExceptionallyDelayedSync(callable, delayTicks);
+    }
+
+    /**
+     * Returns a new Promise, and schedules it's population via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param callable the value callable
+     * @param delay the delay
+     * @param unit the unit of delay
+     * @param <U> the result type
+     * @return the promise
+     */
+    @Nonnull
+    static <U> Promise<U> supplyingExceptionallyDelayedSync(@Nonnull Callable<U> callable, long delay, @Nonnull TimeUnit unit) {
+        Promise<U> p = empty();
+        return p.supplyExceptionallyDelayedSync(callable, delay, unit);
+    }
+
+    /**
+     * Returns a new Promise, and schedules it's population via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param callable the value callable
+     * @param delayTicks the delay in ticks
+     * @param <U> the result type
+     * @return the promise
+     */
+    @Nonnull
+    static <U> Promise<U> supplyingExceptionallyDelayedAsync(@Nonnull Callable<U> callable, long delayTicks) {
+        Promise<U> p = empty();
+        return p.supplyExceptionallyDelayedAsync(callable, delayTicks);
+    }
+
+    /**
+     * Returns a new Promise, and schedules it's population via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param callable the value callable
+     * @param delay the delay
+     * @param unit the unit of delay
+     * @param <U> the result type
+     * @return the promise
+     */
+    @Nonnull
+    static <U> Promise<U> supplyingExceptionallyDelayedAsync(@Nonnull Callable<U> callable, long delay, @Nonnull TimeUnit unit) {
+        Promise<U> p = empty();
+        return p.supplyExceptionallyDelayedAsync(callable, delay, unit);
+    }
+    
     /**
      * Attempts to cancel execution of this task.
      *
@@ -428,6 +585,141 @@ public interface Promise<V> extends Future<V>, Terminable {
      */
     @Nonnull
     Promise<V> supplyDelayedAsync(@Nonnull Supplier<V> supplier, long delay, @Nonnull TimeUnit unit);
+
+    /**
+     * Schedules the supply of the Promise's result, via the given callable.
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param callable the callable
+     * @return the same promise
+     * @throws IllegalStateException if the promise is already being supplied, or has already been completed.
+     */
+    @Nonnull
+    default Promise<V> supplyExceptionally(@Nonnull ThreadContext context, @Nonnull Callable<V> callable) {
+        switch (context) {
+            case SYNC:
+                return supplyExceptionallySync(callable);
+            case ASYNC:
+                return supplyExceptionallyAsync(callable);
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    /**
+     * Schedules the supply of the Promise's result, via the given callable.
+     *
+     * @param callable the callable
+     * @return the same promise
+     * @throws IllegalStateException if the promise is already being supplied, or has already been completed.
+     */
+    @Nonnull
+    Promise<V> supplyExceptionallySync(@Nonnull Callable<V> callable);
+
+    /**
+     * Schedules the supply of the Promise's result, via the given callable.
+     *
+     * @param callable the callable
+     * @return the same promise
+     * @throws IllegalStateException if the promise is already being supplied, or has already been completed.
+     */
+    @Nonnull
+    Promise<V> supplyExceptionallyAsync(@Nonnull Callable<V> callable);
+
+    /**
+     * Schedules the supply of the Promise's result, via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param callable the callable
+     * @param delayTicks the delay in ticks
+     * @return the same promise
+     * @throws IllegalStateException if the promise is already being supplied, or has already been completed.
+     */
+    @Nonnull
+    default Promise<V> supplyExceptionallyDelayed(@Nonnull ThreadContext context, @Nonnull Callable<V> callable, long delayTicks) {
+        switch (context) {
+            case SYNC:
+                return supplyExceptionallyDelayedSync(callable, delayTicks);
+            case ASYNC:
+                return supplyExceptionallyDelayedAsync(callable, delayTicks);
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    /**
+     * Schedules the supply of the Promise's result, via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param context the type of executor to use to supply the promise
+     * @param callable the callable
+     * @param delay the delay
+     * @param unit the unit of delay
+     * @return the same promise
+     * @throws IllegalStateException if the promise is already being supplied, or has already been completed.
+     */
+    @Nonnull
+    default Promise<V> supplyExceptionallyDelayed(@Nonnull ThreadContext context, @Nonnull Callable<V> callable, long delay, @Nonnull TimeUnit unit) {
+        switch (context) {
+            case SYNC:
+                return supplyExceptionallyDelayedSync(callable, delay, unit);
+            case ASYNC:
+                return supplyExceptionallyDelayedAsync(callable, delay, unit);
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    /**
+     * Schedules the supply of the Promise's result, via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param callable the callable
+     * @param delayTicks the delay in ticks
+     * @return the same promise
+     * @throws IllegalStateException if the promise is already being supplied, or has already been completed.
+     */
+    @Nonnull
+    Promise<V> supplyExceptionallyDelayedSync(@Nonnull Callable<V> callable, long delayTicks);
+
+    /**
+     * Schedules the supply of the Promise's result, via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param callable the callable
+     * @param delay the delay
+     * @param unit the unit of delay
+     * @return the same promise
+     * @throws IllegalStateException if the promise is already being supplied, or has already been completed.
+     */
+    @Nonnull
+    Promise<V> supplyExceptionallyDelayedSync(@Nonnull Callable<V> callable, long delay, @Nonnull TimeUnit unit);
+
+    /**
+     * Schedules the supply of the Promise's result, via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param callable the callable
+     * @param delayTicks the delay in ticks
+     * @return the same promise
+     * @throws IllegalStateException if the promise is already being supplied, or has already been completed.
+     */
+    @Nonnull
+    Promise<V> supplyExceptionallyDelayedAsync(@Nonnull Callable<V> callable, long delayTicks);
+
+    /**
+     * Schedules the supply of the Promise's result, via the given callable,
+     * after the delay has elapsed.
+     *
+     * @param callable the callable
+     * @param delay the delay
+     * @param unit the unit of delay
+     * @return the same promise
+     * @throws IllegalStateException if the promise is already being supplied, or has already been completed.
+     */
+    @Nonnull
+    Promise<V> supplyExceptionallyDelayedAsync(@Nonnull Callable<V> callable, long delay, @Nonnull TimeUnit unit);
 
     /**
      * Returns a new Promise that, when this promise completes normally, is

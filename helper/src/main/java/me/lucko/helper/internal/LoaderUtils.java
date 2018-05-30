@@ -49,14 +49,20 @@ public final class LoaderUtils {
     @Nonnull
     public static synchronized HelperPlugin getPlugin() {
         if (plugin == null) {
-            plugin = (HelperPlugin) JavaPlugin.getProvidingPlugin(LoaderUtils.class);
+            JavaPlugin pl = JavaPlugin.getProvidingPlugin(LoaderUtils.class);
+            if (!(pl instanceof HelperPlugin)) {
+                throw new IllegalStateException("helper providing plugin does not implement HelperPlugin: " + pl.getClass().getName());
+            }
+            plugin = (HelperPlugin) pl;
 
-            String packageName = LoaderUtils.class.getPackage().getName();
-            packageName = packageName.substring(0, packageName.length() - ".internal".length());
-            Bukkit.getLogger().info("[helper] helper (" + packageName + ") bound to plugin " + plugin.getName() + " - " + plugin.getClass().getName());
+            String pkg = LoaderUtils.class.getPackage().getName();
+            pkg = pkg.substring(0, pkg.length() - ".internal".length());
+
+            Bukkit.getLogger().info("[helper] helper (" + pkg + ") bound to plugin " + plugin.getName() + " - " + plugin.getClass().getName());
 
             setup();
         }
+
         return plugin;
     }
 
@@ -64,7 +70,7 @@ public final class LoaderUtils {
         return Stream.concat(
                 Stream.<Plugin>of(getPlugin()),
                 Arrays.stream(Helper.plugins().getPlugins())
-                        .filter(pl -> pl.getName().toLowerCase().startsWith("helper-"))
+                        .filter(pl -> pl.getClass().isAnnotationPresent(HelperImplementationPlugin.class))
         ).collect(Collectors.toSet());
     }
 
