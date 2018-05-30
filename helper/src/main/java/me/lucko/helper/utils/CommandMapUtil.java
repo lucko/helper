@@ -52,6 +52,7 @@ public final class CommandMapUtil {
     private static final Constructor<PluginCommand> COMMAND_CONSTRUCTOR;
     private static final Field COMMAND_MAP_FIELD;
     private static final Field KNOWN_COMMANDS_FIELD;
+    private static CommandMap commandMap;
 
     static {
         Constructor<PluginCommand> commandConstructor;
@@ -83,8 +84,10 @@ public final class CommandMapUtil {
     }
 
     private static CommandMap getCommandMap() {
+        if (commandMap!=null)
+            return commandMap;
         try {
-            return (CommandMap) COMMAND_MAP_FIELD.get(Bukkit.getServer().getPluginManager());
+            return commandMap=(CommandMap) COMMAND_MAP_FIELD.get(Bukkit.getServer().getPluginManager());
         } catch (Exception e) {
             throw new RuntimeException("Could not get CommandMap", e);
         }
