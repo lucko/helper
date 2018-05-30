@@ -245,7 +245,11 @@ public class SimpleConversationChannel<T extends ConversationMessage, R extends 
             public void onMessage(@Nonnull ChannelAgent<T> agent, @Nonnull T message) {
                 ConversationReply<R> reply = this.delegate.onMessage(Agent.this, message);
                 if (reply.hasReply()) {
-                    reply.getReply().thenAcceptAsync(Agent.this.channel.replyChannel::sendMessage);
+                    reply.getReply().thenAcceptAsync(m -> {
+                        if (m != null) {
+                            Agent.this.channel.replyChannel.sendMessage(m);
+                        }
+                    });
                 }
             }
         }
