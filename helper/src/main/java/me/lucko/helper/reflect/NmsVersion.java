@@ -149,7 +149,7 @@ public enum NmsVersion {
      */
     @Nonnull
     public Class<?> obcClass(String className) throws ClassNotFoundException {
-        return Class.forName(nms(className));
+        return Class.forName(obc(className));
     }
 
 
