@@ -23,34 +23,23 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow.model.name;
+package me.lucko.helper.shadow.model.transformer;
 
-import me.lucko.helper.reflect.NmsVersion;
-import me.lucko.helper.reflect.shadow.model.ShadowField;
-import me.lucko.helper.reflect.shadow.model.ShadowMethod;
+import me.lucko.helper.reflect.ServerReflection;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import javax.annotation.Nonnull;
 
 /**
- * Represents the {@link Name target name} of a {@link ShadowMethod} or {@link ShadowField} for
- * a given {@link NmsVersion}.
+ * A {@link ShadowTransformer} that appends the CraftBukkit package prefix to the start of the
+ * class name.
  */
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ObfuscationMapping {
+public final class ObcTransformer implements ShadowTransformer {
+    public static final ShadowTransformer INSTANCE = new ObcTransformer();
 
-    /**
-     * The name of the method/field in this environment.
-     *
-     * @return the name
-     */
-    String name();
-
-    /**
-     * The version this mapping applies to.
-     *
-     * @return the version
-     */
-    NmsVersion version();
+    @Nonnull
+    @Override
+    public String transformClassName(@Nonnull String className) {
+        return ServerReflection.obc(className);
+    }
 
 }

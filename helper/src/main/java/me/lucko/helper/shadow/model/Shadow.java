@@ -23,23 +23,30 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow.model.transformer;
+package me.lucko.helper.shadow.model;
 
-import me.lucko.helper.reflect.ServerReflection;
+import me.lucko.helper.shadow.ShadowFactory;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * A {@link ShadowTransformer} that appends the Minecraft Server package prefix to the start of the
- * class name.
+ * Marks a "shadow" interface.
+ *
+ * <p>{@link Shadow}s are implemented at runtime by the {@link ShadowFactory}.</p>
+ *
+ * <p>All non-default methods should be marked with a {@link ShadowMethod} or {@link ShadowField}
+ * annotation.</p>
  */
-public final class NmsTransformer implements ShadowTransformer {
-    public static final ShadowTransformer INSTANCE = new NmsTransformer();
+public interface Shadow {
 
-    @Nonnull
-    @Override
-    public String transformClassName(@Nonnull String className) {
-        return ServerReflection.nms(className);
-    }
+    /**
+     * Gets the target (handle) object for this shadow.
+     *
+     * <p>Will return null for static shadows.</p>
+     *
+     * @return the shadow target
+     */
+    @Nullable
+    Object getShadowTarget();
 
 }
