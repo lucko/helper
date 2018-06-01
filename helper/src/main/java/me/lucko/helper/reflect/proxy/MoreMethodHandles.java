@@ -105,6 +105,35 @@ public final class MoreMethodHandles {
     }
 
     /**
+     * Makes a direct method handle to {@code constructor}.
+     *
+     * @param targetClass the target class
+     * @param constructor the reflected constructor
+     * @return a method handle which can invoke the reflected constructor
+     * @see MethodHandles.Lookup#unreflectConstructor(Constructor)
+     */
+    @Nonnull
+    public static MethodHandle unreflect(@Nonnull Class<?> targetClass, @Nonnull Constructor constructor) {
+        try {
+            return privateLookupIn(targetClass).unreflectConstructor(constructor);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Makes a direct method handle to {@code constructor}.
+     *
+     * @param constructor the reflected constructor
+     * @return a method handle which can invoke the reflected constructor
+     * @see MethodHandles.Lookup#unreflectConstructor(Constructor)
+     */
+    @Nonnull
+    public static MethodHandle unreflect(@Nonnull Constructor constructor) {
+        return unreflect(constructor.getDeclaringClass(), constructor);
+    }
+
+    /**
      * Produces a method handle giving read access to a reflected field.
      *
      * @param targetClass the target class
