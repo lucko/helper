@@ -189,7 +189,7 @@ final class ShadowDefinition {
 
         matcher = GET_IS_PATTERN.matcher(methodName);
         if (matcher.matches()) {
-            return methodName.substring(3, 4).toLowerCase() + methodName.substring(4);
+            return methodName.substring(2, 3).toLowerCase() + methodName.substring(3);
         }
 
         matcher = SET_PATTERN.matcher(methodName);
