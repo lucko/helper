@@ -23,25 +23,30 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow.model.transformer;
+package me.lucko.helper.shadow;
 
-import me.lucko.helper.reflect.shadow.model.ShadowClass;
+import me.lucko.helper.reflect.proxy.MoreMethodHandles;
 
-import javax.annotation.Nonnull;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
 
-/**
- * Transforms the class name value on {@link ShadowClass} annotations.
- */
-@FunctionalInterface
-public interface ShadowTransformer {
+class FieldMethodHandle {
+    private final MethodHandle getter;
+    private final MethodHandle setter;
 
-    /**
-     * Applies the transformation to the class name
-     *
-     * @param className the class name as defined in the {@link ShadowClass} annotation.
-     * @return the transformed value
-     */
-    @Nonnull
-    String transformClassName(@Nonnull String className);
+    FieldMethodHandle(Field field) throws IllegalAccessException {
+        Class<?> declaringClass = field.getDeclaringClass();
+        MethodHandles.Lookup lookup = MoreMethodHandles.privateLookupIn(declaringClass);
+        this.getter = lookup.unreflectGetter(field);
+        this.setter = lookup.unreflectSetter(field);
+    }
 
+    public MethodHandle getGetter() {
+        return this.getter;
+    }
+
+    public MethodHandle getSetter() {
+        return this.setter;
+    }
 }

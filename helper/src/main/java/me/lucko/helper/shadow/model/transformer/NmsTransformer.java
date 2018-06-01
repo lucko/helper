@@ -23,30 +23,23 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow;
+package me.lucko.helper.shadow.model.transformer;
 
-import me.lucko.helper.reflect.proxy.MoreMethodHandles;
+import me.lucko.helper.reflect.ServerReflection;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Field;
+import javax.annotation.Nonnull;
 
-class FieldMethodHandle {
-    private final MethodHandle getter;
-    private final MethodHandle setter;
+/**
+ * A {@link ShadowTransformer} that appends the Minecraft Server package prefix to the start of the
+ * class name.
+ */
+public final class NmsTransformer implements ShadowTransformer {
+    public static final ShadowTransformer INSTANCE = new NmsTransformer();
 
-    FieldMethodHandle(Field field) throws IllegalAccessException {
-        Class<?> declaringClass = field.getDeclaringClass();
-        MethodHandles.Lookup lookup = MoreMethodHandles.privateLookupIn(declaringClass);
-        this.getter = lookup.unreflectGetter(field);
-        this.setter = lookup.unreflectSetter(field);
+    @Nonnull
+    @Override
+    public String transformClassName(@Nonnull String className) {
+        return ServerReflection.nms(className);
     }
 
-    public MethodHandle getGetter() {
-        return this.getter;
-    }
-
-    public MethodHandle getSetter() {
-        return this.setter;
-    }
 }

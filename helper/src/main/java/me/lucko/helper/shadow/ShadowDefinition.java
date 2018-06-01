@@ -23,15 +23,15 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow;
+package me.lucko.helper.shadow;
 
 import me.lucko.helper.reflect.NmsVersion;
 import me.lucko.helper.reflect.ServerReflection;
 import me.lucko.helper.reflect.proxy.MoreMethodHandles;
-import me.lucko.helper.reflect.shadow.model.Shadow;
-import me.lucko.helper.reflect.shadow.model.name.Name;
-import me.lucko.helper.reflect.shadow.model.name.ObfuscatedName;
-import me.lucko.helper.reflect.shadow.model.name.ObfuscationMapping;
+import me.lucko.helper.shadow.model.Shadow;
+import me.lucko.helper.shadow.model.name.Name;
+import me.lucko.helper.shadow.model.name.ObfuscatedName;
+import me.lucko.helper.shadow.model.name.ObfuscationMapping;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Constructor;

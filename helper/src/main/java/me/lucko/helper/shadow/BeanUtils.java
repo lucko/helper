@@ -23,7 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow;
+package me.lucko.helper.shadow;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;

@@ -23,10 +23,10 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow.model.name;
+package me.lucko.helper.shadow.model.name;
 
-import me.lucko.helper.reflect.shadow.model.ShadowField;
-import me.lucko.helper.reflect.shadow.model.ShadowMethod;
+import me.lucko.helper.shadow.model.ShadowField;
+import me.lucko.helper.shadow.model.ShadowMethod;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

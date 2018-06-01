@@ -23,9 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow.model;
-
-import me.lucko.helper.reflect.shadow.model.transformer.ShadowTransformer;
+package me.lucko.helper.shadow.model;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -33,24 +31,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks the class a {@link Shadow} targets.
+ * Marks that a method on a {@link Shadow} should map to a method on the target class.
  */
-@Target(ElementType.TYPE)
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ShadowClass {
-
-    /**
-     * Gets the name of the class
-     *
-     * @return the name of the class
-     */
-    String className();
-
-    /**
-     * The {@link ShadowTransformer} to be used to transform the class name.
-     *
-     * @return the shadow transformer
-     */
-    Class<? extends ShadowTransformer> transformer() default ShadowTransformer.class;
+public @interface ShadowMethod {
 
 }

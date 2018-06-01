@@ -23,13 +23,13 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow;
+package me.lucko.helper.shadow;
 
 import me.lucko.helper.reflect.proxy.MoreMethodHandles;
-import me.lucko.helper.reflect.shadow.model.Shadow;
-import me.lucko.helper.reflect.shadow.model.ShadowField;
-import me.lucko.helper.reflect.shadow.model.ShadowMethod;
-import me.lucko.helper.reflect.shadow.model.Static;
+import me.lucko.helper.shadow.model.Shadow;
+import me.lucko.helper.shadow.model.ShadowField;
+import me.lucko.helper.shadow.model.ShadowMethod;
+import me.lucko.helper.shadow.model.Static;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.AnnotatedElement;

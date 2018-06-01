@@ -23,14 +23,14 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow;
+package me.lucko.helper.shadow;
 
 import me.lucko.helper.reflect.proxy.Proxies;
-import me.lucko.helper.reflect.shadow.model.Shadow;
-import me.lucko.helper.reflect.shadow.model.ShadowClass;
-import me.lucko.helper.reflect.shadow.model.transformer.NmsTransformer;
-import me.lucko.helper.reflect.shadow.model.transformer.ObcTransformer;
-import me.lucko.helper.reflect.shadow.model.transformer.ShadowTransformer;
+import me.lucko.helper.shadow.model.Shadow;
+import me.lucko.helper.shadow.model.ShadowClass;
+import me.lucko.helper.shadow.model.transformer.NmsTransformer;
+import me.lucko.helper.shadow.model.transformer.ObcTransformer;
+import me.lucko.helper.shadow.model.transformer.ShadowTransformer;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Arrays;

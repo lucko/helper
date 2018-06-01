@@ -23,30 +23,34 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow.model;
+package me.lucko.helper.shadow.model.name;
 
-import me.lucko.helper.reflect.shadow.ShadowFactory;
+import me.lucko.helper.reflect.NmsVersion;
+import me.lucko.helper.shadow.model.ShadowField;
+import me.lucko.helper.shadow.model.ShadowMethod;
 
-import javax.annotation.Nullable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
- * Marks a "shadow" interface.
- *
- * <p>{@link Shadow}s are implemented at runtime by the {@link ShadowFactory}.</p>
- *
- * <p>All non-default methods should be marked with a {@link ShadowMethod} or {@link ShadowField}
- * annotation.</p>
+ * Represents the {@link Name target name} of a {@link ShadowMethod} or {@link ShadowField} for
+ * a given {@link NmsVersion}.
  */
-public interface Shadow {
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ObfuscationMapping {
 
     /**
-     * Gets the target (handle) object for this shadow.
+     * The name of the method/field in this environment.
      *
-     * <p>Will return null for static shadows.</p>
-     *
-     * @return the shadow target
+     * @return the name
      */
-    @Nullable
-    Object getShadowTarget();
+    String name();
+
+    /**
+     * The version this mapping applies to.
+     *
+     * @return the version
+     */
+    NmsVersion version();
 
 }

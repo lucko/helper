@@ -23,23 +23,18 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.reflect.shadow.model.transformer;
+package me.lucko.helper.shadow.model;
 
-import me.lucko.helper.reflect.ServerReflection;
-
-import javax.annotation.Nonnull;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A {@link ShadowTransformer} that appends the CraftBukkit package prefix to the start of the
- * class name.
+ * Marks a method on a {@link Shadow} that targets a static method or field.
  */
-public final class ObcTransformer implements ShadowTransformer {
-    public static final ShadowTransformer INSTANCE = new ObcTransformer();
-
-    @Nonnull
-    @Override
-    public String transformClassName(@Nonnull String className) {
-        return ServerReflection.obc(className);
-    }
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Static {
 
 }
