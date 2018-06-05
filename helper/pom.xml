@@ -12,7 +12,7 @@
 
     <artifactId>helper</artifactId>
     <packaging>jar</packaging>
-    <version>5.2.4</version>
+    <version>5.3.0</version>
 
     <name>helper</name>
     <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
@@ -168,7 +168,7 @@
         <dependency>
             <groupId>me.lucko.configurate</groupId>
             <artifactId>configurate-core</artifactId>
-            <version>3.5-SNAPSHOT</version>
+            <version>3.5</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
@@ -181,7 +181,7 @@
         <dependency>
             <groupId>me.lucko.configurate</groupId>
             <artifactId>configurate-yaml</artifactId>
-            <version>3.5-SNAPSHOT</version>
+            <version>3.5</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
@@ -198,7 +198,7 @@
         <dependency>
             <groupId>me.lucko.configurate</groupId>
             <artifactId>configurate-gson</artifactId>
-            <version>3.5-SNAPSHOT</version>
+            <version>3.5</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
@@ -215,7 +215,7 @@
         <dependency>
             <groupId>me.lucko.configurate</groupId>
             <artifactId>configurate-hocon</artifactId>
-            <version>3.5-SNAPSHOT</version>
+            <version>3.5</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
