@@ -45,18 +45,18 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 
-class MergedBuilder<T> implements MergedSubscriptionBuilder<T> {
+class MergedSubscriptionBuilderImpl<T> implements MergedSubscriptionBuilder<T> {
     final TypeToken<T> handledClass;
     final Map<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> mappings = new HashMap<>();
 
-    BiConsumer<Event, Throwable> exceptionConsumer = DEFAULT_EXCEPTION_CONSUMER;
+    BiConsumer<? super Event, Throwable> exceptionConsumer = DEFAULT_EXCEPTION_CONSUMER;
 
     final List<Predicate<T>> filters = new ArrayList<>();
     final List<BiPredicate<MergedSubscription<T>, T>> preExpiryTests = new ArrayList<>(0);
     final List<BiPredicate<MergedSubscription<T>, T>> midExpiryTests = new ArrayList<>(0);
     final List<BiPredicate<MergedSubscription<T>, T>> postExpiryTests = new ArrayList<>(0);
 
-    MergedBuilder(TypeToken<T> handledClass) {
+    MergedSubscriptionBuilderImpl(TypeToken<T> handledClass) {
         this.handledClass = handledClass;
     }
 

@@ -36,10 +36,10 @@ import java.util.function.BiConsumer;
 import javax.annotation.Nonnull;
 
 class MergedHandlerListImpl<T> implements MergedHandlerList<T> {
-    private final MergedBuilder<T> builder;
+    private final MergedSubscriptionBuilderImpl<T> builder;
     private final List<BiConsumer<MergedSubscription<T>, ? super T>> handlers = new ArrayList<>(1);
 
-    MergedHandlerListImpl(@Nonnull MergedBuilder<T> builder) {
+    MergedHandlerListImpl(@Nonnull MergedSubscriptionBuilderImpl<T> builder) {
         this.builder = builder;
     }
 

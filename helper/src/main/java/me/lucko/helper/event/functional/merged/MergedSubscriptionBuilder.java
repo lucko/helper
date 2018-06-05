@@ -63,7 +63,7 @@ public interface MergedSubscriptionBuilder<T> extends SubscriptionBuilder<T> {
     @Nonnull
     static <T> MergedSubscriptionBuilder<T> newBuilder(@Nonnull Class<T> handledClass) {
         Objects.requireNonNull(handledClass, "handledClass");
-        return new MergedBuilder<>(TypeToken.of(handledClass));
+        return new MergedSubscriptionBuilderImpl<>(TypeToken.of(handledClass));
     }
 
     /**
@@ -76,7 +76,7 @@ public interface MergedSubscriptionBuilder<T> extends SubscriptionBuilder<T> {
     @Nonnull
     static <T> MergedSubscriptionBuilder<T> newBuilder(@Nonnull TypeToken<T> type) {
         Objects.requireNonNull(type, "type");
-        return new MergedBuilder<>(type);
+        return new MergedSubscriptionBuilderImpl<>(type);
     }
 
     /**
@@ -112,7 +112,7 @@ public interface MergedSubscriptionBuilder<T> extends SubscriptionBuilder<T> {
             throw new IllegalArgumentException("merge method used for only one subclass");
         }
 
-        MergedBuilder<S> h = new MergedBuilder<>(TypeToken.of(superClass));
+        MergedSubscriptionBuilderImpl<S> h = new MergedSubscriptionBuilderImpl<>(TypeToken.of(superClass));
         for (Class<? extends S> clazz : eventClasses) {
             h.bindEvent(clazz, priority, e -> e);
         }

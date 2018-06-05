@@ -68,7 +68,7 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
     private final AtomicBoolean active = new AtomicBoolean(true);
 
     @SuppressWarnings("unchecked")
-    HelperEventListener(SingleBuilder<T> builder, List<BiConsumer<SingleSubscription<T>, ? super T>> handlers) {
+    HelperEventListener(SingleSubscriptionBuilderImpl<T> builder, List<BiConsumer<SingleSubscription<T>, ? super T>> handlers) {
         this.eventClass = builder.eventClass;
         this.priority = builder.priority;
         this.exceptionConsumer = builder.exceptionConsumer;

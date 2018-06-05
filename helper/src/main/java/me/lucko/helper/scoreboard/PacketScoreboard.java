@@ -25,9 +25,6 @@
 
 package me.lucko.helper.scoreboard;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.Events;
@@ -45,6 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -54,7 +52,6 @@ import javax.annotation.Nullable;
  */
 @NonnullByDefault
 public class PacketScoreboard implements Scoreboard {
-    private final ProtocolManager protocolManager;
 
     // teams & objectives shared by all players.
     // these are automatically subscribed to when players join
@@ -65,20 +62,9 @@ public class PacketScoreboard implements Scoreboard {
     private final Map<UUID, Map<String, PacketScoreboardTeam>> playerTeams = Collections.synchronizedMap(new HashMap<>());
     private final Map<UUID, Map<String, PacketScoreboardObjective>> playerObjectives = Collections.synchronizedMap(new HashMap<>());
 
-    public PacketScoreboard() {
-        this(null);
-    }
-
-    public PacketScoreboard(@Nullable HelperPlugin plugin) {
-        this.protocolManager = ProtocolLibrary.getProtocolManager();
-
-        if (plugin != null) {
-            Events.subscribe(PlayerJoinEvent.class).handler(this::handlePlayerJoin).bindWith(plugin);
-            Events.subscribe(PlayerQuitEvent.class).handler(this::handlePlayerQuit).bindWith(plugin);
-        } else {
-            Events.subscribe(PlayerJoinEvent.class).handler(this::handlePlayerJoin);
-            Events.subscribe(PlayerQuitEvent.class).handler(this::handlePlayerQuit);
-        }
+    public PacketScoreboard(@Nonnull HelperPlugin plugin) {
+        Events.subscribe(PlayerJoinEvent.class).handler(this::handlePlayerJoin).bindWith(plugin);
+        Events.subscribe(PlayerQuitEvent.class).handler(this::handlePlayerQuit).bindWith(plugin);
     }
 
     private void handlePlayerJoin(PlayerJoinEvent event) {
@@ -127,7 +113,7 @@ public class PacketScoreboard implements Scoreboard {
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
         Preconditions.checkState(!this.teams.containsKey(id), "id already exists");
 
-        PacketScoreboardTeam team = new PacketScoreboardTeam(this, id, title, autoSubscribe);
+        PacketScoreboardTeam team = new PacketScoreboardTeam(id, title, autoSubscribe);
         if (autoSubscribe) {
             for (Player player : Players.all()) {
                 team.subscribe(player);
@@ -160,7 +146,7 @@ public class PacketScoreboard implements Scoreboard {
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
         Preconditions.checkState(!this.objectives.containsKey(id), "id already exists");
 
-        PacketScoreboardObjective objective = new PacketScoreboardObjective(this, id, title, displaySlot, autoSubscribe);
+        PacketScoreboardObjective objective = new PacketScoreboardObjective(id, title, displaySlot, autoSubscribe);
         if (autoSubscribe) {
             for (Player player : Players.all()) {
                 objective.subscribe(player);
@@ -194,7 +180,7 @@ public class PacketScoreboard implements Scoreboard {
         Map<String, PacketScoreboardTeam> teams = this.playerTeams.computeIfAbsent(player.getUniqueId(), p -> new HashMap<>());
         Preconditions.checkState(!teams.containsKey(id), "id already exists");
 
-        PacketScoreboardTeam team = new PacketScoreboardTeam(this, id, title, autoSubscribe);
+        PacketScoreboardTeam team = new PacketScoreboardTeam(id, title, autoSubscribe);
         if (autoSubscribe) {
             team.subscribe(player);
         }
@@ -236,7 +222,7 @@ public class PacketScoreboard implements Scoreboard {
         Map<String, PacketScoreboardObjective> objectives = this.playerObjectives.computeIfAbsent(player.getUniqueId(), p -> new HashMap<>());
         Preconditions.checkState(!objectives.containsKey(id), "id already exists");
 
-        PacketScoreboardObjective objective = new PacketScoreboardObjective(this, id, title, displaySlot, autoSubscribe);
+        PacketScoreboardObjective objective = new PacketScoreboardObjective(id, title, displaySlot, autoSubscribe);
         if (autoSubscribe) {
             objective.subscribe(player);
         }
@@ -270,32 +256,6 @@ public class PacketScoreboard implements Scoreboard {
 
         objective.unsubscribeAll();
         return true;
-    }
-
-    /**
-     * Sends a packet to a player, absorbing any exceptions thrown in the process
-     *
-     * @param packet the packet to send
-     * @param player the player to send the packet to
-     */
-    void sendPacket(PacketContainer packet, Player player) {
-        try {
-            this.protocolManager.sendServerPacket(player, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Sends a packet to an iterable of players
-     *
-     * @param players the players to send the packet to
-     * @param packet the packet to send
-     */
-    void broadcastPacket(Iterable<Player> players, PacketContainer packet) {
-        for (Player player : players) {
-            sendPacket(packet, player);
-        }
     }
 
 }

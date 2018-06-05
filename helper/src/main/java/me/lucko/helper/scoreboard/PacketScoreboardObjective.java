@@ -31,6 +31,7 @@ import com.comphenix.protocol.wrappers.EnumWrappers.ScoreboardAction;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
+import me.lucko.helper.protocol.Protocol;
 import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -66,8 +67,6 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
         return name.length() > MAX_NAME_LENGTH ? name.substring(0, MAX_NAME_LENGTH) : name;
     }
 
-    // the parent scoreboard
-    private final PacketScoreboard scoreboard;
     // the id of this objective
     private final String id;
     // if players should be automatically subscribed
@@ -86,17 +85,15 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     /**
      * Creates a new scoreboard objective
      *
-     * @param scoreboard the parent scoreboard
      * @param id the id of this objective
      * @param displayName the initial display name
      * @param displaySlot the initial display slot
      * @param autoSubscribe if players should be automatically subscribed
      */
-    public PacketScoreboardObjective(PacketScoreboard scoreboard, String id, String displayName, DisplaySlot displaySlot, boolean autoSubscribe) {
+    public PacketScoreboardObjective(String id, String displayName, DisplaySlot displaySlot, boolean autoSubscribe) {
         Objects.requireNonNull(id, "id");
         Preconditions.checkArgument(id.length() <= 16, "id cannot be longer than 16 characters");
 
-        this.scoreboard = Objects.requireNonNull(scoreboard, "scoreboard");
         this.id = id;
         this.displayName = trimName(Text.colorize(Objects.requireNonNull(displayName, "displayName")));
         this.displaySlot = Objects.requireNonNull(displaySlot, "displaySlot");
@@ -106,13 +103,12 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     /**
      * Creates a new scoreboard objective
      *
-     * @param scoreboard the parent scoreboard
      * @param id the id of this objective
      * @param displayName the initial display name
      * @param displaySlot the initial display slot
      */
-    public PacketScoreboardObjective(PacketScoreboard scoreboard, String id, String displayName, DisplaySlot displaySlot) {
-        this(scoreboard, id, displayName, displaySlot, true);
+    public PacketScoreboardObjective(String id, String displayName, DisplaySlot displaySlot) {
+        this(id, displayName, displaySlot, true);
     }
 
     @Override
@@ -144,7 +140,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
         }
 
         this.displayName = displayName;
-        this.scoreboard.broadcastPacket(this.subscribed, newObjectivePacket(UpdateType.UPDATE));
+        Protocol.broadcastPacket(this.subscribed, newObjectivePacket(UpdateType.UPDATE));
     }
 
     @Override
@@ -160,7 +156,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
         }
 
         this.displaySlot = displaySlot;
-        this.scoreboard.broadcastPacket(this.subscribed, newDisplaySlotPacket(displaySlot));
+        Protocol.broadcastPacket(this.subscribed, newDisplaySlotPacket(displaySlot));
     }
 
     @Override
@@ -191,7 +187,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
             return;
         }
 
-        this.scoreboard.broadcastPacket(this.subscribed, newScorePacket(name, value, ScoreboardAction.CHANGE));
+        Protocol.broadcastPacket(this.subscribed, newScorePacket(name, value, ScoreboardAction.CHANGE));
     }
 
     @Override
@@ -203,7 +199,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
             return false;
         }
 
-        this.scoreboard.broadcastPacket(this.subscribed, newScorePacket(name, 0, ScoreboardAction.REMOVE));
+        Protocol.broadcastPacket(this.subscribed, newScorePacket(name, 0, ScoreboardAction.REMOVE));
         return true;
     }
 
@@ -211,7 +207,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     public void clearScores() {
         this.scores.clear();
 
-        this.scoreboard.broadcastPacket(this.subscribed, newObjectivePacket(UpdateType.REMOVE));
+        Protocol.broadcastPacket(this.subscribed, newObjectivePacket(UpdateType.REMOVE));
         for (Player player : this.subscribed) {
             subscribe(player);
         }
@@ -252,10 +248,10 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
     @Override
     public void subscribe(Player player) {
         Objects.requireNonNull(player, "player");
-        this.scoreboard.sendPacket(newObjectivePacket(UpdateType.CREATE), player);
-        this.scoreboard.sendPacket(newDisplaySlotPacket(getDisplaySlot()), player);
+        Protocol.sendPacket(player, newObjectivePacket(UpdateType.CREATE));
+        Protocol.sendPacket(player, newDisplaySlotPacket(getDisplaySlot()));
         for (Map.Entry<String, Integer> score : getScores().entrySet()) {
-            this.scoreboard.sendPacket(newScorePacket(score.getKey(), score.getValue(), ScoreboardAction.CHANGE), player);
+            Protocol.sendPacket(player, newScorePacket(score.getKey(), score.getValue(), ScoreboardAction.CHANGE));
         }
         this.subscribed.add(player);
     }
@@ -272,12 +268,12 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
             return;
         }
 
-        this.scoreboard.sendPacket(newObjectivePacket(UpdateType.REMOVE), player);
+        Protocol.sendPacket(player, newObjectivePacket(UpdateType.REMOVE));
     }
 
     @Override
     public void unsubscribeAll() {
-        this.scoreboard.broadcastPacket(this.subscribed, newObjectivePacket(UpdateType.REMOVE));
+        Protocol.broadcastPacket(this.subscribed, newObjectivePacket(UpdateType.REMOVE));
         this.subscribed.clear();
     }
 
