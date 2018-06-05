@@ -180,11 +180,19 @@ class LilyPadNetworkImpl implements LilyPadNetwork {
 
         @Override
         public Set<Profile> getOnlinePlayers() {
+            if (!isOnline()) {
+                return ImmutableSet.of();
+            }
+
             return this.players;
         }
 
         @Override
         public int getMaxPlayers() {
+            if (!isOnline()) {
+                return 0;
+            }
+
             return this.maxPlayers;
         }
 

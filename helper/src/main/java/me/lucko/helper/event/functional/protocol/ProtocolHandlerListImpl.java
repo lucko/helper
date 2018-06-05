@@ -23,12 +23,11 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.event.functional.single;
+package me.lucko.helper.event.functional.protocol;
 
-import me.lucko.helper.event.SingleSubscription;
-import me.lucko.helper.internal.LoaderUtils;
+import com.comphenix.protocol.events.PacketEvent;
 
-import org.bukkit.event.Event;
+import me.lucko.helper.event.ProtocolSubscription;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,17 +36,17 @@ import java.util.function.BiConsumer;
 
 import javax.annotation.Nonnull;
 
-class SingleHandlerListImpl<T extends Event> implements SingleHandlerList<T> {
-    private final SingleSubscriptionBuilderImpl<T> builder;
-    private final List<BiConsumer<SingleSubscription<T>, ? super T>> handlers = new ArrayList<>(1);
+class ProtocolHandlerListImpl implements ProtocolHandlerList {
+    private final ProtocolSubscriptionBuilderImpl builder;
+    private final List<BiConsumer<ProtocolSubscription, ? super PacketEvent>> handlers = new ArrayList<>(1);
 
-    SingleHandlerListImpl(@Nonnull SingleSubscriptionBuilderImpl<T> builder) {
+    ProtocolHandlerListImpl(@Nonnull ProtocolSubscriptionBuilderImpl builder) {
         this.builder = builder;
     }
 
     @Nonnull
     @Override
-    public SingleHandlerList<T> biConsumer(@Nonnull BiConsumer<SingleSubscription<T>, ? super T> handler) {
+    public ProtocolHandlerList biConsumer(@Nonnull BiConsumer<ProtocolSubscription, ? super PacketEvent> handler) {
         Objects.requireNonNull(handler, "handler");
         this.handlers.add(handler);
         return this;
@@ -55,13 +54,7 @@ class SingleHandlerListImpl<T extends Event> implements SingleHandlerList<T> {
 
     @Nonnull
     @Override
-    public SingleSubscription<T> register() {
-        if (this.handlers.isEmpty()) {
-            throw new IllegalStateException("No handlers have been registered");
-        }
-
-        HelperEventListener<T> listener = new HelperEventListener<>(this.builder, this.handlers);
-        listener.register(LoaderUtils.getPlugin());
-        return listener;
+    public ProtocolSubscription register() {
+        return new HelperProtocolListener(builder, handlers);
     }
 }

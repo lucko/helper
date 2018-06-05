@@ -26,25 +26,19 @@
 package me.lucko.helper.signprompt;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
 
 import me.lucko.helper.Schedulers;
-import me.lucko.helper.internal.LoaderUtils;
-import me.lucko.helper.plugin.HelperPlugin;
+import me.lucko.helper.protocol.Protocol;
 import me.lucko.helper.utils.Players;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,13 +50,6 @@ import javax.annotation.Nonnull;
  * Implementation of {@link SignPromptFactory} using ProtocolLib.
  */
 public class PacketSignPromptFactory implements SignPromptFactory {
-    private final HelperPlugin plugin;
-    private final ProtocolManager protocolManager;
-
-    public PacketSignPromptFactory() {
-        this.plugin = LoaderUtils.getPlugin();
-        this.protocolManager = ProtocolLibrary.getProtocolManager();
-    }
 
     @Override
     public void openPrompt(@Nonnull Player player, @Nonnull List<String> lines, @Nonnull ResponseHandler responseHandler) {
@@ -86,67 +73,41 @@ public class PacketSignPromptFactory implements SignPromptFactory {
         compound.put("z", position.getZ());
 
         writeToSign.getNbtModifier().write(0, compound);
-        try {
-            this.protocolManager.sendServerPacket(player, writeToSign);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
+        Protocol.sendPacket(player, writeToSign);
 
         PacketContainer openSign = new PacketContainer(PacketType.Play.Server.OPEN_SIGN_EDITOR);
         openSign.getBlockPositionModifier().write(0, position);
-        try {
-            this.protocolManager.sendServerPacket(player, openSign);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
-
-        this.protocolManager.addPacketListener(new SignChangeListener(this, player, responseHandler, location));
-    }
-
-    private static final class SignChangeListener extends PacketAdapter {
+        Protocol.sendPacket(player, openSign);
 
         // we need to ensure that the callback is only called once.
-        private final AtomicBoolean active = new AtomicBoolean(true);
+        final AtomicBoolean active = new AtomicBoolean(true);
 
-        private final PacketSignPromptFactory factory;
-        private final Player player;
-        private final ResponseHandler responseHandler;
-        private final Location signLocation;
+        Protocol.subscribe(PacketType.Play.Client.UPDATE_SIGN)
+                .filter(e -> e.getPlayer().getUniqueId().equals(player.getUniqueId()))
+                .biHandler((sub, event) -> {
+                    if (!active.getAndSet(false)) {
+                        return;
+                    }
 
-        private SignChangeListener(PacketSignPromptFactory factory, Player player, ResponseHandler responseHandler, Location signLocation) {
-            super(factory.plugin, PacketType.Play.Client.UPDATE_SIGN);
-            this.factory = factory;
-            this.player = player;
-            this.responseHandler = responseHandler;
-            this.signLocation = signLocation;
-        }
+                    PacketContainer container = event.getPacket();
 
-        @Override
-        public void onPacketReceiving(PacketEvent event) {
-            if (event.getPlayer().getUniqueId().equals(this.player.getUniqueId())) {
-                if (!this.active.getAndSet(false)) {
-                    return;
-                }
+                    String[] newLines = container.getStringArrays().read(0);
+                    List<String> l = new ArrayList<>(Arrays.asList(newLines));
 
-                PacketContainer container = event.getPacket();
+                    Response response = responseHandler.handleResponse(lines);
+                    if (response == Response.TRY_AGAIN) {
+                        // didn't pass, re-send the sign and request another input
+                        Schedulers.sync().runLater(() -> {
+                            if (player.isOnline()) {
+                                openPrompt(player, l, responseHandler);
+                            }
+                        }, 1L);
+                    }
 
-                String[] newLines = container.getStringArrays().read(0);
-                List<String> lines = new ArrayList<>(Arrays.asList(newLines));
-
-                Response response = this.responseHandler.handleResponse(lines);
-                if (response == Response.TRY_AGAIN) {
-                    // didn't pass, re-send the sign and request another input
-                    Schedulers.sync().runLater(() -> {
-                        if (this.player.isOnline()) {
-                            this.factory.openPrompt(this.player, lines, this.responseHandler);
-                        }
-                    }, 1L);
-                }
-
-                // cleanup this instance
-                this.factory.protocolManager.removePacketListener(this);
-                Players.sendBlockChange(this.player, this.signLocation, Material.AIR);
-            }
-        }
+                    // cleanup this instance
+                    sub.close();
+                    Players.sendBlockChange(player, location, Material.AIR);
+                });
     }
+
 }

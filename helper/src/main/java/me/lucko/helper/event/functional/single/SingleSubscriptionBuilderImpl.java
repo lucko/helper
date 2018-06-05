@@ -40,7 +40,7 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 
-class SingleBuilder<T extends Event> implements SingleSubscriptionBuilder<T> {
+class SingleSubscriptionBuilderImpl<T extends Event> implements SingleSubscriptionBuilder<T> {
     final Class<T> eventClass;
     final EventPriority priority;
 
@@ -51,7 +51,7 @@ class SingleBuilder<T extends Event> implements SingleSubscriptionBuilder<T> {
     final List<BiPredicate<SingleSubscription<T>, T>> midExpiryTests = new ArrayList<>(0);
     final List<BiPredicate<SingleSubscription<T>, T>> postExpiryTests = new ArrayList<>(0);
 
-    SingleBuilder(Class<T> eventClass, EventPriority priority) {
+    SingleSubscriptionBuilderImpl(Class<T> eventClass, EventPriority priority) {
         this.eventClass = eventClass;
         this.priority = priority;
     }

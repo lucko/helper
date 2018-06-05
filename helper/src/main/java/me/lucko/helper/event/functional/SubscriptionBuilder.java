@@ -27,8 +27,6 @@ package me.lucko.helper.event.functional;
 
 import me.lucko.helper.utils.Log;
 
-import org.bukkit.event.Event;
-
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
@@ -42,7 +40,7 @@ import javax.annotation.Nonnull;
  */
 public interface SubscriptionBuilder<T> {
 
-    BiConsumer<Event, Throwable> DEFAULT_EXCEPTION_CONSUMER = (event, throwable) -> {
+    BiConsumer<Object, Throwable> DEFAULT_EXCEPTION_CONSUMER = (event, throwable) -> {
         Log.severe("[EVENTS] Exception thrown whilst handling event: " + event.getClass().getName());
         throwable.printStackTrace();
     };

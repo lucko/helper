@@ -26,19 +26,15 @@
 package me.lucko.helper.hologram.individual;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.ListenerPriority;
-import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
 import me.lucko.helper.Events;
-import me.lucko.helper.internal.LoaderUtils;
+import me.lucko.helper.protocol.Protocol;
 import me.lucko.helper.reflect.MinecraftVersion;
 import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.reflect.ServerReflection;
@@ -103,16 +99,10 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
         }
     }
 
-    private final ProtocolManager protocolManager;
-
-    public PacketIndividualHologramFactory() {
-        this.protocolManager = ProtocolLibrary.getProtocolManager();
-    }
-
     @Nonnull
     @Override
     public IndividualHologram newHologram(@Nonnull Position position, @Nonnull List<HologramLine> lines) {
-        return new PacketHologram(this.protocolManager, position, lines);
+        return new PacketHologram(position, lines);
     }
 
     private static final class HologramEntity {
@@ -156,7 +146,6 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
     }
 
     private static final class PacketHologram implements IndividualHologram {
-        private final ProtocolManager protocolManager;
 
         private Position position;
         private final List<HologramLine> lines = new ArrayList<>();
@@ -167,8 +156,7 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
         private CompositeTerminable listeners = null;
         private Consumer<Player> clickCallback = null;
 
-        PacketHologram(ProtocolManager protocolManager, Position position, List<HologramLine> lines) {
-            this.protocolManager = protocolManager;
+        PacketHologram(Position position, List<HologramLine> lines) {
             this.position = Objects.requireNonNull(position, "position");
             updateLines(lines);
         }
@@ -360,8 +348,7 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                 spawnPacket.getIntegers().write(7, 0);
 
                 // send it
-                sendPacket(spawnPacket, player);
-
+                Protocol.sendPacket(player, spawnPacket);
 
 
                 // send missed metadata
@@ -388,7 +375,7 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                 metadataPacket.getWatchableCollectionModifier().write(0, watchableObjects);
 
                 // send it
-                sendPacket(metadataPacket, player);
+                Protocol.sendPacket(player, metadataPacket);
             }
         }
 
@@ -405,7 +392,7 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
             int[] ids = this.spawnedEntities.stream().mapToInt(HologramEntity::getId).toArray();
             destroyPacket.getIntegerArrays().write(0, ids);
 
-            sendPacket(destroyPacket, player);
+            Protocol.sendPacket(player, destroyPacket);
         }
 
         @Override
@@ -421,14 +408,6 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
         @Override
         public boolean isClosed() {
             return !this.spawned;
-        }
-
-        private void sendPacket(PacketContainer packet, Player player) {
-            try {
-                this.protocolManager.sendServerPacket(player, packet);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
 
         private HologramEntity getHologramEntity(int entityId) {
@@ -448,120 +427,96 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                     .handler(e -> this.viewers.remove(e.getPlayer()))
                     .bindWith(this.listeners);
 
-            Consumer<PacketAdapter> register = adapter -> {
-                this.protocolManager.addPacketListener(adapter);
-                this.listeners.with(() -> this.protocolManager.removePacketListener(adapter));
-            };
+            Protocol.subscribe(ListenerPriority.HIGH, PacketType.Play.Server.ENTITY_METADATA)
+                    .handler(e -> {
+                        PacketContainer packet = e.getPacket();
+                        Player player = e.getPlayer();
 
-            register.accept(new MetadataListener());
-            register.accept(new EntityListener());
-            register.accept(new ClickListener());
-        }
+                        // get entity id
+                        int entityId = packet.getIntegers().read(0);
 
-        private final class MetadataListener extends PacketAdapter {
-            private MetadataListener() {
-                super(LoaderUtils.getPlugin(), ListenerPriority.HIGH, PacketType.Play.Server.ENTITY_METADATA);
-            }
+                        // find a matching hologram line
+                        HologramEntity hologram = getHologramEntity(entityId);
+                        if (hologram == null) {
+                            return;
+                        }
 
-            @Override
-            public void onPacketSending(PacketEvent e) {
-                PacketContainer packet = e.getPacket();
-                Player player = e.getPlayer();
+                        // get metadata
+                        List<WrappedWatchableObject> metadata = new ArrayList<>(packet.getWatchableCollectionModifier().read(0));
 
-                // get entity id
-                int entityId = packet.getIntegers().read(0);
+                        // process metadata
+                        for (WrappedWatchableObject value : metadata) {
+                            if (value.getIndex() == 2) {
+                                value.setValue(Text.colorize(hologram.getLine().resolve(player)));
+                            } else {
+                                // cache the metadata
+                                hologram.getCachedMetadata().put(value.getIndex(), value);
+                            }
+                        }
 
-                // find a matching hologram line
-                HologramEntity hologram = getHologramEntity(entityId);
-                if (hologram == null) {
-                    return;
-                }
+                        if (!this.viewers.contains(player)) {
+                            e.setCancelled(true);
+                            return;
+                        }
 
-                // get metadata
-                List<WrappedWatchableObject> metadata = new ArrayList<>(packet.getWatchableCollectionModifier().read(0));
+                        packet.getWatchableCollectionModifier().write(0, metadata);
+                    })
+                    .bindWith(this.listeners);
 
-                // process metadata
-                for (WrappedWatchableObject value : metadata) {
-                    if (value.getIndex() == 2) {
-                        value.setValue(Text.colorize(hologram.getLine().resolve(player)));
-                    } else {
-                        // cache the metadata
-                        hologram.getCachedMetadata().put(value.getIndex(), value);
-                    }
-                }
+            Protocol.subscribe(ListenerPriority.HIGH, PacketType.Play.Server.SPAWN_ENTITY)
+                    .handler(e -> {
+                        PacketContainer packet = e.getPacket();
+                        Player player = e.getPlayer();
 
-                if (!PacketHologram.this.viewers.contains(player)) {
-                    e.setCancelled(true);
-                    return;
-                }
+                        // get entity id
+                        int entityId = packet.getIntegers().read(0);
 
-                packet.getWatchableCollectionModifier().write(0, metadata);
-            }
-        }
+                        // find a matching hologram
+                        HologramEntity hologram = getHologramEntity(entityId);
+                        if (hologram == null) {
+                            return;
+                        }
 
-        private final class EntityListener extends PacketAdapter {
-            private EntityListener() {
-                super(LoaderUtils.getPlugin(), ListenerPriority.HIGH, PacketType.Play.Server.SPAWN_ENTITY);
-            }
+                        if (!this.viewers.contains(player)) {
+                            e.setCancelled(true);
+                        }
+                    })
+                    .bindWith(this.listeners);
 
-            @Override
-            public void onPacketSending(PacketEvent e) {
-                PacketContainer packet = e.getPacket();
-                Player player = e.getPlayer();
+            Protocol.subscribe(ListenerPriority.HIGH, PacketType.Play.Client.USE_ENTITY)
+                    .handler(e -> {
+                        PacketContainer packet = e.getPacket();
+                        Player player = e.getPlayer();
 
-                // get entity id
-                int entityId = packet.getIntegers().read(0);
+                        // get entity id
+                        int entityId = packet.getIntegers().read(0);
 
-                // find a matching hologram
-                HologramEntity hologram = getHologramEntity(entityId);
-                if (hologram == null) {
-                    return;
-                }
+                        // find a matching hologram
+                        HologramEntity hologram = getHologramEntity(entityId);
+                        if (hologram == null) {
+                            return;
+                        }
 
-                if (!PacketHologram.this.viewers.contains(player)) {
-                    e.setCancelled(true);
-                }
-            }
-        }
+                        // always cancel interacts involving hologram objects
+                        e.setCancelled(true);
 
-        private final class ClickListener extends PacketAdapter {
-            private ClickListener() {
-                super(LoaderUtils.getPlugin(), ListenerPriority.HIGH, PacketType.Play.Client.USE_ENTITY);
-            }
+                        if (this.clickCallback == null) {
+                            return;
+                        }
 
-            @Override
-            public void onPacketReceiving(PacketEvent e) {
-                PacketContainer packet = e.getPacket();
-                Player player = e.getPlayer();
+                        // if the player isn't a viewer, don't process the click
+                        if (!this.viewers.contains(player)) {
+                            return;
+                        }
 
-                // get entity id
-                int entityId = packet.getIntegers().read(0);
+                        Location location = hologram.getArmorStand().getLocation();
+                        if (player.getLocation().distance(location) > 5) {
+                            return;
+                        }
 
-                // find a matching hologram
-                HologramEntity hologram = getHologramEntity(entityId);
-                if (hologram == null) {
-                    return;
-                }
-
-                // always cancel interacts involving hologram objects
-                e.setCancelled(true);
-
-                if (PacketHologram.this.clickCallback == null) {
-                    return;
-                }
-
-                // if the player isn't a viewer, don't process the click
-                if (!PacketHologram.this.viewers.contains(player)) {
-                    return;
-                }
-
-                Location location = hologram.getArmorStand().getLocation();
-                if (player.getLocation().distance(location) > 5) {
-                    return;
-                }
-
-                PacketHologram.this.clickCallback.accept(player);
-            }
+                        this.clickCallback.accept(player);
+                    })
+                    .bindWith(this.listeners);
         }
     }
 }

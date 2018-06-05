@@ -23,17 +23,18 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.event.functional.single;
+package me.lucko.helper.event.functional.protocol;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.events.ListenerPriority;
+import com.comphenix.protocol.events.PacketEvent;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
-import me.lucko.helper.event.SingleSubscription;
+import me.lucko.helper.event.ProtocolSubscription;
 import me.lucko.helper.event.functional.ExpiryTestStage;
 import me.lucko.helper.event.functional.SubscriptionBuilder;
 import me.lucko.helper.utils.Delegates;
-
-import org.bukkit.event.Event;
-import org.bukkit.event.EventPriority;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -45,52 +46,46 @@ import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 
 /**
- * Functional builder for {@link SingleSubscription}s.
- *
- * @param <T> the event type
+ * Functional builder for {@link ProtocolSubscription}s.
  */
-public interface SingleSubscriptionBuilder<T extends Event> extends SubscriptionBuilder<T> {
+public interface ProtocolSubscriptionBuilder extends SubscriptionBuilder<PacketEvent> {
 
     /**
-     * Makes a HandlerBuilder for a given event
+     * Makes a HandlerBuilder for the given packets
      *
-     * @param eventClass the class of the event
-     * @param <T>        the event type
-     * @return a {@link SingleSubscriptionBuilder} to construct the event handler
-     * @throws NullPointerException if eventClass is null
+     * @param packets the packets to handle
+     * @return a {@link ProtocolSubscriptionBuilder} to construct the event handler
      */
     @Nonnull
-    static <T extends Event> SingleSubscriptionBuilder<T> newBuilder(@Nonnull Class<T> eventClass) {
-        return newBuilder(eventClass, EventPriority.NORMAL);
+    static ProtocolSubscriptionBuilder newBuilder(@Nonnull PacketType... packets) {
+        return newBuilder(ListenerPriority.NORMAL, packets);
     }
 
     /**
-     * Makes a HandlerBuilder for a given event
+     * Makes a HandlerBuilder for the given packets
      *
-     * @param eventClass the class of the event
      * @param priority   the priority to listen at
-     * @param <T>        the event type
-     * @return a {@link SingleSubscriptionBuilder} to construct the event handler
-     * @throws NullPointerException if eventClass or priority is null
+     * @param packets the packets to handle
+     * @return a {@link ProtocolSubscriptionBuilder} to construct the event handler
      */
     @Nonnull
-    static <T extends Event> SingleSubscriptionBuilder<T> newBuilder(@Nonnull Class<T> eventClass, @Nonnull EventPriority priority) {
-        Objects.requireNonNull(eventClass, "eventClass");
+    static ProtocolSubscriptionBuilder newBuilder(@Nonnull ListenerPriority priority, @Nonnull PacketType... packets) {
         Objects.requireNonNull(priority, "priority");
-        return new SingleSubscriptionBuilderImpl<>(eventClass, priority);
+        Objects.requireNonNull(packets, "packets");
+        return new ProtocolSubscriptionBuilderImpl(ImmutableSet.copyOf(packets), priority);
     }
 
     // override return type - we return SingleSubscriptionBuilder, not SubscriptionBuilder
 
     @Nonnull
     @Override
-    default SingleSubscriptionBuilder<T> expireIf(@Nonnull Predicate<T> predicate) {
+    default ProtocolSubscriptionBuilder expireIf(@Nonnull Predicate<PacketEvent> predicate) {
         return expireIf(Delegates.predicateToBiPredicateSecond(predicate), ExpiryTestStage.PRE, ExpiryTestStage.POST_HANDLE);
     }
 
     @Nonnull
     @Override
-    default SingleSubscriptionBuilder<T> expireAfter(long duration, @Nonnull TimeUnit unit) {
+    default ProtocolSubscriptionBuilder expireAfter(long duration, @Nonnull TimeUnit unit) {
         Objects.requireNonNull(unit, "unit");
         Preconditions.checkArgument(duration >= 1, "duration < 1");
         long expiry = Math.addExact(System.currentTimeMillis(), unit.toMillis(duration));
@@ -99,14 +94,14 @@ public interface SingleSubscriptionBuilder<T extends Event> extends Subscription
 
     @Nonnull
     @Override
-    default SingleSubscriptionBuilder<T> expireAfter(long maxCalls) {
+    default ProtocolSubscriptionBuilder expireAfter(long maxCalls) {
         Preconditions.checkArgument(maxCalls >= 1, "maxCalls < 1");
         return expireIf((handler, event) -> handler.getCallCounter() >= maxCalls, ExpiryTestStage.PRE, ExpiryTestStage.POST_HANDLE);
     }
 
     @Nonnull
     @Override
-    SingleSubscriptionBuilder<T> filter(@Nonnull Predicate<T> predicate);
+    ProtocolSubscriptionBuilder filter(@Nonnull Predicate<PacketEvent> predicate);
 
     /**
      * Add a expiry predicate.
@@ -116,7 +111,7 @@ public interface SingleSubscriptionBuilder<T extends Event> extends Subscription
      * @return ths builder instance
      */
     @Nonnull
-    SingleSubscriptionBuilder<T> expireIf(@Nonnull BiPredicate<SingleSubscription<T>, T> predicate, @Nonnull ExpiryTestStage... testPoints);
+    ProtocolSubscriptionBuilder expireIf(@Nonnull BiPredicate<ProtocolSubscription, PacketEvent> predicate, @Nonnull ExpiryTestStage... testPoints);
 
     /**
      * Sets the exception consumer for the handler.
@@ -128,7 +123,7 @@ public interface SingleSubscriptionBuilder<T extends Event> extends Subscription
      * @throws NullPointerException if the consumer is null
      */
     @Nonnull
-    SingleSubscriptionBuilder<T> exceptionConsumer(@Nonnull BiConsumer<? super T, Throwable> consumer);
+    ProtocolSubscriptionBuilder exceptionConsumer(@Nonnull BiConsumer<? super PacketEvent, Throwable> consumer);
 
     /**
      * Return the handler list builder to append handlers for the event.
@@ -136,17 +131,17 @@ public interface SingleSubscriptionBuilder<T extends Event> extends Subscription
      * @return the handler list
      */
     @Nonnull
-    SingleHandlerList<T> handlers();
+    ProtocolHandlerList handlers();
 
     /**
      * Builds and registers the Handler.
      *
      * @param handler the consumer responsible for handling the event.
-     * @return a registered {@link SingleSubscription} instance.
+     * @return a registered {@link ProtocolSubscription} instance.
      * @throws NullPointerException if the handler is null
      */
     @Nonnull
-    default SingleSubscription<T> handler(@Nonnull Consumer<? super T> handler) {
+    default ProtocolSubscription handler(@Nonnull Consumer<? super PacketEvent> handler) {
         return handlers().consumer(handler).register();
     }
 
@@ -154,11 +149,11 @@ public interface SingleSubscriptionBuilder<T extends Event> extends Subscription
      * Builds and registers the Handler.
      *
      * @param handler the bi-consumer responsible for handling the event.
-     * @return a registered {@link SingleSubscription} instance.
+     * @return a registered {@link ProtocolSubscription} instance.
      * @throws NullPointerException if the handler is null
      */
     @Nonnull
-    default SingleSubscription<T> biHandler(@Nonnull BiConsumer<SingleSubscription<T>, ? super T> handler) {
+    default ProtocolSubscription biHandler(@Nonnull BiConsumer<ProtocolSubscription, ? super PacketEvent> handler) {
         return handlers().biConsumer(handler).register();
     }
     

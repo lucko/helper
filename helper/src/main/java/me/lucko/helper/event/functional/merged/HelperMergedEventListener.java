@@ -59,7 +59,7 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
     private final TypeToken<T> handledClass;
     private final Map<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> mappings;
 
-    private final BiConsumer<Event, Throwable> exceptionConsumer;
+    private final BiConsumer<? super Event, Throwable> exceptionConsumer;
 
     private final Predicate<T>[] filters;
     private final BiPredicate<MergedSubscription<T>, T>[] preExpiryTests;
@@ -73,7 +73,7 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
     private final AtomicBoolean active = new AtomicBoolean(true);
 
     @SuppressWarnings("unchecked")
-    HelperMergedEventListener(MergedBuilder<T> builder, List<BiConsumer<MergedSubscription<T>, ? super T>> handlers) {
+    HelperMergedEventListener(MergedSubscriptionBuilderImpl<T> builder, List<BiConsumer<MergedSubscription<T>, ? super T>> handlers) {
         this.handledClass = builder.handledClass;
         this.mappings = ImmutableMap.copyOf(builder.mappings);
         this.exceptionConsumer = builder.exceptionConsumer;
