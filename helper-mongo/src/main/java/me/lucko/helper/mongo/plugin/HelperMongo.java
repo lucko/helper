@@ -67,7 +67,6 @@ public class HelperMongo implements Mongo {
                 return LoaderUtils.getPlugin().getClassloader();
             }
         });
-        this.morphiaDatastore = this.morphia.createDatastore(this.client, credentials.getDatabase());
     }
 
     @Nonnull
