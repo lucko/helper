@@ -61,6 +61,13 @@ public class HelperMongo implements Mongo {
         this.database = this.client.getDatabase(credentials.getDatabase());
         this.morphia = new Morphia();
         this.morphiaDatastore = this.morphia.createDatastore(this.client, credentials.getDatabase());
+        this.morphia.getMapper().getOptions().setObjectFactory(new DefaultCreator() {
+            @Override
+            protected ClassLoader getClassLoaderForClass() {
+                return LoaderUtils.getPlugin().getClassloader();
+            }
+        });
+        this.morphiaDatastore = this.morphia.createDatastore(this.client, credentials.getDatabase());
     }
 
     @Nonnull
