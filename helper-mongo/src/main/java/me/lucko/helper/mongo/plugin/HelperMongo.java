@@ -31,11 +31,13 @@ import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 
+import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.mongo.Mongo;
 import me.lucko.helper.mongo.MongoDatabaseCredentials;
 
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.mapping.DefaultCreator;
 
 import javax.annotation.Nonnull;
 
