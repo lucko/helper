@@ -25,8 +25,6 @@
 
 package me.lucko.helper.utils;
 
-import com.google.common.base.Throwables;
-
 import me.lucko.helper.interfaces.Delegate;
 
 import java.util.concurrent.Callable;
@@ -102,9 +100,9 @@ public final class Delegates {
         public T get() {
             try {
                 return this.delegate.call();
+            } catch (RuntimeException | Error e) {
+                throw e;
             } catch (Exception e) {
-                // try to propagate the exception
-                Throwables.throwIfUnchecked(e);
                 throw new RuntimeException(e);
             }
         }
