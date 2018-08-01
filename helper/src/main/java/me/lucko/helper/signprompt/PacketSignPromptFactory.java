@@ -91,15 +91,14 @@ public class PacketSignPromptFactory implements SignPromptFactory {
 
                     PacketContainer container = event.getPacket();
 
-                    String[] newLines = container.getStringArrays().read(0);
-                    List<String> l = new ArrayList<>(Arrays.asList(newLines));
+                    List<String> input = new ArrayList<>(Arrays.asList(container.getStringArrays().read(0)));
+                    Response response = responseHandler.handleResponse(input);
 
-                    Response response = responseHandler.handleResponse(l);
                     if (response == Response.TRY_AGAIN) {
                         // didn't pass, re-send the sign and request another input
                         Schedulers.sync().runLater(() -> {
                             if (player.isOnline()) {
-                                openPrompt(player, l, responseHandler);
+                                openPrompt(player, lines, responseHandler);
                             }
                         }, 1L);
                     }
