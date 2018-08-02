@@ -78,12 +78,13 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.flowpowered:flow-math</include>
+                                    <include>net.jodah:expiringmap</include>
                                     <include>co.aikar:minecraft-timings</include>
                                     <include>net.kyori:text</include>
-                                    <include>me.lucko.configurate:configurate-core</include>
-                                    <include>me.lucko.configurate:configurate-yaml</include>
-                                    <include>me.lucko.configurate:configurate-gson</include>
-                                    <include>me.lucko.configurate:configurate-hocon</include>
+                                    <include>org.spongepowered:configurate-core</include>
+                                    <include>org.spongepowered:configurate-yaml</include>
+                                    <include>org.spongepowered:configurate-gson</include>
+                                    <include>org.spongepowered:configurate-hocon</include>
                                     <include>com.typesafe:config</include>
                                 </includes>
                             </artifactSet>
@@ -164,11 +165,18 @@
             <version>1.0.3</version>
             <scope>compile</scope>
         </dependency>
+        <!-- expiringmap -->
+        <dependency>
+            <groupId>net.jodah</groupId>
+            <artifactId>expiringmap</artifactId>
+            <version>0.5.8</version>
+            <scope>compile</scope>
+        </dependency>
         <!-- configurate -->
         <dependency>
-            <groupId>me.lucko.configurate</groupId>
+            <groupId>org.spongepowered</groupId>
             <artifactId>configurate-core</artifactId>
-            <version>3.5</version>
+            <version>3.6</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
@@ -179,14 +187,14 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>me.lucko.configurate</groupId>
+            <groupId>org.spongepowered</groupId>
             <artifactId>configurate-yaml</artifactId>
-            <version>3.5</version>
+            <version>3.6</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
-                    <groupId>me.lucko.configurate</groupId>
+                    <groupId>org.spongepowered</groupId>
                     <artifactId>configurate-core</artifactId>
                 </exclusion>
                 <exclusion>
@@ -196,14 +204,14 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>me.lucko.configurate</groupId>
+            <groupId>org.spongepowered</groupId>
             <artifactId>configurate-gson</artifactId>
-            <version>3.5</version>
+            <version>3.6</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
-                    <groupId>me.lucko.configurate</groupId>
+                    <groupId>org.spongepowered</groupId>
                     <artifactId>configurate-core</artifactId>
                 </exclusion>
                 <exclusion>
@@ -213,14 +221,14 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>me.lucko.configurate</groupId>
+            <groupId>org.spongepowered</groupId>
             <artifactId>configurate-hocon</artifactId>
-            <version>3.5</version>
+            <version>3.6</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
-                    <groupId>me.lucko.configurate</groupId>
+                    <groupId>org.spongepowered</groupId>
                     <artifactId>configurate-core</artifactId>
                 </exclusion>
             </exclusions>
@@ -277,7 +285,7 @@
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
             <artifactId>ProtocolLib-API</artifactId>
-            <version>4.3.1-SNAPSHOT</version>
+            <version>4.4.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!-- citizens -->
@@ -304,6 +312,10 @@
         <repository>
             <id>aikar-repo</id>
             <url>http://repo.aikar.co/nexus/content/groups/aikar/</url>
+        </repository>
+        <repository>
+            <id>sponge-repo</id>
+            <url>https://repo.spongepowered.org/maven</url>
         </repository>
     </repositories>
 
