@@ -25,8 +25,6 @@
 
 package me.lucko.helper.lilypad.redirect;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.Events;
@@ -40,6 +38,9 @@ import me.lucko.helper.messaging.conversation.ConversationReplyListener;
 import me.lucko.helper.profiles.Profile;
 import me.lucko.helper.promise.Promise;
 import me.lucko.helper.text.Text;
+
+import net.jodah.expiringmap.ExpirationPolicy;
+import net.jodah.expiringmap.ExpiringMap;
 
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
@@ -60,8 +61,9 @@ class RedirectSystemImpl implements RedirectSystem {
     private final ConversationChannel<RequestMessage, ResponseMessage> channel;
     private final ConversationChannelAgent<RequestMessage, ResponseMessage> agent;
 
-    private final Cache<UUID, Response> expectedPlayers = CacheBuilder.newBuilder()
-            .expireAfterWrite(5, TimeUnit.SECONDS)
+    private final ExpiringMap<UUID, Response> expectedPlayers = ExpiringMap.builder()
+            .expiration(5, TimeUnit.SECONDS)
+            .expirationPolicy(ExpirationPolicy.CREATED)
             .build();
 
     private final SingleSubscription<AsyncPlayerPreLoginEvent> loginEventListener;
@@ -111,7 +113,7 @@ class RedirectSystemImpl implements RedirectSystem {
         this.loginEventListener = Events.subscribe(AsyncPlayerPreLoginEvent.class)
                 .filter(e -> this.ensureJoinedViaQueue)
                 .handler(e -> {
-                    Response response = this.expectedPlayers.asMap().remove(e.getUniqueId());
+                    Response response = this.expectedPlayers.remove(e.getUniqueId());
                     if (response == null || !response.isAllowed()) {
                         e.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST, Text.colorize("&cSorry! The server is unable to process your login at this time. (queue error)"));
                     }
@@ -171,7 +173,7 @@ class RedirectSystemImpl implements RedirectSystem {
 
     @Override
     public int getExpectedConnectionsCount() {
-        return (int) this.expectedPlayers.size();
+        return this.expectedPlayers.size();
     }
 
     @Override
