@@ -36,9 +36,14 @@ import org.bukkit.Bukkit;
 
 import co.aikar.timings.lib.MCTiming;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -52,7 +57,7 @@ public final class HelperExecutors {
 
     private static final Executor SYNC_BUKKIT = new BukkitSyncExecutor();
     private static final Executor ASYNC_BUKKIT = new BukkitAsyncExecutor();
-    private static final ScheduledExecutorService ASYNC_HELPER = new HelperAsyncExecutor();
+    private static final HelperAsyncExecutor ASYNC_HELPER = new HelperAsyncExecutor();
 
     public static Executor sync() {
         return SYNC_BUKKIT;
@@ -64,6 +69,10 @@ public final class HelperExecutors {
 
     public static Executor asyncBukkit() {
         return ASYNC_BUKKIT;
+    }
+
+    public static void shutdown() {
+        ASYNC_HELPER.cancelRepeatingTasks();
     }
 
     private static final class BukkitSyncExecutor implements Executor {
@@ -81,13 +90,36 @@ public final class HelperExecutors {
     }
 
     private static final class HelperAsyncExecutor extends ScheduledThreadPoolExecutor {
+        private final Set<ScheduledFuture<?>> tasks = Collections.newSetFromMap(new WeakHashMap<>());
+
         private HelperAsyncExecutor() {
             super(16, new ThreadFactoryBuilder().setNameFormat("helper-scheduler-%d").build());
+        }
+
+        private ScheduledFuture<?> consumeTask(ScheduledFuture<?> future) {
+            this.tasks.add(future);
+            return future;
+        }
+
+        public void cancelRepeatingTasks() {
+            for (ScheduledFuture<?> task : this.tasks) {
+                task.cancel(false);
+            }
         }
 
         @Override
         public void execute(Runnable runnable) {
             super.execute(wrapRunnable(runnable));
+        }
+
+        @Override
+        public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
+            return consumeTask(super.scheduleAtFixedRate(command, initialDelay, period, unit));
+        }
+
+        @Override
+        public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
+            return consumeTask(super.scheduleWithFixedDelay(command, initialDelay, delay, unit));
         }
     }
 

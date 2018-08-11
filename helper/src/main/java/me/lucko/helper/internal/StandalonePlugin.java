@@ -38,6 +38,7 @@ import me.lucko.helper.messaging.bungee.BungeeCordImpl;
 import me.lucko.helper.npc.CitizensNpcFactory;
 import me.lucko.helper.npc.NpcFactory;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
+import me.lucko.helper.scheduler.HelperExecutors;
 import me.lucko.helper.scoreboard.PacketScoreboardProvider;
 import me.lucko.helper.scoreboard.ScoreboardProvider;
 import me.lucko.helper.signprompt.PacketSignPromptFactory;
@@ -96,6 +97,12 @@ public final class StandalonePlugin extends ExtendedJavaPlugin {
             BossBarFactory bossBarFactory = new BukkitBossBarFactory(getServer());
             provideService(BossBarFactory.class, bossBarFactory);
         }
+    }
+
+    @Override
+    protected void disable() {
+        // shutdown the scheduler
+        HelperExecutors.shutdown();
     }
 
     private static boolean classExists(String clazz) {

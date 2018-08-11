@@ -56,7 +56,7 @@ public class HelperLilyPad implements LilyPad {
         this.messenger = new AbstractMessenger(
                 (channel, message) -> {
                     try {
-                        connect.request(new MessageRequest(Collections.emptyList(), channel, message));
+                        this.connect.request(new MessageRequest(Collections.emptyList(), channel, message));
                     } catch (RequestException e) {
                         e.printStackTrace();
                     }
@@ -66,7 +66,7 @@ public class HelperLilyPad implements LilyPad {
                         return;
                     }
                     try {
-                        connect.registerEvents(this);
+                        this.connect.registerEvents(this);
                     } catch (Exception e) {
                         this.listening.set(false);
                     }
