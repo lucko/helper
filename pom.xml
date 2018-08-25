@@ -14,7 +14,7 @@
         <module>helper-redis</module>
         <module>helper-mongo</module>
         <module>helper-lilypad</module>
-        <module>helper-js</module>
+        <!-- <module>helper-js</module> -->
         <module>helper-profiles</module>
     </modules>
 
@@ -55,7 +55,7 @@
         <source.version>3.0.1</source.version>
         <javadoc.version>2.10.4</javadoc.version>
 
-        <bukkit.version>1.12.2-R0.1-SNAPSHOT</bukkit.version>
+        <bukkit.version>1.13-R0.1-SNAPSHOT</bukkit.version>
     </properties>
 
     <distributionManagement>
