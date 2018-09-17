@@ -91,10 +91,12 @@ public abstract class FileStorageHandler<T> {
 
             File backupFile = new File(backupDir, this.fileName + "-" + DATE_FORMAT.format(new Date(System.currentTimeMillis())) + this.fileExtension);
 
-            try {
-                Files.move(file.toPath(), backupFile.toPath());
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (!backupFile.exists()) {
+                try {
+                    Files.move(file.toPath(), backupFile.toPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
