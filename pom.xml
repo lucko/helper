@@ -14,7 +14,7 @@
         <module>helper-redis</module>
         <module>helper-mongo</module>
         <module>helper-lilypad</module>
-        <!-- <module>helper-js</module> -->
+        <module>helper-js</module>
         <module>helper-profiles</module>
     </modules>
 
