@@ -25,8 +25,9 @@
 
 package me.lucko.helper.reflect;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
+import me.lucko.helper.utils.Indexing;
 
 import java.util.Map;
 import java.util.Set;
@@ -152,18 +153,7 @@ public enum NmsVersion {
         return Class.forName(obc(className));
     }
 
-
-
-    private static final Map<MinecraftVersion, NmsVersion> MC_TO_NMS;
-    static {
-        ImmutableMap.Builder<MinecraftVersion, NmsVersion> mcToNms = ImmutableMap.builder();
-        for (NmsVersion v : values()) {
-            for (MinecraftVersion mcVersion : v.getMinecraftVersions()) {
-                mcToNms.put(mcVersion, v);
-            }
-        }
-        MC_TO_NMS = mcToNms.build();
-    }
+    private static final Map<MinecraftVersion, NmsVersion> MC_TO_NMS = Indexing.buildMultiple(values(), NmsVersion::getMinecraftVersions);
 
     /**
      * Gets the {@link NmsVersion} for the given {@link MinecraftVersion}.

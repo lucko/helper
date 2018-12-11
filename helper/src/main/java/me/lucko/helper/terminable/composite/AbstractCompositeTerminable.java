@@ -65,6 +65,14 @@ public class AbstractCompositeTerminable implements CompositeTerminable {
 
     @Override
     public void cleanup() {
-        this.closeables.removeIf(ac -> ac instanceof Terminable && ((Terminable) ac).isClosed());
+        this.closeables.removeIf(ac -> {
+            if (!(ac instanceof Terminable)) {
+                return false;
+            }
+            if (ac instanceof CompositeTerminable) {
+                ((CompositeTerminable) ac).cleanup();
+            }
+            return ((Terminable) ac).isClosed();
+        });
     }
 }
