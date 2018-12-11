@@ -26,49 +26,44 @@
 package me.lucko.helper.shadows.nbt;
 
 import me.lucko.helper.nbt.NBTTagType;
-import me.lucko.helper.reflect.NmsVersion;
-import me.lucko.helper.shadow.model.Shadow;
-import me.lucko.helper.shadow.model.ShadowClass;
-import me.lucko.helper.shadow.model.ShadowField;
-import me.lucko.helper.shadow.model.ShadowMethod;
-import me.lucko.helper.shadow.model.Static;
-import me.lucko.helper.shadow.model.name.ObfuscatedName;
-import me.lucko.helper.shadow.model.name.ObfuscationMapping;
-import me.lucko.helper.shadow.model.transformer.NmsTransformer;
+import me.lucko.shadow.Field;
+import me.lucko.shadow.Shadow;
+import me.lucko.shadow.Static;
+import me.lucko.shadow.bukkit.Mapping;
+import me.lucko.shadow.bukkit.NmsClassTarget;
+import me.lucko.shadow.bukkit.ObfuscatedTarget;
+import me.lucko.shadow.bukkit.PackageVersion;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-@ShadowClass(className = "NBTBase", transformer = NmsTransformer.class)
+@NmsClassTarget("NBTBase")
 public interface NBTBase extends Shadow {
 
     @Static
-    @ShadowField
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "a", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "a", version = NmsVersion.v1_8_R3)
+    @Field
+    @ObfuscatedTarget({
+            @Mapping(value = "a", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "a", version = PackageVersion.v1_8_R3)
     })
     String[] getTypes();
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "write", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "write", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "write", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "write", version = PackageVersion.v1_8_R3)
     })
     void write(DataOutput dataOutput) throws IOException;
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "load", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "load", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "load", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "load", version = PackageVersion.v1_8_R3)
     })
     void load(DataInput dataInput, int depth, NBTReadLimiter readLimiter) throws IOException;
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getTypeId", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getTypeId", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getTypeId", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getTypeId", version = PackageVersion.v1_8_R3)
     })
     byte getTypeId();
 
@@ -76,17 +71,15 @@ public interface NBTBase extends Shadow {
         return NBTTagType.of(getTypeId());
     }
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "clone", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "clone", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "clone", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "clone", version = PackageVersion.v1_8_R3)
     })
     NBTBase copy();
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "isEmpty", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "isEmpty", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "isEmpty", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "isEmpty", version = PackageVersion.v1_8_R3)
     })
     boolean hasNoTags();
 

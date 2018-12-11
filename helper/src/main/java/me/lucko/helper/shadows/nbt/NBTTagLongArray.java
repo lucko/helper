@@ -25,32 +25,31 @@
 
 package me.lucko.helper.shadows.nbt;
 
-import me.lucko.helper.reflect.NmsVersion;
-import me.lucko.helper.shadow.ShadowFactory;
-import me.lucko.helper.shadow.model.Shadow;
-import me.lucko.helper.shadow.model.ShadowClass;
-import me.lucko.helper.shadow.model.ShadowField;
-import me.lucko.helper.shadow.model.name.ObfuscatedName;
-import me.lucko.helper.shadow.model.name.ObfuscationMapping;
-import me.lucko.helper.shadow.model.transformer.NmsTransformer;
+import me.lucko.shadow.Field;
+import me.lucko.shadow.Shadow;
+import me.lucko.shadow.ShadowFactory;
+import me.lucko.shadow.bukkit.Mapping;
+import me.lucko.shadow.bukkit.NmsClassTarget;
+import me.lucko.shadow.bukkit.ObfuscatedTarget;
+import me.lucko.shadow.bukkit.PackageVersion;
 
 import java.util.List;
 
 // This type did not exist in 1.8.8
-@ShadowClass(className = "NBTTagLongArray", transformer = NmsTransformer.class)
+@NmsClassTarget("NBTTagLongArray")
 public interface NBTTagLongArray extends Shadow, NBTBase {
 
     static NBTTagLongArray create(long[] data) {
-        return ShadowFactory.constructShadow(NBTTagLongArray.class, (Object) data);
+        return ShadowFactory.global().constructShadow(NBTTagLongArray.class, (Object) data);
     }
 
     static NBTTagLongArray create(List<Long> data) {
-        return ShadowFactory.constructShadow(NBTTagLongArray.class, (Object) data);
+        return ShadowFactory.global().constructShadow(NBTTagLongArray.class, (Object) data);
     }
 
-    @ShadowField
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "b", version = NmsVersion.v1_12_R1)
+    @Field
+    @ObfuscatedTarget({
+            @Mapping(value = "b", version = PackageVersion.v1_12_R1)
     })
     long[] getLongArray();
 

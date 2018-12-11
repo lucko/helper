@@ -25,61 +25,53 @@
 
 package me.lucko.helper.shadows.nbt;
 
-import me.lucko.helper.reflect.NmsVersion;
-import me.lucko.helper.shadow.ShadowFactory;
-import me.lucko.helper.shadow.model.Shadow;
-import me.lucko.helper.shadow.model.ShadowClass;
-import me.lucko.helper.shadow.model.ShadowMethod;
-import me.lucko.helper.shadow.model.name.ObfuscatedName;
-import me.lucko.helper.shadow.model.name.ObfuscationMapping;
-import me.lucko.helper.shadow.model.transformer.NmsTransformer;
+import me.lucko.shadow.Shadow;
+import me.lucko.shadow.ShadowFactory;
+import me.lucko.shadow.bukkit.Mapping;
+import me.lucko.shadow.bukkit.NmsClassTarget;
+import me.lucko.shadow.bukkit.ObfuscatedTarget;
+import me.lucko.shadow.bukkit.PackageVersion;
 
-@ShadowClass(className = "NBTTagList", transformer = NmsTransformer.class)
+@NmsClassTarget("NBTTagList")
 public interface NBTTagList extends Shadow, NBTBase {
 
     static NBTTagList create() {
-        return ShadowFactory.constructShadow(NBTTagList.class);
+        return ShadowFactory.global().constructShadow(NBTTagList.class);
     }
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "add", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "add", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "add", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "add", version = PackageVersion.v1_8_R3)
     })
     void appendTag(NBTBase nbt);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "a", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "a", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "a", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "a", version = PackageVersion.v1_8_R3)
     })
     void setTag(int index, NBTBase nbt);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "remove", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "a", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "remove", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "a", version = PackageVersion.v1_8_R3)
     })
     void removeTag(int index);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "i", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "g", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "i", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "g", version = PackageVersion.v1_8_R3)
     })
     NBTBase getTag(int index);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "get", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "get", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "get", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "get", version = PackageVersion.v1_8_R3)
     })
     NBTTagCompound getCompoundTag(int index);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "size", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "size", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "size", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "size", version = PackageVersion.v1_8_R3)
     })
     int size();
 

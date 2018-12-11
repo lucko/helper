@@ -25,32 +25,29 @@
 
 package me.lucko.helper.shadows.nbt;
 
-import me.lucko.helper.reflect.NmsVersion;
-import me.lucko.helper.shadow.ShadowFactory;
-import me.lucko.helper.shadow.model.Shadow;
-import me.lucko.helper.shadow.model.ShadowClass;
-import me.lucko.helper.shadow.model.ShadowMethod;
-import me.lucko.helper.shadow.model.name.ObfuscatedName;
-import me.lucko.helper.shadow.model.name.ObfuscationMapping;
-import me.lucko.helper.shadow.model.transformer.NmsTransformer;
+import me.lucko.shadow.Shadow;
+import me.lucko.shadow.ShadowFactory;
+import me.lucko.shadow.bukkit.Mapping;
+import me.lucko.shadow.bukkit.NmsClassTarget;
+import me.lucko.shadow.bukkit.ObfuscatedTarget;
+import me.lucko.shadow.bukkit.PackageVersion;
 
 import java.util.List;
 
-@ShadowClass(className = "NBTTagIntArray", transformer = NmsTransformer.class)
+@NmsClassTarget("NBTTagIntArray")
 public interface NBTTagIntArray extends Shadow, NBTBase {
 
     static NBTTagIntArray create(int[] data) {
-        return ShadowFactory.constructShadow(NBTTagIntArray.class, (Object) data);
+        return ShadowFactory.global().constructShadow(NBTTagIntArray.class, (Object) data);
     }
 
     static NBTTagIntArray create(List<Integer> data) {
-        return ShadowFactory.constructShadow(NBTTagIntArray.class, (Object) data);
+        return ShadowFactory.global().constructShadow(NBTTagIntArray.class, (Object) data);
     }
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "d", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "c", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "d", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "c", version = PackageVersion.v1_8_R3)
     })
     int[] getIntArray();
 

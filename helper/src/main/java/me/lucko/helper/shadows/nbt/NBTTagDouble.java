@@ -25,16 +25,15 @@
 
 package me.lucko.helper.shadows.nbt;
 
-import me.lucko.helper.shadow.ShadowFactory;
-import me.lucko.helper.shadow.model.Shadow;
-import me.lucko.helper.shadow.model.ShadowClass;
-import me.lucko.helper.shadow.model.transformer.NmsTransformer;
+import me.lucko.shadow.Shadow;
+import me.lucko.shadow.ShadowFactory;
+import me.lucko.shadow.bukkit.NmsClassTarget;
 
-@ShadowClass(className = "NBTTagDouble", transformer = NmsTransformer.class)
+@NmsClassTarget("NBTTagDouble")
 public interface NBTTagDouble extends Shadow, NBTBase, NBTNumber {
 
     static NBTTagDouble create(double data) {
-        return ShadowFactory.constructShadow(NBTTagDouble.class, data);
+        return ShadowFactory.global().constructShadow(NBTTagDouble.class, data);
     }
 
 }

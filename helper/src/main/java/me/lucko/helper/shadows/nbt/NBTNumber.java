@@ -25,52 +25,45 @@
 
 package me.lucko.helper.shadows.nbt;
 
-import me.lucko.helper.reflect.NmsVersion;
-import me.lucko.helper.shadow.model.ShadowMethod;
-import me.lucko.helper.shadow.model.name.ObfuscatedName;
-import me.lucko.helper.shadow.model.name.ObfuscationMapping;
+import me.lucko.shadow.bukkit.Mapping;
+import me.lucko.shadow.bukkit.ObfuscatedTarget;
+import me.lucko.shadow.bukkit.PackageVersion;
 
 public interface NBTNumber {
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "d", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "c", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "d", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "c", version = PackageVersion.v1_8_R3)
     })
     long asLong();
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "e", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "d", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "e", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "d", version = PackageVersion.v1_8_R3)
     })
     int asInt();
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "f", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "e", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "f", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "e", version = PackageVersion.v1_8_R3)
     })
     short asShort();
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "g", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "f", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "g", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "f", version = PackageVersion.v1_8_R3)
     })
     byte asByte();
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "asDouble", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "g", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "asDouble", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "g", version = PackageVersion.v1_8_R3)
     })
     double asDouble();
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "i", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "h", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "i", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "h", version = PackageVersion.v1_8_R3)
     })
     float asFloat();
 
