@@ -42,9 +42,9 @@ public interface Terminable extends AutoCloseable {
     void close() throws Exception;
 
     /**
-     * Gets if the object represented by this instance is closed already.
+     * Gets if the object represented by this instance is already permanently closed.
      *
-     * @return true if this terminable has been closed already
+     * @return true if this terminable is closed permanently
      */
     default boolean isClosed() {
         return false;
