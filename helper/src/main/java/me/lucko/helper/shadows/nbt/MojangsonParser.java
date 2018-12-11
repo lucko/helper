@@ -25,23 +25,20 @@
 
 package me.lucko.helper.shadows.nbt;
 
-import me.lucko.helper.reflect.NmsVersion;
-import me.lucko.helper.shadow.model.Shadow;
-import me.lucko.helper.shadow.model.ShadowClass;
-import me.lucko.helper.shadow.model.ShadowMethod;
-import me.lucko.helper.shadow.model.Static;
-import me.lucko.helper.shadow.model.name.ObfuscatedName;
-import me.lucko.helper.shadow.model.name.ObfuscationMapping;
-import me.lucko.helper.shadow.model.transformer.NmsTransformer;
+import me.lucko.shadow.Shadow;
+import me.lucko.shadow.Static;
+import me.lucko.shadow.bukkit.Mapping;
+import me.lucko.shadow.bukkit.NmsClassTarget;
+import me.lucko.shadow.bukkit.ObfuscatedTarget;
+import me.lucko.shadow.bukkit.PackageVersion;
 
-@ShadowClass(className = "MojangsonParser", transformer = NmsTransformer.class)
+@NmsClassTarget("MojangsonParser")
 public interface MojangsonParser extends Shadow {
 
     @Static
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "parse", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "parse", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "parse", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "parse", version = PackageVersion.v1_8_R3)
     })
     NBTTagCompound parse(String s);
 

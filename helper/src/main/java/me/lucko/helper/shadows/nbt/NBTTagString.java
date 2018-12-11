@@ -25,26 +25,23 @@
 
 package me.lucko.helper.shadows.nbt;
 
-import me.lucko.helper.reflect.NmsVersion;
-import me.lucko.helper.shadow.ShadowFactory;
-import me.lucko.helper.shadow.model.Shadow;
-import me.lucko.helper.shadow.model.ShadowClass;
-import me.lucko.helper.shadow.model.ShadowMethod;
-import me.lucko.helper.shadow.model.name.ObfuscatedName;
-import me.lucko.helper.shadow.model.name.ObfuscationMapping;
-import me.lucko.helper.shadow.model.transformer.NmsTransformer;
+import me.lucko.shadow.Shadow;
+import me.lucko.shadow.ShadowFactory;
+import me.lucko.shadow.bukkit.Mapping;
+import me.lucko.shadow.bukkit.NmsClassTarget;
+import me.lucko.shadow.bukkit.ObfuscatedTarget;
+import me.lucko.shadow.bukkit.PackageVersion;
 
-@ShadowClass(className = "NBTTagString", transformer = NmsTransformer.class)
+@NmsClassTarget("NBTTagString")
 public interface NBTTagString extends Shadow, NBTBase {
 
     static NBTTagString create(String data) {
-        return ShadowFactory.constructShadow(NBTTagString.class, data);
+        return ShadowFactory.global().constructShadow(NBTTagString.class, data);
     }
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getString", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "a_", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getString", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "a_", version = PackageVersion.v1_8_R3)
     })
     String getString();
 

@@ -25,238 +25,205 @@
 
 package me.lucko.helper.shadows.nbt;
 
-import me.lucko.helper.reflect.NmsVersion;
-import me.lucko.helper.shadow.ShadowFactory;
-import me.lucko.helper.shadow.model.Shadow;
-import me.lucko.helper.shadow.model.ShadowClass;
-import me.lucko.helper.shadow.model.ShadowMethod;
-import me.lucko.helper.shadow.model.name.ObfuscatedName;
-import me.lucko.helper.shadow.model.name.ObfuscationMapping;
-import me.lucko.helper.shadow.model.transformer.NmsTransformer;
+import me.lucko.shadow.Shadow;
+import me.lucko.shadow.ShadowFactory;
+import me.lucko.shadow.bukkit.Mapping;
+import me.lucko.shadow.bukkit.NmsClassTarget;
+import me.lucko.shadow.bukkit.ObfuscatedTarget;
+import me.lucko.shadow.bukkit.PackageVersion;
 
 import java.util.Set;
 
-@ShadowClass(className = "NBTTagCompound", transformer = NmsTransformer.class)
+@NmsClassTarget("NBTTagCompound")
 public interface NBTTagCompound extends Shadow, NBTBase {
 
     static NBTTagCompound create() {
-        return ShadowFactory.constructShadow(NBTTagCompound.class);
+        return ShadowFactory.global().constructShadow(NBTTagCompound.class);
     }
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "c", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "c", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "c", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "c", version = PackageVersion.v1_8_R3)
     })
     Set<String> keySet();
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "d", version = NmsVersion.v1_12_R1),
+    @ObfuscatedTarget({
+            @Mapping(value = "d", version = PackageVersion.v1_12_R1),
             // Not present on 1.8.8
     })
     int size();
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "set", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "set", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "set", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "set", version = PackageVersion.v1_8_R3)
     })
     void setTag(String key, NBTBase value);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "remove", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "remove", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "remove", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "remove", version = PackageVersion.v1_8_R3)
     })
     void removeTag(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "setByte", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "setByte", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "setByte", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "setByte", version = PackageVersion.v1_8_R3)
     })
     void setByte(String key, byte value);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "setShort", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "setShort", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "setShort", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "setShort", version = PackageVersion.v1_8_R3)
     })
     void setShort(String key, short value);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "setInt", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "setInt", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "setInt", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "setInt", version = PackageVersion.v1_8_R3)
     })
     void setInteger(String key, int value);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "setLong", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "setLong", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "setLong", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "setLong", version = PackageVersion.v1_8_R3)
     })
     void setLong(String key, long value);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "setFloat", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "setFloat", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "setFloat", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "setFloat", version = PackageVersion.v1_8_R3)
     })
     void setFloat(String key, float value);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "setDouble", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "setDouble", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "setDouble", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "setDouble", version = PackageVersion.v1_8_R3)
     })
     void setDouble(String key, double value);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "setString", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "setString", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "setString", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "setString", version = PackageVersion.v1_8_R3)
     })
     void setString(String key, String value);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "setByteArray", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "setByteArray", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "setByteArray", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "setByteArray", version = PackageVersion.v1_8_R3)
     })
     void setByteArray(String key, byte[] value);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "setIntArray", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "setIntArray", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "setIntArray", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "setIntArray", version = PackageVersion.v1_8_R3)
     })
     void setIntArray(String key, int[] value);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "setBoolean", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "setBoolean", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "setBoolean", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "setBoolean", version = PackageVersion.v1_8_R3)
     })
     void setBoolean(String key, boolean value);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "get", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "get", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "get", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "get", version = PackageVersion.v1_8_R3)
     })
     NBTBase getTag(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "d", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "b", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "d", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "b", version = PackageVersion.v1_8_R3)
     })
     byte getTagId(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "hasKey", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "hasKey", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "hasKey", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "hasKey", version = PackageVersion.v1_8_R3)
     })
     boolean hasKey(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "hasKeyOfType", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "hasKeyOfType", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "hasKeyOfType", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "hasKeyOfType", version = PackageVersion.v1_8_R3)
     })
     boolean hasKey(String key, int type);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getByte", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getByte", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getByte", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getByte", version = PackageVersion.v1_8_R3)
     })
     byte getByte(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getShort", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getShort", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getShort", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getShort", version = PackageVersion.v1_8_R3)
     })
     short getShort(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getInt", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getInt", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getInt", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getInt", version = PackageVersion.v1_8_R3)
     })
     int getInteger(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getLong", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getLong", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getLong", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getLong", version = PackageVersion.v1_8_R3)
     })
     long getLong(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getFloat", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getFloat", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getFloat", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getFloat", version = PackageVersion.v1_8_R3)
     })
     float getFloat(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getDouble", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getDouble", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getDouble", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getDouble", version = PackageVersion.v1_8_R3)
     })
     double getDouble(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getString", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getString", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getString", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getString", version = PackageVersion.v1_8_R3)
     })
     String getString(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getByteArray", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getByteArray", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getByteArray", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getByteArray", version = PackageVersion.v1_8_R3)
     })
     byte[] getByteArray(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getIntArray", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getIntArray", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getIntArray", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getIntArray", version = PackageVersion.v1_8_R3)
     })
     int[] getIntArray(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getCompound", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getCompound", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getCompound", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getCompound", version = PackageVersion.v1_8_R3)
     })
     NBTTagCompound getCompoundTag(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getList", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getList", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getList", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getList", version = PackageVersion.v1_8_R3)
     })
     NBTTagList getTagList(String key, int type);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "getBoolean", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "getBoolean", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "getBoolean", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "getBoolean", version = PackageVersion.v1_8_R3)
     })
     boolean getBoolean(String key);
 
-    @ShadowMethod
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "a", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "a", version = NmsVersion.v1_8_R3)
+    @ObfuscatedTarget({
+            @Mapping(value = "a", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "a", version = PackageVersion.v1_8_R3)
     })
     void merge(NBTTagCompound other);
 

@@ -25,28 +25,28 @@
 
 package me.lucko.helper.shadows.nbt;
 
-import me.lucko.helper.reflect.NmsVersion;
-import me.lucko.helper.shadow.ShadowFactory;
-import me.lucko.helper.shadow.model.Shadow;
-import me.lucko.helper.shadow.model.ShadowClass;
-import me.lucko.helper.shadow.model.ShadowField;
-import me.lucko.helper.shadow.model.Static;
-import me.lucko.helper.shadow.model.name.ObfuscatedName;
-import me.lucko.helper.shadow.model.name.ObfuscationMapping;
-import me.lucko.helper.shadow.model.transformer.NmsTransformer;
+import me.lucko.shadow.Field;
+import me.lucko.shadow.Shadow;
+import me.lucko.shadow.ShadowFactory;
+import me.lucko.shadow.Static;
+import me.lucko.shadow.bukkit.Mapping;
+import me.lucko.shadow.bukkit.NmsClassTarget;
+import me.lucko.shadow.bukkit.ObfuscatedTarget;
+import me.lucko.shadow.bukkit.PackageVersion;
 
-@ShadowClass(className = "NBTReadLimiter", transformer = NmsTransformer.class)
+
+@NmsClassTarget("NBTReadLimiter")
 public interface NBTReadLimiter extends Shadow {
 
     static NBTReadLimiter create(long max) {
-        return ShadowFactory.constructShadow(NBTReadLimiter.class, max);
+        return ShadowFactory.global().constructShadow(NBTReadLimiter.class, max);
     }
 
     @Static
-    @ShadowField
-    @ObfuscatedName({
-            @ObfuscationMapping(name = "a", version = NmsVersion.v1_12_R1),
-            @ObfuscationMapping(name = "a", version = NmsVersion.v1_8_R3)
+    @Field
+    @ObfuscatedTarget({
+            @Mapping(value = "a", version = PackageVersion.v1_12_R1),
+            @Mapping(value = "a", version = PackageVersion.v1_8_R3)
     })
     NBTReadLimiter infinite();
 
