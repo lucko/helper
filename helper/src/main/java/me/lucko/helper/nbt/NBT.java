@@ -25,10 +25,10 @@
 
 package me.lucko.helper.nbt;
 
-import me.lucko.helper.shadow.ShadowFactory;
 import me.lucko.helper.shadows.nbt.MojangsonParser;
 import me.lucko.helper.shadows.nbt.NBTBase;
 import me.lucko.helper.shadows.nbt.NBTTagCompound;
+import me.lucko.shadow.ShadowFactory;
 
 /**
  * Utilities for working with NBT shadows.
@@ -40,21 +40,21 @@ public final class NBT {
     private static MojangsonParser parser() {
         // harmless race
         if (parser == null) {
-            return parser = ShadowFactory.staticShadow(MojangsonParser.class);
+            return parser = ShadowFactory.global().staticShadow(MojangsonParser.class);
         }
         return parser;
     }
 
     public static NBTBase shadow(Object nbtObject) {
         // first, shadow as a NBTBase
-        NBTBase shadow = ShadowFactory.shadow(NBTBase.class, nbtObject);
+        NBTBase shadow = ShadowFactory.global().shadow(NBTBase.class, nbtObject);
 
         // extract the tag's type
         NBTTagType type = shadow.getType();
         Class<? extends NBTBase> realClass = type.shadowClass();
 
         // return a shadow instance for the actual type
-        return ShadowFactory.shadow(realClass, nbtObject);
+        return ShadowFactory.global().shadow(realClass, nbtObject);
     }
 
     public static NBTTagCompound parse(String s) {
