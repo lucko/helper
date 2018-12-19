@@ -51,7 +51,8 @@ import me.lucko.scriptcontroller.logging.SystemLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.PackageInfo;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -105,19 +106,18 @@ public class HelperJsPlugin extends ExtendedJavaPlugin implements HelperJs {
 
         // search for packages which match the default import patterns
         getLogger().info("Scanning the classpath to resolve default package imports...");
-        FastClasspathScanner classpathScanner = new FastClasspathScanner(DEFAULT_IMPORTS).strictWhitelist();
+
+        ClassGraph classGraph = new ClassGraph()
+                .whitelistPackages(DEFAULT_IMPORTS)
+                .addClassLoader(getServer().getClass().getClassLoader());
 
         // add the classloaders for helper implementation plugins
-        LoaderUtils.getHelperImplementationPlugins().forEach(pl -> classpathScanner.addClassLoader(pl.getClass().getClassLoader()));
+        LoaderUtils.getHelperImplementationPlugins().forEach(pl -> classGraph.addClassLoader(pl.getClass().getClassLoader()));
 
-        // form a list of matches packages
-        Set<String> defaultPackages = classpathScanner.scan()
-                .getNamesOfAllClasses()
+        Set<String> defaultPackages = classGraph.scan()
+                .getPackageInfo()
                 .stream()
-                .map(className -> {
-                    // convert to a package name
-                    return className.substring(0, className.lastIndexOf('.'));
-                })
+                .map(PackageInfo::getName)
                 .collect(Collectors.toSet());
 
         // setup the script controller
