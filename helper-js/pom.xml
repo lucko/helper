@@ -67,8 +67,12 @@
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <relocations>
                                 <relocation>
-                                    <pattern>io.github.lukehutch.fastclasspathscanner</pattern>
-                                    <shadedPattern>${shade.pattern}fcs</shadedPattern>
+                                    <pattern>io.github.classgraph</pattern>
+                                    <shadedPattern>${shade.pattern}classgraph</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>nonapi.io.github.classgraph</pattern>
+                                    <shadedPattern>${shade.pattern}classgraph.nonapi</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -119,13 +123,13 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>scriptcontroller</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>io.github.lukehutch</groupId>
-            <artifactId>fast-classpath-scanner</artifactId>
-            <version>2.9.5</version>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+            <version>4.6.9</version>
             <scope>compile</scope>
         </dependency>
 
