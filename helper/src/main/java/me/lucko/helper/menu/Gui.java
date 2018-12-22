@@ -347,7 +347,15 @@ public abstract class Gui implements TerminableConsumer {
                         if (!this.player.isOnline()) {
                             return;
                         }
-                        fallback.apply(this.player).open();
+                        Gui fallbackGui = fallback.apply(this.player);
+                        if (fallbackGui == null) {
+                            throw new IllegalStateException("Fallback function " + fallback + " returned null");
+                        }
+                        if (fallbackGui.valid) {
+                            throw new IllegalStateException("Fallback function " + fallback + " produced a GUI " + fallbackGui + " which is already open");
+                        }
+                        fallbackGui.open();
+
                     }, 1L);
                 })
                 .bindWith(this);
