@@ -45,6 +45,11 @@ import me.lucko.helper.signprompt.PacketSignPromptFactory;
 import me.lucko.helper.signprompt.SignPromptFactory;
 import me.lucko.helper.utils.Players;
 
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.ServicePriority;
+
+import java.util.Comparator;
+
 /**
  * Standalone plugin which provides the helper library at runtime for other plugins
  * on the server to use.
@@ -60,10 +65,9 @@ public final class StandalonePlugin extends ExtendedJavaPlugin {
         // provide an info command
         Commands.create()
                 .handler(c -> {
-                    Players.msg(c.sender(), "&7[&6helper&7] &7Running &6helper v" + getDescription().getVersion() + "&7.");
-                    LoaderUtils.getHelperImplementationPlugins().forEach(pl -> {
-                        Players.msg(c.sender(), "&7[&6helper&7] &7Running &6" + pl.getName() + " v" + pl.getDescription().getVersion() + "&7.");
-                    });
+                    LoaderUtils.getHelperImplementationPlugins().stream()
+                            .sorted(Comparator.comparing(Plugin::getName))
+                            .forEach(pl -> Players.msg(c.sender(), "&7[&6helper&7] &7Running &6" + pl.getName() + " v" + pl.getDescription().getVersion() + "&7."));
                 })
                 .register("helper");
 
@@ -92,7 +96,7 @@ public final class StandalonePlugin extends ExtendedJavaPlugin {
         }
         if (isPluginPresent("ViaVersion")) {
             BossBarFactory bossBarFactory = new ViaBossBarFactory();
-            provideService(BossBarFactory.class, bossBarFactory);
+            provideService(BossBarFactory.class, bossBarFactory, ServicePriority.High);
         } else if (classExists("org.bukkit.boss.BossBar")) {
             BossBarFactory bossBarFactory = new BukkitBossBarFactory(getServer());
             provideService(BossBarFactory.class, bossBarFactory);
