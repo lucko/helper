@@ -41,6 +41,7 @@ import me.lucko.helper.messaging.codec.Message;
 import me.lucko.helper.promise.Promise;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
+import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -154,12 +155,12 @@ public class AbstractMessenger implements Messenger {
                     try {
                         agent.onIncomingMessage(decoded);
                     } catch (Exception e) {
-                        new RuntimeException("Unable to pass decoded message to agent: " + message, e).printStackTrace();
+                        new RuntimeException("Unable to pass decoded message to agent: " + decoded, e).printStackTrace();
                     }
                 }
 
             } catch (Exception e) {
-                new RuntimeException("Unable to decode message: " + message, e).printStackTrace();
+                new RuntimeException("Unable to decode message: " + Base64.getEncoder().encodeToString(message), e).printStackTrace();
             }
         }
 

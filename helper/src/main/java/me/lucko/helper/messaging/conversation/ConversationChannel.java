@@ -26,7 +26,6 @@
 package me.lucko.helper.messaging.conversation;
 
 import me.lucko.helper.messaging.Channel;
-import me.lucko.helper.messaging.ChannelAgent;
 import me.lucko.helper.promise.Promise;
 import me.lucko.helper.terminable.Terminable;
 
@@ -67,12 +66,26 @@ public interface ConversationChannel<T extends ConversationMessage, R extends Co
     Channel<R> getReplyChannel();
 
     /**
-     * Creates a new {@link ChannelAgent} for this channel.
+     * Creates a new {@link ConversationChannelAgent} for this channel.
      *
      * @return a new channel agent.
      */
     @Nonnull
     ConversationChannelAgent<T, R> newAgent();
+
+    /**
+     * Creates a new {@link ConversationChannelAgent} for this channel, and
+     * immediately adds the given {@link ConversationChannelListener} to it.
+     *
+     * @param listener the listener to register
+     * @return the resultant agent
+     */
+    @Nonnull
+    default ConversationChannelAgent<T, R> newAgent(ConversationChannelListener<T, R> listener) {
+        ConversationChannelAgent<T, R> agent = newAgent();
+        agent.addListener(listener);
+        return agent;
+    }
 
     /**
      * Sends a new message to the channel.

@@ -88,6 +88,7 @@
                                     <include>org.spongepowered:configurate-gson</include>
                                     <include>org.spongepowered:configurate-hocon</include>
                                     <include>com.typesafe:config</include>
+                                    <include>net.kyori:event-api</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
@@ -106,6 +107,10 @@
                                 <relocation>
                                     <pattern>net.kyori.text</pattern>
                                     <shadedPattern>me.lucko.helper.text</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.kyori.event</pattern>
+                                    <shadedPattern>me.lucko.helper.eventbus</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -259,6 +264,13 @@
                     <artifactId>guava</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- event -->
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>event-api</artifactId>
+            <version>3.0.0</version>
+            <scope>compile</scope>
         </dependency>
         <!-- timings -->
         <dependency>

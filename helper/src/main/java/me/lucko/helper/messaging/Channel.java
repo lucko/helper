@@ -76,6 +76,20 @@ public interface Channel<T> extends TypeAware<T> {
     ChannelAgent<T> newAgent();
 
     /**
+     * Creates a new {@link ChannelAgent} for this channel, and immediately
+     * adds the given {@link ChannelListener} to it.
+     *
+     * @param listener the listener to register
+     * @return the resultant agent
+     */
+    @Nonnull
+    default ChannelAgent<T> newAgent(ChannelListener<T> listener) {
+        ChannelAgent<T> agent = newAgent();
+        agent.addListener(listener);
+        return agent;
+    }
+
+    /**
      * Sends a new message to the channel.
      *
      * <p>This method will return immediately, and the future will be completed

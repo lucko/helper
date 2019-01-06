@@ -26,6 +26,7 @@
 package me.lucko.helper.messaging.conversation;
 
 import java.util.List;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
@@ -35,6 +36,21 @@ import javax.annotation.Nonnull;
  * @param <R> the reply type
  */
 public interface ConversationReplyListener<R extends ConversationMessage> {
+
+    static <R extends ConversationMessage> ConversationReplyListener<R> of(Function<? super R, RegistrationAction> onReply) {
+        return new ConversationReplyListener<R>() {
+            @Nonnull
+            @Override
+            public RegistrationAction onReply(@Nonnull R reply) {
+                return onReply.apply(reply);
+            }
+
+            @Override
+            public void onTimeout(@Nonnull List<R> replies) {
+
+            }
+        };
+    }
 
     /**
      * Called when a message is posted to this listener.

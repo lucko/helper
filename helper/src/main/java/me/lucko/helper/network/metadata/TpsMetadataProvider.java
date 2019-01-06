@@ -23,32 +23,26 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.network.metadata;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.network.Network;
+import me.lucko.helper.utils.Tps;
 
-/**
- * Represents the interface for an extended LilyPad network.
- */
-public interface LilyPadNetwork extends Network {
+import java.util.Collections;
 
-    /**
-     * Creates a new {@link LilyPadNetwork} instance. These should be shared if possible.
-     *
-     * @param lilyPad the lilypad instance
-     * @return the new network
-     */
-    static LilyPadNetwork create(LilyPad lilyPad) {
-        return new LilyPadNetworkImpl(lilyPad);
+public final class TpsMetadataProvider implements ServerMetadataProvider {
+    public static final ServerMetadataProvider INSTANCE = new TpsMetadataProvider();
+
+    private TpsMetadataProvider() {
+
     }
 
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
     @Override
-    int getOverallPlayerCount();
+    public Iterable<ServerMetadata> provide() {
+        if (!Tps.isReadSupported()) {
+            return Collections.emptyList();
+        }
 
+        Tps tps = Tps.read();
+        return Collections.singleton(ServerMetadata.of("tps", tps, Tps.class));
+    }
 }

@@ -27,6 +27,7 @@ package me.lucko.helper.lilypad.plugin;
 
 import com.google.common.reflect.TypeToken;
 
+import me.lucko.helper.Schedulers;
 import me.lucko.helper.lilypad.LilyPad;
 import me.lucko.helper.messaging.AbstractMessenger;
 import me.lucko.helper.messaging.Channel;
@@ -40,6 +41,7 @@ import lilypad.client.connect.api.request.impl.RedirectRequest;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nonnull;
@@ -54,13 +56,7 @@ public class HelperLilyPad implements LilyPad {
         this.connect = connect;
 
         this.messenger = new AbstractMessenger(
-                (channel, message) -> {
-                    try {
-                        this.connect.request(new MessageRequest(Collections.emptyList(), channel, message));
-                    } catch (RequestException e) {
-                        e.printStackTrace();
-                    }
-                },
+                (channel, message) -> new MessageRequestTask(this.connect, channel, message).run(),
                 channel -> {
                     if (this.listening.getAndSet(true)) {
                         return;
@@ -73,6 +69,36 @@ public class HelperLilyPad implements LilyPad {
                 },
                 channel -> {}
         );
+    }
+
+    private static final class MessageRequestTask implements Runnable {
+        private final Connect connect;
+        private final String channel;
+        private final byte[] message;
+        private int attempts = 0;
+
+        MessageRequestTask(Connect connect, String channel, byte[] message) {
+            this.connect = connect;
+            this.channel = channel;
+            this.message = message;
+        }
+
+        @Override
+        public void run() {
+            this.attempts++;
+            try {
+                this.connect.request(new MessageRequest(Collections.emptyList(), this.channel, this.message));
+            } catch (RequestException e) {
+                if (e.getMessage().equals("Not open") || e.getMessage().equals("Not connected")) {
+                    // attempt to resend later - try 3 times.
+                    if (this.attempts < 3) {
+                        Schedulers.async().runLater(this, 2, TimeUnit.SECONDS);
+                    }
+                } else {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     @EventListener

@@ -70,8 +70,7 @@ public class SimpleConversationChannel<T extends ConversationMessage, R extends 
         this.outgoingChannel = messenger.getChannel(name + "-o", outgoingType);
         this.replyChannel = messenger.getChannel(name + "-r", replyType);
 
-        this.replyAgent = this.replyChannel.newAgent();
-        this.replyAgent.addListener(new ReplyListener());
+        this.replyAgent = this.replyChannel.newAgent(new ReplyListener());
     }
 
     private final class ReplyListener implements ChannelListener<R> {
