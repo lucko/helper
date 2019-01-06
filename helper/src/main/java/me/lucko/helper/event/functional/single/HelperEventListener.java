@@ -27,8 +27,6 @@ package me.lucko.helper.event.functional.single;
 
 import me.lucko.helper.Helper;
 import me.lucko.helper.event.SingleSubscription;
-import me.lucko.helper.interfaces.Delegate;
-import me.lucko.helper.timings.Timings;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
@@ -37,8 +35,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
 
-import co.aikar.timings.lib.MCTiming;
-
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,7 +42,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -62,8 +57,6 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
     private final BiPredicate<SingleSubscription<T>, T>[] postExpiryTests;
     private final BiConsumer<SingleSubscription<T>, ? super T>[] handlers;
 
-    private final MCTiming timing;
-
     private final AtomicLong callCount = new AtomicLong(0);
     private final AtomicBoolean active = new AtomicBoolean(true);
 
@@ -78,8 +71,6 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
         this.midExpiryTests = builder.midExpiryTests.toArray(new BiPredicate[builder.midExpiryTests.size()]);
         this.postExpiryTests = builder.postExpiryTests.toArray(new BiPredicate[builder.postExpiryTests.size()]);
         this.handlers = handlers.toArray(new BiConsumer[handlers.size()]);
-
-        this.timing = Timings.of("helper-events: " + handlers.stream().map(handler -> Delegate.resolve(handler).getClass().getName()).collect(Collectors.joining(" | ")));
     }
 
     void register(Plugin plugin) {
@@ -112,7 +103,7 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
         }
 
         // begin "handling" of the event
-        try (MCTiming t = this.timing.startTiming()) {
+        try {
             // check the filters
             for (Predicate<T> filter : this.filters) {
                 if (!filter.test(eventInstance)) {
