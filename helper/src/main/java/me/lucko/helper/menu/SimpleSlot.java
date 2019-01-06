@@ -25,14 +25,9 @@
 
 package me.lucko.helper.menu;
 
-import me.lucko.helper.interfaces.Delegate;
-import me.lucko.helper.timings.Timings;
-
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
-
-import co.aikar.timings.lib.MCTiming;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -71,7 +66,7 @@ public class SimpleSlot implements Slot {
             return;
         }
         for (Consumer<InventoryClickEvent> handler : handlers) {
-            try (MCTiming t = Timings.ofStart("helper-gui: " + getClass().getSimpleName() + " : " + Delegate.resolve(handler).getClass().getName())) {
+            try {
                 handler.accept(event);
             } catch (Exception ex) {
                 ex.printStackTrace();

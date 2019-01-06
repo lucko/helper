@@ -30,16 +30,12 @@ import com.google.common.reflect.TypeToken;
 
 import me.lucko.helper.Helper;
 import me.lucko.helper.event.MergedSubscription;
-import me.lucko.helper.interfaces.Delegate;
-import me.lucko.helper.timings.Timings;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
-
-import co.aikar.timings.lib.MCTiming;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -51,7 +47,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -67,8 +62,6 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
     private final BiPredicate<MergedSubscription<T>, T>[] postExpiryTests;
     private final BiConsumer<MergedSubscription<T>, ? super T>[] handlers;
 
-    private final MCTiming timing;
-
     private final AtomicLong callCount = new AtomicLong(0);
     private final AtomicBoolean active = new AtomicBoolean(true);
 
@@ -83,8 +76,6 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
         this.midExpiryTests = builder.midExpiryTests.toArray(new BiPredicate[builder.midExpiryTests.size()]);
         this.postExpiryTests = builder.postExpiryTests.toArray(new BiPredicate[builder.postExpiryTests.size()]);
         this.handlers = handlers.toArray(new BiConsumer[handlers.size()]);
-
-        this.timing = Timings.of("helper-events: " + handlers.stream().map(handler -> Delegate.resolve(handler).getClass().getName()).collect(Collectors.joining(" | ")));
     }
 
     void register(Plugin plugin) {
@@ -127,7 +118,7 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
         }
 
         // begin "handling" of the event
-        try (MCTiming t = this.timing.startTiming()) {
+        try {
             // check the filters
             for (Predicate<T> filter : this.filters) {
                 if (!filter.test(handledInstance)) {

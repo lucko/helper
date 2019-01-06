@@ -28,18 +28,11 @@ package me.lucko.helper.command;
 import me.lucko.helper.command.context.CommandContext;
 import me.lucko.helper.command.context.ImmutableCommandContext;
 import me.lucko.helper.internal.LoaderUtils;
-import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.CommandMapUtil;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-
-import co.aikar.timings.lib.MCTiming;
-
-import java.util.Arrays;
-
-import javax.annotation.Nullable;
 
 /**
  * An abstract implementation of {@link Command} and {@link CommandExecutor}
@@ -47,13 +40,9 @@ import javax.annotation.Nullable;
 @NonnullByDefault
 public abstract class AbstractCommand implements Command, CommandExecutor {
 
-    @Nullable
-    private MCTiming timing = null;
-
     @Override
     public void register(String... aliases) {
         LoaderUtils.getPlugin().registerCommand(this, aliases);
-        this.timing = Timings.of("helper-commands: " + Arrays.toString(aliases));
     }
 
     @Override
@@ -63,25 +52,12 @@ public abstract class AbstractCommand implements Command, CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
+        CommandContext<CommandSender> context = new ImmutableCommandContext<>(sender, label, args);
         try {
-            if (this.timing != null) {
-                this.timing.startTiming();
-            }
-
-            CommandContext<CommandSender> context = new ImmutableCommandContext<>(sender, label, args);
-
-            try {
-                //noinspection unchecked
-                call(context);
-            } catch (CommandInterruptException e) {
-                e.getAction().accept(context.sender());
-            }
-
-            return true;
-        } finally {
-            if (this.timing != null) {
-                this.timing.stopTiming();
-            }
+            call(context);
+        } catch (CommandInterruptException e) {
+            e.getAction().accept(context.sender());
         }
+        return true;
     }
 }

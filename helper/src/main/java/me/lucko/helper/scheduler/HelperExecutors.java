@@ -29,12 +29,9 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
-import me.lucko.helper.timings.Timings;
 import me.lucko.helper.utils.Log;
 
 import org.bukkit.Bukkit;
-
-import co.aikar.timings.lib.MCTiming;
 
 import java.util.Collections;
 import java.util.Set;
@@ -136,7 +133,7 @@ public final class HelperExecutors {
 
         @Override
         public void run() {
-            try (MCTiming t = Timings.ofStart("helper-scheduler: " + Delegate.resolve(this.delegate).getClass().getName())) {
+            try {
                 this.delegate.run();
             } catch (Throwable t) {
                 EXCEPTION_CONSUMER.accept(t);

@@ -30,12 +30,8 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 
 import me.lucko.helper.event.ProtocolSubscription;
-import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.protocol.Protocol;
-import me.lucko.helper.timings.Timings;
-
-import co.aikar.timings.lib.MCTiming;
 
 import java.util.List;
 import java.util.Set;
@@ -44,7 +40,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -58,8 +53,6 @@ class HelperProtocolListener extends PacketAdapter implements ProtocolSubscripti
     private final BiPredicate<ProtocolSubscription, PacketEvent>[] midExpiryTests;
     private final BiPredicate<ProtocolSubscription, PacketEvent>[] postExpiryTests;
     private final BiConsumer<ProtocolSubscription, ? super PacketEvent>[] handlers;
-
-    private final MCTiming timing;
 
     private final AtomicLong callCount = new AtomicLong(0);
     private final AtomicBoolean active = new AtomicBoolean(true);
@@ -76,8 +69,6 @@ class HelperProtocolListener extends PacketAdapter implements ProtocolSubscripti
         this.midExpiryTests = builder.midExpiryTests.toArray(new BiPredicate[builder.midExpiryTests.size()]);
         this.postExpiryTests = builder.postExpiryTests.toArray(new BiPredicate[builder.postExpiryTests.size()]);
         this.handlers = handlers.toArray(new BiConsumer[handlers.size()]);
-
-        this.timing = Timings.of("helper-protocol-events: " + handlers.stream().map(handler -> Delegate.resolve(handler).getClass().getName()).collect(Collectors.joining(" | ")));
 
         Protocol.manager().addPacketListener(this);
     }
@@ -112,7 +103,7 @@ class HelperProtocolListener extends PacketAdapter implements ProtocolSubscripti
         }
 
         // begin "handling" of the event
-        try (MCTiming ignored = this.timing.startTiming()) {
+        try {
             // check the filters
             for (Predicate<PacketEvent> filter : this.filters) {
                 if (!filter.test(event)) {
