@@ -91,18 +91,17 @@ public class AbstractNetwork implements Network {
         Channel<EventMessage> eventsChannel = messenger.getChannel("hnet-events", EventMessage.class);
         // incoming
         eventsChannel.newAgent((agent, message) -> {
-                    switch (message.type) {
-                        case "connect":
-                            postEvent(new ServerConnectEvent(message.id, handleIncomingStatusMessage(message.status)));
-                            break;
-                        case "disconnect":
-                            if (!instanceData.getId().equals(message.id)) {
-                                postEvent(new ServerDisconnectEvent(message.id, message.reason));
-                            }
-                            break;
+            switch (message.type) {
+                case "connect":
+                    postEvent(new ServerConnectEvent(message.id, handleIncomingStatusMessage(message.status)));
+                    break;
+                case "disconnect":
+                    if (!instanceData.getId().equals(message.id)) {
+                        postEvent(new ServerDisconnectEvent(message.id, message.reason));
                     }
-                })
-                .bindWith(this.compositeTerminable);
+                    break;
+            }
+        }).bindWith(this.compositeTerminable);
 
         // outgoing (disconnect)
         EventSubscriber<ServerDisconnectEvent> disconnectListener = new EventSubscriber<ServerDisconnectEvent>() {
@@ -119,7 +118,7 @@ public class AbstractNetwork implements Network {
             }
         };
         this.eventBus.register(ServerDisconnectEvent.class, disconnectListener);
-        LoaderUtils.getPlugin().bind(() -> postEvent(new ServerDisconnectEvent(instanceData.getId())));
+        LoaderUtils.getPlugin().bind(() -> postEvent(new ServerDisconnectEvent(instanceData.getId(), "stopping")));
 
         // outgoing (connect)
         registerMetadataProviders();

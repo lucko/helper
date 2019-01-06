@@ -48,7 +48,7 @@ public class LilyPadNetwork extends AbstractNetwork {
         // register a fallback disconnect listener
         Events.subscribe(PluginDisableEvent.class)
                 .filter(e -> e.getPlugin().getName().equals("LilyPad-Connect"))
-                .handler(e -> postEvent(new ServerDisconnectEvent(lilyPad.getId())));
+                .handler(e -> postEvent(new ServerDisconnectEvent(lilyPad.getId(), "stopping")));
 
         // cache overall player count
         Schedulers.builder()
