@@ -135,8 +135,7 @@ public final class MappedChannelReceiver<T, K, V> implements Terminable {
         this.valueMapper = valueMapper;
         this.messageStore = messageStore;
 
-        this.agent = channel.newAgent();
-        this.agent.addListener(this::handleMessage);
+        this.agent = channel.newAgent(this::handleMessage);
     }
 
     private void handleMessage(ChannelAgent<T> agent, T message) {

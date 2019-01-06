@@ -23,32 +23,46 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.network.event;
 
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.network.Network;
+import me.lucko.helper.network.Server;
+
+import java.util.Objects;
 
 /**
- * Represents the interface for an extended LilyPad network.
+ * Called when a status update is received for a server.
  */
-public interface LilyPadNetwork extends Network {
+public class ServerStatusEvent implements NetworkEvent {
+    private final Server server;
 
-    /**
-     * Creates a new {@link LilyPadNetwork} instance. These should be shared if possible.
-     *
-     * @param lilyPad the lilypad instance
-     * @return the new network
-     */
-    static LilyPadNetwork create(LilyPad lilyPad) {
-        return new LilyPadNetworkImpl(lilyPad);
+    public ServerStatusEvent(Server server) {
+        this.server = Objects.requireNonNull(server, "server");
     }
 
     /**
-     * Gets a cached overall player count
+     * Gets the server.
      *
-     * @return the player count
+     * @return the server
      */
-    @Override
-    int getOverallPlayerCount();
+    public Server getServer() {
+        return this.server;
+    }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ServerStatusEvent that = (ServerStatusEvent) o;
+        return this.server.equals(that.server);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.server);
+    }
+
+    @Override
+    public String toString() {
+        return "ServerStatusEvent{server=" + this.server + '}';
+    }
 }

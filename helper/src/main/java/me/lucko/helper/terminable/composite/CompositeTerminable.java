@@ -29,6 +29,7 @@ import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableConsumer;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Represents a {@link Terminable} made up of several other {@link Terminable}s.
@@ -69,6 +70,17 @@ public interface CompositeTerminable extends Terminable, TerminableConsumer {
      */
     @Override
     void close() throws CompositeClosingException;
+
+    @Nullable
+    @Override
+    default CompositeClosingException closeSilently() {
+        try {
+            close();
+            return null;
+        } catch (CompositeClosingException e) {
+            return e;
+        }
+    }
 
     @Override
     default void closeAndReportException() {

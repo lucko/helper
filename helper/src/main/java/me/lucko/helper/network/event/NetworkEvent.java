@@ -23,50 +23,13 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
+package me.lucko.helper.network.event;
 
-import me.lucko.helper.messaging.InstanceData;
-import me.lucko.helper.profiles.Profile;
-
-import java.util.Set;
+import me.lucko.helper.network.Network;
 
 /**
- * Represents an individual server within a {@link LilyPadNetwork}.
+ * Marker interface for {@link Network} events.
  */
-public interface LilyPadServer extends InstanceData {
+public interface NetworkEvent {
 
-    /**
-     * Gets if the server is currently online
-     *
-     * @return if the server is online
-     */
-    boolean isOnline();
-
-    /**
-     * Gets the time the last ping was received from this server.
-     *
-     * @return the time of the last time, as a unix timestamp in milliseconds
-     */
-    long getLastPing();
-
-    /**
-     * Gets the players known to be online on this server.
-     *
-     * @return the online players.
-     */
-    Set<Profile> getOnlinePlayers();
-
-    /**
-     * Gets the maximum amount of players allowed on this server.
-     *
-     * @return the max players
-     */
-    int getMaxPlayers();
-
-    /**
-     * Gets whether the server is currently whitelisted.
-     *
-     * @return if the server is whitelisted
-     */
-    boolean isWhitelisted();
 }

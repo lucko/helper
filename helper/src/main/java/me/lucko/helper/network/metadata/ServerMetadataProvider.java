@@ -23,32 +23,20 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.extended;
-
-import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.network.Network;
+package me.lucko.helper.network.metadata;
 
 /**
- * Represents the interface for an extended LilyPad network.
+ * Provides metadata about the current server instance to be broadcasted to the
+ * network.
  */
-public interface LilyPadNetwork extends Network {
+@FunctionalInterface
+public interface ServerMetadataProvider {
 
     /**
-     * Creates a new {@link LilyPadNetwork} instance. These should be shared if possible.
+     * Provides the metadata.
      *
-     * @param lilyPad the lilypad instance
-     * @return the new network
+     * @return the metadata
      */
-    static LilyPadNetwork create(LilyPad lilyPad) {
-        return new LilyPadNetworkImpl(lilyPad);
-    }
-
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
-    @Override
-    int getOverallPlayerCount();
+    Iterable<ServerMetadata> provide();
 
 }

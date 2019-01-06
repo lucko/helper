@@ -25,8 +25,10 @@
 
 package me.lucko.helper.lilypad.plugin;
 
+import me.lucko.helper.Services;
 import me.lucko.helper.internal.HelperImplementationPlugin;
 import me.lucko.helper.lilypad.LilyPad;
+import me.lucko.helper.lilypad.extended.LilyPadNetwork;
 import me.lucko.helper.messaging.InstanceData;
 import me.lucko.helper.messaging.Messenger;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
@@ -36,16 +38,28 @@ import lilypad.client.connect.api.Connect;
 @HelperImplementationPlugin
 public class HelperLilyPadPlugin extends ExtendedJavaPlugin {
 
+    private LilyPad globalLilyPad;
+
     @Override
     protected void enable() {
         Connect connect = getService(Connect.class);
-        LilyPad globalLilyPad = new HelperLilyPad(connect);
+        this.globalLilyPad = new HelperLilyPad(connect);
 
         // expose all instances as services.
-        provideService(LilyPad.class, globalLilyPad);
-        provideService(Messenger.class, globalLilyPad);
-        provideService(InstanceData.class, globalLilyPad);
+        provideService(LilyPad.class, this.globalLilyPad);
+        provideService(Messenger.class, this.globalLilyPad);
+        provideService(InstanceData.class, this.globalLilyPad);
 
         getLogger().info("Hooked with LilyPad-Connect");
+    }
+
+    public LilyPadNetwork getNetwork() {
+        LilyPadNetwork network = Services.get(LilyPadNetwork.class).orElse(null);
+        if (network != null) {
+            return network;
+        }
+        network = LilyPadNetwork.create(this.globalLilyPad);
+        provideService(LilyPadNetwork.class, network);
+        return network;
     }
 }
