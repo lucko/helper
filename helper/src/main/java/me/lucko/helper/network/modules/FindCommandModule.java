@@ -66,7 +66,7 @@ public class FindCommandModule implements TerminableModule {
                             .sorted(Map.Entry.comparingByKey())
                             .collect(Collectors.toMap(
                                     Map.Entry::getKey,
-                                    s -> s.getValue().getOnlinePlayers().stream()
+                                    s -> s.getValue().getOnlinePlayers().values().stream()
                                             .filter(p -> p.getName().isPresent() && p.getName().get().toLowerCase().contains(player))
                                             .sorted(Comparator.comparing(p -> p.getName().get()))
                                             .collect(Collectors.toList()),

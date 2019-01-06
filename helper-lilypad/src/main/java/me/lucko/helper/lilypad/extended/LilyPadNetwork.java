@@ -25,30 +25,49 @@
 
 package me.lucko.helper.lilypad.extended;
 
+import me.lucko.helper.Events;
+import me.lucko.helper.Schedulers;
 import me.lucko.helper.lilypad.LilyPad;
-import me.lucko.helper.network.Network;
+import me.lucko.helper.network.AbstractNetwork;
+import me.lucko.helper.network.event.ServerDisconnectEvent;
 
-/**
- * Represents the interface for an extended LilyPad network.
- */
-public interface LilyPadNetwork extends Network {
+import org.bukkit.event.server.PluginDisableEvent;
 
-    /**
-     * Creates a new {@link LilyPadNetwork} instance. These should be shared if possible.
-     *
-     * @param lilyPad the lilypad instance
-     * @return the new network
-     */
-    static LilyPadNetwork create(LilyPad lilyPad) {
-        return new LilyPadNetworkImpl(lilyPad);
+import lilypad.client.connect.api.request.RequestException;
+import lilypad.client.connect.api.request.impl.GetPlayersRequest;
+import lilypad.client.connect.api.result.impl.GetPlayersResult;
+
+import java.util.concurrent.TimeUnit;
+
+public class LilyPadNetwork extends AbstractNetwork {
+    private int overallPlayerCount = 0;
+
+    public LilyPadNetwork(LilyPad lilyPad) {
+        super(lilyPad, lilyPad);
+
+        // register a fallback disconnect listener
+        Events.subscribe(PluginDisableEvent.class)
+                .filter(e -> e.getPlugin().getName().equals("LilyPad-Connect"))
+                .handler(e -> postEvent(new ServerDisconnectEvent(lilyPad.getId())));
+
+        // cache overall player count
+        Schedulers.builder()
+                .async()
+                .afterAndEvery(3, TimeUnit.SECONDS)
+                .run(() -> {
+                    try {
+                        GetPlayersResult result = lilyPad.getConnect().request(new GetPlayersRequest()).await();
+                        this.overallPlayerCount = result.getCurrentPlayers();
+                    } catch (InterruptedException | RequestException e) {
+                        e.printStackTrace();
+                    }
+                })
+                .bindWith(this.compositeTerminable);
     }
 
-    /**
-     * Gets a cached overall player count
-     *
-     * @return the player count
-     */
     @Override
-    int getOverallPlayerCount();
+    public int getOverallPlayerCount() {
+        return this.overallPlayerCount;
+    }
 
 }
