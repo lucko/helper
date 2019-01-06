@@ -38,6 +38,11 @@ import java.util.regex.Pattern;
 public final class MinecraftVersions {
 
     /**
+     * Version 1.13 - update aquatic.
+     */
+    public static final MinecraftVersion v1_13 = MinecraftVersion.parse("1.13");
+
+    /**
      * Version 1.12 - the world of color update.
      */
     public static final MinecraftVersion v1_12 = MinecraftVersion.parse("1.12");
