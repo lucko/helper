@@ -38,7 +38,17 @@ import co.aikar.timings.lib.TimingManager;
 @NonnullByDefault
 public final class Timings {
 
+    private static final boolean DISABLED = Boolean.getBoolean("helper.notimings");
     private static final Lazy<TimingManager> TIMING_MANAGER = Lazy.suppliedBy(() -> TimingManager.of(LoaderUtils.getPlugin()));
+    private static final MCTiming EMPTY_TIMING;
+
+    static {
+        try {
+            EMPTY_TIMING = (MCTiming) Class.forName("co.aikar.timings.lib.EmptyTiming").newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     /**
      * Gets the TimingManager
@@ -49,18 +59,30 @@ public final class Timings {
     }
 
     public static MCTiming ofStart(String name) {
+        if (DISABLED) {
+            return EMPTY_TIMING;
+        }
         return get().ofStart(name);
     }
 
     public static MCTiming ofStart(String name, MCTiming parent) {
+        if (DISABLED) {
+            return EMPTY_TIMING;
+        }
         return get().ofStart(name, parent);
     }
 
     public static MCTiming of(String name) {
+        if (DISABLED) {
+            return EMPTY_TIMING;
+        }
         return get().of(name);
     }
 
     public static MCTiming of(String name, MCTiming parent) {
+        if (DISABLED) {
+            return EMPTY_TIMING;
+        }
         return get().of(name, parent);
     }
 
