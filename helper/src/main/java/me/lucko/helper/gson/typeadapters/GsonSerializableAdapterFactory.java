@@ -58,12 +58,20 @@ public final class GsonSerializableAdapterFactory implements TypeAdapterFactory 
         TypeAdapter<? extends GsonSerializable> typeAdapter = new TypeAdapter<GsonSerializable>() {
             @Override
             public void write(JsonWriter out, GsonSerializable value) {
+                if (value == null) {
+                    gson.toJson(null, out);
+                    return;
+                }
                 gson.toJson(value.serialize(), out);
             }
 
             @Override
             public GsonSerializable read(JsonReader in) throws IOException {
                 JsonElement element = GsonProvider.parser().parse(in);
+
+                if (element.isJsonNull()) {
+                    return null;
+                }
 
                 try {
                     //noinspection unchecked
