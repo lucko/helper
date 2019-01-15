@@ -107,8 +107,12 @@ public class AbstractNetwork implements Network {
         EventSubscriber<ServerDisconnectEvent> disconnectListener = new EventSubscriber<ServerDisconnectEvent>() {
             @Override
             public void invoke(@NonNull ServerDisconnectEvent event) {
+                if (!event.getId().equals(instanceData.getId())) {
+                    return;
+                }
+
                 EventMessage message = new EventMessage();
-                message.id = instanceData.getId();
+                message.id = event.getId();
                 message.type = "disconnect";
                 message.reason = event.getReason();
                 eventsChannel.sendMessage(message);
