@@ -49,7 +49,7 @@ public final class Tps implements GsonSerializable {
     private static Supplier<double[]> getSupplier() {
         try {
             Method spigotMethod = Bukkit.getServer().getClass().getMethod("spigot");
-            Method getTPSMethod = Class.forName("org.bukkit.Server.Spigot").getMethod("getTPS");
+            Method getTPSMethod = Class.forName("org.bukkit.Server$Spigot").getMethod("getTPS");
             Object spigot = spigotMethod.invoke(Bukkit.getServer());
             return () -> {
                 try {
