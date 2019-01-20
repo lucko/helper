@@ -50,6 +50,7 @@ public final class GsonProvider {
             .registerTypeHierarchyAdapter(DataTree.class, JsonElementTreeSerializer.INSTANCE)
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
             .registerTypeAdapterFactory(BukkitSerializableAdapterFactory.INSTANCE)
+            .excludeFieldsWithoutExposeAnnotation()
             .serializeNulls()
             .disableHtmlEscaping()
             .create();
@@ -58,6 +59,7 @@ public final class GsonProvider {
             .registerTypeHierarchyAdapter(DataTree.class, JsonElementTreeSerializer.INSTANCE)
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
             .registerTypeAdapterFactory(BukkitSerializableAdapterFactory.INSTANCE)
+            .excludeFieldsWithoutExposeAnnotation()
             .serializeNulls()
             .disableHtmlEscaping()
             .setPrettyPrinting()
