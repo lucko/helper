@@ -60,7 +60,10 @@ public interface CooldownMap<T> {
     Cooldown getBase();
 
     /**
-     * Gets the internal cooldown instance associated with the given key
+     * Gets the internal cooldown instance associated with the given key.
+     *
+     * <p>The inline Cooldown methods in this class should be used to access the functionality of the cooldown as opposed
+     * to calling the methods directly via the instance returned by this method.</p>
      *
      * @param key the key
      * @return a cooldown instance
@@ -80,19 +83,37 @@ public interface CooldownMap<T> {
 
     /* methods from Cooldown */
 
-    boolean test(@Nonnull T key);
+    default boolean test(@Nonnull T key) {
+        return get(key).test();
+    }
 
-    boolean testSilently(@Nonnull T key);
+    default boolean testSilently(@Nonnull T key) {
+        return get(key).testSilently();
+    }
 
-    long elapsed(@Nonnull T key);
+    default long elapsed(@Nonnull T key) {
+        return get(key).elapsed();
+    }
 
-    void reset(@Nonnull T key);
+    default void reset(@Nonnull T key) {
+        get(key).reset();
+    }
 
-    long remainingMillis(@Nonnull T key);
+    default long remainingMillis(@Nonnull T key) {
+        return get(key).remainingMillis();
+    }
 
-    long remainingTime(@Nonnull T key, @Nonnull TimeUnit unit);
+    default long remainingTime(@Nonnull T key, @Nonnull TimeUnit unit) {
+        return get(key).remainingTime(unit);
+    }
 
     @Nonnull
-    OptionalLong getLastTested(@Nonnull T key);
+    default OptionalLong getLastTested(@Nonnull T key) {
+        return get(key).getLastTested();
+    }
+
+    default void setLastTested(@Nonnull T key, long time) {
+        get(key).setLastTested(time);
+    }
 
 }
