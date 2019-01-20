@@ -27,6 +27,7 @@ package me.lucko.helper.text;
 
 import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
+import net.kyori.text.adapter.bukkit.TextAdapter;
 import net.kyori.text.serializer.ComponentSerializers;
 
 import org.bukkit.command.CommandSender;
@@ -69,11 +70,11 @@ public final class Text {
     }
 
     public static void sendMessage(CommandSender sender, Component message) {
-        BukkitTextUtils.sendJsonMessage(sender, message);
+        TextAdapter.sendComponent(sender, message);
     }
 
     public static void sendMessage(Iterable<CommandSender> senders, Component message) {
-        BukkitTextUtils.sendJsonMessage(senders, message);
+        TextAdapter.sendComponent(senders, message);
     }
 
     public static String colorize(String s) {

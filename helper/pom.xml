@@ -82,6 +82,7 @@
                                     <include>com.flowpowered:flow-math</include>
                                     <include>net.jodah:expiringmap</include>
                                     <include>net.kyori:text</include>
+                                    <include>net.kyori:text-adapter-bukkit</include>
                                     <include>org.spongepowered:configurate-core</include>
                                     <include>org.spongepowered:configurate-yaml</include>
                                     <include>org.spongepowered:configurate-gson</include>
@@ -263,6 +264,13 @@
                     <artifactId>guava</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>text-adapter-bukkit</artifactId>
+            <version>1.0.2</version>
+            <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
         <!-- event -->
         <dependency>
