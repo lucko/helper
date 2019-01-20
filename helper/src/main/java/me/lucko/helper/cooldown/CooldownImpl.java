@@ -28,17 +28,15 @@ package me.lucko.helper.cooldown;
 import com.google.gson.JsonElement;
 
 import me.lucko.helper.gson.JsonBuilder;
-import me.lucko.helper.utils.TimeUtil;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
-import java.util.function.LongSupplier;
 
 import javax.annotation.Nonnull;
 
 @NonnullByDefault
-class CooldownImpl implements LongSupplier, Cooldown {
+class CooldownImpl implements Cooldown {
 
     // when the last test occurred.
     private long lastTested;
@@ -51,120 +49,11 @@ class CooldownImpl implements LongSupplier, Cooldown {
         this.lastTested = 0;
     }
 
-    /**
-     * Returns true if the cooldown is not active, and then resets the timer
-     *
-     * <p>If the cooldown is currently active, the timer is <strong>not</strong> reset.</p>
-     *
-     * @return true if the cooldown is not active
-     */
-    @Override
-    public boolean test() {
-        if (!testSilently()) {
-            return false;
-        }
-
-        reset();
-        return true;
-    }
-
-    /**
-     * Returns true if the cooldown is not active
-     *
-     * @return true if the cooldown is not active
-     */
-    @Override
-    public boolean testSilently() {
-        return elapsed() > this.timeout;
-    }
-
-    /**
-     * Returns the elapsed time in milliseconds since the cooldown was last reset, or since creation time
-     *
-     * @return the elapsed time
-     */
-    @Override
-    public long elapsed() {
-        return TimeUtil.now() - this.lastTested;
-    }
-
-    /**
-     * Resets the cooldown
-     */
-    @Override
-    public void reset() {
-        this.lastTested = TimeUtil.now();
-    }
-
-    /**
-     * Gets the time in milliseconds until the cooldown will become inactive.
-     *
-     * <p>If the cooldown is not active, this method returns <code>0</code>.</p>
-     *
-     * @return the time in millis until the cooldown will expire
-     */
-    @Override
-    public long remainingMillis() {
-        long diff = elapsed();
-        return diff > this.timeout ? 0L : this.timeout - diff;
-    }
-
-    /**
-     * Gets the time until the cooldown will become inactive.
-     *
-     * <p>If the cooldown is not active, this method returns <code>0</code>.</p>
-     *
-     * @param unit the unit to return in
-     * @return the time until the cooldown will expire
-     */
-    @Override
-    public long remainingTime(TimeUnit unit) {
-        return Math.max(0L, unit.convert(remainingMillis(), TimeUnit.MILLISECONDS));
-    }
-
-    @Override
-    public long getAsLong() {
-        return remainingMillis();
-    }
-
-    /**
-     * Gets the timeout in milliseconds for this cooldown
-     *
-     * @return the timeout in milliseconds
-     */
-    @Override
-    public long getTimeout() {
-        return this.timeout;
-    }
-
-    /**
-     * Copies the properties of this cooldown to a new instance
-     *
-     * @return a cloned cooldown instance
-     */
-    @Override
-    public CooldownImpl copy() {
-        return new CooldownImpl(this.timeout, TimeUnit.MILLISECONDS);
-    }
-
-    /**
-     * Return the time in milliseconds when this cooldown was last {@link #test()}ed.
-     *
-     * @return the last call time
-     */
     @Override
     public OptionalLong getLastTested() {
         return this.lastTested == 0 ? OptionalLong.empty() : OptionalLong.of(this.lastTested);
     }
 
-    /**
-     * Sets the time in milliseconds when this cooldown was last tested.
-     *
-     * <p>Note: this should only be used when re-constructing a cooldown
-     * instance. Use {@link #test()} otherwise.</p>
-     *
-     * @param time the time
-     */
     @Override
     public void setLastTested(long time) {
         if (time <= 0) {
@@ -172,6 +61,16 @@ class CooldownImpl implements LongSupplier, Cooldown {
         } else {
             this.lastTested = time;
         }
+    }
+
+    @Override
+    public long getTimeout() {
+        return this.timeout;
+    }
+
+    @Override
+    public CooldownImpl copy() {
+        return new CooldownImpl(this.timeout, TimeUnit.MILLISECONDS);
     }
 
     @Nonnull

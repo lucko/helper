@@ -30,6 +30,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import me.lucko.helper.gson.GsonSerializable;
+import me.lucko.helper.scheduler.Ticks;
 import me.lucko.helper.utils.TimeUtil;
 
 import java.util.OptionalLong;
@@ -64,7 +65,7 @@ public interface Cooldown extends GsonSerializable {
      */
     @Nonnull
     static Cooldown ofTicks(long ticks) {
-        return new CooldownImpl(ticks * 50L, TimeUnit.MILLISECONDS);
+        return new CooldownImpl(Ticks.to(ticks, TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -145,21 +146,6 @@ public interface Cooldown extends GsonSerializable {
     }
 
     /**
-     * Gets the timeout in milliseconds for this cooldown
-     *
-     * @return the timeout in milliseconds
-     */
-    long getTimeout();
-
-    /**
-     * Copies the properties of this cooldown to a new instance
-     *
-     * @return a cloned cooldown instance
-     */
-    @Nonnull
-    Cooldown copy();
-
-    /**
      * Return the time in milliseconds when this cooldown was last {@link #test()}ed.
      *
      * @return the last call time
@@ -176,5 +162,20 @@ public interface Cooldown extends GsonSerializable {
      * @param time the time
      */
     void setLastTested(long time);
+
+    /**
+     * Gets the timeout in milliseconds for this cooldown
+     *
+     * @return the timeout in milliseconds
+     */
+    long getTimeout();
+
+    /**
+     * Copies the properties of this cooldown to a new instance
+     *
+     * @return a cloned cooldown instance
+     */
+    @Nonnull
+    Cooldown copy();
 
 }
