@@ -89,6 +89,7 @@
                                     <include>org.spongepowered:configurate-hocon</include>
                                     <include>com.typesafe:config</include>
                                     <include>net.kyori:event-api</include>
+                                    <inclue>org.slf4j:*</inclue>
                                 </includes>
                             </artifactSet>
                             <relocations>
@@ -165,6 +166,19 @@
     </profiles>
 
     <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.8.0-beta2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.8.0-beta2</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- shadow -->
         <dependency>
             <groupId>me.lucko</groupId>
