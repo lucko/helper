@@ -28,9 +28,8 @@ package me.lucko.helper.command.argument;
 import me.lucko.helper.command.CommandInterruptException;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
-import java.util.Optional;
-
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 /**
  * Parses an argument from a String
@@ -87,6 +86,15 @@ public interface ArgumentParser<T> {
         Optional<T> ret = parse(argument);
         if (!ret.isPresent()) {
             throw new CommandInterruptException("&cUnable to parse argument at index " + argument.index() + ".");
+        }
+        return ret.get();
+    }
+
+    @Nonnull
+    default T parseOrFail(@Nonnull Argument argument, @Nonnull String message) throws CommandInterruptException {
+        Optional<T> ret = parse(argument);
+        if (!ret.isPresent()) {
+            throw new CommandInterruptException(message);
         }
         return ret.get();
     }
