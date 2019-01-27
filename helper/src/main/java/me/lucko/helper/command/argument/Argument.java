@@ -26,13 +26,11 @@
 package me.lucko.helper.command.argument;
 
 import com.google.common.reflect.TypeToken;
-
 import me.lucko.helper.Commands;
 import me.lucko.helper.command.CommandInterruptException;
 
-import java.util.Optional;
-
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 /**
  * Represents a command argument
@@ -75,7 +73,6 @@ public interface Argument {
         if (parser == null) {
             throw new RuntimeException("Unable to find ArgumentParser for " + type);
         }
-
         return parseOrFail(parser);
     }
 
@@ -90,7 +87,6 @@ public interface Argument {
         if (parser == null) {
             throw new RuntimeException("Unable to find ArgumentParser for " + clazz);
         }
-
         return parseOrFail(parser);
     }
 
