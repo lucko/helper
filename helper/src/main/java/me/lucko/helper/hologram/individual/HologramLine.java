@@ -25,16 +25,26 @@
 
 package me.lucko.helper.hologram.individual;
 
+import com.google.common.collect.ImmutableList;
 import org.bukkit.entity.Player;
 
-import java.util.function.Function;
-
 import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * Represents a line in a hologram.
  */
 public interface HologramLine {
+
+    /**
+     * Returns a new {@link HologramLine.Builder}.
+     *
+     * @return a new builder
+     */
+    static HologramLine.Builder builder() {
+        return new Builder();
+    }
 
     /**
      * Returns a hologram line that doesn't change between players.
@@ -60,5 +70,35 @@ public interface HologramLine {
      */
     @Nonnull
     String resolve(Player viewer);
+
+    final class Builder {
+        private final ImmutableList.Builder<HologramLine> lines = ImmutableList.builder();
+
+        private Builder() {
+
+        }
+
+        public Builder line(HologramLine line) {
+            this.lines.add(line);
+            return this;
+        }
+
+        public Builder lines(Iterable<? extends HologramLine> lines) {
+            this.lines.addAll(lines);
+            return this;
+        }
+
+        public Builder line(String line) {
+            return line(HologramLine.fixed(line));
+        }
+
+        public Builder fromFunction(@Nonnull Function<Player, String> function) {
+            return line(HologramLine.fromFunction(function));
+        }
+
+        public List<HologramLine> build() {
+            return this.lines.build();
+        }
+    }
 
 }
