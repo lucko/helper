@@ -27,17 +27,15 @@ package me.lucko.helper.sql.plugin;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import me.lucko.helper.sql.DatabaseCredentials;
 import me.lucko.helper.sql.Sql;
 
+import javax.annotation.Nonnull;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.Nonnull;
 
 public class HelperSql implements Sql {
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
@@ -46,10 +44,8 @@ public class HelperSql implements Sql {
 
     public HelperSql(@Nonnull DatabaseCredentials credentials) {
         HikariConfig config = new HikariConfig();
-
-        config.setMaximumPoolSize(25);
-
         config.setPoolName("helper-sql-" + COUNTER.getAndIncrement());
+
         config.setDataSourceClassName("org.mariadb.jdbc.MySQLDataSource");
         config.addDataSourceProperty("serverName", credentials.getAddress());
         config.addDataSourceProperty("port", credentials.getPort());
@@ -57,15 +53,18 @@ public class HelperSql implements Sql {
         config.setUsername(credentials.getUsername());
         config.setPassword(credentials.getPassword());
 
-        // hack for the mariadb driver
-        config.addDataSourceProperty("properties", "useUnicode=true;characterEncoding=utf8");
+        // pool settings
+        config.setMaximumPoolSize(25);
+        config.setMinimumIdle(10);
 
-        // We will wait for 15 seconds to get a connection from the pool.
-        // Default is 30, but it shouldn't be taking that long.
-        config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(15)); // 15000
-
+        // connections should not live for longer than 30 mins
+        config.setMaxLifetime(TimeUnit.MINUTES.toMillis(30));
+        // We will wait for 10 seconds to get a connection from the pool.
+        config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(10));
         // If a connection is not returned within 10 seconds, it's probably safe to assume it's been leaked.
-        config.setLeakDetectionThreshold(TimeUnit.SECONDS.toMillis(10)); // 10000
+        config.setLeakDetectionThreshold(TimeUnit.SECONDS.toMillis(10));
+        // ensure we use unicode (this calls #setProperties, a hack for the mariadb driver)
+        config.addDataSourceProperty("properties", "useUnicode=true;characterEncoding=utf8");
 
         this.hikari = new HikariDataSource(config);
     }
@@ -73,19 +72,17 @@ public class HelperSql implements Sql {
     @Nonnull
     @Override
     public HikariDataSource getHikari() {
-        return Objects.requireNonNull(this.hikari, "hikari");
+        return this.hikari;
     }
 
     @Nonnull
     @Override
     public Connection getConnection() throws SQLException {
-        return Objects.requireNonNull(getHikari().getConnection(), "connection is null");
+        return Objects.requireNonNull(this.hikari.getConnection(), "connection is null");
     }
 
     @Override
     public void close() {
-        if (this.hikari != null) {
-            this.hikari.close();
-        }
+        this.hikari.close();
     }
 }
