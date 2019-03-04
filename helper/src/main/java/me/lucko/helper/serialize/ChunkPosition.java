@@ -39,6 +39,7 @@ import org.bukkit.block.BlockFace;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -103,7 +104,7 @@ public final class ChunkPosition implements GsonSerializable {
                 }
             }
         }
-        return blocks;
+        return Collections.unmodifiableList(blocks);
     });
 
     private ChunkPosition(int x, int z, String world) {
