@@ -29,15 +29,17 @@ import com.flowpowered.math.vector.Vector2i;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
 import me.lucko.helper.Helper;
+import me.lucko.helper.cache.Lazy;
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.gson.JsonBuilder;
-
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
@@ -92,6 +94,18 @@ public final class ChunkPosition implements GsonSerializable {
     private final int z;
     private final String world;
 
+    private final Lazy<Collection<BlockPosition>> blocks = Lazy.suppliedBy(() -> {
+        List<BlockPosition> blocks = new ArrayList<>(16 * 16 * 256);
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                for (int y = 0; y < 256; y++) {
+                    blocks.add(getBlock(x, y, z));
+                }
+            }
+        }
+        return blocks;
+    });
+
     private ChunkPosition(int x, int z, String world) {
         this.x = x;
         this.z = z;
@@ -114,7 +128,7 @@ public final class ChunkPosition implements GsonSerializable {
         return new Vector2i(this.x, this.z);
     }
 
-    public synchronized Chunk toChunk() {
+    public Chunk toChunk() {
         return Helper.world(this.world).get().getChunkAt(this.x, this.z);
     }
 
@@ -128,6 +142,10 @@ public final class ChunkPosition implements GsonSerializable {
 
     public BlockPosition getBlock(int x, int y, int z) {
         return BlockPosition.of((this.x << 4) | (x & 0xF), y, (this.z << 4) | (z & 0xF), this.world);
+    }
+
+    public Collection<BlockPosition> blocks() {
+        return this.blocks.get();
     }
 
     public ChunkPosition getRelative(BlockFace face) {
