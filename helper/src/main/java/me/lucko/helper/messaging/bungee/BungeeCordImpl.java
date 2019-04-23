@@ -53,6 +53,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Predicate;
 
@@ -78,6 +79,11 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
     private final HelperPlugin plugin;
 
     /**
+     * If the listener has been registered
+     */
+    private final AtomicBoolean setup = new AtomicBoolean(false);
+
+    /**
      * The registered listeners
      */
     private final List<MessageCallback> listeners = new LinkedList<>();
@@ -96,7 +102,11 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         this.plugin = plugin;
     }
 
-    private synchronized void ensureSetup() {
+    private void ensureSetup() {
+        if (!this.setup.compareAndSet(false, true)) {
+            return;
+        }
+
         this.plugin.getServer().getMessenger().registerOutgoingPluginChannel(this.plugin, CHANNEL);
         this.plugin.getServer().getMessenger().registerIncomingPluginChannel(this.plugin, CHANNEL, this);
 
@@ -188,6 +198,7 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
         } else {
             // no players online, queue the message
             this.queuedMessages.add(agent);
+            ensureSetup();
         }
     }
 
