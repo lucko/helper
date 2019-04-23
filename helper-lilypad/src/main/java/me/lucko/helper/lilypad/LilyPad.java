@@ -40,9 +40,9 @@ import javax.annotation.Nonnull;
 public interface LilyPad extends Messenger, InstanceData {
 
     /**
-     * Gets the JedisPool instance backing the redis instance
+     * Gets the Connect instance
      *
-     * @return the JedisPool instance
+     * @return the Connect instance
      */
     @Nonnull
     Connect getConnect();
