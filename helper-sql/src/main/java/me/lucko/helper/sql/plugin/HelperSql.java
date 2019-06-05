@@ -44,7 +44,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -53,8 +52,6 @@ import javax.annotation.Nonnull;
 public class HelperSql implements Sql {
 
     private static final AtomicInteger POOL_COUNTER = new AtomicInteger(0);
-
-    private static final Properties PROPERTIES;
 
     private static final String DATA_SOURCE_CLASS = "org.mariadb.jdbc.MySQLDataSource";
 
@@ -65,13 +62,6 @@ public class HelperSql implements Sql {
     private static final long MAX_LIFETIME = TimeUnit.MINUTES.toMillis(30); // 30 Minutes
     private static final long CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMillis(10); // 10 seconds
     private static final long LEAK_DETECTION_THRESHOLD = TimeUnit.SECONDS.toMillis(10); // 10 seconds
-
-    static {
-        PROPERTIES = new Properties();
-
-        // http://assets.en.oreilly.com/1/event/21/Connector_J%20Performance%20Gems%20Presentation.pdf
-        PROPERTIES.setProperty("useConfigs", "maxPerformance");
-    }
 
     private final HikariDataSource source;
     private final SqlStream stream;
@@ -88,8 +78,6 @@ public class HelperSql implements Sql {
 
         hikari.setUsername(credentials.getUsername());
         hikari.setPassword(credentials.getPassword());
-
-        hikari.setDataSourceProperties(PROPERTIES);
 
         hikari.setMaximumPoolSize(MAXIMUM_POOL_SIZE);
         hikari.setMinimumIdle(MINIMUM_IDLE);
