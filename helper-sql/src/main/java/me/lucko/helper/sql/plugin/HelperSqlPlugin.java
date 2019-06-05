@@ -50,9 +50,6 @@ public class HelperSqlPlugin extends ExtendedJavaPlugin implements SqlProvider {
         provideService(SqlProvider.class, this);
         provideService(DatabaseCredentials.class, this.globalCredentials);
         provideService(Sql.class, this.globalDataSource);
-
-        // expose specific Sql implementation
-        provideService(HelperSql.class, (HelperSql) this.globalDataSource);
     }
 
     @Nonnull

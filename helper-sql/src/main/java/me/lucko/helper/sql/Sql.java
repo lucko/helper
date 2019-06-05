@@ -29,9 +29,12 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.promise.Promise;
-import me.lucko.helper.sql.util.ThrownConsumer;
-import me.lucko.helper.sql.util.ThrownFunction;
+import me.lucko.helper.sql.batch.BatchBuilder;
 import me.lucko.helper.terminable.Terminable;
+
+import be.bendem.sqlstreams.SqlStream;
+import be.bendem.sqlstreams.util.SqlConsumer;
+import be.bendem.sqlstreams.util.SqlFunction;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -45,8 +48,6 @@ import javax.annotation.Nonnull;
  * Represents an individual SQL datasource, created by the library.
  */
 public interface Sql extends Terminable {
-
-    ThrownConsumer<PreparedStatement, SQLException> NOTHING = ThrownConsumer.nothing();
 
     /**
      * Gets the Hikari instance backing the datasource
@@ -65,6 +66,14 @@ public interface Sql extends Terminable {
      */
     @Nonnull
     Connection getConnection() throws SQLException;
+
+    /**
+     * Gets a {@link SqlStream} instance for this {@link Sql}.
+     *
+     * @return a instance of the stream library for this connection.
+     */
+    @Nonnull
+    SqlStream stream();
 
     /**
      * Executes a database statement with no preparation.
@@ -89,7 +98,7 @@ public interface Sql extends Terminable {
      * @see #executeAsync(String) to perform the same action asynchronously
      */
     default void execute(@Nonnull String statement) {
-        this.execute(statement, NOTHING);
+        this.execute(statement, stmt -> {});
     }
 
     /**
@@ -100,11 +109,10 @@ public interface Sql extends Terminable {
      * @param statement the statement to be executed
      * @param preparer the preparation used for this statement
      * @return a Promise of an asynchronous database execution
-     * @see #executeAsync(String, ThrownConsumer) to perform this action synchronously
+     * @see #executeAsync(String, SqlConsumer) to perform this action synchronously
      */
     @Nonnull
-    default Promise<Void> executeAsync(@Nonnull String statement,
-                               @Nonnull ThrownConsumer<PreparedStatement, SQLException> preparer) {
+    default Promise<Void> executeAsync(@Nonnull String statement, @Nonnull SqlConsumer<PreparedStatement> preparer) {
         return Schedulers.async().run(() -> this.execute(statement, preparer));
     }
 
@@ -115,10 +123,9 @@ public interface Sql extends Terminable {
      *
      * @param statement the statement to be executed
      * @param preparer the preparation used for this statement
-     * @see #executeAsync(String, ThrownConsumer) to perform this action asynchronously
+     * @see #executeAsync(String, SqlConsumer) to perform this action asynchronously
      */
-    void execute(@Nonnull String statement,
-                 @Nonnull ThrownConsumer<PreparedStatement, SQLException> preparer);
+    void execute(@Nonnull String statement, @Nonnull SqlConsumer<PreparedStatement> preparer);
 
     /**
      * Executes a database query with no preparation.
@@ -133,10 +140,9 @@ public interface Sql extends Terminable {
      * @param handler the handler for the data returned by the query
      * @param <R> the returned type
      * @return a Promise of an asynchronous database query
-     * @see #query(String, ThrownFunction) to perform this query synchronously
+     * @see #query(String, SqlFunction) to perform this query synchronously
      */
-    default <R> Promise<Optional<R>> queryAsync(@Nonnull String query,
-                                        @Nonnull ThrownFunction<ResultSet, R, SQLException> handler) {
+    default <R> Promise<Optional<R>> queryAsync(@Nonnull String query, @Nonnull SqlFunction<ResultSet, R> handler) {
         return Schedulers.async().supply(() -> this.query(query, handler));
     }
 
@@ -153,11 +159,10 @@ public interface Sql extends Terminable {
      * @param handler the handler for the data returned by the query
      * @param <R> the returned type
      * @return the results of the database query
-     * @see #queryAsync(String, ThrownFunction) to perform this query asynchronously
+     * @see #queryAsync(String, SqlFunction) to perform this query asynchronously
      */
-    default <R> Optional<R> query(@Nonnull String query,
-                          @Nonnull ThrownFunction<ResultSet, R, SQLException> handler) {
-        return this.query(query, NOTHING, handler);
+    default <R> Optional<R> query(@Nonnull String query, @Nonnull SqlFunction<ResultSet, R> handler) {
+        return this.query(query, stmt -> {}, handler);
     }
 
     /**
@@ -174,11 +179,9 @@ public interface Sql extends Terminable {
      * @param handler the handler for the data returned by the query
      * @param <R> the returned type
      * @return a Promise of an asynchronous database query
-     * @see #query(String, ThrownFunction) to perform this query synchronously
+     * @see #query(String, SqlFunction) to perform this query synchronously
      */
-    default <R> Promise<Optional<R>> queryAsync(@Nonnull String query,
-                                        @Nonnull ThrownConsumer<PreparedStatement, SQLException> preparer,
-                                        @Nonnull ThrownFunction<ResultSet, R, SQLException> handler) {
+    default <R> Promise<Optional<R>> queryAsync(@Nonnull String query, @Nonnull SqlConsumer<PreparedStatement> preparer, @Nonnull SqlFunction<ResultSet, R> handler) {
         return Schedulers.async().supply(() -> this.query(query, preparer, handler));
     }
     /**
@@ -195,11 +198,9 @@ public interface Sql extends Terminable {
      * @param handler the handler for the data returned by the query
      * @param <R> the returned type
      * @return the results of the database query
-     * @see #queryAsync(String, ThrownFunction) to perform this query asynchronously
+     * @see #queryAsync(String, SqlFunction) to perform this query asynchronously
      */
-    <R> Optional<R> query(@Nonnull String query,
-                          @Nonnull ThrownConsumer<PreparedStatement, SQLException> preparer,
-                          @Nonnull ThrownFunction<ResultSet, R, SQLException> handler);
+    <R> Optional<R> query(@Nonnull String query, @Nonnull SqlConsumer<PreparedStatement> preparer, @Nonnull SqlFunction<ResultSet, R> handler);
 
     /**
      * Executes a batched database execution.
@@ -209,7 +210,7 @@ public interface Sql extends Terminable {
      * <p>Note that proper implementations of this method should determine
      * if the provided {@link BatchBuilder} is actually worth of being a
      * batched statement. For instance, a BatchBuilder with only one
-     * handler can safely be referred to {@link #executeAsync(String, ThrownConsumer)}</p>
+     * handler can safely be referred to {@link #executeAsync(String, SqlConsumer)}</p>
      *
      * @param builder the builder to be used.
      * @return a Promise of an asynchronous batched database execution
@@ -227,7 +228,7 @@ public interface Sql extends Terminable {
      * <p>Note that proper implementations of this method should determine
      * if the provided {@link BatchBuilder} is actually worth of being a
      * batched statement. For instance, a BatchBuilder with only one
-     * handler can safely be referred to {@link #execute(String, ThrownConsumer)}</p>
+     * handler can safely be referred to {@link #execute(String, SqlConsumer)}</p>
      *
      * @param builder the builder to be used.
      * @see #executeBatchAsync(BatchBuilder) to perform this action asynchronously
