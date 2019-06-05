@@ -25,8 +25,6 @@
 
 package me.lucko.helper.sql.plugin;
 
-import com.google.common.collect.Lists;
-
 import me.lucko.helper.promise.Promise;
 import me.lucko.helper.sql.Sql;
 import me.lucko.helper.sql.batch.BatchBuilder;
@@ -47,7 +45,7 @@ public class HelperSqlBatchBuilder implements BatchBuilder {
     public HelperSqlBatchBuilder(@Nonnull Sql owner, @Nonnull String statement) {
         this.owner = owner;
         this.statement = statement;
-        this.handlers = Lists.newLinkedList();
+        this.handlers = new LinkedList<>();
     }
 
     @Nonnull

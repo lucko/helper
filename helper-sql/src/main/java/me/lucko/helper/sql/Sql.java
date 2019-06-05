@@ -32,6 +32,8 @@ import me.lucko.helper.promise.Promise;
 import me.lucko.helper.sql.batch.BatchBuilder;
 import me.lucko.helper.terminable.Terminable;
 
+import org.intellij.lang.annotations.Language;
+
 import be.bendem.sqlstreams.SqlStream;
 import be.bendem.sqlstreams.util.SqlConsumer;
 import be.bendem.sqlstreams.util.SqlFunction;
@@ -85,7 +87,7 @@ public interface Sql extends Terminable {
      * @see #execute(String) to perform this action synchronously
      */
     @Nonnull
-    default Promise<Void> executeAsync(@Nonnull String statement) {
+    default Promise<Void> executeAsync(@Language("MySQL") @Nonnull String statement) {
         return Schedulers.async().run(() -> this.execute(statement));
     }
 
@@ -97,7 +99,7 @@ public interface Sql extends Terminable {
      * @param statement the statement to be executed
      * @see #executeAsync(String) to perform the same action asynchronously
      */
-    default void execute(@Nonnull String statement) {
+    default void execute(@Language("MySQL") @Nonnull String statement) {
         this.execute(statement, stmt -> {});
     }
 
@@ -112,7 +114,7 @@ public interface Sql extends Terminable {
      * @see #executeAsync(String, SqlConsumer) to perform this action synchronously
      */
     @Nonnull
-    default Promise<Void> executeAsync(@Nonnull String statement, @Nonnull SqlConsumer<PreparedStatement> preparer) {
+    default Promise<Void> executeAsync(@Language("MySQL") @Nonnull String statement, @Nonnull SqlConsumer<PreparedStatement> preparer) {
         return Schedulers.async().run(() -> this.execute(statement, preparer));
     }
 
@@ -125,7 +127,7 @@ public interface Sql extends Terminable {
      * @param preparer the preparation used for this statement
      * @see #executeAsync(String, SqlConsumer) to perform this action asynchronously
      */
-    void execute(@Nonnull String statement, @Nonnull SqlConsumer<PreparedStatement> preparer);
+    void execute(@Language("MySQL") @Nonnull String statement, @Nonnull SqlConsumer<PreparedStatement> preparer);
 
     /**
      * Executes a database query with no preparation.
@@ -142,7 +144,7 @@ public interface Sql extends Terminable {
      * @return a Promise of an asynchronous database query
      * @see #query(String, SqlFunction) to perform this query synchronously
      */
-    default <R> Promise<Optional<R>> queryAsync(@Nonnull String query, @Nonnull SqlFunction<ResultSet, R> handler) {
+    default <R> Promise<Optional<R>> queryAsync(@Language("MySQL") @Nonnull String query, @Nonnull SqlFunction<ResultSet, R> handler) {
         return Schedulers.async().supply(() -> this.query(query, handler));
     }
 
@@ -161,7 +163,7 @@ public interface Sql extends Terminable {
      * @return the results of the database query
      * @see #queryAsync(String, SqlFunction) to perform this query asynchronously
      */
-    default <R> Optional<R> query(@Nonnull String query, @Nonnull SqlFunction<ResultSet, R> handler) {
+    default <R> Optional<R> query(@Language("MySQL") @Nonnull String query, @Nonnull SqlFunction<ResultSet, R> handler) {
         return this.query(query, stmt -> {}, handler);
     }
 
@@ -181,7 +183,7 @@ public interface Sql extends Terminable {
      * @return a Promise of an asynchronous database query
      * @see #query(String, SqlFunction) to perform this query synchronously
      */
-    default <R> Promise<Optional<R>> queryAsync(@Nonnull String query, @Nonnull SqlConsumer<PreparedStatement> preparer, @Nonnull SqlFunction<ResultSet, R> handler) {
+    default <R> Promise<Optional<R>> queryAsync(@Language("MySQL") @Nonnull String query, @Nonnull SqlConsumer<PreparedStatement> preparer, @Nonnull SqlFunction<ResultSet, R> handler) {
         return Schedulers.async().supply(() -> this.query(query, preparer, handler));
     }
     /**
@@ -200,7 +202,7 @@ public interface Sql extends Terminable {
      * @return the results of the database query
      * @see #queryAsync(String, SqlFunction) to perform this query asynchronously
      */
-    <R> Optional<R> query(@Nonnull String query, @Nonnull SqlConsumer<PreparedStatement> preparer, @Nonnull SqlFunction<ResultSet, R> handler);
+    <R> Optional<R> query(@Language("MySQL") @Nonnull String query, @Nonnull SqlConsumer<PreparedStatement> preparer, @Nonnull SqlFunction<ResultSet, R> handler);
 
     /**
      * Executes a batched database execution.
@@ -241,5 +243,5 @@ public interface Sql extends Terminable {
      * @param statement the statement to prepare for batching.
      * @return a BatchBuilder
      */
-    BatchBuilder batch(@Nonnull String statement);
+    BatchBuilder batch(@Language("MySQL") @Nonnull String statement);
 }
