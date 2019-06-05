@@ -57,7 +57,7 @@ public class HelperSql implements Sql {
 
     // https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
     private static final int MAXIMUM_POOL_SIZE = (Runtime.getRuntime().availableProcessors() * 2) + 1;
-    private static final int MINIMUM_IDLE = 10;
+    private static final int MINIMUM_IDLE = Math.min(MAXIMUM_POOL_SIZE, 10);
 
     private static final long MAX_LIFETIME = TimeUnit.MINUTES.toMillis(30); // 30 Minutes
     private static final long CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMillis(10); // 10 seconds
