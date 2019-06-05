@@ -69,6 +69,7 @@
                                 <includes>
                                     <include>com.zaxxer:HikariCP</include>
                                     <include>org.mariadb.jdbc:mariadb-java-client</include>
+                                    <include>me.lucko:sql-streams</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
@@ -79,6 +80,10 @@
                                 <relocation>
                                     <pattern>org.mariadb</pattern>
                                     <shadedPattern>${shade.pattern}mariadb</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>be.bendem.sqlstreams</pattern>
+                                    <shadedPattern>me.lucko.helper.sql.streams</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -141,9 +146,15 @@
 
         <!-- helper-sql related dependencies -->
         <dependency>
+            <groupId>me.lucko</groupId>
+            <artifactId>sql-streams</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>3.3.0</version>
+            <version>3.3.1</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>

@@ -27,16 +27,19 @@ package me.lucko.helper.sql.plugin;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.promise.Promise;
-import me.lucko.helper.sql.BatchBuilder;
 import me.lucko.helper.sql.DatabaseCredentials;
 import me.lucko.helper.sql.Sql;
-import me.lucko.helper.sql.util.ThrownConsumer;
-import me.lucko.helper.sql.util.ThrownFunction;
+import me.lucko.helper.sql.batch.BatchBuilder;
+
 import org.intellij.lang.annotations.Language;
 
-import javax.annotation.Nonnull;
+import be.bendem.sqlstreams.SqlStream;
+import be.bendem.sqlstreams.util.SqlConsumer;
+import be.bendem.sqlstreams.util.SqlFunction;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -46,6 +49,8 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.annotation.Nonnull;
 
 public class HelperSql implements Sql {
 
@@ -68,11 +73,12 @@ public class HelperSql implements Sql {
     static {
         PROPERTIES = new Properties();
 
-        //http://assets.en.oreilly.com/1/event/21/Connector_J%20Performance%20Gems%20Presentation.pdf
+        // http://assets.en.oreilly.com/1/event/21/Connector_J%20Performance%20Gems%20Presentation.pdf
         PROPERTIES.setProperty("useConfigs", "maxPerformance");
     }
 
     private final HikariDataSource source;
+    private final SqlStream stream;
 
     public HelperSql(@Nonnull DatabaseCredentials credentials) {
         final HikariConfig hikari = new HikariConfig();
@@ -100,6 +106,7 @@ public class HelperSql implements Sql {
         hikari.addDataSourceProperty("properties", "useUnicode=true;characterEncoding=utf8");
 
         this.source = new HikariDataSource(hikari);
+        this.stream = SqlStream.connect(this.source);
     }
 
     @Nonnull
@@ -115,23 +122,27 @@ public class HelperSql implements Sql {
     }
 
     @Nonnull
+    @Override
+    public SqlStream stream() {
+        return this.stream;
+    }
+
+    @Nonnull
     public Promise<Void> executeAsync(@Language(LANGUAGE) @Nonnull String statement) {
         return Schedulers.async().run(() -> this.execute(statement));
     }
 
     public void execute(@Language(LANGUAGE) @Nonnull String statement) {
-        this.execute(statement, NOTHING);
+        this.execute(statement, stmt -> {});
     }
 
     @Nonnull
-    public Promise<Void> executeAsync(@Language(LANGUAGE) @Nonnull String statement,
-                                       @Nonnull ThrownConsumer<PreparedStatement, SQLException> preparer) {
+    public Promise<Void> executeAsync(@Language(LANGUAGE) @Nonnull String statement, @Nonnull SqlConsumer<PreparedStatement> preparer) {
         return Schedulers.async().run(() -> this.execute(statement, preparer));
     }
 
     @Override
-    public void execute(@Language(LANGUAGE) @Nonnull String statement,
-                        @Nonnull ThrownConsumer<PreparedStatement, SQLException> preparer) {
+    public void execute(@Language(LANGUAGE) @Nonnull String statement, @Nonnull SqlConsumer<PreparedStatement> preparer) {
         try (Connection c = this.getConnection(); PreparedStatement s = c.prepareStatement(statement)) {
             preparer.accept(s);
             s.execute();
@@ -140,26 +151,20 @@ public class HelperSql implements Sql {
         }
     }
 
-    public <R> Promise<Optional<R>> queryAsync(@Language(LANGUAGE) @Nonnull String query,
-                                                @Nonnull ThrownFunction<ResultSet, R, SQLException> handler) {
+    public <R> Promise<Optional<R>> queryAsync(@Language(LANGUAGE) @Nonnull String query, @Nonnull SqlFunction<ResultSet, R> handler) {
         return Schedulers.async().supply(() -> this.query(query, handler));
     }
 
-    public <R> Optional<R> query(@Language(LANGUAGE) @Nonnull String query,
-                                  @Nonnull ThrownFunction<ResultSet, R, SQLException> handler) {
-        return this.query(query, NOTHING, handler);
+    public <R> Optional<R> query(@Language(LANGUAGE) @Nonnull String query, @Nonnull SqlFunction<ResultSet, R> handler) {
+        return this.query(query, stmt -> {}, handler);
     }
 
-    public <R> Promise<Optional<R>> queryAsync(@Language(LANGUAGE) @Nonnull String query,
-                                                @Nonnull ThrownConsumer<PreparedStatement, SQLException> preparer,
-                                                @Nonnull ThrownFunction<ResultSet, R, SQLException> handler) {
+    public <R> Promise<Optional<R>> queryAsync(@Language(LANGUAGE) @Nonnull String query, @Nonnull SqlConsumer<PreparedStatement> preparer, @Nonnull SqlFunction<ResultSet, R> handler) {
         return Schedulers.async().supply(() -> this.query(query, preparer, handler));
     }
 
     @Override
-    public <R> Optional<R> query(@Language(LANGUAGE) @Nonnull String query,
-                                 @Nonnull ThrownConsumer<PreparedStatement, SQLException> preparer,
-                                 @Nonnull ThrownFunction<ResultSet, R, SQLException> handler) {
+    public <R> Optional<R> query(@Language(LANGUAGE) @Nonnull String query, @Nonnull SqlConsumer<PreparedStatement> preparer, @Nonnull SqlFunction<ResultSet, R> handler) {
         try (Connection c = this.getConnection(); PreparedStatement s = c.prepareStatement(query)) {
             preparer.accept(s);
             try (ResultSet r = s.executeQuery()) {
@@ -183,7 +188,7 @@ public class HelperSql implements Sql {
         }
 
         try (Connection c = this.getConnection(); PreparedStatement s = c.prepareStatement(builder.getStatement())) {
-            for (ThrownConsumer<PreparedStatement, SQLException> handlers : builder.getHandlers()) {
+            for (SqlConsumer<PreparedStatement> handlers : builder.getHandlers()) {
                 handlers.accept(s);
                 s.addBatch();
             }
