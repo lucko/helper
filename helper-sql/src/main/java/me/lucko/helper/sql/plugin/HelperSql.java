@@ -28,8 +28,6 @@ package me.lucko.helper.sql.plugin;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import me.lucko.helper.Schedulers;
-import me.lucko.helper.promise.Promise;
 import me.lucko.helper.sql.DatabaseCredentials;
 import me.lucko.helper.sql.Sql;
 import me.lucko.helper.sql.batch.BatchBuilder;
@@ -67,8 +65,6 @@ public class HelperSql implements Sql {
     private static final long MAX_LIFETIME = TimeUnit.MINUTES.toMillis(30); // 30 Minutes
     private static final long CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMillis(10); // 10 seconds
     private static final long LEAK_DETECTION_THRESHOLD = TimeUnit.SECONDS.toMillis(10); // 10 seconds
-
-    private static final String LANGUAGE = "MySQL";
 
     static {
         PROPERTIES = new Properties();
@@ -127,22 +123,8 @@ public class HelperSql implements Sql {
         return this.stream;
     }
 
-    @Nonnull
-    public Promise<Void> executeAsync(@Language(LANGUAGE) @Nonnull String statement) {
-        return Schedulers.async().run(() -> this.execute(statement));
-    }
-
-    public void execute(@Language(LANGUAGE) @Nonnull String statement) {
-        this.execute(statement, stmt -> {});
-    }
-
-    @Nonnull
-    public Promise<Void> executeAsync(@Language(LANGUAGE) @Nonnull String statement, @Nonnull SqlConsumer<PreparedStatement> preparer) {
-        return Schedulers.async().run(() -> this.execute(statement, preparer));
-    }
-
     @Override
-    public void execute(@Language(LANGUAGE) @Nonnull String statement, @Nonnull SqlConsumer<PreparedStatement> preparer) {
+    public void execute(@Language("MySQL") @Nonnull String statement, @Nonnull SqlConsumer<PreparedStatement> preparer) {
         try (Connection c = this.getConnection(); PreparedStatement s = c.prepareStatement(statement)) {
             preparer.accept(s);
             s.execute();
@@ -151,20 +133,8 @@ public class HelperSql implements Sql {
         }
     }
 
-    public <R> Promise<Optional<R>> queryAsync(@Language(LANGUAGE) @Nonnull String query, @Nonnull SqlFunction<ResultSet, R> handler) {
-        return Schedulers.async().supply(() -> this.query(query, handler));
-    }
-
-    public <R> Optional<R> query(@Language(LANGUAGE) @Nonnull String query, @Nonnull SqlFunction<ResultSet, R> handler) {
-        return this.query(query, stmt -> {}, handler);
-    }
-
-    public <R> Promise<Optional<R>> queryAsync(@Language(LANGUAGE) @Nonnull String query, @Nonnull SqlConsumer<PreparedStatement> preparer, @Nonnull SqlFunction<ResultSet, R> handler) {
-        return Schedulers.async().supply(() -> this.query(query, preparer, handler));
-    }
-
     @Override
-    public <R> Optional<R> query(@Language(LANGUAGE) @Nonnull String query, @Nonnull SqlConsumer<PreparedStatement> preparer, @Nonnull SqlFunction<ResultSet, R> handler) {
+    public <R> Optional<R> query(@Language("MySQL") @Nonnull String query, @Nonnull SqlConsumer<PreparedStatement> preparer, @Nonnull SqlFunction<ResultSet, R> handler) {
         try (Connection c = this.getConnection(); PreparedStatement s = c.prepareStatement(query)) {
             preparer.accept(s);
             try (ResultSet r = s.executeQuery()) {
@@ -199,7 +169,7 @@ public class HelperSql implements Sql {
     }
 
     @Override
-    public BatchBuilder batch(@Language(LANGUAGE) @Nonnull String statement) {
+    public BatchBuilder batch(@Language("MySQL") @Nonnull String statement) {
         return new HelperSqlBatchBuilder(this, statement);
     }
 
