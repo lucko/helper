@@ -217,6 +217,8 @@ public final class BungeeCordImpl implements BungeeCord, PluginMessageListener {
     }
 
     private void sendToChannel(MessageAgent agent, Player player) {
+        ensureSetup();
+
         // create a new data output stream for the message
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
 
