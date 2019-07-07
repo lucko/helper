@@ -36,6 +36,7 @@ import org.bukkit.event.server.PluginDisableEvent;
 
 import lilypad.client.connect.api.request.RequestException;
 import lilypad.client.connect.api.request.impl.GetPlayersRequest;
+import lilypad.client.connect.api.result.FutureResult;
 import lilypad.client.connect.api.result.impl.GetPlayersResult;
 
 import java.util.concurrent.TimeUnit;
@@ -57,9 +58,9 @@ public class LilyPadNetwork extends AbstractNetwork {
                 .afterAndEvery(3, TimeUnit.SECONDS)
                 .run(() -> {
                     try {
-                        GetPlayersResult result = lilyPad.getConnect().request(new GetPlayersRequest()).await();
-                        this.overallPlayerCount.set(result.getCurrentPlayers());
-                    } catch (InterruptedException | RequestException e) {
+                        FutureResult<GetPlayersResult> request = lilyPad.getConnect().request(new GetPlayersRequest());
+                        request.registerListener(result -> this.overallPlayerCount.set(result.getCurrentPlayers()));
+                    } catch (RequestException e) {
                         e.printStackTrace();
                     }
                 })
