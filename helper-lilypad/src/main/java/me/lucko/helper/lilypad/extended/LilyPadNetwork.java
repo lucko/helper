@@ -28,6 +28,7 @@ package me.lucko.helper.lilypad.extended;
 import me.lucko.helper.Events;
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.lilypad.LilyPad;
+import me.lucko.helper.messaging.util.ChannelReceiver;
 import me.lucko.helper.network.AbstractNetwork;
 import me.lucko.helper.network.event.ServerDisconnectEvent;
 
@@ -40,7 +41,7 @@ import lilypad.client.connect.api.result.impl.GetPlayersResult;
 import java.util.concurrent.TimeUnit;
 
 public class LilyPadNetwork extends AbstractNetwork {
-    private int overallPlayerCount = 0;
+    private ChannelReceiver<Integer> overallPlayerCount = new ChannelReceiver<>(5, TimeUnit.SECONDS);
 
     public LilyPadNetwork(LilyPad lilyPad) {
         super(lilyPad, lilyPad);
@@ -57,7 +58,7 @@ public class LilyPadNetwork extends AbstractNetwork {
                 .run(() -> {
                     try {
                         GetPlayersResult result = lilyPad.getConnect().request(new GetPlayersRequest()).await();
-                        this.overallPlayerCount = result.getCurrentPlayers();
+                        this.overallPlayerCount.set(result.getCurrentPlayers());
                     } catch (InterruptedException | RequestException e) {
                         e.printStackTrace();
                     }
@@ -67,7 +68,7 @@ public class LilyPadNetwork extends AbstractNetwork {
 
     @Override
     public int getOverallPlayerCount() {
-        return this.overallPlayerCount;
+        return this.overallPlayerCount.getValue().orElse(0);
     }
 
 }
