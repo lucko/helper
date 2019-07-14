@@ -137,10 +137,14 @@ public final class Tps implements GsonSerializable {
         } else {
             sb.append(ChatColor.RED);
         }
+
+        sb.append(Math.min(Math.round(tps * 100.0) / 100.0, 20.0));
+
         if (tps > 20.0) {
             sb.append('*');
         }
-        return sb.append(Math.min(Math.round(tps * 100.0) / 100.0, 20.0)).toString();
+
+        return sb.toString();
     }
 
     @Nonnull
