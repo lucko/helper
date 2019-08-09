@@ -25,22 +25,14 @@
 
 package me.lucko.helper.scheduler;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.utils.Log;
 
 import org.bukkit.Bukkit;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -83,40 +75,6 @@ public final class HelperExecutors {
         @Override
         public void execute(Runnable runnable) {
             Bukkit.getScheduler().runTaskAsynchronously(LoaderUtils.getPlugin(), wrapRunnable(runnable));
-        }
-    }
-
-    private static final class HelperAsyncExecutor extends ScheduledThreadPoolExecutor {
-        private final Set<ScheduledFuture<?>> tasks = Collections.newSetFromMap(new WeakHashMap<>());
-
-        private HelperAsyncExecutor() {
-            super(16, new ThreadFactoryBuilder().setNameFormat("helper-scheduler-%d").build());
-        }
-
-        private ScheduledFuture<?> consumeTask(ScheduledFuture<?> future) {
-            this.tasks.add(future);
-            return future;
-        }
-
-        public void cancelRepeatingTasks() {
-            for (ScheduledFuture<?> task : this.tasks) {
-                task.cancel(false);
-            }
-        }
-
-        @Override
-        public void execute(Runnable runnable) {
-            super.execute(wrapRunnable(runnable));
-        }
-
-        @Override
-        public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-            return consumeTask(super.scheduleAtFixedRate(command, initialDelay, period, unit));
-        }
-
-        @Override
-        public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-            return consumeTask(super.scheduleWithFixedDelay(command, initialDelay, delay, unit));
         }
     }
 
