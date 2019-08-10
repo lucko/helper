@@ -38,6 +38,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 final class HelperAsyncExecutor extends AbstractExecutorService implements ScheduledExecutorService {
     private final ExecutorService taskService;
@@ -76,7 +78,8 @@ final class HelperAsyncExecutor extends AbstractExecutorService implements Sched
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        return consumeTask(this.timerExecutionService.schedule(new Worker(HelperExecutors.wrapRunnable(command)), delay, unit));
+        Runnable delegate = HelperExecutors.wrapRunnable(command);
+        return consumeTask(this.timerExecutionService.schedule(() -> this.taskService.execute(delegate), delay, unit));
     }
 
     @Override
@@ -86,12 +89,12 @@ final class HelperAsyncExecutor extends AbstractExecutorService implements Sched
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        return consumeTask(this.timerExecutionService.scheduleAtFixedRate(new Worker(HelperExecutors.wrapRunnable(command)), initialDelay, period, unit));
+        return consumeTask(this.timerExecutionService.scheduleAtFixedRate(new FixedRateWorker(HelperExecutors.wrapRunnable(command)), initialDelay, period, unit));
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-        return consumeTask(this.timerExecutionService.scheduleWithFixedDelay(new Worker(HelperExecutors.wrapRunnable(command)), initialDelay, delay, unit));
+        return scheduleAtFixedRate(command, initialDelay, delay, unit);
     }
 
     @Override
@@ -120,16 +123,39 @@ final class HelperAsyncExecutor extends AbstractExecutorService implements Sched
         throw new IllegalStateException("Not shutdown");
     }
 
-    private final class Worker implements Runnable {
+    private final class FixedRateWorker implements Runnable {
         private final Runnable delegate;
+        private final ReentrantLock lock = new ReentrantLock();
+        private final AtomicInteger running = new AtomicInteger(0);
 
-        private Worker(Runnable delegate) {
+        private FixedRateWorker(Runnable delegate) {
             this.delegate = delegate;
         }
 
+        // the purpose of 'lock' and 'running' is to prevent concurrent
+        // execution on the underlying delegate runnable.
+        // only one instance of the worker will "wait" for the previous task to finish
+
         @Override
         public void run() {
-            HelperAsyncExecutor.this.taskService.execute(delegate);
+            // assuming a task that takes a really long time:
+            // first call: running=1 - we want to run
+            // second call: running=2 - we want to wait
+            // third call: running=3 - assuming second is still waiting, we want to cancel
+            if (this.running.incrementAndGet() > 2) {
+                this.running.decrementAndGet();
+                return;
+            }
+
+            HelperAsyncExecutor.this.taskService.execute(() -> {
+                this.lock.lock();
+                try {
+                    this.delegate.run();
+                } finally {
+                    this.lock.unlock();
+                    this.running.decrementAndGet();
+                }
+            });
         }
     }
 }
