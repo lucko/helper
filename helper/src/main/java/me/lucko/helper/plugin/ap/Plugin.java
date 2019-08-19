@@ -76,6 +76,13 @@ public @interface Plugin {
     PluginLoadOrder load() default PluginLoadOrder.POSTWORLD;
 
     /**
+     * The api version of the plugin
+     *
+     * @return the api version of the plugin
+     */
+    String apiVersion() default "";
+
+    /**
      * The authors of the plugin
      *
      * @return the author of the plugin
