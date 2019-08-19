@@ -102,6 +102,11 @@ public class PluginProcessor extends AbstractProcessor {
             data.put("load", order.name());
         }
 
+        String apiVersion = annotation.apiVersion();
+        if (!apiVersion.isEmpty()) {
+            data.put("api-version", apiVersion);
+        }
+
         String[] authors = annotation.authors();
         if (authors.length == 1) {
             data.put("author", authors[0]);
