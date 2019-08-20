@@ -51,8 +51,6 @@ import net.kyori.event.PostResult;
 import net.kyori.event.SimpleEventBus;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.HumanEntity;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.ArrayList;
@@ -65,7 +63,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -170,7 +167,10 @@ public class AbstractNetwork implements Network {
         msg.time = System.currentTimeMillis();
         msg.id = this.instanceData.getId();
         msg.groups = new ArrayList<>(this.instanceData.getGroups());
-        msg.players = Players.stream().collect(Collectors.toMap(Entity::getUniqueId, HumanEntity::getName));
+
+        msg.players = new HashMap<>();
+        Players.forEach(p -> msg.players.put(p.getUniqueId(), p.getName()));
+
         msg.maxPlayers = Bukkit.getMaxPlayers();
         msg.whitelisted = Bukkit.hasWhitelist();
 
