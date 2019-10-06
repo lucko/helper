@@ -36,6 +36,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -43,6 +44,8 @@ import java.util.function.Predicate;
 @NonnullByDefault
 class FunctionalCommandBuilderImpl<T extends CommandSender> implements FunctionalCommandBuilder<T> {
     private final ImmutableList.Builder<Predicate<CommandContext<?>>> predicates;
+    private @Nullable String permission;
+    private @Nullable String permissionMessage;
 
     private FunctionalCommandBuilderImpl(ImmutableList.Builder<Predicate<CommandContext<?>>> predicates) {
         this.predicates = predicates;
@@ -53,17 +56,10 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     }
 
     @Override
-    public FunctionalCommandBuilder<T> assertPermission(String permission, String failureMessage) {
+    public FunctionalCommandBuilder<T> assertPermission(String permission, @Nullable String failureMessage) {
         Objects.requireNonNull(permission, "permission");
-        Objects.requireNonNull(failureMessage, "failureMessage");
-        this.predicates.add(context -> {
-            if (context.sender().hasPermission(permission)) {
-                return true;
-            }
-
-            context.reply(failureMessage);
-            return false;
-        });
+        this.permission = permission;
+        this.permissionMessage = failureMessage;
         return this;
     }
 
@@ -175,6 +171,6 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     @Override
     public Command handler(FunctionalCommandHandler handler) {
         Objects.requireNonNull(handler, "handler");
-        return new FunctionalCommand(this.predicates.build(), handler);
+        return new FunctionalCommand(this.predicates.build(), handler, permission, permissionMessage);
     }
 }

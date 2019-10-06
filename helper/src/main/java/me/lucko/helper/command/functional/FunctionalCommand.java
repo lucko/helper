@@ -35,15 +35,18 @@ import me.lucko.helper.utils.annotation.NonnullByDefault;
 import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 @NonnullByDefault
 class FunctionalCommand extends AbstractCommand {
     private final ImmutableList<Predicate<CommandContext<?>>> predicates;
     private final FunctionalCommandHandler handler;
 
-    FunctionalCommand(ImmutableList<Predicate<CommandContext<?>>> predicates, FunctionalCommandHandler handler) {
+    FunctionalCommand(ImmutableList<Predicate<CommandContext<?>>> predicates, FunctionalCommandHandler handler, @Nullable String permission, @Nullable String permissionMessage) {
         this.predicates = predicates;
         this.handler = handler;
+        this.permission = permission;
+        this.permissionMessasge = permissionMessage;
     }
 
     @Override
