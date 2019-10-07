@@ -34,15 +34,21 @@ import me.lucko.helper.utils.annotation.NonnullByDefault;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
+import javax.annotation.Nullable;
+
 /**
  * An abstract implementation of {@link Command} and {@link CommandExecutor}
  */
 @NonnullByDefault
 public abstract class AbstractCommand implements Command, CommandExecutor {
 
+    protected @Nullable String permission;
+    protected @Nullable String permissionMessasge;
+    protected @Nullable String descritpion;
+
     @Override
     public void register(String... aliases) {
-        LoaderUtils.getPlugin().registerCommand(this, aliases);
+        LoaderUtils.getPlugin().registerCommand(this, permission, permissionMessasge, descritpion, aliases);
     }
 
     @Override
