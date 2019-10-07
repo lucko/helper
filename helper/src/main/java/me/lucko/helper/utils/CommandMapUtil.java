@@ -138,11 +138,13 @@ public final class CommandMapUtil {
                 cmd.setLabel(alias.toLowerCase());
                 if (permission != null) {
                    cmd.setPermission(permission);
-                   if(permissionMessage != null)
+                   if (permissionMessage != null) {
                        cmd.setPermissionMessage(permissionMessage);
+                   }
                 }
-                if (description != null)
+                if (description != null) {
                     cmd.setDescription(description);
+                }
 
                 cmd.setExecutor(command);
                 if (command instanceof TabCompleter) {
