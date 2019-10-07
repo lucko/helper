@@ -32,6 +32,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
 /**
@@ -43,7 +44,6 @@ import java.util.function.Predicate;
 public interface FunctionalCommandBuilder<T extends CommandSender> {
     
     // Default failure messages
-    String DEFAULT_NO_PERMISSION_MESSAGE = "&cYou do not have permission to use this command.";
     String DEFAULT_NOT_OP_MESSAGE = "&cOnly server operators are able to use this command.";
     String DEFAULT_NOT_PLAYER_MESSAGE = "&cOnly players are able to use this command.";
     String DEFAULT_NOT_CONSOLE_MESSAGE = "&cThis command is only available through the server console.";
@@ -56,6 +56,14 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
     }
 
     /**
+     * Sets the command description to the specified one.
+     *
+     * @param description the command description
+     * @return the builder instance
+     */
+    FunctionalCommandBuilder<T> description(String description);
+
+    /**
      * Asserts that the sender has the specified permission, and sends them the default failure message
      * if they don't have permission.
      *
@@ -63,7 +71,7 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
      * @return the builder instance
      */
     default FunctionalCommandBuilder<T> assertPermission(String permission) {
-        return assertPermission(permission, DEFAULT_NO_PERMISSION_MESSAGE);
+        return assertPermission(permission, null);
     }
 
     /**
@@ -74,7 +82,7 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
      * @param failureMessage the failure message to send if they don't have permission
      * @return the builder instance
      */
-    FunctionalCommandBuilder<T> assertPermission(String permission, String failureMessage);
+    FunctionalCommandBuilder<T> assertPermission(String permission, @Nullable String failureMessage);
 
     /**
      * Asserts that the sender is op, and sends them the default failure message if they're not.
