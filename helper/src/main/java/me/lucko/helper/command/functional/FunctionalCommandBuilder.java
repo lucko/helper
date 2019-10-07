@@ -56,6 +56,14 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
     }
 
     /**
+     * Sets the command description to the specified one.
+     *
+     * @param description the command description
+     * @return the builder instance
+     */
+    FunctionalCommandBuilder<T> description(String description);
+
+    /**
      * Asserts that the sender has the specified permission, and sends them the default failure message
      * if they don't have permission.
      *

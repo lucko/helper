@@ -46,13 +46,23 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     private final ImmutableList.Builder<Predicate<CommandContext<?>>> predicates;
     private @Nullable String permission;
     private @Nullable String permissionMessage;
+    private @Nullable String description;
 
-    private FunctionalCommandBuilderImpl(ImmutableList.Builder<Predicate<CommandContext<?>>> predicates) {
+    private FunctionalCommandBuilderImpl(ImmutableList.Builder<Predicate<CommandContext<?>>> predicates, @Nullable String permission, @Nullable String permissionMessage, @Nullable String description) {
         this.predicates = predicates;
+        this.permission = permission;
+        this.permissionMessage = permissionMessage;
+        this.description = description;
     }
 
     FunctionalCommandBuilderImpl() {
-        this(ImmutableList.builder());
+        this(ImmutableList.builder(), null, null, null);
+    }
+
+    public FunctionalCommandBuilder<T> description(String description) {
+        Objects.requireNonNull(permission, "description");
+        this.description = description;
+        return this;
     }
 
     @Override
@@ -89,7 +99,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
             return false;
         });
         // cast the generic type
-        return new FunctionalCommandBuilderImpl<>(this.predicates);
+        return new FunctionalCommandBuilderImpl<>(this.predicates, this.permission, this.permissionMessage, this.description);
     }
 
     @Override
@@ -104,7 +114,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
             return false;
         });
         // cast the generic type
-        return new FunctionalCommandBuilderImpl<>(this.predicates);
+        return new FunctionalCommandBuilderImpl<>(this.predicates, this.permission, this.permissionMessage, this.description);
     }
 
     @Override
@@ -171,6 +181,6 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     @Override
     public Command handler(FunctionalCommandHandler handler) {
         Objects.requireNonNull(handler, "handler");
-        return new FunctionalCommand(this.predicates.build(), handler, permission, permissionMessage);
+        return new FunctionalCommand(this.predicates.build(), handler, permission, permissionMessage, description);
     }
 }

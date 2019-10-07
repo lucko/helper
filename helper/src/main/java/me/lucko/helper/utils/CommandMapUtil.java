@@ -110,7 +110,7 @@ public final class CommandMapUtil {
      */
     @Nonnull
     public static <T extends CommandExecutor> T registerCommand(@Nonnull Plugin plugin, @Nonnull T command, @Nonnull String... aliases) {
-        return registerCommand(plugin, command, null, null, aliases);
+        return registerCommand(plugin, command, null, null, null, aliases);
     }
 
     /**
@@ -120,12 +120,13 @@ public final class CommandMapUtil {
      * @param command the command instance
      * @param permission the command permission
      * @param permissionMessage the message sent when the sender doesn't the required permission
+     * @param description the command description
      * @param aliases the command aliases
      * @param <T> the command executor class type
      * @return the command executor
      */
     @Nonnull
-    public static <T extends CommandExecutor> T registerCommand(@Nonnull Plugin plugin, @Nonnull T command, String permission, String permissionMessage, @Nonnull String... aliases) {
+    public static <T extends CommandExecutor> T registerCommand(@Nonnull Plugin plugin, @Nonnull T command, String permission, String permissionMessage, String description, @Nonnull String... aliases) {
         Preconditions.checkArgument(aliases.length != 0, "No aliases");
         for (String alias : aliases) {
             try {
@@ -140,6 +141,8 @@ public final class CommandMapUtil {
                    if(permissionMessage != null)
                        cmd.setPermissionMessage(permissionMessage);
                 }
+                if (description != null)
+                    cmd.setDescription(description);
 
                 cmd.setExecutor(command);
                 if (command instanceof TabCompleter) {

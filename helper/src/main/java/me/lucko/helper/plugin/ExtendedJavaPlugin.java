@@ -119,8 +119,8 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
 
     @Nonnull
     @Override
-    public <T extends CommandExecutor> T registerCommand(@Nonnull T command, String permission, String permissionMessage, @Nonnull String... aliases) {
-        return CommandMapUtil.registerCommand(this, command, permission, permissionMessage, aliases);
+    public <T extends CommandExecutor> T registerCommand(@Nonnull T command, String permission, String permissionMessage, String description, @Nonnull String... aliases) {
+        return CommandMapUtil.registerCommand(this, command, permission, permissionMessage, description, aliases);
     }
 
     @Nonnull

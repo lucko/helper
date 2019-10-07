@@ -64,7 +64,7 @@ public interface HelperPlugin extends Plugin, TerminableConsumer {
      */
     @Nonnull
     default <T extends CommandExecutor> T registerCommand(@Nonnull T command, @Nonnull String... aliases) {
-        return registerCommand(command, null, null, aliases);
+        return registerCommand(command, null, null, null, aliases);
     }
 
     /**
@@ -73,12 +73,13 @@ public interface HelperPlugin extends Plugin, TerminableConsumer {
      * @param command the command instance
      * @param permission the command permission
      * @param permissionMessage the message sent when the sender doesn't the required permission
+     * @param description the command description
      * @param aliases the command aliases
      * @param <T> the command executor class type
      * @return the command executor
      */
     @Nonnull
-    <T extends CommandExecutor> T registerCommand(@Nonnull T command, String permission, String permissionMessage, @Nonnull String... aliases);
+    <T extends CommandExecutor> T registerCommand(@Nonnull T command, String permission, String permissionMessage, String description, @Nonnull String... aliases);
 
     /**
      * Gets a service provided by the ServiceManager

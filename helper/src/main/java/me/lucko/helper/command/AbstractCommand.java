@@ -44,10 +44,11 @@ public abstract class AbstractCommand implements Command, CommandExecutor {
 
     protected @Nullable String permission;
     protected @Nullable String permissionMessasge;
+    protected @Nullable String descritpion;
 
     @Override
     public void register(String... aliases) {
-        LoaderUtils.getPlugin().registerCommand(this, permission, permissionMessasge, aliases);
+        LoaderUtils.getPlugin().registerCommand(this, permission, permissionMessasge, descritpion, aliases);
     }
 
     @Override
