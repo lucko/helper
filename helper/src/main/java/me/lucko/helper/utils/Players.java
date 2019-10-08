@@ -30,11 +30,12 @@ import com.google.common.collect.ImmutableList;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-
 import me.lucko.helper.Helper;
 import me.lucko.helper.reflect.MinecraftVersion;
 import me.lucko.helper.reflect.MinecraftVersions;
+import me.lucko.helper.reflect.NmsVersion;
 import me.lucko.helper.reflect.ServerReflection;
+import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
@@ -52,36 +53,38 @@ import org.bukkit.inventory.ItemStack;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.time.chrono.MinguoEra;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
-
-import static me.lucko.helper.text.Text.setBracketPlaceholders;
-import static me.lucko.helper.text.Text.setPlaceholders;
 
 /**
  * A collection of Player related utilities
  */
 @NonnullByDefault
 public final class Players {
-    @Nullable private static final Object OPENBOOK_PACKET;
+    @Nullable
+    private static final Object OPENBOOK_PACKET;
 
-    @Nullable private static final Object TITLE_ENUM;
-    @Nullable private static final Object SUBTITLE_ENUM;
-    @Nullable private static final Constructor<?> TITLE_CONSTRUCTOR;
+    @Nullable
+    private static final Object TITLE_ENUM;
+    @Nullable
+    private static final Object SUBTITLE_ENUM;
+    @Nullable
+    private static final Constructor<?> TITLE_CONSTRUCTOR;
 
-    @Nullable private static final Method ICHATBASECOMPONENT_A_METHOD;
+    @Nullable
+    private static final Method ICHATBASECOMPONENT_A_METHOD;
 
-    @Nullable private static final Constructor<?> TABLIST_CONSTRUCTOR;
+    @Nullable
+    private static final Constructor<?> TABLIST_CONSTRUCTOR;
 
-    @Nullable private static final Object ACTIONBAR_ENUM;
-    @Nullable private static final Constructor<?> ACTIONBAR_CONSTRUCTOR;
+    @Nullable
+    private static final Object ACTIONBAR_ENUM;
+    @Nullable
+    private static final Constructor<?> ACTIONBAR_CONSTRUCTOR;
 
     static {
         Object title_Enum = null;
@@ -118,7 +121,6 @@ public final class Players {
             Object packetDataSerializerArg;
             Object minecraftKey;
             switch (ServerReflection.getNmsVersion()) {
-                case v1_15_R1:
                 case v1_14_R1:
                     enumHand = (Enum<?>) ServerReflection.nmsClass("EnumHand").getField("MAIN_HAND").get(null);
                     packetConstructor = ServerReflection.nmsClass("PacketPlayOutOpenBook").getConstructor(ServerReflection.nmsClass("EnumHand"));
@@ -235,7 +237,7 @@ public final class Players {
     /**
      * Applies an action to each object in the iterable, if it is a player.
      *
-     * @param objects the objects to iterate
+     * @param objects  the objects to iterate
      * @param consumer the action to apply
      */
     public static void forEachIfPlayer(Iterable<Object> objects, Consumer<Player> consumer) {
@@ -262,8 +264,8 @@ public final class Players {
     /**
      * Applies an action to all players within a given radius of a point
      *
-     * @param center the point
-     * @param radius the radius
+     * @param center   the point
+     * @param radius   the radius
      * @param consumer the action to apply
      */
     public static void forEachInRange(Location center, double radius, Consumer<Player> consumer) {
@@ -276,65 +278,43 @@ public final class Players {
     /**
      * Messages a sender a set of messages.
      *
-     * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
-     *
      * @param sender the sender
-     * @param msgs the messages to send
+     * @param msgs   the messages to send
      */
     public static void msg(CommandSender sender, String... msgs) {
-        for (String msg : msgs) {
-            sender.sendMessage(setBracketPlaceholders(sender, setPlaceholders(sender, msg)));
-        }
-    }
-
-    /**
-     * Sends a message to a set of senders.
-     *
-     * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
-     *
-     * @param msg the message to send
-     * @param senders the senders to whom send the message
-     */
-    public static void msg(String msg, CommandSender... senders) {
-        for (CommandSender sender : senders) {
-            sender.sendMessage(setBracketPlaceholders(sender, setPlaceholders(sender, msg)));
+        for (String s : msgs) {
+            sender.sendMessage(Text.colorize(s));
         }
     }
 
     /**
      * Sends a title to one or more players.
      *
-     * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
-     *
-     * @param title the title to send
+     * @param title    the title to send
      * @param subtitle the subtitle to send
-     * @param fadeIn the time, in ticks, that the title should use to appear
-     * @param stay the title duration
-     * @param fadeOut the time, in ticks, that the title should use to disappear
-     * @param players the players to whom send the title
+     * @param fadeIn   the time, in ticks, that the title should use to appear
+     * @param stay     the title duration
+     * @param fadeOut  the time, in ticks, that the title should use to disappear
+     * @param players  the players to whom send the title
      */
     public static void sendTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut, Player... players) {
         if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_11)) {
             for (Player player : players)
-                player.sendTitle(setBracketPlaceholders(player, setPlaceholders(player, title)), setBracketPlaceholders(player, setPlaceholders(player, subtitle)), fadeIn, stay, fadeOut);
+                player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
             return;
         }
         try {
             Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
             Objects.requireNonNull(TITLE_CONSTRUCTOR);
-            title = title.replace("\\", "\\\\").replace("\\\"", "\"");
-            subtitle = subtitle.replace("\\", "\\\\").replace("\\\"", "\"");
 
-            for (Player player : players) {
-                Object titleChat = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, title)) + "\"}");
-                Object subtitleChat = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, subtitle)) + "\"}");
+            Object titleChat = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + title.replace("\\", "\\\\").replace("\\\"", "\"") + "\"}");
+            Object subtitleChat = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + subtitle.replace("\\", "\\\\").replace("\\\"", "\"") + "\"}");
 
-                Object titlePacket = TITLE_CONSTRUCTOR.newInstance(TITLE_ENUM, titleChat, fadeIn, stay, fadeOut);
-                Object subtitlePacket = TITLE_CONSTRUCTOR.newInstance(SUBTITLE_ENUM, subtitleChat, fadeIn, stay, fadeOut);
+            Object titlePacket = TITLE_CONSTRUCTOR.newInstance(TITLE_ENUM, titleChat, fadeIn, stay, fadeOut);
+            Object subtitlePacket = TITLE_CONSTRUCTOR.newInstance(SUBTITLE_ENUM, subtitleChat, fadeIn, stay, fadeOut);
 
-                ServerReflection.sendPacket(titlePacket, player);
-                ServerReflection.sendPacket(subtitlePacket, player);
-            }
+            ServerReflection.sendPacket(titlePacket);
+            ServerReflection.sendPacket(subtitlePacket);
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
             e.printStackTrace();
         }
@@ -343,21 +323,17 @@ public final class Players {
     /**
      * Sends an action bar to one or more players.
      *
-     * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
-     *
-     * @param text the action bar text
+     * @param text    the action bar text
      * @param players the players to whom send the action bar
      */
     public static void sendActionBar(String text, Player... players) {
-        Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
-        Objects.requireNonNull(ACTIONBAR_CONSTRUCTOR);
-        text = text.replace("\\", "\\\\").replace("\"", "\\\"");
         try {
-            for (Player player : players) {
-                Object chatText = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, text)) + "\"}");
-                Object titlePacket = ACTIONBAR_CONSTRUCTOR.newInstance(ACTIONBAR_ENUM, chatText);
-                ServerReflection.sendPacket(titlePacket, player);
-            }
+            Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
+            Objects.requireNonNull(ACTIONBAR_CONSTRUCTOR);
+
+            Object chatText = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + text.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}");
+            Object titlePacket = ACTIONBAR_CONSTRUCTOR.newInstance(ACTIONBAR_ENUM, chatText);
+            ServerReflection.sendPacket(titlePacket, players);
         } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
             e.printStackTrace();
         }
@@ -384,25 +360,20 @@ public final class Players {
     /**
      * Sends a tab title to one or more players.
      *
-     * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
-     *
-     * @param header the tab header
-     * @param footer the tab footer
+     * @param header  the tab header
+     * @param footer  the tab footer
      * @param players the players to whom send the tab title
      */
     public static void sendTabTitle(String header, String footer, Player... players) {
-        Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
-        Objects.requireNonNull(TABLIST_CONSTRUCTOR);
-        header = header.replace("\\", "\\\\").replace("\"", "\\\"");
-        footer = footer.replace("\\", "\\\\").replace("\"", "\\\"");
         try {
-            for (Player player : players) {
-                Object tabHeader = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, header)) + "\"}");
-                Object tabFooter = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, footer)) + "\"}");
-                Object packet = TABLIST_CONSTRUCTOR.newInstance(tabHeader);
-                ServerReflection.setField(packet.getClass(), packet, "b", tabFooter);
-                ServerReflection.sendPacket(packet, player);
-            }
+            Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
+            Objects.requireNonNull(TABLIST_CONSTRUCTOR);
+
+            Object tabHeader = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + header + "\"}");
+            Object tabFooter = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + footer + "\"}");
+            Object packet = TABLIST_CONSTRUCTOR.newInstance(tabHeader);
+            ServerReflection.setField(packet.getClass(), packet, "b", tabFooter);
+            ServerReflection.sendPacket(packet, players);
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
             e.printStackTrace();
         }
@@ -411,18 +382,17 @@ public final class Players {
     /**
      * Opens a book to one or more players.
      *
-     * @param book the book to open
+     * @param book    the book to open
      * @param players the players to whom open the book
      */
     public static void openBook(ItemStack book, Player... players) {
-        if (!book.getType().equals(XMaterial.WRITTEN_BOOK.parseMaterial()))
-            return;
+        // 1.14.2+ method
+        /*
         if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersion.of(1, 14, 2))) {
-            for (Player player : players) {
-                player.openBook(book);
-            }
+            player.openBook(book);
             return;
         }
+        */
         for (Player player : players) {
             int slot = player.getInventory().getHeldItemSlot();
             ItemStack old = player.getInventory().getItem(slot);

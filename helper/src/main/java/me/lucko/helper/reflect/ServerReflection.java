@@ -28,11 +28,10 @@ package me.lucko.helper.reflect;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
-import javax.annotation.Nonnull;
 
 /**
  * Utility methods for working with "versioned" server classes.
