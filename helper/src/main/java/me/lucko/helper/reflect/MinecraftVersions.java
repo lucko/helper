@@ -38,12 +38,7 @@ import java.util.regex.Pattern;
 public final class MinecraftVersions {
 
     /**
-     * Version 1.15 - buzzy bees update
-     */
-    public static final MinecraftVersion v1_15 = MinecraftVersion.parse("1.15");
-
-    /**
-     * Version 1.14 - village and pillage update
+     * Version 1.14 - Village & Pillage.
      */
     public static final MinecraftVersion v1_14 = MinecraftVersion.parse("1.14");
 
