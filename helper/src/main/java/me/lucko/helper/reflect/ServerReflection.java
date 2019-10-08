@@ -26,8 +26,12 @@
 package me.lucko.helper.reflect;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Utility methods for working with "versioned" server classes.
@@ -141,6 +145,88 @@ public final class ServerReflection {
     @Nonnull
     public static Class<?> obcClass(String className) throws ClassNotFoundException {
         return NMS_VERSION.obcClass(className);
+    }
+
+    public static Object getHandle(Object obj) {
+        try {
+            return getDeclaredMethod(obj.getClass(), "getHandle", new Class[0]).invoke(obj);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Field getField(Class<?> clazz, String name) {
+        try {
+            return clazz.getField(name);
+        } catch (NoSuchFieldException | SecurityException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Field getDeclaredField(Class<?> clazz, String name) {
+        try {
+            Field field = clazz.getDeclaredField(name);
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static <T> boolean setField(Class<T> from, Object obj, String field, Object newValue) {
+        try {
+            Field f = from.getDeclaredField(field);
+            f.setAccessible(true);
+            f.set(obj, newValue);
+            return true;
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static Method getDeclaredMethod(Class<?> clazz, String name, Class<?>... args) {
+        try {
+            Method method = clazz.getDeclaredMethod(name, args);
+            method.setAccessible(true);
+            return method;
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Method getMethod(Class<?> clazz, String name, Class<?>... args) {
+        try {
+            return clazz.getMethod(name, args);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Object getConnection(Player player) {
+        try {
+            Object craftPlayer = getHandle(player);
+            return getField(craftPlayer.getClass(), "playerConnection").get(craftPlayer);
+        } catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static void sendPacket(Object packet, Player... players) {
+        try {
+            for (Player player : players) {
+                Object connection = getConnection(player);
+                getDeclaredMethod(connection.getClass(), "sendPacket", ServerReflection.nmsClass("Packet")).invoke(connection, packet);
+            }
+        } catch (IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private ServerReflection() {
