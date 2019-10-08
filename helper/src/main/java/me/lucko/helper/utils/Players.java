@@ -266,31 +266,33 @@ public final class Players {
 
     /**
      * Messages a sender a set of messages.
+     * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
      *
      * @param sender the sender
      * @param msgs   the messages to send
      */
     public static void msg(CommandSender sender, String... msgs) {
         for (String s : msgs) {
-            sender.sendMessage(Text.colorize(s));
+            sender.sendMessage(Text.setPlaceholders(s));
         }
     }
 
     /**
      * Sends a message to a set of senders.
+     * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
      *
      * @param msg     the message to send
      * @param senders the senders to whom send the message
      */
     public static void msg(String msg, CommandSender... senders) {
-        msg = Text.colorize(msg);
         for (CommandSender sender : senders) {
-            sender.sendMessage(msg);
+            sender.sendMessage(Text.setPlaceholders(sender, msg));
         }
     }
 
     /**
      * Sends a title to one or more players.
+     * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
      *
      * @param title    the title to send
      * @param subtitle the subtitle to send
@@ -300,6 +302,8 @@ public final class Players {
      * @param players  the players to whom send the title
      */
     public static void sendTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut, Player... players) {
+        title = Text.setPlaceholders(title);
+        subtitle = Text.setPlaceholders(subtitle);
         if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_11)) {
             for (Player player : players)
                 player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
@@ -324,15 +328,17 @@ public final class Players {
 
     /**
      * Sends an action bar to one or more players.
+     * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
      *
      * @param text    the action bar text
      * @param players the players to whom send the action bar
      */
     public static void sendActionBar(String text, Player... players) {
+        Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
+        Objects.requireNonNull(ACTIONBAR_CONSTRUCTOR);
+        Objects.requireNonNull(text);
+        text = Text.setPlaceholders(text);
         try {
-            Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
-            Objects.requireNonNull(ACTIONBAR_CONSTRUCTOR);
-
             Object chatText = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + text.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}");
             Object titlePacket = ACTIONBAR_CONSTRUCTOR.newInstance(ACTIONBAR_ENUM, chatText);
             ServerReflection.sendPacket(titlePacket, players);
@@ -361,16 +367,20 @@ public final class Players {
 
     /**
      * Sends a tab title to one or more players.
+     * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
      *
      * @param header  the tab header
      * @param footer  the tab footer
      * @param players the players to whom send the tab title
      */
     public static void sendTabTitle(String header, String footer, Player... players) {
+        Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
+        Objects.requireNonNull(TABLIST_CONSTRUCTOR);
+        Objects.requireNonNull(header);
+        Objects.requireNonNull(footer);
+        header = Text.setPlaceholders(header);
+        footer = Text.setPlaceholders(footer);
         try {
-            Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
-            Objects.requireNonNull(TABLIST_CONSTRUCTOR);
-
             Object tabHeader = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + header + "\"}");
             Object tabFooter = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + footer + "\"}");
             Object packet = TABLIST_CONSTRUCTOR.newInstance(tabHeader);
