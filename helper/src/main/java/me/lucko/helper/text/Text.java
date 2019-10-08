@@ -25,12 +25,15 @@
 
 package me.lucko.helper.text;
 
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
 import net.kyori.text.adapter.bukkit.TextAdapter;
 import net.kyori.text.serializer.ComponentSerializers;
-
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -41,6 +44,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("deprecation")
 public final class Text {
+    private static final Plugin PAPIPLUGIN = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
     public static final char SECTION_CHAR = '\u00A7'; // §
     public static final char AMPERSAND_CHAR = '&';
@@ -88,12 +92,78 @@ public final class Text {
     public static String translateAlternateColorCodes(char from, char to, String textToTranslate) {
         char[] b = textToTranslate.toCharArray();
         for (int i = 0; i < b.length - 1; i++) {
-            if (b[i] == from && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i+1]) > -1) {
+            if (b[i] == from && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i + 1]) > -1) {
                 b[i] = to;
-                b[i+1] = Character.toLowerCase(b[i+1]);
+                b[i + 1] = Character.toLowerCase(b[i + 1]);
             }
         }
         return new String(b);
+    }
+
+    /**
+     * Sets PlaceholderAPI placeholders to a text,
+     * or just colorizes it if PlaceholderAPI is not installed.
+     *
+     * @param text the text on which to set placeholders
+     * @return the text with placeholders replaced, or just the text colorized if PlaceholderAPI is not installed
+     */
+    public static String setPlaceholders(String text) {
+        return setPlaceholders(null, text);
+    }
+
+    /**
+     * Sets PlaceholderAPI placeholders to a text,
+     * taking information from the supplied sender if it is an {@link OfflinePlayer},
+     * or just colorizes it if PlaceholderAPI is not installed.
+     *
+     * @param sender the sender from which to take information if it is an {@link OfflinePlayer}
+     * @param text   the text on which to set placeholders
+     * @return the text with the placeholders replaced, with sender's information if it's an {@link OfflinePlayer}, or just the text colorized if PlaceholderAPI is not installed
+     */
+    public static String setPlaceholders(CommandSender sender, String text) {
+        if (isPlaceholderAPISupported()) {
+            if (sender instanceof OfflinePlayer)
+                return PlaceholderAPI.setPlaceholders((OfflinePlayer) sender, text);
+
+            return PlaceholderAPI.setPlaceholders(null, text);
+        }
+
+        return colorize(text);
+    }
+
+    /**
+     * Sets PlaceholderAPI bracket placeholders to a text,
+     * or just colorizes it if PlaceholderAPI is not installed.
+     *
+     * @param text the text on which to set placeholders
+     * @return the text with bracket placeholders replaced, or just the text colorized if PlaceholderAPI is not installed
+     */
+    public static String setBracketPlaceholders(String text) {
+        return setBracketPlaceholders(null, text);
+    }
+
+    /**
+     * Sets PlaceholderAPI bracket placeholders to a text,
+     * taking information from the supplied sender if it is an {@link OfflinePlayer},
+     * or just colorizes it if PlaceholderAPI is not installed.
+     *
+     * @param sender the sender from which to take information if it is an {@link OfflinePlayer}
+     * @param text   the text on which to set placeholders
+     * @return the text with the bracket placeholders replaced, with sender's information if it's an {@link OfflinePlayer}, or just the text colorized if PlaceholderAPI is not installed
+     */
+    public static String setBracketPlaceholders(CommandSender sender, String text) {
+        if (isPlaceholderAPISupported()) {
+            if (sender instanceof OfflinePlayer)
+                return PlaceholderAPI.setBracketPlaceholders((OfflinePlayer) sender, text);
+
+            return PlaceholderAPI.setBracketPlaceholders(null, text);
+        }
+
+        return colorize(text);
+    }
+
+    private static boolean isPlaceholderAPISupported() {
+        return PAPIPLUGIN != null && PAPIPLUGIN.isEnabled();
     }
 
     private Text() {
