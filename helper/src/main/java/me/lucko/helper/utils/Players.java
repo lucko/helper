@@ -27,38 +27,27 @@ package me.lucko.helper.utils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import me.lucko.helper.Helper;
 import me.lucko.helper.reflect.MinecraftVersion;
 import me.lucko.helper.reflect.MinecraftVersions;
-import me.lucko.helper.reflect.NmsVersion;
 import me.lucko.helper.reflect.ServerReflection;
 import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Effect;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.time.chrono.MinguoEra;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
-import javax.annotation.Nullable;
 
 /**
  * A collection of Player related utilities
@@ -284,6 +273,19 @@ public final class Players {
     public static void msg(CommandSender sender, String... msgs) {
         for (String s : msgs) {
             sender.sendMessage(Text.colorize(s));
+        }
+    }
+
+    /**
+     * Sends a message to a set of senders.
+     *
+     * @param msg     the message to send
+     * @param senders the senders to whom send the message
+     */
+    public static void msg(String msg, CommandSender... senders) {
+        msg = Text.colorize(msg);
+        for (CommandSender sender : senders) {
+            sender.sendMessage(msg);
         }
     }
 
