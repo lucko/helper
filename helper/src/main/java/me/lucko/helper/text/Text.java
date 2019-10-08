@@ -26,12 +26,10 @@
 package me.lucko.helper.text;
 
 import me.clip.placeholderapi.PlaceholderAPI;
-
 import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
 import net.kyori.text.adapter.bukkit.TextAdapter;
 import net.kyori.text.serializer.ComponentSerializers;
-
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -94,9 +92,9 @@ public final class Text {
     public static String translateAlternateColorCodes(char from, char to, String textToTranslate) {
         char[] b = textToTranslate.toCharArray();
         for (int i = 0; i < b.length - 1; i++) {
-            if (b[i] == from && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i+1]) > -1) {
+            if (b[i] == from && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i + 1]) > -1) {
                 b[i] = to;
-                b[i+1] = Character.toLowerCase(b[i+1]);
+                b[i + 1] = Character.toLowerCase(b[i + 1]);
             }
         }
         return new String(b);
@@ -119,7 +117,7 @@ public final class Text {
      * or just colorizes it if PlaceholderAPI is not installed.
      *
      * @param sender the sender from which to take information if it is an {@link OfflinePlayer}
-     * @param text the text on which to set placeholders
+     * @param text   the text on which to set placeholders
      * @return the text with the placeholders replaced, with sender's information if it's an {@link OfflinePlayer}, or just the text colorized if PlaceholderAPI is not installed
      */
     public static String setPlaceholders(CommandSender sender, String text) {
@@ -150,7 +148,7 @@ public final class Text {
      * or just colorizes it if PlaceholderAPI is not installed.
      *
      * @param sender the sender from which to take information if it is an {@link OfflinePlayer}
-     * @param text the text on which to set placeholders
+     * @param text   the text on which to set placeholders
      * @return the text with the bracket placeholders replaced, with sender's information if it's an {@link OfflinePlayer}, or just the text colorized if PlaceholderAPI is not installed
      */
     public static String setBracketPlaceholders(CommandSender sender, String text) {
