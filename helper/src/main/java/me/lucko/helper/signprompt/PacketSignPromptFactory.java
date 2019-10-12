@@ -30,21 +30,22 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
-
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.protocol.Protocol;
+import me.lucko.helper.reflect.MinecraftVersion;
+import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.utils.Players;
-
+import me.lucko.helper.utils.XMaterial;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.annotation.Nonnull;
 
 /**
  * Implementation of {@link SignPromptFactory} using ProtocolLib.
@@ -55,7 +56,7 @@ public class PacketSignPromptFactory implements SignPromptFactory {
     public void openPrompt(@Nonnull Player player, @Nonnull List<String> lines, @Nonnull ResponseHandler responseHandler) {
         Location location = player.getLocation().clone();
         location.setY(255);
-        Players.sendBlockChange(player, location, Material.WALL_SIGN);
+        Players.sendBlockChange(player, location, Objects.requireNonNull(XMaterial.OAK_WALL_SIGN.parseMaterial()));
 
         BlockPosition position = new BlockPosition(location.toVector());
         PacketContainer writeToSign = new PacketContainer(PacketType.Play.Server.TILE_ENTITY_DATA);
@@ -67,7 +68,7 @@ public class PacketSignPromptFactory implements SignPromptFactory {
             compound.put("Text" + (i + 1), "{\"text\":\"" + (lines.size() > i ? lines.get(i) : "") + "\"}");
         }
 
-        compound.put("id", "minecraft:sign");
+        compound.put("id", "minecraft:" + (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_14) ? "oak_sign" : "sign"));
         compound.put("x", position.getX());
         compound.put("y", position.getY());
         compound.put("z", position.getZ());
