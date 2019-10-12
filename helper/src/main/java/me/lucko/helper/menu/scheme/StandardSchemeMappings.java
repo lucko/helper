@@ -26,14 +26,14 @@
 package me.lucko.helper.menu.scheme;
 
 import com.google.common.collect.ImmutableMap;
-
 import me.lucko.helper.item.ItemStackBuilder;
 import me.lucko.helper.menu.Item;
+import me.lucko.helper.utils.XMaterial;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
 import org.bukkit.Material;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.IntFunction;
 
 /**
@@ -42,10 +42,10 @@ import java.util.function.IntFunction;
 @NonnullByDefault
 public final class StandardSchemeMappings {
 
-    public static final SchemeMapping STAINED_GLASS = forColoredMaterial(Material.STAINED_GLASS_PANE);
-    public static final SchemeMapping STAINED_GLASS_BLOCK = forColoredMaterial(Material.STAINED_GLASS);
-    public static final SchemeMapping HARDENED_CLAY = forColoredMaterial(Material.STAINED_CLAY);
-    public static final SchemeMapping WOOL = forColoredMaterial(Material.WOOL);
+    public static final SchemeMapping STAINED_GLASS = forColoredMaterial(Objects.requireNonNull(XMaterial.WHITE_STAINED_GLASS_PANE.parseMaterial()));
+    public static final SchemeMapping STAINED_GLASS_BLOCK = forColoredMaterial(Objects.requireNonNull(XMaterial.WHITE_STAINED_GLASS.parseMaterial()));
+    public static final SchemeMapping HARDENED_CLAY = forColoredMaterial(Objects.requireNonNull(XMaterial.TERRACOTTA.parseMaterial()));
+    public static final SchemeMapping WOOL = forColoredMaterial(Objects.requireNonNull(XMaterial.WHITE_WOOL.parseMaterial()));
     public static final SchemeMapping EMPTY = new EmptySchemeMapping();
 
     private static SchemeMapping forColoredMaterial(Material material) {

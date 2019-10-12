@@ -1,6 +1,7 @@
 name: helper
 author: Luck
 version: ${project.version}
+api-version: 1.13
 description: ${project.description}
 main: me.lucko.helper.internal.StandalonePlugin
 website: https://github.com/lucko/helper
