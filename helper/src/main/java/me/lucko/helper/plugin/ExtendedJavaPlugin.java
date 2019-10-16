@@ -33,21 +33,19 @@ import me.lucko.helper.maven.LibraryLoader;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.terminable.module.TerminableModule;
 import me.lucko.helper.utils.CommandMapUtil;
-
+import ninja.leaping.configurate.ConfigurationNode;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import ninja.leaping.configurate.ConfigurationNode;
-
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * An "extended" JavaPlugin class.
@@ -58,9 +56,14 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     private CompositeTerminable terminableRegistry;
 
     // Used by subclasses to perform logic for plugin load/enable/disable.
-    protected void load() {}
-    protected void enable() {}
-    protected void disable() {}
+    protected void load() {
+    }
+
+    protected void enable() {
+    }
+
+    protected void disable() {
+    }
 
     @Override
     public final void onLoad() {
