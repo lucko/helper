@@ -30,14 +30,12 @@ import me.lucko.helper.command.context.ImmutableCommandContext;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.utils.CommandMapUtil;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * An abstract implementation of {@link Command} and {@link CommandExecutor}
@@ -45,9 +43,12 @@ import javax.annotation.Nullable;
 @NonnullByDefault
 public abstract class AbstractCommand implements Command, CommandExecutor, TabCompleter {
 
-    protected @Nullable String permission;
-    protected @Nullable String permissionMessasge;
-    protected @Nullable String descritpion;
+    @Nullable
+    protected String permission;
+    @Nullable
+    protected String permissionMessasge;
+    @Nullable
+    protected String descritpion;
 
     @Override
     public void register(String... aliases) {

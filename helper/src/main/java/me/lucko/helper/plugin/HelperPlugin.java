@@ -28,6 +28,7 @@ package me.lucko.helper.plugin;
 import me.lucko.helper.terminable.TerminableConsumer;
 
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
