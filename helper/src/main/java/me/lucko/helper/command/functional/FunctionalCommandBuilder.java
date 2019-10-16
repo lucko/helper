@@ -219,6 +219,14 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
     FunctionalCommandBuilder<T> assertSender(Predicate<T> test, String failureMessage);
 
     /**
+     * Sets the tab handler to the provided one.
+     *
+     * @param tabHandler the tab handler
+     * @return the builder instance
+     */
+    FunctionalCommandBuilder<T> tabHandler(FunctionalTabHandler<T> tabHandler);
+
+    /**
      * Builds this {@link FunctionalCommandBuilder} into a {@link Command} instance.
      *
      * The command will not be registered with the server until {@link Command#register(String...)} is called.
