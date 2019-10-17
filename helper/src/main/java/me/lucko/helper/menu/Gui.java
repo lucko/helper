@@ -39,6 +39,7 @@ import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -299,6 +300,12 @@ public abstract class Gui implements TerminableConsumer {
      * Registers the event handlers for this GUI
      */
     private void startListening() {
+        Events.subscribe(PlayerDeathEvent.class)
+                .filter(e -> e.getEntity().equals(this.player))
+                .filter(e -> isValid())
+                .handler(e -> invalidate())
+                .bindWith(this);
+        
         Events.subscribe(InventoryClickEvent.class)
                 .filter(e -> e.getInventory().getHolder() != null)
                 .filter(e -> e.getInventory().getHolder().equals(this.player))
