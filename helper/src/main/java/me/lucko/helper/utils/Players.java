@@ -381,8 +381,8 @@ public final class Players {
         header = Text.setPlaceholders(header);
         footer = Text.setPlaceholders(footer);
         try {
-            Object tabHeader = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + header + "\"}");
-            Object tabFooter = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + footer + "\"}");
+            Object tabHeader = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + header.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}");
+            Object tabFooter = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + footer.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}");
             Object packet = TABLIST_CONSTRUCTOR.newInstance(tabHeader);
             ServerReflection.setField(packet.getClass(), packet, "b", tabFooter);
             ServerReflection.sendPacket(packet, players);
@@ -398,13 +398,14 @@ public final class Players {
      * @param players the players to whom open the book
      */
     public static void openBook(ItemStack book, Player... players) {
-        // 1.14.2+ method
-        /*
+        if (!book.getType().equals(XMaterial.WRITTEN_BOOK.parseMaterial()))
+            return;
         if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersion.of(1, 14, 2))) {
-            player.openBook(book);
+            for (Player player : players) {
+                player.openBook(book);
+            }
             return;
         }
-        */
         for (Player player : players) {
             int slot = player.getInventory().getHeldItemSlot();
             ItemStack old = player.getInventory().getItem(slot);
