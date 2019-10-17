@@ -33,7 +33,6 @@ import me.lucko.helper.Helper;
 import me.lucko.helper.reflect.MinecraftVersion;
 import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.reflect.ServerReflection;
-import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -48,6 +47,9 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import static me.lucko.helper.text.Text.setBracketPlaceholders;
+import static me.lucko.helper.text.Text.setPlaceholders;
 
 /**
  * A collection of Player related utilities
@@ -272,8 +274,8 @@ public final class Players {
      * @param msgs   the messages to send
      */
     public static void msg(CommandSender sender, String... msgs) {
-        for (String s : msgs) {
-            sender.sendMessage(Text.setPlaceholders(s));
+        for (String msg : msgs) {
+            sender.sendMessage(setBracketPlaceholders(sender, setPlaceholders(sender, msg)));
         }
     }
 
@@ -286,7 +288,7 @@ public final class Players {
      */
     public static void msg(String msg, CommandSender... senders) {
         for (CommandSender sender : senders) {
-            sender.sendMessage(Text.setPlaceholders(sender, msg));
+            sender.sendMessage(setBracketPlaceholders(sender, setPlaceholders(sender, msg)));
         }
     }
 
@@ -302,25 +304,27 @@ public final class Players {
      * @param players  the players to whom send the title
      */
     public static void sendTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut, Player... players) {
-        title = Text.setPlaceholders(title);
-        subtitle = Text.setPlaceholders(subtitle);
         if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_11)) {
             for (Player player : players)
-                player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+                player.sendTitle(setBracketPlaceholders(player, setPlaceholders(player, title)), setBracketPlaceholders(player, setPlaceholders(player, subtitle)), fadeIn, stay, fadeOut);
             return;
         }
         try {
             Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
             Objects.requireNonNull(TITLE_CONSTRUCTOR);
+            title = title.replace("\\", "\\\\").replace("\\\"", "\"");
+            subtitle = subtitle.replace("\\", "\\\\").replace("\\\"", "\"");
 
-            Object titleChat = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + title.replace("\\", "\\\\").replace("\\\"", "\"") + "\"}");
-            Object subtitleChat = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + subtitle.replace("\\", "\\\\").replace("\\\"", "\"") + "\"}");
+            for (Player player : players) {
+                Object titleChat = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, title)) + "\"}");
+                Object subtitleChat = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, subtitle)) + "\"}");
 
-            Object titlePacket = TITLE_CONSTRUCTOR.newInstance(TITLE_ENUM, titleChat, fadeIn, stay, fadeOut);
-            Object subtitlePacket = TITLE_CONSTRUCTOR.newInstance(SUBTITLE_ENUM, subtitleChat, fadeIn, stay, fadeOut);
+                Object titlePacket = TITLE_CONSTRUCTOR.newInstance(TITLE_ENUM, titleChat, fadeIn, stay, fadeOut);
+                Object subtitlePacket = TITLE_CONSTRUCTOR.newInstance(SUBTITLE_ENUM, subtitleChat, fadeIn, stay, fadeOut);
 
-            ServerReflection.sendPacket(titlePacket);
-            ServerReflection.sendPacket(subtitlePacket);
+                ServerReflection.sendPacket(titlePacket, player);
+                ServerReflection.sendPacket(subtitlePacket, player);
+            }
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
             e.printStackTrace();
         }
@@ -336,12 +340,13 @@ public final class Players {
     public static void sendActionBar(String text, Player... players) {
         Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
         Objects.requireNonNull(ACTIONBAR_CONSTRUCTOR);
-        Objects.requireNonNull(text);
-        text = Text.setPlaceholders(text);
+        text = text.replace("\\", "\\\\").replace("\"", "\\\"");
         try {
-            Object chatText = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + text.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}");
-            Object titlePacket = ACTIONBAR_CONSTRUCTOR.newInstance(ACTIONBAR_ENUM, chatText);
-            ServerReflection.sendPacket(titlePacket, players);
+            for (Player player : players) {
+                Object chatText = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, text)) + "\"}");
+                Object titlePacket = ACTIONBAR_CONSTRUCTOR.newInstance(ACTIONBAR_ENUM, chatText);
+                ServerReflection.sendPacket(titlePacket, player);
+            }
         } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
             e.printStackTrace();
         }
@@ -376,16 +381,16 @@ public final class Players {
     public static void sendTabTitle(String header, String footer, Player... players) {
         Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
         Objects.requireNonNull(TABLIST_CONSTRUCTOR);
-        Objects.requireNonNull(header);
-        Objects.requireNonNull(footer);
-        header = Text.setPlaceholders(header);
-        footer = Text.setPlaceholders(footer);
+        header = header.replace("\\", "\\\\").replace("\"", "\\\"");
+        footer = footer.replace("\\", "\\\\").replace("\"", "\\\"");
         try {
-            Object tabHeader = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + header.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}");
-            Object tabFooter = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + footer.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}");
-            Object packet = TABLIST_CONSTRUCTOR.newInstance(tabHeader);
-            ServerReflection.setField(packet.getClass(), packet, "b", tabFooter);
-            ServerReflection.sendPacket(packet, players);
+            for (Player player : players) {
+                Object tabHeader = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, header)) + "\"}");
+                Object tabFooter = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, footer)) + "\"}");
+                Object packet = TABLIST_CONSTRUCTOR.newInstance(tabHeader);
+                ServerReflection.setField(packet.getClass(), packet, "b", tabFooter);
+                ServerReflection.sendPacket(packet, player);
+            }
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
             e.printStackTrace();
         }
