@@ -34,13 +34,13 @@ import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.terminable.module.TerminableModule;
 import me.lucko.helper.utils.CommandMapUtil;
 
-import ninja.leaping.configurate.ConfigurationNode;
-
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import ninja.leaping.configurate.ConfigurationNode;
 
 import java.io.File;
 import java.util.Objects;
