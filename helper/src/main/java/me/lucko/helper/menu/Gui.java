@@ -39,9 +39,13 @@ import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.Inventory;
 
 import java.util.HashMap;
@@ -299,6 +303,16 @@ public abstract class Gui implements TerminableConsumer {
      * Registers the event handlers for this GUI
      */
     private void startListening() {
+        Events.merge(Player.class)
+                .bindEvent(PlayerDeathEvent.class, PlayerDeathEvent::getEntity)
+                .bindEvent(PlayerQuitEvent.class, PlayerEvent::getPlayer)
+                .bindEvent(PlayerChangedWorldEvent.class, PlayerEvent::getPlayer)
+                .bindEvent(PlayerTeleportEvent.class, PlayerEvent::getPlayer)
+                .filter(p -> p.equals(this.player))
+                .filter(p -> isValid())
+                .handler(p -> invalidate())
+                .bindWith(this);
+
         Events.subscribe(InventoryClickEvent.class)
                 .filter(e -> e.getInventory().getHolder() != null)
                 .filter(e -> e.getInventory().getHolder().equals(this.player))
@@ -321,12 +335,6 @@ public abstract class Gui implements TerminableConsumer {
                         slot.handle(e);
                     }
                 })
-                .bindWith(this);
-
-        Events.subscribe(PlayerQuitEvent.class)
-                .filter(e -> e.getPlayer().equals(this.player))
-                .filter(e -> isValid())
-                .handler(e -> invalidate())
                 .bindWith(this);
 
         Events.subscribe(InventoryCloseEvent.class)
