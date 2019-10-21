@@ -26,16 +26,23 @@
 package me.lucko.helper.utils;
 
 import com.google.common.base.Preconditions;
+
 import org.bukkit.Bukkit;
-import org.bukkit.command.*;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandMap;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.SimpleCommandMap;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.SimplePluginManager;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.Map;
+
+import javax.annotation.Nonnull;
 
 /**
  * Utility for interacting with the server's {@link CommandMap} instance.
@@ -95,10 +102,10 @@ public final class CommandMapUtil {
     /**
      * Registers a CommandExecutor with the server
      *
-     * @param plugin  the plugin instance
+     * @param plugin the plugin instance
      * @param command the command instance
      * @param aliases the command aliases
-     * @param <T>     the command executor class type
+     * @param <T> the command executor class type
      * @return the command executor
      */
     @Nonnull
@@ -109,13 +116,13 @@ public final class CommandMapUtil {
     /**
      * Registers a CommandExecutor with the server
      *
-     * @param plugin            the plugin instance
-     * @param command           the command instance
-     * @param permission        the command permission
+     * @param plugin the plugin instance
+     * @param command the command instance
+     * @param permission the command permission
      * @param permissionMessage the message sent when the sender doesn't the required permission
-     * @param description       the command description
-     * @param aliases           the command aliases
-     * @param <T>               the command executor class type
+     * @param description the command description
+     * @param aliases the command aliases
+     * @param <T> the command executor class type
      * @return the command executor
      */
     @Nonnull
@@ -138,11 +145,11 @@ public final class CommandMapUtil {
                 if (description != null) {
                     cmd.setDescription(description);
                 }
+
+                cmd.setExecutor(command);
                 if (command instanceof TabCompleter) {
                     cmd.setTabCompleter((TabCompleter) command);
                 }
-
-                cmd.setExecutor(command);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -154,7 +161,7 @@ public final class CommandMapUtil {
      * Unregisters a CommandExecutor with the server
      *
      * @param command the command instance
-     * @param <T>     the command executor class type
+     * @param <T> the command executor class type
      * @return the command executor
      */
     @Nonnull

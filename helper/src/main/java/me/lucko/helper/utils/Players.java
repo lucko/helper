@@ -27,26 +27,40 @@ package me.lucko.helper.utils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+
 import me.lucko.helper.Helper;
 import me.lucko.helper.reflect.MinecraftVersion;
 import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.reflect.ServerReflection;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-import org.bukkit.*;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Effect;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import javax.annotation.Nullable;
 
 import static me.lucko.helper.text.Text.setBracketPlaceholders;
 import static me.lucko.helper.text.Text.setPlaceholders;
@@ -56,26 +70,18 @@ import static me.lucko.helper.text.Text.setPlaceholders;
  */
 @NonnullByDefault
 public final class Players {
-    @Nullable
-    private static final Object OPENBOOK_PACKET;
+    @Nullable private static final Object OPENBOOK_PACKET;
 
-    @Nullable
-    private static final Object TITLE_ENUM;
-    @Nullable
-    private static final Object SUBTITLE_ENUM;
-    @Nullable
-    private static final Constructor<?> TITLE_CONSTRUCTOR;
+    @Nullable private static final Object TITLE_ENUM;
+    @Nullable private static final Object SUBTITLE_ENUM;
+    @Nullable private static final Constructor<?> TITLE_CONSTRUCTOR;
 
-    @Nullable
-    private static final Method ICHATBASECOMPONENT_A_METHOD;
+    @Nullable private static final Method ICHATBASECOMPONENT_A_METHOD;
 
-    @Nullable
-    private static final Constructor<?> TABLIST_CONSTRUCTOR;
+    @Nullable private static final Constructor<?> TABLIST_CONSTRUCTOR;
 
-    @Nullable
-    private static final Object ACTIONBAR_ENUM;
-    @Nullable
-    private static final Constructor<?> ACTIONBAR_CONSTRUCTOR;
+    @Nullable private static final Object ACTIONBAR_ENUM;
+    @Nullable private static final Constructor<?> ACTIONBAR_CONSTRUCTOR;
 
     static {
         Object title_Enum = null;
@@ -228,7 +234,7 @@ public final class Players {
     /**
      * Applies an action to each object in the iterable, if it is a player.
      *
-     * @param objects  the objects to iterate
+     * @param objects the objects to iterate
      * @param consumer the action to apply
      */
     public static void forEachIfPlayer(Iterable<Object> objects, Consumer<Player> consumer) {
@@ -255,8 +261,8 @@ public final class Players {
     /**
      * Applies an action to all players within a given radius of a point
      *
-     * @param center   the point
-     * @param radius   the radius
+     * @param center the point
+     * @param radius the radius
      * @param consumer the action to apply
      */
     public static void forEachInRange(Location center, double radius, Consumer<Player> consumer) {
@@ -268,10 +274,11 @@ public final class Players {
 
     /**
      * Messages a sender a set of messages.
+     *
      * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
      *
      * @param sender the sender
-     * @param msgs   the messages to send
+     * @param msgs the messages to send
      */
     public static void msg(CommandSender sender, String... msgs) {
         for (String msg : msgs) {
@@ -281,9 +288,10 @@ public final class Players {
 
     /**
      * Sends a message to a set of senders.
+     *
      * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
      *
-     * @param msg     the message to send
+     * @param msg the message to send
      * @param senders the senders to whom send the message
      */
     public static void msg(String msg, CommandSender... senders) {
@@ -294,14 +302,15 @@ public final class Players {
 
     /**
      * Sends a title to one or more players.
+     *
      * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
      *
-     * @param title    the title to send
+     * @param title the title to send
      * @param subtitle the subtitle to send
-     * @param fadeIn   the time, in ticks, that the title should use to appear
-     * @param stay     the title duration
-     * @param fadeOut  the time, in ticks, that the title should use to disappear
-     * @param players  the players to whom send the title
+     * @param fadeIn the time, in ticks, that the title should use to appear
+     * @param stay the title duration
+     * @param fadeOut the time, in ticks, that the title should use to disappear
+     * @param players the players to whom send the title
      */
     public static void sendTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut, Player... players) {
         if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_11)) {
@@ -332,9 +341,10 @@ public final class Players {
 
     /**
      * Sends an action bar to one or more players.
+     *
      * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
      *
-     * @param text    the action bar text
+     * @param text the action bar text
      * @param players the players to whom send the action bar
      */
     public static void sendActionBar(String text, Player... players) {
@@ -372,10 +382,11 @@ public final class Players {
 
     /**
      * Sends a tab title to one or more players.
+     *
      * Placeholders are automatically replaced if PlaceholderAPI is installed, and the text colorized.
      *
-     * @param header  the tab header
-     * @param footer  the tab footer
+     * @param header the tab header
+     * @param footer the tab footer
      * @param players the players to whom send the tab title
      */
     public static void sendTabTitle(String header, String footer, Player... players) {
@@ -399,7 +410,7 @@ public final class Players {
     /**
      * Opens a book to one or more players.
      *
-     * @param book    the book to open
+     * @param book the book to open
      * @param players the players to whom open the book
      */
     public static void openBook(ItemStack book, Player... players) {
