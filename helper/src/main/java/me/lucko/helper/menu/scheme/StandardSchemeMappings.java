@@ -26,10 +26,12 @@
 package me.lucko.helper.menu.scheme;
 
 import com.google.common.collect.ImmutableMap;
+
 import me.lucko.helper.item.ItemStackBuilder;
 import me.lucko.helper.menu.Item;
 import me.lucko.helper.utils.XMaterial;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
+
 import org.bukkit.Material;
 
 import java.util.Map;

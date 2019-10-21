@@ -27,14 +27,20 @@ package me.lucko.helper.utils;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
-import java.util.regex.Pattern;
 
 /*
  * References
@@ -1027,6 +1033,7 @@ public enum XMaterial {
 
     /**
      * A list of material names that can be damaged.<br>
+     *
      * Some names are not complete as this list needs to be<br>
      * checked with {@link String#contains}.
      */
@@ -1039,8 +1046,11 @@ public enum XMaterial {
     };
     /**
      * A list of duplicated items in 1.13 and 1.12 with different purpose.<br>
+     *
      * Values are the new material names.<br>
+     *
      * Duplicates are only checked by keys not values.<br>
+     *
      * Checked with {@link String#equals}
      */
     public static final HashMap<XMaterial, XMaterial> DUPLICATED = new HashMap<XMaterial, XMaterial>() {{
@@ -1094,6 +1104,7 @@ public enum XMaterial {
 
     /**
      * When using newer versions of Minecraft {@link #isNewVersion()} this helps<br>
+     *
      * to find the old material name with its data using a cached search for optimization.
      *
      * @see #matchXMaterial(String, byte)
@@ -1128,6 +1139,7 @@ public enum XMaterial {
 
     /**
      * Checks if the given material matches any of the legacy names.<br>
+     *
      * <b>Not recommended to use as it may cause a little performance decrease.</b>
      *
      * @param name the material name.
@@ -1150,6 +1162,7 @@ public enum XMaterial {
 
     /**
      * Can also be used like: <b>MATERIAL:DATA</b>
+     *
      * E.g. <b>RED_WOOL:14</b> or <b>WOOL:14</b>
      *
      * @see #matchXMaterial(String, byte)
@@ -1168,6 +1181,7 @@ public enum XMaterial {
      *
      * @param name name of the material
      * @param data data of the material
+     * @return the material with the given name and data
      */
     @Nullable
     public static Material parseMaterial(@Nonnull String name, byte data) {
@@ -1175,6 +1189,8 @@ public enum XMaterial {
     }
 
     /**
+     * Matches the argument item's material with a XMaterial.<br>
+     *
      * @param item the ItemStack to match its material and data.
      * @see #matchXMaterial(String, byte)
      */
@@ -1210,9 +1226,10 @@ public enum XMaterial {
 
     /**
      * Gets the XMaterial based on the Material's ID and data.<br>
+     *
      * You should avoid using this for performance reasons.
      *
-     * @param id   the ID (Magic value) of the material.
+     * @param id the ID (Magic value) of the material.
      * @param data the data of the material.
      * @return some XMaterial, or null.
      */
@@ -1224,6 +1241,7 @@ public enum XMaterial {
 
     /**
      * This method is temporary. Do not use this.<br>
+     *
      * Manually parses the duplicated materials to find the exact material based on the server version.
      *
      * @param name the name of the material.
@@ -1330,6 +1348,7 @@ public enum XMaterial {
 
     /**
      * Parses a material name like a normal like.
+     *
      * Normal names have underlines removed and each word starts with caps.
      *
      * @param name the name of the material.
@@ -1381,7 +1400,8 @@ public enum XMaterial {
     }
 
     /**
-     * Parses the string arugment to a version.
+     * Parses the string argument to a version.
+     *
      * Supports {@link Bukkit#getVersion()}, {@link Bukkit#getBukkitVersion()} and normal formats such as "1.14"
      *
      * @param version the server version.
@@ -1427,6 +1447,7 @@ public enum XMaterial {
 
     /**
      * Gets the ID (Magic value) of the material.
+     *
      * If an {@link IllegalArgumentException} was thrown from this method,
      * you should definitely report it.
      *
@@ -1465,6 +1486,8 @@ public enum XMaterial {
     }
 
     /**
+     * Checks if the item can be damaged.
+     *
      * @return true if the item can be damaged.
      * @see #isDamageable(String)
      */
@@ -1474,6 +1497,7 @@ public enum XMaterial {
 
     /**
      * Get the {@link ItemStack} data of this material in older versions.
+     *
      * Which can be accessed with {@link ItemStack#getData()} then MaterialData#getData()
      * or {@link ItemStack#getDurability()} if not damageable.
      *
@@ -1604,6 +1628,7 @@ public enum XMaterial {
 
     /**
      * Checks if this material is supported in the current version.<br>
+     *
      * It'll check both the newest matetrial name and for legacy names.
      *
      * @return true if the material exists in {@link Material} list.
@@ -1634,7 +1659,9 @@ public enum XMaterial {
 
     /**
      * Gets the suggested material instead of returning null for unsupported versions.<br>
+     *
      * This is somehow similar to what ProtcolSupport and ViaVersion are doing to new materials.<br>
+     *
      * Don't use this if you want to parse to a {@link Material}
      *
      * @return The suggested material that is similar.
