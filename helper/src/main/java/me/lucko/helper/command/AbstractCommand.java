@@ -45,12 +45,9 @@ import javax.annotation.Nullable;
 @NonnullByDefault
 public abstract class AbstractCommand implements Command, CommandExecutor, TabCompleter {
 
-    @Nullable
-    protected String permission;
-    @Nullable
-    protected String permissionMessasge;
-    @Nullable
-    protected String descritpion;
+    protected @Nullable String permission;
+    protected @Nullable String permissionMessasge;
+    protected @Nullable String descritpion;
 
     @Override
     public void register(String... aliases) {

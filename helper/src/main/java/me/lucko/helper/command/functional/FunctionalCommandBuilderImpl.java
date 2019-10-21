@@ -36,19 +36,18 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import javax.annotation.Nullable;
-
 @NonnullByDefault
 class FunctionalCommandBuilderImpl<T extends CommandSender> implements FunctionalCommandBuilder<T> {
     private final ImmutableList.Builder<Predicate<CommandContext<?>>> predicates;
-    @Nullable private FunctionalTabHandler tabHandler;
-    @Nullable private String permission;
-    @Nullable private String permissionMessage;
-    @Nullable private String description;
+    private @Nullable FunctionalTabHandler tabHandler;
+    private @Nullable String permission;
+    private @Nullable String permissionMessage;
+    private @Nullable String description;
 
     private FunctionalCommandBuilderImpl(ImmutableList.Builder<Predicate<CommandContext<?>>> predicates, @Nullable FunctionalTabHandler tabHandler, @Nullable String permission, @Nullable String permissionMessage, @Nullable String description) {
         this.predicates = predicates;

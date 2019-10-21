@@ -32,9 +32,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.function.Predicate;
-
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
 /**
  * Functional builder API for {@link Command}
