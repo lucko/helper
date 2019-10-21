@@ -137,10 +137,10 @@ public final class CommandMapUtil {
                 getKnownCommandMap().put(alias.toLowerCase(), cmd);
                 cmd.setLabel(alias.toLowerCase());
                 if (permission != null) {
-                    cmd.setPermission(permission);
-                    if (permissionMessage != null) {
-                        cmd.setPermissionMessage(permissionMessage);
-                    }
+                   cmd.setPermission(permission);
+                   if (permissionMessage != null) {
+                       cmd.setPermissionMessage(permissionMessage);
+                   }
                 }
                 if (description != null) {
                     cmd.setDescription(description);

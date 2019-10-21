@@ -27,13 +27,13 @@ package me.lucko.helper.plugin;
 
 import me.lucko.helper.terminable.TerminableConsumer;
 
-import ninja.leaping.configurate.ConfigurationNode;
-
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
+
+import ninja.leaping.configurate.ConfigurationNode;
 
 import java.io.File;
 
