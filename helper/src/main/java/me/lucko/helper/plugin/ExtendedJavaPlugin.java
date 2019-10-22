@@ -59,9 +59,7 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
 
     // Used by subclasses to perform logic for plugin load/enable/disable.
     protected void load() {}
-
     protected void enable() {}
-
     protected void disable() {}
 
     @Override
