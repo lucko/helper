@@ -67,6 +67,10 @@ public final class BukkitSerializableAdapterFactory implements TypeAdapterFactor
 
         @Override
         public void write(JsonWriter out, ConfigurationSerializable value) {
+            if (value == null) {
+                this.gson.toJson(null, RAW_OUTPUT_TYPE, out);
+                return;
+            }
             Map<String, Object> serialized = value.serialize();
 
             Map<String, Object> map = new LinkedHashMap<>(serialized.size() + 1);
@@ -79,6 +83,9 @@ public final class BukkitSerializableAdapterFactory implements TypeAdapterFactor
         @Override
         public ConfigurationSerializable read(JsonReader in) {
             Map<String, Object> map = this.gson.fromJson(in, RAW_OUTPUT_TYPE);
+            if (map == null) {
+                return null;
+            }
             deserializeChildren(map);
             return ConfigurationSerialization.deserializeObject(map);
         }
