@@ -61,13 +61,17 @@ final class HelperAsyncExecutor extends AbstractExecutorService implements Sched
     }
 
     private ScheduledFuture<?> consumeTask(ScheduledFuture<?> future) {
-        this.tasks.add(future);
+        synchronized (this.tasks) {
+            this.tasks.add(future);
+        }
         return future;
     }
 
     public void cancelRepeatingTasks() {
-        for (ScheduledFuture<?> task : this.tasks) {
-            task.cancel(false);
+        synchronized (this.tasks) {
+            for (ScheduledFuture<?> task : this.tasks) {
+                task.cancel(false);
+            }
         }
     }
 
