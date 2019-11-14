@@ -126,10 +126,6 @@
             <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
         </repository>
         <repository>
-            <id>viaversion-repo</id>
-            <url>https://repo.viaversion.com</url>
-        </repository>
-        <repository>
             <id>sponge-repo</id>
             <url>https://repo.spongepowered.org/maven</url>
         </repository>
