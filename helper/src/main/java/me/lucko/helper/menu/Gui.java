@@ -42,6 +42,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -312,6 +313,16 @@ public abstract class Gui implements TerminableConsumer {
                 .filter(p -> isValid())
                 .handler(p -> invalidate())
                 .bindWith(this);
+
+        Events.subscribe(InventoryDragEvent.class)
+                .filter(e -> e.getInventory().getHolder() != null)
+                .filter(e -> e.getInventory().getHolder().equals(this.player))
+                .handler(e -> {
+                    e.setCancelled(true);
+                    if (!isValid()) {
+                        close();
+                    }
+                }).bindWith(this);
 
         Events.subscribe(InventoryClickEvent.class)
                 .filter(e -> e.getInventory().getHolder() != null)
