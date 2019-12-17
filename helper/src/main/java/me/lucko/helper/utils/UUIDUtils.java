@@ -36,6 +36,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * An utility to manage {@link UUID}s.
+ */
 public final class UUIDUtils {
 
     /**
