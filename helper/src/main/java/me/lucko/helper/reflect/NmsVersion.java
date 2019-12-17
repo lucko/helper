@@ -87,9 +87,14 @@ public enum NmsVersion {
             MinecraftVersion.of(1, 13, 0)
     ),
     v1_13_R2(
-            MinecraftVersion.of(1, 13, 1)
+            MinecraftVersion.of(1, 13, 1),
+            MinecraftVersion.of(1, 13, 2)
     ),
-    v1_14_R5(
+    v1_14_R1(
+            MinecraftVersion.of(1, 14, 0),
+            MinecraftVersion.of(1, 14, 1),
+            MinecraftVersion.of(1, 14, 2),
+            MinecraftVersion.of(1, 14, 3),
             MinecraftVersion.of(1, 14, 4)
     ),
     v1_15_R1(
