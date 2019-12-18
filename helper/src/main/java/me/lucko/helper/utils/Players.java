@@ -118,6 +118,7 @@ public final class Players {
             Object packetDataSerializerArg;
             Object minecraftKey;
             switch (ServerReflection.getNmsVersion()) {
+                case v1_15_R1:
                 case v1_14_R1:
                     enumHand = (Enum<?>) ServerReflection.nmsClass("EnumHand").getField("MAIN_HAND").get(null);
                     packetConstructor = ServerReflection.nmsClass("PacketPlayOutOpenBook").getConstructor(ServerReflection.nmsClass("EnumHand"));
