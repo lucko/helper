@@ -96,7 +96,7 @@ public final class Players {
             subtitle_Enum = ServerReflection.nmsClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("SUBTITLE").get(null);
             title_Constructor = ServerReflection.nmsClass("PacketPlayOutTitle").getConstructor(ServerReflection.nmsClass("PacketPlayOutTitle").getDeclaredClasses()[0], ServerReflection.nmsClass("IChatBaseComponent"), int.class, int.class, int.class);
             iChatBaseComponent_A_Method = ServerReflection.nmsClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", String.class);
-            tablist_Constructor = ServerReflection.nmsClass("PacketPlayOutPlayerListHeaderFooter").getConstructor(ServerReflection.nmsClass("IChatBaseComponent"));
+            tablist_Constructor = ServerReflection.nmsClass("PacketPlayOutPlayerListHeaderFooter").getConstructor();
             actionbar_Enum = ServerReflection.nmsClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("ACTIONBAR").get(null);
             actionbar_Constructor = ServerReflection.nmsClass("PacketPlayOutTitle").getConstructor(ServerReflection.nmsClass("PacketPlayOutTitle").getDeclaredClasses()[0], ServerReflection.nmsClass("IChatBaseComponent"));
         } catch (IllegalAccessException | NoSuchFieldException | NoSuchMethodException | ClassNotFoundException e) {
@@ -399,7 +399,8 @@ public final class Players {
             for (Player player : players) {
                 Object tabHeader = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, header)) + "\"}");
                 Object tabFooter = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + setBracketPlaceholders(player, setPlaceholders(player, footer)) + "\"}");
-                Object packet = TABLIST_CONSTRUCTOR.newInstance(tabHeader);
+                Object packet = TABLIST_CONSTRUCTOR.newInstance();
+                ServerReflection.setField(packet.getClass(), packet, "a", tabHeader);
                 ServerReflection.setField(packet.getClass(), packet, "b", tabFooter);
                 ServerReflection.sendPacket(packet, player);
             }
