@@ -25,13 +25,14 @@
 
 package me.lucko.helper.utils;
 
+import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonReader;
+import me.lucko.helper.Schedulers;
+import me.lucko.helper.promise.Promise;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -41,26 +42,31 @@ import java.util.UUID;
  */
 public final class UUIDUtils {
 
+    public static final String PROFILES_URL = "https://api.mojang.com/users/profiles/minecraft/%s";
+    public static final String NAME_HISTORY_URL = "https://api.mojang.com/user/profiles/%s/names";
+
     /**
-     * Gets the online {@link UUID} of a player by fetching it from the Mojang API.
+     * Gets a promise for the online {@link UUID} of a player by fetching it from the Mojang API.
      * The Mojang API has a limit of 600 requests per 10 minutes.
      *
      * @param username the username of the player from which to get the {@link UUID}
-     * @return the online {@link UUID} of the player with the supplied name
+     * @return a promise for the online {@link UUID} of the player with the supplied name
      */
-    public static UUID getOnlineUUID(String username) {
-        try {
-            URLConnection conn = new URL("https://api.mojang.com/users/profiles/minecraft/" + username).openConnection();
-            JsonReader reader = new JsonReader(new InputStreamReader(conn.getInputStream()));
-            reader.beginObject();
-            reader.skipValue();
-            UUID uuid = fromString(reader.nextString());
-            reader.close();
-            return uuid;
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static Promise<UUID> getOnlineUUID(String username) {
+        if (username == null || username.isEmpty()) {
+            return Promise.completed(null);
         }
-        return null;
+
+        return Schedulers.async().supply(() -> {
+            try (JsonReader reader = new JsonReader(new InputStreamReader(new URL(String.format(PROFILES_URL, username)).openConnection().getInputStream()))) {
+                reader.beginObject();
+                reader.skipValue();
+                return fromString(reader.nextString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
     }
 
     /**
@@ -79,10 +85,10 @@ public final class UUIDUtils {
      *
      * @param username the username of the player to check if his online {@link UUID} matches with the supplied one
      * @param uuid the {@link UUID} to check if it's equal to the online one of the player with the supplied username
-     * @return true if the supplied uuid is equal to the online one of the player with the supplied username, false otherwise
+     * @return a promise of true if the supplied uuid is equal to the online one of the player with the supplied username, false otherwise
      */
-    public static boolean isOnlineUUID(String username, UUID uuid) {
-        return Objects.equals(getOnlineUUID(username), uuid);
+    public static Promise<Boolean> isOnlineUUID(String username, UUID uuid) {
+        return getOnlineUUID(username).thenApplyAsync(online -> Objects.equals(online, uuid));
     }
 
     /**
@@ -97,45 +103,49 @@ public final class UUIDUtils {
     }
 
     /**
-     * Gets the online username of the player with the supplied {@link UUID} by fetching it from the Mojang API.
+     * Gets a promise of the online username of the player with the supplied {@link UUID} by fetching it from the Mojang API.
      * The Mojang API has a limit of 600 requests per 10 minutes.
      *
      * @param uuid the {@link UUID} of the player from which to get the name
-     * @return the online username of the player with the supplied uuid, or null if it doesn't exists
+     * @return a promise of the online username of the player with the supplied uuid, or null if it doesn't exists
      */
-    public static String getName(UUID uuid) {
-        List<String> names = getNameHistory(uuid);
-        return names.isEmpty() ? null : names.get(names.size() - 1);
+    public static Promise<String> getName(UUID uuid) {
+        return getNameHistory(uuid).thenApplyAsync(names -> names.isEmpty() ? null : names.get(names.size() - 1));
     }
 
     /**
-     * Gets the history of the names owned by the player with the supplied {@link UUID}, in chronological order, fetching it from the Mojang API.
+     * Gets a promise of the history of the names owned by the player with the supplied {@link UUID}, in chronological order, fetching it from the Mojang API.
      * The Mojang API has a limit of 600 requests per 10 minutes.
      *
      * @param uuid the {@link UUID} of the player from which to fetch the name history
-     * @return a {@link List<String>} with all the names owned by the player with the supplied uuid, in chronological order
+     * @return a promise of a {@link List<String>} with all the names owned by the player with the supplied uuid, in chronological order
      */
-    public static List<String> getNameHistory(UUID uuid) {
-        final List<String> names = new ArrayList<>();
-        try {
-            URLConnection conn = new URL("https://api.mojang.com/user/profiles/" + trimUUID(uuid) + "/names").openConnection();
-            JsonReader reader = new JsonReader(new InputStreamReader(conn.getInputStream()));
-            reader.beginArray();
-            for (int i = 0; reader.hasNext(); i++) {
-                reader.beginObject();
-                reader.skipValue();
-                names.add(reader.nextString());
-                if (i != 0) {
-                    reader.skipValue();
-                    reader.skipValue();
-                }
-                reader.endObject();
-            }
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static Promise<List<String>> getNameHistory(UUID uuid) {
+        if (uuid == null) {
+            return Promise.completed(Lists.newArrayList());
         }
-        return names;
+
+        return Schedulers.async().supply(() -> {
+            List<String> names = Lists.newArrayList();
+
+            try (JsonReader reader = new JsonReader(new InputStreamReader(new URL(String.format(NAME_HISTORY_URL, trimUUID(uuid))).openConnection().getInputStream()))) {
+                reader.beginArray();
+                for (int i = 0; reader.hasNext(); i++) {
+                    reader.beginObject();
+                    reader.skipValue();
+                    names.add(reader.nextString());
+                    if (i != 0) {
+                        reader.skipValue();
+                        reader.skipValue();
+                    }
+                    reader.endObject();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return names;
+        });
     }
 
     /**
@@ -145,8 +155,10 @@ public final class UUIDUtils {
      * @return the {@link UUID} represented by the supplied {@link String}
      */
     public static UUID fromString(String uuid) {
-        if (uuid.contains("-"))
+        if (uuid.contains("-")) {
             return UUID.fromString(uuid);
+        }
+
         StringBuilder builder = new StringBuilder(uuid.trim());
         builder.insert(20, "-");
         builder.insert(16, "-");
