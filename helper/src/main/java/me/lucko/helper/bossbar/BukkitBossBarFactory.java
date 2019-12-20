@@ -135,7 +135,7 @@ public class BukkitBossBarFactory implements BossBarFactory {
 
         @Override
         public void removePlayer(@Nonnull Player player) {
-            this.bar.addPlayer(player);
+            this.bar.removePlayer(player);
         }
 
         @Override
