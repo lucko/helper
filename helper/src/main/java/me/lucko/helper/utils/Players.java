@@ -28,7 +28,12 @@ package me.lucko.helper.utils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import me.lucko.helper.Helper;
+import me.lucko.helper.reflect.MinecraftVersion;
+import me.lucko.helper.reflect.MinecraftVersions;
+import me.lucko.helper.reflect.ServerReflection;
 import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -42,11 +47,12 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.UUID;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -57,6 +63,95 @@ import javax.annotation.Nullable;
  */
 @NonnullByDefault
 public final class Players {
+    @Nullable private static final Object OPENBOOK_PACKET;
+
+    @Nullable private static final Object TITLE_ENUM;
+    @Nullable private static final Object SUBTITLE_ENUM;
+    @Nullable private static final Constructor<?> TITLE_CONSTRUCTOR;
+
+    @Nullable private static final Method ICHATBASECOMPONENT_A_METHOD;
+
+    @Nullable private static final Constructor<?> TABLIST_CONSTRUCTOR;
+
+    @Nullable private static final Object ACTIONBAR_ENUM;
+    @Nullable private static final Constructor<?> ACTIONBAR_CONSTRUCTOR;
+
+    static {
+        Object title_Enum = null;
+        Object subtitle_Enum = null;
+        Constructor<?> title_Constructor = null;
+        Method iChatBaseComponent_A_Method = null;
+        Constructor<?> tablist_Constructor = null;
+        Object actionbar_Enum = null;
+        Constructor<?> actionbar_Constructor = null;
+        try {
+            title_Enum = ServerReflection.nmsClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TITLE").get(null);
+            subtitle_Enum = ServerReflection.nmsClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("SUBTITLE").get(null);
+            title_Constructor = ServerReflection.nmsClass("PacketPlayOutTitle").getConstructor(ServerReflection.nmsClass("PacketPlayOutTitle").getDeclaredClasses()[0], ServerReflection.nmsClass("IChatBaseComponent"), int.class, int.class, int.class);
+            iChatBaseComponent_A_Method = ServerReflection.nmsClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", String.class);
+            tablist_Constructor = ServerReflection.nmsClass("PacketPlayOutPlayerListHeaderFooter").getConstructor();
+            actionbar_Enum = ServerReflection.nmsClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("ACTIONBAR").get(null);
+            actionbar_Constructor = ServerReflection.nmsClass("PacketPlayOutTitle").getConstructor(ServerReflection.nmsClass("PacketPlayOutTitle").getDeclaredClasses()[0], ServerReflection.nmsClass("IChatBaseComponent"));
+        } catch (IllegalAccessException | NoSuchFieldException | NoSuchMethodException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        TITLE_ENUM = title_Enum;
+        SUBTITLE_ENUM = subtitle_Enum;
+        TITLE_CONSTRUCTOR = title_Constructor;
+        ICHATBASECOMPONENT_A_METHOD = iChatBaseComponent_A_Method;
+        TABLIST_CONSTRUCTOR = tablist_Constructor;
+        ACTIONBAR_ENUM = actionbar_Enum;
+        ACTIONBAR_CONSTRUCTOR = actionbar_Constructor;
+
+        Object openBook_Packet = null;
+        try {
+            Constructor<?> packetConstructor;
+            Enum<?> enumHand;
+            Object packetDataSerializer;
+            Object packetDataSerializerArg;
+            Object minecraftKey;
+            switch (ServerReflection.getNmsVersion()) {
+                case v1_14_R1:
+                    enumHand = (Enum<?>) ServerReflection.nmsClass("EnumHand").getField("MAIN_HAND").get(null);
+                    packetConstructor = ServerReflection.nmsClass("PacketPlayOutOpenBook").getConstructor(ServerReflection.nmsClass("EnumHand"));
+                    openBook_Packet = packetConstructor.newInstance(enumHand);
+                    break;
+
+                case v1_13_R2:
+                case v1_13_R1:
+                    enumHand = (Enum<?>) ServerReflection.nmsClass("EnumHand").getField("MAIN_HAND").get(null);
+                    minecraftKey = ServerReflection.nmsClass("MinecraftKey").getMethod("a", String.class).invoke(null, "minecraft:book_open");
+                    packetDataSerializerArg = ServerReflection.nmsClass("PacketDataSerializer").getConstructor(ByteBuf.class).newInstance(Unpooled.buffer());
+                    packetDataSerializer = ServerReflection.nmsClass("PacketDataSerializer").getMethod("a", Enum.class).invoke(packetDataSerializerArg, enumHand);
+                    packetConstructor = ServerReflection.nmsClass("PacketPlayOutCustomPayload").getConstructor(ServerReflection.nmsClass("MinecraftKey"), ServerReflection.nmsClass("PacketDataSerializer"));
+                    openBook_Packet = packetConstructor.newInstance(minecraftKey, packetDataSerializer);
+                    break;
+
+                case v1_12_R1:
+                case v1_11_R1:
+                case v1_10_R1:
+                case v1_9_R2:
+                case v1_9_R1:
+                    enumHand = (Enum<?>) ServerReflection.nmsClass("EnumHand").getField("MAIN_HAND").get(null);
+                    packetDataSerializerArg = ServerReflection.nmsClass("PacketDataSerializer").getConstructor(ByteBuf.class).newInstance(Unpooled.buffer());
+                    packetDataSerializer = ServerReflection.nmsClass("PacketDataSerializer").getMethod("a", Enum.class).invoke(packetDataSerializerArg, enumHand);
+                    packetConstructor = ServerReflection.nmsClass("PacketPlayOutCustomPayload").getConstructor(String.class, ServerReflection.nmsClass("PacketDataSerializer"));
+                    openBook_Packet = packetConstructor.newInstance("MC|BOpen", packetDataSerializer);
+                    break;
+
+                case v1_8_R3:
+                case v1_8_R2:
+                case v1_8_R1:
+                    packetDataSerializer = ServerReflection.nmsClass("PacketDataSerializer").getConstructor(ByteBuf.class).newInstance(Unpooled.buffer());
+                    packetConstructor = ServerReflection.nmsClass("PacketPlayOutCustomPayload").getConstructor(String.class, ServerReflection.nmsClass("PacketDataSerializer"));
+                    openBook_Packet = packetConstructor.newInstance("MC|BOpen", packetDataSerializer);
+                    break;
+            }
+        } catch (NoSuchFieldException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        OPENBOOK_PACKET = openBook_Packet;
+    }
 
     /**
      * Gets a player by uuid.
@@ -180,6 +275,165 @@ public final class Players {
         for (String s : msgs) {
             sender.sendMessage(Text.colorize(s));
         }
+    }
+
+    /**
+     * Sends a message to a set of senders.
+     *
+     * @param msg the message to send
+     * @param senders the senders to whom send the message
+     */
+    public static void msg(String msg, CommandSender... senders) {
+        for (CommandSender sender : senders) {
+            sender.sendMessage(Text.colorize(msg));
+        }
+    }
+
+    /**
+     * Sends a title to a set of players.
+     *
+     * @param title the title to send
+     * @param subtitle the subtitle to send
+     * @param fadeIn the time, in ticks, that the title should use to appear
+     * @param stay the title duration
+     * @param fadeOut the time, in ticks, that the title should use to disappear
+     * @param players the players to whom send the title
+     */
+    public static void sendTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut, Player... players) {
+        if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_11)) {
+            for (Player player : players) {
+                player.sendTitle(Text.colorize(title), Text.colorize(subtitle), fadeIn, stay, fadeOut);
+            }
+            return;
+        }
+        try {
+            Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
+            Objects.requireNonNull(TITLE_CONSTRUCTOR);
+            title = title.replace("\\", "\\\\").replace("\\\"", "\"");
+            subtitle = subtitle.replace("\\", "\\\\").replace("\\\"", "\"");
+
+            for (Player player : players) {
+                Object titleChat = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + title + "\"}");
+                Object subtitleChat = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + subtitle + "\"}");
+
+                Object titlePacket = TITLE_CONSTRUCTOR.newInstance(TITLE_ENUM, titleChat, fadeIn, stay, fadeOut);
+                Object subtitlePacket = TITLE_CONSTRUCTOR.newInstance(SUBTITLE_ENUM, subtitleChat, fadeIn, stay, fadeOut);
+
+                ServerReflection.sendPacket(titlePacket, player);
+                ServerReflection.sendPacket(subtitlePacket, player);
+            }
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Sends an action bar to a set of players.
+     *
+     * @param text the action bar text
+     * @param players the players to whom send the action bar
+     */
+    public static void sendActionBar(String text, Player... players) {
+        Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
+        Objects.requireNonNull(ACTIONBAR_CONSTRUCTOR);
+        text = text.replace("\\", "\\\\").replace("\"", "\\\"");
+        try {
+            for (Player player : players) {
+                Object chatText = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + text + "\"}");
+                Object titlePacket = ACTIONBAR_CONSTRUCTOR.newInstance(ACTIONBAR_ENUM, chatText);
+                ServerReflection.sendPacket(titlePacket, player);
+            }
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Clears the action bar to a set of players.
+     *
+     * @param players the players to whom clear the action bar
+     */
+    public static void clearActionBar(Player... players) {
+        sendActionBar("", players);
+    }
+
+    /**
+     * Clears the title to a set of players.
+     *
+     * @param players the players to whom clear the title
+     */
+    public static void clearTitle(Player... players) {
+        sendTitle("", "", 0, 0, 0, players);
+    }
+
+    /**
+     * Sends a tab title to a set of players.
+     *
+     * @param header the tab header
+     * @param footer the tab footer
+     * @param players the players to whom send the tab title
+     */
+    public static void sendTabTitle(String header, String footer, Player... players) {
+        Objects.requireNonNull(ICHATBASECOMPONENT_A_METHOD);
+        Objects.requireNonNull(TABLIST_CONSTRUCTOR);
+        header = header.replace("\\", "\\\\").replace("\"", "\\\"");
+        footer = footer.replace("\\", "\\\\").replace("\"", "\\\"");
+        try {
+            for (Player player : players) {
+                Object tabHeader = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + header + "\"}");
+                Object tabFooter = ICHATBASECOMPONENT_A_METHOD.invoke(null, "{\"text\":\"" + footer + "\"}");
+                Object packet = TABLIST_CONSTRUCTOR.newInstance();
+                ServerReflection.setField(packet.getClass(), packet, "a", tabHeader);
+                ServerReflection.setField(packet.getClass(), packet, "b", tabFooter);
+                ServerReflection.sendPacket(packet, player);
+            }
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Opens a book to a set of players.
+     *
+     * @param book the book to open
+     * @param players the players to whom open the book
+     */
+    public static void openBook(ItemStack book, Player... players) {
+        if (!book.getType().equals(Material.WRITTEN_BOOK)) {
+            return;
+        }
+        if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersion.of(1, 14, 2))) {
+            for (Player player : players) {
+                player.openBook(book);
+            }
+            return;
+        }
+        for (Player player : players) {
+            int slot = player.getInventory().getHeldItemSlot();
+            ItemStack old = player.getInventory().getItem(slot);
+            player.getInventory().setItem(slot, book);
+            ServerReflection.sendPacket(OPENBOOK_PACKET, player);
+            player.getInventory().setItem(slot, old);
+        }
+    }
+
+    /**
+     * Gets the ping of a player.
+     *
+     * @param player the player of which to get the ping
+     * @return the player's ping or -1 if the player is null
+     */
+    public static int getPing(Player player) {
+        int ping = -1;
+        try {
+            Object craftPlayer = ServerReflection.getHandle(player);
+            if (craftPlayer != null) {
+                ping = (int) ServerReflection.getDeclaredField(craftPlayer.getClass(), "ping").get(craftPlayer);
+            }
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return ping;
     }
 
     @Nullable

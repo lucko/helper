@@ -291,6 +291,12 @@
             <version>${bukkit.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.25.Final</version>
+            <scope>provided</scope>
+        </dependency>
         <!-- protocollib -->
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
