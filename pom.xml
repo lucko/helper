@@ -55,7 +55,7 @@
         <source.version>3.0.1</source.version>
         <javadoc.version>2.10.4</javadoc.version>
 
-        <bukkit.version>1.12.2-R0.1-SNAPSHOT</bukkit.version>
+        <bukkit.version>1.15.1-R0.1-SNAPSHOT</bukkit.version>
     </properties>
 
     <distributionManagement>
