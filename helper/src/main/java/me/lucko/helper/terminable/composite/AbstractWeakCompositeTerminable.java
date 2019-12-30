@@ -73,7 +73,7 @@ public class AbstractWeakCompositeTerminable implements CompositeTerminable {
     public void cleanup() {
         this.closeables.removeIf(ref -> {
             AutoCloseable ac = ref.get();
-            return ac != null && ac instanceof Terminable && ((Terminable) ac).isClosed();
+            return ac instanceof Terminable && ((Terminable) ac).isClosed();
         });
     }
 }
