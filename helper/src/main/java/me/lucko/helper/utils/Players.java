@@ -164,8 +164,7 @@ public final class Players {
      * @param consumer the action to apply
      */
     public static void forEachInRange(Location center, double radius, Consumer<Player> consumer) {
-        streamInRange(center, radius)
-                .forEach(consumer);
+        streamInRange(center, radius).forEach(consumer);
     }
 
     /**
