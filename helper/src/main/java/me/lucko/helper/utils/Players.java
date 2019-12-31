@@ -164,9 +164,7 @@ public final class Players {
      * @param consumer the action to apply
      */
     public static void forEachInRange(Location center, double radius, Consumer<Player> consumer) {
-        center.getWorld().getNearbyEntities(center, radius, radius, radius).stream()
-                .filter(e -> e instanceof Player)
-                .map(e -> ((Player) e))
+        streamInRange(center, radius)
                 .forEach(consumer);
     }
 
