@@ -90,6 +90,16 @@ public final class ChunkPosition implements GsonSerializable {
         Objects.requireNonNull(location, "location");
         return of(location.getX(), location.getZ(), location.getWorld().getName());
     }
+    
+    public static ChunkPosition of(long packed, String world) {
+        Objects.requireNonNull(world, "world");
+        return of((int) packed, (int) (packed >> 32), world);
+    }
+
+    public static ChunkPosition of(long packed, World world) {
+        Objects.requireNonNull(world, "world");
+        return of(packed, world.getName());
+    }
 
     private final int x;
     private final int z;
@@ -173,6 +183,10 @@ public final class ChunkPosition implements GsonSerializable {
 
     public ChunkPosition subtract(int x, int z) {
         return add(-x, -z);
+    }
+    
+    public long condensed() {
+        return (long) this.x & 0xffffffffL | ((long) this.z & 0xffffffffL) << 32;
     }
 
     @Nonnull
