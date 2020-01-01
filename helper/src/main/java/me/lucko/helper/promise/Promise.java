@@ -1323,7 +1323,7 @@ public interface Promise<V> extends Future<V>, Terminable {
             case SYNC:
                 return exceptionallySync(fn);
             case ASYNC:
-                return exceptionallySync(fn);
+                return exceptionallyAsync(fn);
             default:
                 throw new AssertionError();
         }
