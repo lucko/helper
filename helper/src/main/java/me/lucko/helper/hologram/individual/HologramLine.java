@@ -35,6 +35,7 @@ import java.util.function.Function;
 /**
  * Represents a line in a hologram.
  */
+@FunctionalInterface
 public interface HologramLine {
 
     /**
