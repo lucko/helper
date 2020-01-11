@@ -28,10 +28,9 @@ package me.lucko.helper.cooldown;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
 import me.lucko.helper.gson.GsonSerializable;
 import me.lucko.helper.scheduler.Ticks;
-import me.lucko.helper.utils.TimeUtil;
+import me.lucko.helper.time.Time;
 
 import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
@@ -111,14 +110,14 @@ public interface Cooldown extends GsonSerializable {
      * @return the elapsed time
      */
     default long elapsed() {
-        return TimeUtil.now() - getLastTested().orElse(0);
+        return Time.nowMillis() - getLastTested().orElse(0);
     }
 
     /**
      * Resets the cooldown
      */
     default void reset() {
-        setLastTested(TimeUtil.now());
+        setLastTested(Time.nowMillis());
     }
 
     /**

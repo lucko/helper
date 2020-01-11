@@ -33,16 +33,16 @@ import me.lucko.helper.messaging.InstanceData;
 import me.lucko.helper.network.Network;
 import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.module.TerminableModule;
+import me.lucko.helper.time.DurationFormatter;
+import me.lucko.helper.time.Time;
 import me.lucko.helper.utils.Players;
-import me.lucko.helper.utils.TimeUtil;
 import me.lucko.helper.utils.Tps;
-
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
@@ -90,8 +90,7 @@ public class NetworkSummaryModule implements TerminableModule {
                             return;
                         }
 
-                        long millisSinceLastSeen = TimeUtil.now() - lastPing;
-                        String lastSeen = TimeUtil.toShortForm(TimeUnit.MILLISECONDS.toSeconds(millisSinceLastSeen));
+                        String lastSeen = DurationFormatter.CONCISE.format(Time.diffToNow(Instant.ofEpochMilli(lastPing)));
                         Players.msg(sender, "&7[&anetwork&7] " + id + " &7- last online " + lastSeen + " ago");
                     } else {
                         Tps tps = server.getMetadata("tps", Tps.class);
