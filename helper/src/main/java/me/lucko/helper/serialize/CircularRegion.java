@@ -9,6 +9,7 @@ import me.lucko.helper.utils.Maths;
 import org.bukkit.block.Block;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -43,32 +44,62 @@ public class CircularRegion implements GsonSerializable {
         this.diameter = radius * 2;
     }
 
+    /**
+     * Determines if the specified {@link BlockPosition} is within the region
+     * @param pos target position
+     * @return true if the position is in the region
+     */
     public boolean inRegion(BlockPosition pos) {
         Objects.requireNonNull(pos, "pos");
         return pos.toVector().distanceSquared(this.center.toVector()) < this.radius * this.radius;
     }
 
+    /**
+     * Determines if the specified {@link Block} is within the region
+     * @param block target block
+     * @return true if the block is in the region
+     */
     public boolean inRegion(Block block) {
         Objects.requireNonNull(block, "block");
         return block.getLocation().distanceSquared(this.center.toLocation()) < this.radius * radius;
     }
 
+    /**
+     * The center of the region as a {@link BlockPosition}
+     * @return the center
+     */
     public BlockPosition getCenter() {
         return this.center;
     }
 
+    /**
+     * The radius of the region
+     * @return the radius
+     */
     public double getRadius() {
         return this.radius;
     }
 
+    /**
+     * The diameter of the region
+     * @return the diameter
+     */
     public double getDiameter() {
         return this.diameter;
     }
 
+    /**
+     * The circumference of the region
+     * @return the circumference
+     */
     public double getCircumference() {
         return 2 * Math.PI * this.radius;
     }
 
+    /**
+     * Get the circumference {@link BlockPosition} of the region
+     * @return the {@link BlockPosition}s
+     */
     @Nonnull
     public Set<BlockPosition> getOuterPositions() {
         Set<BlockPosition> positions = new HashSet<>((int) getCircumference());
@@ -80,9 +111,14 @@ public class CircularRegion implements GsonSerializable {
 
             positions.add(this.center.add((int) x, 0, (int) z));
         }
-        return positions;
+        return Collections.unmodifiableSet(positions);
     }
 
+    /**
+     * Resize the current region with a new radius. The enter remains the same
+     * @param radius the radius
+     * @return circular region with new radius
+     */
     public CircularRegion resize(double radius) {
         return new CircularRegion(this.center, radius);
     }
