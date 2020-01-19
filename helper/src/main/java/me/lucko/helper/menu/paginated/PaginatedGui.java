@@ -27,12 +27,12 @@ package me.lucko.helper.menu.paginated;
 
 import com.google.common.collect.ImmutableList;
 
+import com.google.common.collect.Lists;
 import me.lucko.helper.item.ItemStackBuilder;
 import me.lucko.helper.menu.Gui;
 import me.lucko.helper.menu.Item;
 import me.lucko.helper.menu.Slot;
 import me.lucko.helper.menu.scheme.MenuScheme;
-import me.lucko.helper.utils.CollectionUtils;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.entity.Player;
@@ -83,7 +83,7 @@ public class PaginatedGui extends Gui {
         List<Integer> slots = new ArrayList<>(this.itemSlots);
 
         // work out the items to display on this page
-        List<List<Item>> pages = CollectionUtils.divideIterable(this.content, slots.size());
+        List<List<Item>> pages = Lists.partition(this.content, slots.size());
 
         // normalize page number
         if (this.page < 1) {
