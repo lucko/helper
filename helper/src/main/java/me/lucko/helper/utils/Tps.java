@@ -125,7 +125,7 @@ public final class Tps implements GsonSerializable {
     }
 
     public String toFormattedString() {
-        return format(this.avg1) + ", " + format(this.avg5) + ", " + format(this.avg15);
+        return String.join(", ", format(this.avg1), format(this.avg5), format(this.avg15));
     }
 
     public static String format(double tps) {
