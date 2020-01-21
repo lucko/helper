@@ -1,5 +1,8 @@
 package me.lucko.helper.utils;
 
+/**
+ * Utility for quickly performing Maths calculations.
+ */
 public final class Maths {
 
     private static final int SIN_BITS, SIN_MASK, SIN_COUNT;
@@ -32,14 +35,33 @@ public final class Maths {
         }
     }
 
+    /**
+     * Returns the trigonometric sine of a radians.
+     *
+     * @param rad the radians to get a sine of
+     * @return the sine of a radians
+     */
     public static float sin(float rad) {
         return sin[(int) (rad * radToIndex) & SIN_MASK];
     }
 
+    /**
+     * Returns the trigonometric cosine of a radians.
+     *
+     * @param rad the radians to get a cosine of
+     * @return the cosine of a radians
+     */
     public static float cos(float rad) {
         return cos[(int) (rad * radToIndex) & SIN_MASK];
     }
 
+    /**
+     * Converts an angle measured in degrees to an
+     * approximately equivalent angle measured in radians.
+     *
+     * @param degree the degree to be converted to radians
+     * @return the measurement of the degree in radians
+     */
     public static float toRadians(double degree) {
         return (float) Math.toRadians(degree);
     }

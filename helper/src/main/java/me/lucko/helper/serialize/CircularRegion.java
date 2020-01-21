@@ -22,34 +22,34 @@ public class CircularRegion implements GsonSerializable {
         Preconditions.checkArgument(object.has("center"));
         Preconditions.checkArgument(object.has("radius"));
 
-        BlockPosition center = BlockPosition.deserialize(object.get("center"));
+        Position center = Position.deserialize(object.get("center"));
         double radius = object.get("radius").getAsDouble();
 
         return of(center, radius);
     }
 
-    public static CircularRegion of(BlockPosition center, double radius) {
+    public static CircularRegion of(Position center, double radius) {
         Objects.requireNonNull(center, "center");
         if (radius <= 0) throw new IllegalArgumentException("radius cannot be negative");
         return new CircularRegion(center, radius);
     }
 
-    private final BlockPosition center;
+    private final Position center;
     private final double radius;
     private final double diameter;
 
-    private CircularRegion(BlockPosition center, double radius) {
+    private CircularRegion(Position center, double radius) {
         this.center = center;
         this.radius = radius;
         this.diameter = radius * 2;
     }
 
     /**
-     * Determines if the specified {@link BlockPosition} is within the region
+     * Determines if the specified {@link Position} is within the region
      * @param pos target position
      * @return true if the position is in the region
      */
-    public boolean inRegion(BlockPosition pos) {
+    public boolean inRegion(Position pos) {
         Objects.requireNonNull(pos, "pos");
         return pos.toVector().distanceSquared(this.center.toVector()) < this.radius * this.radius;
     }
@@ -65,10 +65,10 @@ public class CircularRegion implements GsonSerializable {
     }
 
     /**
-     * The center of the region as a {@link BlockPosition}
+     * The center of the region as a {@link Position}
      * @return the center
      */
-    public BlockPosition getCenter() {
+    public Position getCenter() {
         return this.center;
     }
 
@@ -101,7 +101,7 @@ public class CircularRegion implements GsonSerializable {
      * @return the {@link BlockPosition}s
      */
     @Nonnull
-    public Set<BlockPosition> getOuterPositions() {
+    public Set<BlockPosition> getOuterBlockPositions() {
         Set<BlockPosition> positions = new HashSet<>((int) getCircumference());
         for (int degree = 0; degree < 360; degree++) {
             float radian = Maths.toRadians(degree);
@@ -109,18 +109,9 @@ public class CircularRegion implements GsonSerializable {
             double x = Maths.cos(radian) * this.radius;
             double z = Maths.sin(radian) * this.radius;
 
-            positions.add(this.center.add((int) x, 0, (int) z));
+            positions.add(this.center.add((int) x, 0, (int) z).floor());
         }
         return Collections.unmodifiableSet(positions);
-    }
-
-    /**
-     * Resize the current region with a new radius. The enter remains the same
-     * @param radius the radius
-     * @return circular region with new radius
-     */
-    public CircularRegion resize(double radius) {
-        return new CircularRegion(this.center, radius);
     }
 
     @Nonnull
