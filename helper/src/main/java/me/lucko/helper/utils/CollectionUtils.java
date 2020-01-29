@@ -25,23 +25,15 @@
 
 package me.lucko.helper.utils;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import com.google.common.collect.Lists;
+
 import java.util.List;
 
 public final class CollectionUtils {
 
+    @Deprecated
     public static <T> List<List<T>> divideIterable(Iterable<T> source, int subListSize) {
-        List<List<T>> lists = new ArrayList<>();
-        Iterator<T> it = source.iterator();
-        while (it.hasNext()) {
-            List<T> subList = new ArrayList<>();
-            for (int i = 0; it.hasNext() && i < subListSize; i++) {
-                subList.add(it.next());
-            }
-            lists.add(subList);
-        }
-        return lists;
+        return Lists.partition(Lists.newArrayList(source), subListSize);
     }
 
     private CollectionUtils() {
