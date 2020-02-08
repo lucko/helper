@@ -332,6 +332,11 @@ public abstract class Gui implements TerminableConsumer {
 
                     if (!isValid()) {
                         close();
+                        return;
+                    }
+
+                    if (!e.getInventory().equals(this.inventory)) {
+                        return;
                     }
 
                     int slotId = e.getRawSlot();
