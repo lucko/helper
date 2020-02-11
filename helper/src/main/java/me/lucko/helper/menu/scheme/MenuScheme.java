@@ -26,12 +26,12 @@
 package me.lucko.helper.menu.scheme;
 
 import com.google.common.collect.ImmutableList;
-
 import me.lucko.helper.menu.Gui;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -146,7 +146,7 @@ public class MenuScheme {
     }
 
     public List<Integer> getMaskedIndexes() {
-        List<Integer> ret = new ArrayList<>();
+        List<Integer> ret = new LinkedList<>();
 
         // the index of the item slot in the inventory
         int invIndex = 0;
