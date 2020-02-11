@@ -25,22 +25,18 @@
 
 package me.lucko.helper.menu.scheme;
 
-import com.google.common.collect.ImmutableMap;
-
+import com.google.common.collect.Range;
 import me.lucko.helper.item.ItemStackBuilder;
-import me.lucko.helper.menu.Item;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
 import org.bukkit.Material;
-
-import java.util.Map;
-import java.util.function.IntFunction;
 
 /**
  * Contains a number of default {@link SchemeMapping}s.
  */
 @NonnullByDefault
 public final class StandardSchemeMappings {
+
+    private static final Range<Integer> COLORED_MATERIAL_RANGE = Range.closed(0, 15);
 
     public static final SchemeMapping STAINED_GLASS = forColoredMaterial(Material.STAINED_GLASS_PANE);
     public static final SchemeMapping STAINED_GLASS_BLOCK = forColoredMaterial(Material.STAINED_GLASS);
@@ -49,28 +45,10 @@ public final class StandardSchemeMappings {
     public static final SchemeMapping EMPTY = new EmptySchemeMapping();
 
     private static SchemeMapping forColoredMaterial(Material material) {
-        final IntFunction<Item> func = value -> ItemStackBuilder.of(material).name("&f").data(value).build(null);
-
-        Map<Integer, Item> map = ImmutableMap.<Integer, Item>builder()
-                .put(0, func.apply(0))
-                .put(1, func.apply(1))
-                .put(2, func.apply(2))
-                .put(3, func.apply(3))
-                .put(4, func.apply(4))
-                .put(5, func.apply(5))
-                .put(6, func.apply(6))
-                .put(7, func.apply(7))
-                .put(8, func.apply(8))
-                .put(9, func.apply(9))
-                .put(10, func.apply(10))
-                .put(11, func.apply(11))
-                .put(12, func.apply(12))
-                .put(13, func.apply(13))
-                .put(14, func.apply(14))
-                .put(15, func.apply(15))
-                .build();
-
-        return AbstractSchemeMapping.of(map);
+        return FunctionalSchemeMapping.of(
+                data -> ItemStackBuilder.of(material).name("&f").data(data).build(null),
+                COLORED_MATERIAL_RANGE
+        );
     }
 
     private StandardSchemeMappings() {
