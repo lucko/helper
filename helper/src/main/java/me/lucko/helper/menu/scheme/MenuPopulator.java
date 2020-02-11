@@ -27,13 +27,12 @@ package me.lucko.helper.menu.scheme;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-
 import me.lucko.helper.menu.Gui;
 import me.lucko.helper.menu.Item;
 import me.lucko.helper.menu.Slot;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -67,13 +66,13 @@ public class MenuPopulator {
 
         this.gui = gui;
         this.slots = ImmutableList.copyOf(slots);
-        this.remainingSlots = new ArrayList<>(this.slots);
+        reset();
     }
 
     private MenuPopulator(MenuPopulator other) {
         this.gui = other.gui;
         this.slots = other.slots;
-        this.remainingSlots = new ArrayList<>(this.slots);
+        reset();
     }
 
     /**
@@ -89,7 +88,7 @@ public class MenuPopulator {
      * Resets the slot order used by this populator to the state it was in upon construction
      */
     public void reset() {
-        this.remainingSlots = new ArrayList<>(this.slots);
+        this.remainingSlots = new LinkedList<>(this.slots);
     }
 
     public MenuPopulator consume(Consumer<Slot> action) {
