@@ -43,6 +43,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -353,12 +354,22 @@ public abstract class Gui implements TerminableConsumer {
                 })
                 .bindWith(this);
 
+        Events.subscribe(InventoryOpenEvent.class)
+                .filter(e -> e.getPlayer().equals(this.player))
+                .filter(e -> !e.getInventory().equals(this.inventory))
+                .filter(e -> isValid())
+                .handler(e -> invalidate())
+                .bindWith(this);
+
         Events.subscribe(InventoryCloseEvent.class)
                 .filter(e -> e.getPlayer().equals(this.player))
-                .filter(e -> e.getInventory().equals(this.inventory))
                 .filter(e -> isValid())
                 .handler(e -> {
                     invalidate();
+
+                    if (!e.getInventory().equals(this.inventory)) {
+                        return;
+                    }
 
                     // Check for a fallback GUI
                     Function<Player, Gui> fallback = this.fallbackGui;
