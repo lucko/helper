@@ -28,8 +28,8 @@ package me.lucko.helper.network;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
-
 import me.lucko.helper.Schedulers;
+import me.lucko.helper.cooldown.Cooldown;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.messaging.Channel;
 import me.lucko.helper.messaging.InstanceData;
@@ -44,12 +44,10 @@ import me.lucko.helper.network.metadata.TpsMetadataProvider;
 import me.lucko.helper.profiles.Profile;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.utils.Players;
-
 import net.kyori.event.EventBus;
 import net.kyori.event.EventSubscriber;
 import net.kyori.event.PostResult;
 import net.kyori.event.SimpleEventBus;
-
 import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -231,6 +229,8 @@ public class AbstractNetwork implements Network {
     }
 
     private static final class ServerImpl implements Server {
+        private static final long TIME_SYNC_THRESHOLD = TimeUnit.SECONDS.toMillis(2);
+
         private final String id;
 
         private long lastPing = 0;
@@ -240,11 +240,28 @@ public class AbstractNetwork implements Network {
         private boolean whitelisted = false;
         private Map<String, JsonElement> metadata;
 
+        private final Cooldown timeSyncWarningCooldown = Cooldown.of(5, TimeUnit.SECONDS);
+
         ServerImpl(String id) {
             this.id = id;
         }
 
+        private void checkTimeSync(long messageTimestamp) {
+            long systemTime = System.currentTimeMillis();
+            long timeDifference = Math.abs(systemTime - messageTimestamp);
+            if (timeDifference > TIME_SYNC_THRESHOLD && timeSyncWarningCooldown.test()) {
+                LoaderUtils.getPlugin().getLogger().warning(
+                        "[network] Server '" + id + "' appears to have a system time difference of " + timeDifference + " ms. " +
+                                "time now = " + systemTime + ", " +
+                                "message timestamp = " + messageTimestamp + " - " +
+                                "Check NTP is running? Is network stable?"
+                );
+            }
+        }
+
         private void loadData(StatusMessage msg) {
+            checkTimeSync(msg.time);
+
             this.lastPing = msg.time;
             this.groups = ImmutableSet.copyOf(msg.groups);
 
