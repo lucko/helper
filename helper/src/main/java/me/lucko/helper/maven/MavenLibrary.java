@@ -73,6 +73,6 @@ public @interface MavenLibrary {
      * @return the repo where the library can be obtained from
      */
     @Nonnull
-    Repository repo() default @Repository(url = "http://repo1.maven.org/maven2");
+    Repository repo() default @Repository(url = "https://repo1.maven.org/maven2");
 
 }
