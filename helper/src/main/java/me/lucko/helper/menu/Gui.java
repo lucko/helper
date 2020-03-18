@@ -96,7 +96,7 @@ public abstract class Gui implements TerminableConsumer {
     // The initial title set when the inventory was made.
     private final String initialTitle;
     // The slots in the gui, lazily loaded
-    private final Map<Integer, SimpleSlot> slots;
+    private final Map<Integer, Slot> slots;
     // This remains true until after #redraw is called for the first time
     private boolean firstDraw = true;
     // A function used to build a fallback page when this page is closed.
@@ -108,6 +108,7 @@ public abstract class Gui implements TerminableConsumer {
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
     private boolean valid = false;
+    private boolean invalidated = false;
 
     public Gui(Player player, int lines, String title) {
         this.player = Objects.requireNonNull(player, "player");
@@ -171,6 +172,10 @@ public abstract class Gui implements TerminableConsumer {
     public Slot getSlot(int slot) {
         if (slot < 0 || slot >= this.inventory.getSize()) {
             throw new IllegalArgumentException("Invalid slot id: " + slot);
+        }
+
+        if (invalidated) {
+            return new DummySlot(this, slot);
         }
 
         return this.slots.computeIfAbsent(slot, i -> new SimpleSlot(this, i));
@@ -258,6 +263,7 @@ public abstract class Gui implements TerminableConsumer {
         }
 
         this.firstDraw = true;
+        this.invalidated = false;
         try {
             redraw();
         } catch (Exception e) {
@@ -279,6 +285,7 @@ public abstract class Gui implements TerminableConsumer {
 
     private void invalidate() {
         this.valid = false;
+        this.invalidated = true;
 
         MetadataMap metadataMap = Metadata.provideForPlayer(this.player);
         Gui existing = metadataMap.getOrNull(OPEN_GUI_KEY);
@@ -347,9 +354,9 @@ public abstract class Gui implements TerminableConsumer {
                         return;
                     }
 
-                    SimpleSlot slot = this.slots.get(slotId);
-                    if (slot != null) {
-                        slot.handle(e);
+                    Slot slot = this.slots.get(slotId);
+                    if (slot instanceof SimpleSlot) {
+                        ((SimpleSlot) slot).handle(e);
                     }
                 })
                 .bindWith(this);
