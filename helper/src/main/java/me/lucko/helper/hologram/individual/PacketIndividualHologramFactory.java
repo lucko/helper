@@ -32,7 +32,6 @@ import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-
 import me.lucko.helper.Events;
 import me.lucko.helper.protocol.Protocol;
 import me.lucko.helper.reflect.MinecraftVersion;
@@ -41,7 +40,6 @@ import me.lucko.helper.reflect.ServerReflection;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.text.Text;
-
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
@@ -429,9 +427,7 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
 
             Protocol.subscribe(ListenerPriority.HIGH, PacketType.Play.Server.ENTITY_METADATA)
                     .handler(e -> {
-                        PacketContainer packet = e.getPacket().deepClone();
-                        e.setPacket(packet);
-                        
+                        PacketContainer packet = e.getPacket();
                         Player player = e.getPlayer();
 
                         // get entity id
@@ -446,6 +442,18 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                         // get metadata
                         List<WrappedWatchableObject> metadata = new ArrayList<>(packet.getWatchableCollectionModifier().read(0));
 
+                        if (!this.viewers.contains(player)) {
+                            // attempt to cache metadata anyway
+                            for (WrappedWatchableObject value : metadata) {
+                                if (value.getIndex() != 2) {
+                                    hologram.getCachedMetadata().put(value.getIndex(), value);
+                                }
+                            }
+
+                            e.setCancelled(true);
+                            return;
+                        }
+
                         // process metadata
                         for (WrappedWatchableObject value : metadata) {
                             if (value.getIndex() == 2) {
@@ -456,12 +464,10 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                             }
                         }
 
-                        if (!this.viewers.contains(player)) {
-                            e.setCancelled(true);
-                            return;
-                        }
-
+                        // clone before modifying the packet - see https://github.com/lucko/helper/pull/67
+                        packet = packet.deepClone();
                         packet.getWatchableCollectionModifier().write(0, metadata);
+                        e.setPacket(packet);
                     })
                     .bindWith(this.listeners);
 
