@@ -429,7 +429,9 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
 
             Protocol.subscribe(ListenerPriority.HIGH, PacketType.Play.Server.ENTITY_METADATA)
                     .handler(e -> {
-                        PacketContainer packet = e.getPacket();
+                        PacketContainer packet = e.getPacket().deepClone();
+                        e.setPacket(packet);
+                        
                         Player player = e.getPlayer();
 
                         // get entity id
