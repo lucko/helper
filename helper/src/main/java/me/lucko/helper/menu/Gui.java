@@ -26,7 +26,6 @@
 package me.lucko.helper.menu;
 
 import com.google.common.base.Preconditions;
-
 import me.lucko.helper.Events;
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.metadata.Metadata;
@@ -36,7 +35,6 @@ import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -96,7 +94,7 @@ public abstract class Gui implements TerminableConsumer {
     // The initial title set when the inventory was made.
     private final String initialTitle;
     // The slots in the gui, lazily loaded
-    private final Map<Integer, Slot> slots;
+    private final Map<Integer, SimpleSlot> slots;
     // This remains true until after #redraw is called for the first time
     private boolean firstDraw = true;
     // A function used to build a fallback page when this page is closed.
@@ -354,9 +352,9 @@ public abstract class Gui implements TerminableConsumer {
                         return;
                     }
 
-                    Slot slot = this.slots.get(slotId);
-                    if (slot instanceof SimpleSlot) {
-                        ((SimpleSlot) slot).handle(e);
+                    SimpleSlot slot = this.slots.get(slotId);
+                    if (slot != null) {
+                        slot.handle(e);
                     }
                 })
                 .bindWith(this);
