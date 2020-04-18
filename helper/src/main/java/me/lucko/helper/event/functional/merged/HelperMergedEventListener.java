@@ -32,12 +32,15 @@ import me.lucko.helper.Helper;
 import me.lucko.helper.event.MergedSubscription;
 
 import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
+import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Method;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,25 +82,33 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
     }
 
     void register(Plugin plugin) {
+        Map<Class<?>, EventPriority> registered = new IdentityHashMap<>();
+
         for (Map.Entry<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> ent : this.mappings.entrySet()) {
-            Helper.plugins().registerEvent(ent.getKey(), this, ent.getValue().getPriority(), this, plugin, false);
+            Class<? extends Event> type = ent.getKey();
+            Class<? extends Event> registrationType = getRegistrationClass(type);
+
+            // only register once
+            EventPriority existing = registered.put(registrationType, ent.getValue().getPriority());
+            if (existing != null) {
+                if (existing != ent.getValue().getPriority()) {
+                    throw new RuntimeException("Unable to register the same event with different priorities: " + type + " --> " + registrationType);
+                }
+                continue;
+            }
+
+            Helper.plugins().registerEvent(registrationType, this, ent.getValue().getPriority(), this, plugin, false);
         }
     }
 
     @Override
     public void execute(Listener listener, Event event) {
-        Function<Object, T> function = null;
-
-        for (Map.Entry<Class<? extends Event>, MergedHandlerMapping<T, ? extends Event>> ent : this.mappings.entrySet()) {
-            if (event.getClass() == ent.getKey()) {
-                function = ent.getValue().getFunction();
-                break;
-            }
-        }
-
-        if (function == null) {
+        MergedHandlerMapping<T, ? extends Event> mapping = this.mappings.get(event.getClass());
+        if (mapping == null) {
             return;
         }
+
+        Function<Object, T> function = mapping.getFunction();
 
         // this handler is disabled, so unregister from the event.
         if (!this.active.get()) {
@@ -200,7 +211,6 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
         return this.mappings.keySet();
     }
 
-    @SuppressWarnings("JavaReflectionMemberAccess")
     private static void unregisterListener(Class<? extends Event> eventClass, Listener listener) {
         try {
             // unfortunately we can't cache this reflect call, as the method is static
@@ -209,6 +219,19 @@ class HelperMergedEventListener<T> implements MergedSubscription<T>, EventExecut
             handlerList.unregister(listener);
         } catch (Throwable t) {
             // ignored
+        }
+    }
+
+    private static Class<? extends Event> getRegistrationClass(Class<? extends Event> clazz) {
+        try {
+            clazz.getDeclaredMethod("getHandlerList");
+            return clazz;
+        } catch (NoSuchMethodException var2) {
+            if (clazz.getSuperclass() != null && !clazz.getSuperclass().equals(Event.class) && Event.class.isAssignableFrom(clazz.getSuperclass())) {
+                return getRegistrationClass(clazz.getSuperclass().asSubclass(Event.class));
+            } else {
+                throw new IllegalPluginAccessException("Unable to find handler list for event " + clazz.getName() + ".");
+            }
         }
     }
 }
