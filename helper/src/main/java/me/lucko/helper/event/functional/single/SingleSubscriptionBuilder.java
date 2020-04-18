@@ -131,6 +131,14 @@ public interface SingleSubscriptionBuilder<T extends Event> extends Subscription
     SingleSubscriptionBuilder<T> exceptionConsumer(@Nonnull BiConsumer<? super T, Throwable> consumer);
 
     /**
+     * Sets that the handler should accept subclasses of the event type.
+     *
+     * @return the builder instance
+     */
+    @Nonnull
+    SingleSubscriptionBuilder<T> handleSubclasses();
+
+    /**
      * Return the handler list builder to append handlers for the event.
      *
      * @return the handler list

@@ -50,6 +50,7 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
     private final EventPriority priority;
 
     private final BiConsumer<? super T, Throwable> exceptionConsumer;
+    private final boolean handleSubclasses;
 
     private final Predicate<T>[] filters;
     private final BiPredicate<SingleSubscription<T>, T>[] preExpiryTests;
@@ -65,6 +66,7 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
         this.eventClass = builder.eventClass;
         this.priority = builder.priority;
         this.exceptionConsumer = builder.exceptionConsumer;
+        this.handleSubclasses = builder.handleSubclasses;
 
         this.filters = builder.filters.toArray(new Predicate[builder.filters.size()]);
         this.preExpiryTests = builder.preExpiryTests.toArray(new BiPredicate[builder.preExpiryTests.size()]);
@@ -80,8 +82,14 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
     @Override
     public void execute(Listener listener, Event event) {
         // check we actually want this event
-        if (event.getClass() != this.eventClass) {
-            return;
+        if (this.handleSubclasses) {
+            if (!this.eventClass.isInstance(event)) {
+                return;
+            }
+        } else {
+            if (event.getClass() != this.eventClass) {
+                return;
+            }
         }
 
         // this handler is disabled, so unregister from the event.
