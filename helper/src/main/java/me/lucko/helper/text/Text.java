@@ -25,12 +25,16 @@
 
 package me.lucko.helper.text;
 
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
 import net.kyori.text.adapter.bukkit.TextAdapter;
 import net.kyori.text.serializer.ComponentSerializers;
 
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -41,6 +45,8 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("deprecation")
 public final class Text {
+
+    private static final Plugin PAPI_PLUGIN = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
     public static final char SECTION_CHAR = '\u00A7'; // §
     public static final char AMPERSAND_CHAR = '&';
@@ -94,6 +100,38 @@ public final class Text {
             }
         }
         return new String(b);
+    }
+
+    public static String setPlaceholders(String text) {
+        return setPlaceholders(null, text);
+    }
+
+    public static String setPlaceholders(CommandSender sender, String text) {
+        if (isPlaceholderAPISupported()) {
+            if (sender instanceof OfflinePlayer) {
+                return PlaceholderAPI.setPlaceholders((OfflinePlayer) sender, text);
+            }
+            return PlaceholderAPI.setPlaceholders(null, text);
+        }
+        return colorize(text);
+    }
+
+    public static String setBracketPlaceholders(String text) {
+        return setBracketPlaceholders(null, text);
+    }
+
+    public static String setBracketPlaceholders(CommandSender sender, String text) {
+        if (isPlaceholderAPISupported()) {
+            if (sender instanceof OfflinePlayer) {
+                return PlaceholderAPI.setBracketPlaceholders((OfflinePlayer) sender, text);
+            }
+            return PlaceholderAPI.setBracketPlaceholders(null, text);
+        }
+        return colorize(text);
+    }
+
+    private static boolean isPlaceholderAPISupported() {
+        return PAPI_PLUGIN != null && PAPI_PLUGIN.isEnabled();
     }
 
     private Text() {
