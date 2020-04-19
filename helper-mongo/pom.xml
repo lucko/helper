@@ -12,7 +12,7 @@
 
     <artifactId>helper-mongo</artifactId>
     <packaging>jar</packaging>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
 
     <name>helper-mongo</name>
     <description>Provides MongoDB datasources.</description>
@@ -147,7 +147,7 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
-            <version>3.9.1</version>
+            <version>3.12.3</version>
             <scope>compile</scope>
             <optional>true</optional>
         </dependency>
