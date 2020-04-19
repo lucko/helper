@@ -43,6 +43,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -155,7 +156,11 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
         return (T) getServer().getPluginManager().getPlugin(name);
     }
 
-    private File getRelativeFile(@Nonnull String name) {
+    public Path getDataDirectory() {
+        return getDataFolder().toPath().toAbsolutePath();
+    }
+
+    public File getRelativeFile(@Nonnull String name) {
         getDataFolder().mkdirs();
         return new File(getDataFolder(), name);
     }
