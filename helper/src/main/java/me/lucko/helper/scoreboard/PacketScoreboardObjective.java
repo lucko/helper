@@ -28,6 +28,7 @@ package me.lucko.helper.scoreboard;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers.ScoreboardAction;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
@@ -288,7 +289,7 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
         packet.getIntegers().write(0, mode.getCode());
 
         // set display name - limited to String(16) - Only if mode is 0 or 2. The text to be displayed for the score
-        packet.getStrings().write(1, getDisplayName());
+        packet.getChatComponents().write(0, WrappedChatComponent.fromText(getDisplayName())); // todo - legacy support
 
         // set type - either "integer" or "hearts"
         packet.getEnumModifier(HealthDisplay.class, 2).write(0, HealthDisplay.INTEGER);
