@@ -90,6 +90,11 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
 
     @Override
     public final void onDisable() {
+        Players.forEach(player -> {
+            if (Metadata.provideForPlayer(player).has(Gui.OPEN_GUI_KEY)) {
+                player.closeInventory();
+            }
+        });
 
         // call subclass
         disable();
