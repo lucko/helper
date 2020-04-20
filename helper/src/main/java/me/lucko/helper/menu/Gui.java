@@ -306,6 +306,8 @@ public abstract class Gui implements TerminableConsumer {
         return this.valid;
     }
 
+    protected void handlePlayerInventoryClick(InventoryClickEvent event) {}
+
     /**
      * Registers the event handlers for this GUI
      */
@@ -349,6 +351,7 @@ public abstract class Gui implements TerminableConsumer {
 
                     // check if the click was in the top inventory
                     if (slotId != e.getSlot()) {
+                        handlePlayerInventoryClick(e);
                         return;
                     }
 
