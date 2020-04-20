@@ -36,7 +36,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -87,6 +89,22 @@ public final class Text {
         return s == null ? null : translateAlternateColorCodes(AMPERSAND_CHAR, SECTION_CHAR, s);
     }
 
+    public static List<String> colorize(String... lines) {
+        List<String> s = new ArrayList<>();
+        for (String value : lines) {
+            s.add(colorize(value));
+        }
+        return s;
+    }
+
+    public static List<String> colorize(List<String> lines) {
+        List<String> s = new ArrayList<>();
+        for (String value : lines) {
+            s.add(colorize(value));
+        }
+        return s;
+    }
+
     public static String decolorize(String s) {
         return s == null ? null : translateAlternateColorCodes(SECTION_CHAR, AMPERSAND_CHAR, s);
     }
@@ -94,9 +112,9 @@ public final class Text {
     public static String translateAlternateColorCodes(char from, char to, String textToTranslate) {
         char[] b = textToTranslate.toCharArray();
         for (int i = 0; i < b.length - 1; i++) {
-            if (b[i] == from && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i+1]) > -1) {
+            if (b[i] == from && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i + 1]) > -1) {
                 b[i] = to;
-                b[i+1] = Character.toLowerCase(b[i+1]);
+                b[i + 1] = Character.toLowerCase(b[i + 1]);
             }
         }
         return new String(b);
@@ -114,6 +132,36 @@ public final class Text {
             return PlaceholderAPI.setPlaceholders(null, text);
         }
         return colorize(text);
+    }
+
+    public static List<String> setPlaceholders(String... lines) {
+        return setPlaceholders(null, lines);
+    }
+
+    public static List<String> setPlaceholders(CommandSender sender, String... lines) {
+        if (!isPlaceholderAPISupported()) {
+            return colorize(lines);
+        }
+        List<String> s = new ArrayList<>();
+        for (String value : lines) {
+            s.add(setPlaceholders(sender, value));
+        }
+        return s;
+    }
+
+    public static List<String> setPlaceholders(List<String> lines) {
+        return setPlaceholders(null, lines);
+    }
+
+    public static List<String> setPlaceholders(CommandSender sender, List<String> lines) {
+        if (!isPlaceholderAPISupported()) {
+            return colorize(lines);
+        }
+        List<String> s = new ArrayList<>();
+        for (String value : lines) {
+            s.add(setPlaceholders(sender, value));
+        }
+        return s;
     }
 
     public static String setBracketPlaceholders(String text) {
