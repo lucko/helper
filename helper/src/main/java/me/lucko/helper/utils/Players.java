@@ -41,6 +41,7 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -118,6 +119,14 @@ public final class Players {
      */
     public static Stream<Player> stream() {
         return all().stream();
+    }
+
+    public static Stream<String> names() {
+        return stream().map(HumanEntity::getName);
+    }
+
+    public static Stream<String> displayNames() {
+        return stream().map(Player::getDisplayName);
     }
 
     /**
