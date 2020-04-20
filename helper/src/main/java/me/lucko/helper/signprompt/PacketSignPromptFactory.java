@@ -54,7 +54,7 @@ public class PacketSignPromptFactory implements SignPromptFactory {
     @Override
     public void openPrompt(@Nonnull Player player, @Nonnull List<String> lines, @Nonnull ResponseHandler responseHandler) {
         Location location = player.getLocation().clone();
-        location.setY(255);
+        location.setY(0);
         Players.sendBlockChange(player, location, Material.WALL_SIGN);
 
         BlockPosition position = new BlockPosition(location.toVector());
