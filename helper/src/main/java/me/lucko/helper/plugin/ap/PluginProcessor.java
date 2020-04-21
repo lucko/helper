@@ -147,6 +147,28 @@ public class PluginProcessor extends AbstractProcessor {
             data.put("loadbefore", new ArrayList<>(Arrays.asList(loadBefore)));
         }
 
+        Map<String, Object> commands = new LinkedHashMap<>();
+        for (PluginCommand command : annotation.commands()) {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            if (!command.description().isEmpty()) {
+                entry.put("description", command.description());
+            }
+            if (command.aliases().length > 0) {
+                entry.put("aliases", command.aliases());
+            }
+            if (!command.permission().isEmpty()) {
+                entry.put("permission", command.permission());
+            }
+            if (!command.permissionMessage().isEmpty()) {
+                entry.put("permission-message", command.permissionMessage());
+            }
+            if (!command.permissionMessage().isEmpty()) {
+                entry.put("usage", command.usage());
+            }
+            commands.put(command.name(), entry);
+        }
+        data.put("commands", commands);
+
         try {
             Yaml yaml = new Yaml();
             FileObject resource = this.processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", "plugin.yml");
