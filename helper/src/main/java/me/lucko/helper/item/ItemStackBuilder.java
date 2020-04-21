@@ -66,7 +66,7 @@ public final class ItemStackBuilder {
     }
 
     public static ItemStackBuilder of(ItemStack itemStack) {
-        return new ItemStackBuilder(itemStack).hideAttributes();
+        return new ItemStackBuilder(itemStack.clone()).hideAttributes();
     }
 
     private ItemStackBuilder(ItemStack itemStack) {
