@@ -32,6 +32,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.protocol.Protocol;
+import me.lucko.helper.reflect.MinecraftVersion;
+import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -54,6 +56,9 @@ import javax.annotation.Nullable;
  */
 @NonnullByDefault
 public class PacketScoreboardObjective implements ScoreboardObjective {
+
+    // anything >= 1.13 uses chat components for display name
+    private static final boolean USING_CHAT_COMPONENTS = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_13);
 
     // the "Entity name" in the Update Score packet is limited to 40 chars
     private static final int MAX_SCORE_LENGTH = 40;
@@ -287,8 +292,13 @@ public class PacketScoreboardObjective implements ScoreboardObjective {
         // set mode - 0 to create the scoreboard. 1 to remove the scoreboard. 2 to update the display text.
         packet.getIntegers().write(0, mode.getCode());
 
-        // set display name - limited to String(16) - Only if mode is 0 or 2. The text to be displayed for the score
-        packet.getStrings().write(1, getDisplayName());
+        if (USING_CHAT_COMPONENTS) {
+            // set display name - Component
+            packet.getChatComponents().write(0, PacketScoreboard.toComponent(getDisplayName()));
+        } else {
+            // set display name - limited to String(16) - Only if mode is 0 or 2. The text to be displayed for the score
+            packet.getStrings().write(1, getDisplayName());
+        }
 
         // set type - either "integer" or "hearts"
         packet.getEnumModifier(HealthDisplay.class, 2).write(0, HealthDisplay.INTEGER);

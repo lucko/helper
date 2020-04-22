@@ -25,12 +25,16 @@
 
 package me.lucko.helper.scoreboard;
 
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.google.common.base.Preconditions;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.plugin.HelperPlugin;
+import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.Players;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
+
+import net.kyori.text.serializer.ComponentSerializers;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -256,6 +260,10 @@ public class PacketScoreboard implements Scoreboard {
 
         objective.unsubscribeAll();
         return true;
+    }
+
+    static WrappedChatComponent toComponent(String text) {
+        return WrappedChatComponent.fromJson(ComponentSerializers.JSON.serialize(Text.fromLegacy(text)));
     }
 
 }
