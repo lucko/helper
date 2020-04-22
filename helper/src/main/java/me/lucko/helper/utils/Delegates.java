@@ -76,12 +76,23 @@ public final class Delegates {
         return new RunnableToFunction<>(runnable);
     }
 
-    private static final class RunnableToConsumer<T> implements Consumer<T>, Delegate<Runnable> {
-        private final Runnable delegate;
-        private RunnableToConsumer(Runnable delegate) {
+    private static abstract class AbstractDelegate<T> implements Delegate<T> {
+        final T delegate;
+
+        AbstractDelegate(T delegate) {
             this.delegate = delegate;
         }
-        @Override public Runnable getDelegate() { return this.delegate; }
+
+        @Override
+        public T getDelegate() {
+            return delegate;
+        }
+    }
+
+    private static final class RunnableToConsumer<T> extends AbstractDelegate<Runnable> implements Consumer<T> {
+        RunnableToConsumer(Runnable delegate) {
+            super(delegate);
+        }
 
         @Override
         public void accept(T t) {
@@ -89,12 +100,10 @@ public final class Delegates {
         }
     }
 
-    private static final class CallableToSupplier<T> implements Supplier<T>, Delegate<Callable<T>> {
-        private final Callable<T> delegate;
-        private CallableToSupplier(Callable<T> delegate) {
-            this.delegate = delegate;
+    private static final class CallableToSupplier<T> extends AbstractDelegate<Callable<T>> implements Supplier<T> {
+        CallableToSupplier(Callable<T> delegate) {
+            super(delegate);
         }
-        @Override public Callable<T> getDelegate() { return this.delegate; }
 
         @Override
         public T get() {
@@ -108,12 +117,10 @@ public final class Delegates {
         }
     }
 
-    private static final class RunnableToSupplier<T> implements Supplier<T>, Delegate<Runnable> {
-        private final Runnable delegate;
-        private RunnableToSupplier(Runnable delegate) {
-            this.delegate = delegate;
+    private static final class RunnableToSupplier<T> extends AbstractDelegate<Runnable> implements Supplier<T> {
+        RunnableToSupplier(Runnable delegate) {
+            super(delegate);
         }
-        @Override public Runnable getDelegate() { return this.delegate; }
 
         @Override
         public T get() {
@@ -122,12 +129,10 @@ public final class Delegates {
         }
     }
 
-    private static final class ConsumerToBiConsumerFirst<T, U> implements BiConsumer<T, U>, Delegate<Consumer<T>> {
-        private final Consumer<T> delegate;
-        private ConsumerToBiConsumerFirst(Consumer<T> delegate) {
-            this.delegate = delegate;
+    private static final class ConsumerToBiConsumerFirst<T, U> extends AbstractDelegate<Consumer<T>> implements BiConsumer<T, U> {
+        ConsumerToBiConsumerFirst(Consumer<T> delegate) {
+            super(delegate);
         }
-        @Override public Consumer<T> getDelegate() { return this.delegate; }
 
         @Override
         public void accept(T t, U u) {
@@ -135,12 +140,10 @@ public final class Delegates {
         }
     }
 
-    private static final class ConsumerToBiConsumerSecond<T, U> implements BiConsumer<T, U>, Delegate<Consumer<U>> {
-        private final Consumer<U> delegate;
-        private ConsumerToBiConsumerSecond(Consumer<U> delegate) {
-            this.delegate = delegate;
+    private static final class ConsumerToBiConsumerSecond<T, U>extends AbstractDelegate<Consumer<U>> implements BiConsumer<T, U> {
+        ConsumerToBiConsumerSecond(Consumer<U> delegate) {
+            super(delegate);
         }
-        @Override public Consumer<U> getDelegate() { return this.delegate; }
 
         @Override
         public void accept(T t, U u) {
@@ -148,12 +151,10 @@ public final class Delegates {
         }
     }
 
-    private static final class PredicateToBiPredicateFirst<T, U> implements BiPredicate<T, U>, Delegate<Predicate<T>> {
-        private final Predicate<T> delegate;
-        private PredicateToBiPredicateFirst(Predicate<T> delegate) {
-            this.delegate = delegate;
+    private static final class PredicateToBiPredicateFirst<T, U> extends AbstractDelegate<Predicate<T>> implements BiPredicate<T, U> {
+        PredicateToBiPredicateFirst(Predicate<T> delegate) {
+            super(delegate);
         }
-        @Override public Predicate<T> getDelegate() { return this.delegate; }
 
         @Override
         public boolean test(T t, U u) {
@@ -161,12 +162,10 @@ public final class Delegates {
         }
     }
 
-    private static final class PredicateToBiPredicateSecond<T, U> implements BiPredicate<T, U>, Delegate<Predicate<U>> {
-        private final Predicate<U> delegate;
-        private PredicateToBiPredicateSecond(Predicate<U> delegate) {
-            this.delegate = delegate;
+    private static final class PredicateToBiPredicateSecond<T, U> extends AbstractDelegate<Predicate<U>> implements BiPredicate<T, U> {
+        PredicateToBiPredicateSecond(Predicate<U> delegate) {
+            super(delegate);
         }
-        @Override public Predicate<U> getDelegate() { return this.delegate; }
 
         @Override
         public boolean test(T t, U u) {
@@ -174,12 +173,10 @@ public final class Delegates {
         }
     }
 
-    private static final class ConsumerToFunction<T, R> implements Function<T, R>, Delegate<Consumer<T>> {
-        private final Consumer<T> delegate;
-        private ConsumerToFunction(Consumer<T> delegate) {
-            this.delegate = delegate;
+    private static final class ConsumerToFunction<T, R> extends AbstractDelegate<Consumer<T>> implements Function<T, R> {
+        ConsumerToFunction(Consumer<T> delegate) {
+            super(delegate);
         }
-        @Override public Consumer<T> getDelegate() { return this.delegate; }
 
         @Override
         public R apply(T t) {
@@ -188,12 +185,10 @@ public final class Delegates {
         }
     }
 
-    private static final class RunnableToFunction<T, R> implements Function<T, R>, Delegate<Runnable> {
-        private final Runnable delegate;
-        private RunnableToFunction(Runnable delegate) {
-            this.delegate = delegate;
+    private static final class RunnableToFunction<T, R> extends AbstractDelegate<Runnable> implements Function<T, R> {
+        RunnableToFunction(Runnable delegate) {
+            super(delegate);
         }
-        @Override public Runnable getDelegate() { return this.delegate; }
 
         @Override
         public R apply(T t) {
