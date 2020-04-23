@@ -38,6 +38,7 @@ import me.lucko.helper.sql.Sql;
 import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.module.TerminableModule;
 import me.lucko.helper.utils.Log;
+import me.lucko.helper.utils.UndashedUuids;
 
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerLoginEvent;
@@ -138,7 +139,7 @@ public class HelperProfileRepository implements ProfileRepository, TerminableMod
     private void saveProfile(ImmutableProfile profile) {
         try (Connection c = this.sql.getConnection()) {
             try (PreparedStatement ps = c.prepareStatement(replaceTableName(INSERT))) {
-                ps.setString(1, uuidToString(profile.getUniqueId()));
+                ps.setString(1, UndashedUuids.toString(profile.getUniqueId()));
                 ps.setString(2, profile.getName().get());
                 ps.setTimestamp(3, new Timestamp(profile.getTimestamp()));
                 ps.setString(4, profile.getName().get());
@@ -160,7 +161,7 @@ public class HelperProfileRepository implements ProfileRepository, TerminableMod
                         String name = rs.getString("name");
                         Timestamp lastUpdate = rs.getTimestamp("lastupdate");
                         String uuidString = rs.getString("canonicalid");
-                        UUID uuid = uuidFromString(uuidString);
+                        UUID uuid = UndashedUuids.fromString(uuidString);
 
                         ImmutableProfile p = new ImmutableProfile(uuid, name, lastUpdate.getTime());
                         updateCache(p);
@@ -215,7 +216,7 @@ public class HelperProfileRepository implements ProfileRepository, TerminableMod
         return Schedulers.async().supply(() -> {
             try (Connection c = this.sql.getConnection()) {
                 try (PreparedStatement ps = c.prepareStatement(replaceTableName(SELECT_UID))) {
-                    ps.setString(1, uuidToString(uniqueId));
+                    ps.setString(1, UndashedUuids.toString(uniqueId));
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
                             String name = rs.getString("name");
@@ -252,7 +253,7 @@ public class HelperProfileRepository implements ProfileRepository, TerminableMod
                             String remoteName = rs.getString("name"); // provide a case corrected name
                             Timestamp lastUpdate = rs.getTimestamp("lastupdate");
                             String uuidString = rs.getString("canonicalid");
-                            UUID uuid = uuidFromString(uuidString);
+                            UUID uuid = UndashedUuids.fromString(uuidString);
 
                             ImmutableProfile p = new ImmutableProfile(uuid, remoteName, lastUpdate.getTime());
                             updateCache(p);
@@ -280,7 +281,7 @@ public class HelperProfileRepository implements ProfileRepository, TerminableMod
                             String name = rs.getString("name");
                             Timestamp lastUpdate = rs.getTimestamp("lastupdate");
                             String uuidString = rs.getString("canonicalid");
-                            UUID uuid = uuidFromString(uuidString);
+                            UUID uuid = UndashedUuids.fromString(uuidString);
 
                             ImmutableProfile p = new ImmutableProfile(uuid, name, lastUpdate.getTime());
                             updateCache(p);
@@ -323,7 +324,7 @@ public class HelperProfileRepository implements ProfileRepository, TerminableMod
             if (!first) {
                 sb.append(", ");
             }
-            sb.append("UNHEX('").append(uuidToString(uniqueId)).append("')");
+            sb.append("UNHEX('").append(UndashedUuids.toString(uniqueId)).append("')");
             first = false;
         }
 
@@ -340,7 +341,7 @@ public class HelperProfileRepository implements ProfileRepository, TerminableMod
                             String name = rs.getString("name");
                             Timestamp lastUpdate = rs.getTimestamp("lastupdate");
                             String uuidString = rs.getString("canonicalid");
-                            UUID uuid = uuidFromString(uuidString);
+                            UUID uuid = UndashedUuids.fromString(uuidString);
 
                             ImmutableProfile p = new ImmutableProfile(uuid, name, lastUpdate.getTime());
                             updateCache(p);
@@ -400,7 +401,7 @@ public class HelperProfileRepository implements ProfileRepository, TerminableMod
                             String name = rs.getString("name"); // provide a case corrected name
                             Timestamp lastUpdate = rs.getTimestamp("lastupdate");
                             String uuidString = rs.getString("canonicalid");
-                            UUID uuid = uuidFromString(uuidString);
+                            UUID uuid = UndashedUuids.fromString(uuidString);
 
                             ImmutableProfile p = new ImmutableProfile(uuid, name, lastUpdate.getTime());
                             updateCache(p);
@@ -416,26 +417,6 @@ public class HelperProfileRepository implements ProfileRepository, TerminableMod
     }
 
     private static final Pattern MINECRAFT_USERNAME_PATTERN = Pattern.compile("^\\w{3,16}$");
-    private static final Pattern UUID_PATTERN = Pattern.compile("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})");
-    private static final String CANONICAL_UUID_FORM = "$1-$2-$3-$4-$5";
-
-    private static String uuidToString(UUID uuid) {
-        return (digits(uuid.getMostSignificantBits() >> 32, 8) +
-                digits(uuid.getMostSignificantBits() >> 16, 4) +
-                digits(uuid.getMostSignificantBits(), 4) +
-                digits(uuid.getLeastSignificantBits() >> 48, 4) +
-                digits(uuid.getLeastSignificantBits(), 12));
-    }
-
-    /** Returns val represented by the specified number of hex digits. */
-    private static String digits(long val, int digits) {
-        long hi = 1L << (digits * 4);
-        return Long.toHexString(hi | (val & (hi - 1))).substring(1);
-    }
-
-    private static UUID uuidFromString(String uuid) {
-        return UUID.fromString(UUID_PATTERN.matcher(uuid.toLowerCase()).replaceAll(CANONICAL_UUID_FORM));
-    }
 
     private static boolean isValidMcUsername(String s) {
         return MINECRAFT_USERNAME_PATTERN.matcher(s).matches();
