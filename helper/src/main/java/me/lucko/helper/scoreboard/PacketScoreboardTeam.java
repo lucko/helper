@@ -343,7 +343,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
         PacketContainer packet = newUpdatePacket();
 
         // set mode - byte
-        packet.getIntegers().write(1, UpdateType.CREATE.getCode());
+        packet.getIntegers().write(GTEQ_1_13 ? 0 : 1, UpdateType.CREATE.getCode());
 
         // add player info - array of String(40)
         List<String> players = new ArrayList<>(getPlayers());
