@@ -23,12 +23,14 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.profiles;
 
 import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonReader;
+
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.promise.Promise;
+import me.lucko.helper.utils.UndashedUuids;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -38,10 +40,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * An utility to manage {@link UUID}s.
+ * Utilities for interacting with the Mojang API.
  */
-public final class UUIDUtils {
-
+@Deprecated // API subject to change
+public final class MojangApi {
     public static final String PROFILES_URL = "https://api.mojang.com/users/profiles/minecraft/%s";
     public static final String NAME_HISTORY_URL = "https://api.mojang.com/user/profiles/%s/names";
 
@@ -52,54 +54,22 @@ public final class UUIDUtils {
      * @param username the username of the player from which to get the {@link UUID}
      * @return a promise for the online {@link UUID} of the player with the supplied name
      */
-    public static Promise<UUID> getOnlineUUID(String username) {
-        if (username == null || username.isEmpty()) {
-            return Promise.completed(null);
+    public static Promise<UUID> usernameToUuid(String username) {
+        Objects.requireNonNull(username, "username");
+        if (username.isEmpty()) {
+            throw new IllegalArgumentException("empty");
         }
 
         return Schedulers.async().supply(() -> {
             try (JsonReader reader = new JsonReader(new InputStreamReader(new URL(String.format(PROFILES_URL, username)).openConnection().getInputStream()))) {
                 reader.beginObject();
                 reader.skipValue();
-                return fromString(reader.nextString());
+                return UndashedUuids.fromString(reader.nextString());
             } catch (IOException e) {
                 e.printStackTrace();
             }
             return null;
         });
-    }
-
-    /**
-     * Gets the offline {@link UUID} of a player by calculating it from his name.
-     *
-     * @param username the name of the player from which to calculate the {@link UUID}
-     * @return the offline {@link UUID} of the player with the supplied name
-     */
-    public static UUID getOfflineUUID(String username) {
-        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes());
-    }
-
-    /**
-     * Checks if the supplied {@link UUID} matches with the online one of the player with the supplied username.
-     * This method uses the Mojang API, that has a limit of 600 requests per 10 minutes.
-     *
-     * @param username the username of the player to check if his online {@link UUID} matches with the supplied one
-     * @param uuid the {@link UUID} to check if it's equal to the online one of the player with the supplied username
-     * @return a promise of true if the supplied uuid is equal to the online one of the player with the supplied username, false otherwise
-     */
-    public static Promise<Boolean> isOnlineUUID(String username, UUID uuid) {
-        return getOnlineUUID(username).thenApplyAsync(online -> Objects.equals(online, uuid));
-    }
-
-    /**
-     * Checks if the supplied {@link UUID} is offline, compared to the one calculated from the supplied username.
-     *
-     * @param username the name of the player from which to calculate the offline uuid, in order to compare it to the supplied one
-     * @param uuid the {@link UUID} to check if is offline
-     * @return true if the supplied uuid is equals to the offline one calculated from the supplied username, otherwise false
-     */
-    public static boolean isOfflineUUID(String username, UUID uuid) {
-        return getOfflineUUID(username).equals(uuid);
     }
 
     /**
@@ -109,8 +79,8 @@ public final class UUIDUtils {
      * @param uuid the {@link UUID} of the player from which to get the name
      * @return a promise of the online username of the player with the supplied uuid, or null if it doesn't exists
      */
-    public static Promise<String> getName(UUID uuid) {
-        return getNameHistory(uuid).thenApplyAsync(names -> names.isEmpty() ? null : names.get(names.size() - 1));
+    public static Promise<String> uuidToUsername(UUID uuid) {
+        return getUsernameHistory(uuid).thenApplyAsync(names -> names.isEmpty() ? null : names.get(names.size() - 1));
     }
 
     /**
@@ -118,17 +88,15 @@ public final class UUIDUtils {
      * The Mojang API has a limit of 600 requests per 10 minutes.
      *
      * @param uuid the {@link UUID} of the player from which to fetch the name history
-     * @return a promise of a {@link List<String>} with all the names owned by the player with the supplied uuid, in chronological order
+     * @return a promise of a {@link List <String>} with all the names owned by the player with the supplied uuid, in chronological order
      */
-    public static Promise<List<String>> getNameHistory(UUID uuid) {
-        if (uuid == null) {
-            return Promise.completed(Lists.newArrayList());
-        }
+    public static Promise<List<String>> getUsernameHistory(UUID uuid) {
+        Objects.requireNonNull(uuid, "uuid");
 
         return Schedulers.async().supply(() -> {
             List<String> names = Lists.newArrayList();
 
-            try (JsonReader reader = new JsonReader(new InputStreamReader(new URL(String.format(NAME_HISTORY_URL, trimUUID(uuid))).openConnection().getInputStream()))) {
+            try (JsonReader reader = new JsonReader(new InputStreamReader(new URL(String.format(NAME_HISTORY_URL, UndashedUuids.toString(uuid))).openConnection().getInputStream()))) {
                 reader.beginArray();
                 for (int i = 0; reader.hasNext(); i++) {
                     reader.beginObject();
@@ -148,36 +116,8 @@ public final class UUIDUtils {
         });
     }
 
-    /**
-     * Gets the {@link UUID} from the {@link String} representation of it, even if it is without dashes.
-     *
-     * @param uuid the {@link String} from which to parse the {@link UUID}
-     * @return the {@link UUID} represented by the supplied {@link String}
-     */
-    public static UUID fromString(String uuid) {
-        if (uuid.contains("-")) {
-            return UUID.fromString(uuid);
-        }
-
-        StringBuilder builder = new StringBuilder(uuid.trim());
-        builder.insert(20, "-");
-        builder.insert(16, "-");
-        builder.insert(12, "-");
-        builder.insert(8, "-");
-        return UUID.fromString(builder.toString());
-    }
-
-    /**
-     * Gets the trimmed version of the supplied {@link UUID}.
-     *
-     * @param uuid the uuid to trim
-     * @return the {@link String} representation of the supplied uuid, without dashes
-     */
-    public static String trimUUID(UUID uuid) {
-        return uuid.toString().trim().replace("-", "");
-    }
-
-    private UUIDUtils() {
+    private MojangApi() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
+
 }
