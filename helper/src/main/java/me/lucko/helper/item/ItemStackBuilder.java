@@ -167,6 +167,11 @@ public final class ItemStackBuilder {
         return unflag(ALL_FLAGS);
     }
 
+    public ItemStackBuilder glow() {
+        itemStack.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+        return this;
+    }
+
     public ItemStackBuilder color(Color color) {
         return transform(itemStack -> {
             Material type = itemStack.getType();
