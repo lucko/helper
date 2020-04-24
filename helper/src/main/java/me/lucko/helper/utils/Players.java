@@ -43,6 +43,7 @@ import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.MetadataValue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -314,6 +315,13 @@ public final class Players {
 
     public static void resetFlySpeed(Player player) {
         player.setFlySpeed(0.1f);
+    }
+
+    public static boolean isVanished(Player player) {
+        for (MetadataValue meta : player.getMetadata("vanished")) {
+            if (meta.asBoolean()) return true;
+        }
+        return false;
     }
 
     private Players() {
