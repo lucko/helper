@@ -27,20 +27,24 @@ package me.lucko.helper.command;
 
 import me.lucko.helper.command.context.CommandContext;
 import me.lucko.helper.command.context.ImmutableCommandContext;
+import me.lucko.helper.command.tabcomplete.CompletionSupplier;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.utils.CommandMapUtil;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An abstract implementation of {@link Command} and {@link CommandExecutor}
  */
 @NonnullByDefault
-public abstract class AbstractCommand implements Command, CommandExecutor {
+public abstract class AbstractCommand implements Command, CommandExecutor, TabCompleter {
 
     protected @Nullable String permission;
     protected @Nullable String permissionMessasge;
@@ -65,5 +69,16 @@ public abstract class AbstractCommand implements Command, CommandExecutor {
             e.getAction().accept(context.sender());
         }
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
+        CommandContext<CommandSender> context = new ImmutableCommandContext<>(sender, label, args);
+        try {
+            return callTabComplete(context);
+        } catch (CommandInterruptException e) {
+            e.getAction().accept(context.sender());
+        }
+        return Collections.emptyList();
     }
 }

@@ -44,6 +44,7 @@ import java.util.function.Predicate;
 @NonnullByDefault
 class FunctionalCommandBuilderImpl<T extends CommandSender> implements FunctionalCommandBuilder<T> {
     private final ImmutableList.Builder<Predicate<CommandContext<?>>> predicates;
+    private @Nullable FunctionalTabHandler tabHandler;
     private @Nullable String permission;
     private @Nullable String permissionMessage;
     private @Nullable String description;
@@ -179,8 +180,14 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     }
 
     @Override
+    public FunctionalCommandBuilder<T> tabHandler(FunctionalTabHandler<T> tabHandler) {
+        this.tabHandler = tabHandler;
+        return this;
+    }
+
+    @Override
     public Command handler(FunctionalCommandHandler handler) {
         Objects.requireNonNull(handler, "handler");
-        return new FunctionalCommand(this.predicates.build(), handler, permission, permissionMessage, description);
+        return new FunctionalCommand(this.predicates.build(), handler, tabHandler, permission, permissionMessage, description);
     }
 }

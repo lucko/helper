@@ -227,4 +227,6 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
      * @return the command instance.
      */
     Command handler(FunctionalCommandHandler<T> handler);
+
+    FunctionalCommandBuilder<T> tabHandler(FunctionalTabHandler<T> tabHandler);
 }
