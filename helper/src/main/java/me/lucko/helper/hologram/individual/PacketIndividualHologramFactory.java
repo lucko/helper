@@ -28,10 +28,10 @@ package me.lucko.helper.hologram.individual;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+
 import me.lucko.helper.Events;
 import me.lucko.helper.protocol.Protocol;
 import me.lucko.helper.reflect.MinecraftVersion;
@@ -40,6 +40,7 @@ import me.lucko.helper.reflect.ServerReflection;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.text.Text;
+
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
@@ -66,13 +67,6 @@ import javax.annotation.Nullable;
 public class PacketIndividualHologramFactory implements IndividualHologramFactory {
     private static final Method GET_HANDLE_METHOD;
     private static final Method GET_ID_METHOD;
-
-    private static final WrappedDataWatcher.Serializer BOOLEAN_SERIALISER = WrappedDataWatcher.Registry.get(Boolean.class);
-    private static final WrappedDataWatcher.Serializer STRING_SERIALISER = WrappedDataWatcher.Registry.get(String.class);
-
-    private static WrappedDataWatcher.WrappedDataWatcherObject toWatcherObject(int index, WrappedDataWatcher.Serializer serializer) {
-        return new WrappedDataWatcher.WrappedDataWatcherObject(index, serializer);
-    }
 
     static {
         try {
@@ -356,14 +350,13 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                 metadataPacket.getIntegers().write(0, entity.getId());
 
                 // write metadata
-                WrappedDataWatcher dataWatcher = new WrappedDataWatcher();
-
+                List<WrappedWatchableObject> watchableObjects = new ArrayList<>();
                 // set custom name
-                dataWatcher.setObject(toWatcherObject(2, STRING_SERIALISER), Text.colorize(entity.getLine().resolve(player)));
+                watchableObjects.add(new WrappedWatchableObject(2, Text.colorize(entity.getLine().resolve(player))));
                 // set custom name visible
-                dataWatcher.setObject(toWatcherObject(3, BOOLEAN_SERIALISER), true);
+                watchableObjects.add(new WrappedWatchableObject(3, true));
 
-                List<WrappedWatchableObject> watchableObjects = new ArrayList<>(dataWatcher.getWatchableObjects());
+                // re-add all other cached metadata
                 for (Map.Entry<Integer, WrappedWatchableObject> ent : entity.getCachedMetadata().entrySet()) {
                     if (ent.getKey() != 2 && ent.getKey() != 3) {
                         watchableObjects.add(ent.getValue());
