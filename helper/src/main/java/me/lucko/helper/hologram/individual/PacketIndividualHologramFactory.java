@@ -40,6 +40,7 @@ import me.lucko.helper.reflect.ServerReflection;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.text.Text;
+import me.lucko.helper.utils.entityspawner.EntitySpawner;
 
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -212,7 +213,7 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                     }
 
                     // spawn the armorstand
-                    loc.getWorld().spawn(loc, ArmorStand.class, as -> {
+                    EntitySpawner.INSTANCE.spawn(loc, ArmorStand.class, as -> {
                         int eid = getEntityId(as);
                         holoEntity.setId(eid);
                         holoEntity.setArmorStand(as);
