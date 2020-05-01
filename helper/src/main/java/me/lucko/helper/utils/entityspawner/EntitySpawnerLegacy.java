@@ -54,7 +54,7 @@ enum EntitySpawnerLegacy implements EntitySpawner {
         }
     }
 
-    public <T extends Entity> T spawn(Location location, Class<T> entityClass, Consumer<T> beforeAdd) {
+    public <T extends Entity> T spawn(Location location, Class<T> entityClass, Consumer<? super T> beforeAdd) {
         World world = location.getWorld();
 
         try {
