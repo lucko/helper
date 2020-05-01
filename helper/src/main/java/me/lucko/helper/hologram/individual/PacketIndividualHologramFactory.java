@@ -315,6 +315,8 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                 return;
             }
 
+            boolean modern = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_9);
+
             // handle resending
             for (HologramEntity entity : this.spawnedEntities) {
                 PacketContainer spawnPacket = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY);
@@ -324,21 +326,30 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                 spawnPacket.getIntegers().write(0, entity.getId());
 
                 // write unique id
-                spawnPacket.getUUIDs().write(0, entity.getArmorStand().getUniqueId());
+                if (modern) {
+                    spawnPacket.getUUIDs().write(0, entity.getArmorStand().getUniqueId());
+                }
 
                 // write coordinates
                 Location loc = entity.getArmorStand().getLocation();
-                spawnPacket.getDoubles().write(0, loc.getX());
-                spawnPacket.getDoubles().write(1, loc.getY());
-                spawnPacket.getDoubles().write(2, loc.getZ());
-                spawnPacket.getIntegers().write(4, (int) ((loc.getPitch()) * 256.0F / 360.0F));
-                spawnPacket.getIntegers().write(5, (int) ((loc.getYaw()) * 256.0F / 360.0F));
+
+                if (modern) {
+                    spawnPacket.getDoubles().write(0, loc.getX());
+                    spawnPacket.getDoubles().write(1, loc.getY());
+                    spawnPacket.getDoubles().write(2, loc.getZ());
+                } else {
+                    spawnPacket.getIntegers().write(1, (int) Math.floor(loc.getX() * 32));
+                    spawnPacket.getIntegers().write(2, (int) Math.floor(loc.getY() * 32));
+                    spawnPacket.getIntegers().write(3, (int) Math.floor(loc.getZ() * 32));
+                }
+                spawnPacket.getIntegers().write(modern ? 4 : 7, (int) ((loc.getPitch()) * 256.0F / 360.0F));
+                spawnPacket.getIntegers().write(modern ? 5 : 8, (int) ((loc.getYaw()) * 256.0F / 360.0F));
 
                 // write type
-                spawnPacket.getIntegers().write(6, 78);
+                spawnPacket.getIntegers().write(modern ? 6 : 9, 78);
 
                 // write object data
-                spawnPacket.getIntegers().write(7, 0);
+                spawnPacket.getIntegers().write(modern ? 7 : 10, 0);
 
                 // send it
                 Protocol.sendPacket(player, spawnPacket);
@@ -355,7 +366,11 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                 // set custom name
                 watchableObjects.add(new WrappedWatchableObject(2, Text.colorize(entity.getLine().resolve(player))));
                 // set custom name visible
-                watchableObjects.add(new WrappedWatchableObject(3, true));
+                if (modern) {
+                    watchableObjects.add(new WrappedWatchableObject(3, true));
+                } else {
+                    watchableObjects.add(new WrappedWatchableObject(3, (byte) 1));
+                }
 
                 // re-add all other cached metadata
                 for (Map.Entry<Integer, WrappedWatchableObject> ent : entity.getCachedMetadata().entrySet()) {
