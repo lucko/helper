@@ -32,6 +32,7 @@ import me.lucko.helper.utils.annotation.NonnullByDefault;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -67,6 +68,10 @@ public final class ItemStackBuilder {
 
     public static ItemStackBuilder of(ItemStack itemStack) {
         return new ItemStackBuilder(itemStack).hideAttributes();
+    }
+
+    public static ItemStackBuilder of(ConfigurationSection config) {
+        return ItemStackReader.DEFAULT.read(config);
     }
 
     private ItemStackBuilder(ItemStack itemStack) {
