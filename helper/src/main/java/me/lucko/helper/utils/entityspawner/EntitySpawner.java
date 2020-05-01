@@ -50,7 +50,7 @@ public interface EntitySpawner {
      * @param <T> the entity type
      * @return the spawned entity
      */
-    <T extends Entity> T spawn(Location location, Class<T> entityClass, Consumer<T> beforeAdd);
+    <T extends Entity> T spawn(Location location, Class<T> entityClass, Consumer<? super T> beforeAdd);
 
 }
 
