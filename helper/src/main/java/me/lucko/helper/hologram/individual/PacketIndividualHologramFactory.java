@@ -28,10 +28,10 @@ package me.lucko.helper.hologram.individual;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+
 import me.lucko.helper.Events;
 import me.lucko.helper.protocol.Protocol;
 import me.lucko.helper.reflect.MinecraftVersion;
@@ -40,6 +40,8 @@ import me.lucko.helper.reflect.ServerReflection;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.text.Text;
+import me.lucko.helper.utils.entityspawner.EntitySpawner;
+
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
@@ -66,13 +68,6 @@ import javax.annotation.Nullable;
 public class PacketIndividualHologramFactory implements IndividualHologramFactory {
     private static final Method GET_HANDLE_METHOD;
     private static final Method GET_ID_METHOD;
-
-    private static final WrappedDataWatcher.Serializer BOOLEAN_SERIALISER = WrappedDataWatcher.Registry.get(Boolean.class);
-    private static final WrappedDataWatcher.Serializer STRING_SERIALISER = WrappedDataWatcher.Registry.get(String.class);
-
-    private static WrappedDataWatcher.WrappedDataWatcherObject toWatcherObject(int index, WrappedDataWatcher.Serializer serializer) {
-        return new WrappedDataWatcher.WrappedDataWatcherObject(index, serializer);
-    }
 
     static {
         try {
@@ -218,7 +213,7 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                     }
 
                     // spawn the armorstand
-                    loc.getWorld().spawn(loc, ArmorStand.class, as -> {
+                    EntitySpawner.INSTANCE.spawn(loc, ArmorStand.class, as -> {
                         int eid = getEntityId(as);
                         holoEntity.setId(eid);
                         holoEntity.setArmorStand(as);
@@ -320,6 +315,8 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                 return;
             }
 
+            boolean modern = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_9);
+
             // handle resending
             for (HologramEntity entity : this.spawnedEntities) {
                 PacketContainer spawnPacket = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY);
@@ -329,21 +326,30 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                 spawnPacket.getIntegers().write(0, entity.getId());
 
                 // write unique id
-                spawnPacket.getUUIDs().write(0, entity.getArmorStand().getUniqueId());
+                if (modern) {
+                    spawnPacket.getUUIDs().write(0, entity.getArmorStand().getUniqueId());
+                }
 
                 // write coordinates
                 Location loc = entity.getArmorStand().getLocation();
-                spawnPacket.getDoubles().write(0, loc.getX());
-                spawnPacket.getDoubles().write(1, loc.getY());
-                spawnPacket.getDoubles().write(2, loc.getZ());
-                spawnPacket.getIntegers().write(4, (int) ((loc.getPitch()) * 256.0F / 360.0F));
-                spawnPacket.getIntegers().write(5, (int) ((loc.getYaw()) * 256.0F / 360.0F));
+
+                if (modern) {
+                    spawnPacket.getDoubles().write(0, loc.getX());
+                    spawnPacket.getDoubles().write(1, loc.getY());
+                    spawnPacket.getDoubles().write(2, loc.getZ());
+                } else {
+                    spawnPacket.getIntegers().write(1, (int) Math.floor(loc.getX() * 32));
+                    spawnPacket.getIntegers().write(2, (int) Math.floor(loc.getY() * 32));
+                    spawnPacket.getIntegers().write(3, (int) Math.floor(loc.getZ() * 32));
+                }
+                spawnPacket.getIntegers().write(modern ? 4 : 7, (int) ((loc.getPitch()) * 256.0F / 360.0F));
+                spawnPacket.getIntegers().write(modern ? 5 : 8, (int) ((loc.getYaw()) * 256.0F / 360.0F));
 
                 // write type
-                spawnPacket.getIntegers().write(6, 78);
+                spawnPacket.getIntegers().write(modern ? 6 : 9, 78);
 
                 // write object data
-                spawnPacket.getIntegers().write(7, 0);
+                spawnPacket.getIntegers().write(modern ? 7 : 10, 0);
 
                 // send it
                 Protocol.sendPacket(player, spawnPacket);
@@ -356,14 +362,17 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                 metadataPacket.getIntegers().write(0, entity.getId());
 
                 // write metadata
-                WrappedDataWatcher dataWatcher = new WrappedDataWatcher();
-
+                List<WrappedWatchableObject> watchableObjects = new ArrayList<>();
                 // set custom name
-                dataWatcher.setObject(toWatcherObject(2, STRING_SERIALISER), Text.colorize(entity.getLine().resolve(player)));
+                watchableObjects.add(new WrappedWatchableObject(2, Text.colorize(entity.getLine().resolve(player))));
                 // set custom name visible
-                dataWatcher.setObject(toWatcherObject(3, BOOLEAN_SERIALISER), true);
+                if (modern) {
+                    watchableObjects.add(new WrappedWatchableObject(3, true));
+                } else {
+                    watchableObjects.add(new WrappedWatchableObject(3, (byte) 1));
+                }
 
-                List<WrappedWatchableObject> watchableObjects = new ArrayList<>(dataWatcher.getWatchableObjects());
+                // re-add all other cached metadata
                 for (Map.Entry<Integer, WrappedWatchableObject> ent : entity.getCachedMetadata().entrySet()) {
                     if (ent.getKey() != 2 && ent.getKey() != 3) {
                         watchableObjects.add(ent.getValue());

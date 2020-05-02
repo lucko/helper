@@ -29,6 +29,7 @@ import me.lucko.helper.command.argument.ArgumentParserRegistry;
 import me.lucko.helper.command.argument.SimpleParserRegistry;
 import me.lucko.helper.command.functional.FunctionalCommandBuilder;
 import me.lucko.helper.function.Numbers;
+import me.lucko.helper.time.DurationParser;
 import me.lucko.helper.utils.Players;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -37,6 +38,7 @@ import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -90,6 +92,7 @@ public final class Commands {
             }
         });
         PARSER_REGISTRY.register(World.class, Helper::world);
+        PARSER_REGISTRY.register(Duration.class, DurationParser::parseSafely);
     }
 
     /**

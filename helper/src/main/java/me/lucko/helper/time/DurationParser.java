@@ -27,9 +27,11 @@ package me.lucko.helper.time;
 
 import com.google.common.collect.ImmutableMap;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -90,6 +92,22 @@ public final class DurationParser {
         }
 
         throw new IllegalArgumentException("unable to parse duration: " + input);
+    }
+
+    /**
+     * Attempts to parse a {@link Duration} and returns the
+     * result as an {@link Optional}-wrapped object.
+     *
+     * @param input the input string
+     * @return an Optional Duration
+     */
+    @Nonnull
+    public static Optional<Duration> parseSafely(String input) {
+        try {
+            return Optional.of(parse(input));
+        } catch (IllegalArgumentException ignored) {
+            return Optional.empty();
+        }
     }
 
 }

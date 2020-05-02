@@ -27,6 +27,7 @@ package me.lucko.helper.scoreboard;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.utility.MinecraftReflection;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
@@ -58,6 +59,8 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
     // anything >= v1.9 supports the collision rule in the update packet.
     private static final boolean SUPPORTS_COLLISION_RULE = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_9);
+    // anything >= 1.13 uses chat components for display name, prefix and suffix
+    private static final boolean GTEQ_1_13 = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_13);
 
     // the display name value in teams if limited to 32 chars
     private static final int MAX_NAME_LENGTH = 32;
@@ -340,7 +343,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
         PacketContainer packet = newUpdatePacket();
 
         // set mode - byte
-        packet.getIntegers().write(1, UpdateType.CREATE.getCode());
+        packet.getIntegers().write(GTEQ_1_13 ? 0 : 1, UpdateType.CREATE.getCode());
 
         // add player info - array of String(40)
         List<String> players = new ArrayList<>(getPlayers());
@@ -361,7 +364,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
         packet.getStrings().write(0, getId());
 
         // set mode - byte
-        packet.getIntegers().write(1, UpdateType.REMOVE.getCode());
+        packet.getIntegers().write(GTEQ_1_13 ? 0 : 1, UpdateType.REMOVE.getCode());
 
         return packet;
     }
@@ -374,16 +377,27 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
         packet.getStrings().write(0, getId());
 
         // set mode - byte
-        packet.getIntegers().write(1, UpdateType.UPDATE.getCode());
+        packet.getIntegers().write(GTEQ_1_13 ? 0 : 1, UpdateType.UPDATE.getCode());
 
-        // set display name - String(32)
-        packet.getStrings().write(1, getDisplayName());
+        if (GTEQ_1_13) {
+            // set display name - Component
+            packet.getChatComponents().write(0, PacketScoreboard.toComponent(getDisplayName()));
 
-        // set prefix - String(16)
-        packet.getStrings().write(2, getPrefix());
+            // set prefix - Component
+            packet.getChatComponents().write(1, PacketScoreboard.toComponent(getPrefix()));
 
-        // set suffix - String(16)
-        packet.getStrings().write(3, getSuffix());
+            // set suffix - Component
+            packet.getChatComponents().write(2, PacketScoreboard.toComponent(getSuffix()));
+        } else {
+            // set display name - String(32)
+            packet.getStrings().write(1, getDisplayName());
+
+            // set prefix - String(16)
+            packet.getStrings().write(2, getPrefix());
+
+            // set suffix - String(16)
+            packet.getStrings().write(3, getSuffix());
+        }
 
         // set friendly flags - byte - Bit mask. 0x01: Allow friendly fire, 0x02: can see invisible entities on same team
         int data = 0;
@@ -394,18 +408,22 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
             data |= 2;
         }
 
-        packet.getIntegers().write(2, data);
+        packet.getIntegers().write(GTEQ_1_13 ? 1 : 2, data);
 
         // set nametag visibility - String Enum (32)
-        packet.getStrings().write(4, getNameTagVisibility().getProtocolName());
+        packet.getStrings().write(GTEQ_1_13 ? 1 : 4, getNameTagVisibility().getProtocolName());
 
         if (SUPPORTS_COLLISION_RULE) {
             // set collision rule - String Enum (32)
-            packet.getStrings().write(5, getCollisionRule().getProtocolName());
+            packet.getStrings().write(GTEQ_1_13 ? 2 : 5, getCollisionRule().getProtocolName());
         }
 
         // set color - byte - For colors, the same Chat colors (0-15). -1 indicates RESET/no color.
-        packet.getIntegers().write(0, COLOR_CODES.getOrDefault(getColor(), -1));
+        if (GTEQ_1_13) {
+            packet.getEnumModifier(ChatColor.class, MinecraftReflection.getMinecraftClass("EnumChatFormat")).write(0, getColor());
+        } else {
+            packet.getIntegers().write(0, COLOR_CODES.getOrDefault(getColor(), -1));
+        }
 
         return packet;
     }
@@ -420,10 +438,10 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
         // set mode
         switch (action) {
             case ADD:
-                packet.getIntegers().write(1, UpdateType.ADD_PLAYERS.getCode());
+                packet.getIntegers().write(GTEQ_1_13 ? 0 : 1, UpdateType.ADD_PLAYERS.getCode());
                 break;
             case REMOVE:
-                packet.getIntegers().write(1, UpdateType.REMOVE_PLAYERS.getCode());
+                packet.getIntegers().write(GTEQ_1_13 ? 0 : 1, UpdateType.REMOVE_PLAYERS.getCode());
                 break;
             default:
                 throw new RuntimeException();
