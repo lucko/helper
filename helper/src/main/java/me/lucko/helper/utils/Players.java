@@ -81,6 +81,11 @@ public final class Players {
         return Optional.ofNullable(getNullable(uuid));
     }
 
+    public static Optional<Player> getByIdOrName(String idOrName) {
+        UUID u = Uuids.parse(idOrName);
+        return u != null ? get(u) : get(idOrName);
+    }
+
     /**
      * Gets a player by username.
      *
@@ -142,7 +147,7 @@ public final class Players {
     /**
      * Applies an action to each object in the iterable, if it is a player.
      *
-     * @param objects the objects to iterate
+     * @param objects  the objects to iterate
      * @param consumer the action to apply
      */
     public static void forEachIfPlayer(Iterable<Object> objects, Consumer<Player> consumer) {
@@ -169,8 +174,8 @@ public final class Players {
     /**
      * Applies an action to all players within a given radius of a point
      *
-     * @param center the point
-     * @param radius the radius
+     * @param center   the point
+     * @param radius   the radius
      * @param consumer the action to apply
      */
     public static void forEachInRange(Location center, double radius, Consumer<Player> consumer) {
@@ -181,7 +186,7 @@ public final class Players {
      * Messages a sender a set of messages.
      *
      * @param sender the sender
-     * @param msgs the messages to send
+     * @param msgs   the messages to send
      */
     public static void msg(CommandSender sender, String... msgs) {
         for (String s : msgs) {
