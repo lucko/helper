@@ -26,6 +26,7 @@
 package me.lucko.helper.text;
 
 import me.clip.placeholderapi.PlaceholderAPI;
+import me.clip.placeholderapi.PlaceholderHook;
 import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
 import net.kyori.text.adapter.bukkit.TextAdapter;
@@ -169,6 +170,20 @@ public final class Text {
             return PlaceholderAPI.setBracketPlaceholders(player, text);
         }
         return colorize(text);
+    }
+
+    public static boolean registerPlaceholderHook(String identifier, PlaceholderHook placeholderHook) {
+        if (isPlaceholderAPISupported()) {
+            return PlaceholderAPI.registerPlaceholderHook("town", placeholderHook);
+        }
+        return false;
+    }
+
+    public static boolean unregisterPlaceholderHook(String identifier) {
+        if (isPlaceholderAPISupported()) {
+            return PlaceholderAPI.unregisterPlaceholderHook("town");
+        }
+        return false;
     }
 
     private static boolean isPlaceholderAPISupported() {
