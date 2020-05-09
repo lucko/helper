@@ -30,7 +30,6 @@ import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
 import net.kyori.text.adapter.bukkit.TextAdapter;
 import net.kyori.text.serializer.ComponentSerializers;
-
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -124,12 +123,9 @@ public final class Text {
         return setPlaceholders(null, text);
     }
 
-    public static String setPlaceholders(CommandSender sender, String text) {
+    public static String setPlaceholders(OfflinePlayer player, String text) {
         if (isPlaceholderAPISupported()) {
-            if (sender instanceof OfflinePlayer) {
-                return PlaceholderAPI.setPlaceholders((OfflinePlayer) sender, text);
-            }
-            return PlaceholderAPI.setPlaceholders(null, text);
+            return PlaceholderAPI.setPlaceholders((OfflinePlayer) player, text);
         }
         return colorize(text);
     }
@@ -138,13 +134,13 @@ public final class Text {
         return setPlaceholders(null, lines);
     }
 
-    public static List<String> setPlaceholders(CommandSender sender, String... lines) {
+    public static List<String> setPlaceholders(OfflinePlayer player, String... lines) {
         if (!isPlaceholderAPISupported()) {
             return colorize(lines);
         }
         List<String> s = new ArrayList<>();
         for (String value : lines) {
-            s.add(setPlaceholders(sender, value));
+            s.add(setPlaceholders(player, value));
         }
         return s;
     }
@@ -153,13 +149,13 @@ public final class Text {
         return setPlaceholders(null, lines);
     }
 
-    public static List<String> setPlaceholders(CommandSender sender, List<String> lines) {
+    public static List<String> setPlaceholders(OfflinePlayer player, List<String> lines) {
         if (!isPlaceholderAPISupported()) {
             return colorize(lines);
         }
         List<String> s = new ArrayList<>();
         for (String value : lines) {
-            s.add(setPlaceholders(sender, value));
+            s.add(setPlaceholders(player, value));
         }
         return s;
     }
@@ -168,12 +164,9 @@ public final class Text {
         return setBracketPlaceholders(null, text);
     }
 
-    public static String setBracketPlaceholders(CommandSender sender, String text) {
+    public static String setBracketPlaceholders(OfflinePlayer player, String text) {
         if (isPlaceholderAPISupported()) {
-            if (sender instanceof OfflinePlayer) {
-                return PlaceholderAPI.setBracketPlaceholders((OfflinePlayer) sender, text);
-            }
-            return PlaceholderAPI.setBracketPlaceholders(null, text);
+            return PlaceholderAPI.setBracketPlaceholders(player, text);
         }
         return colorize(text);
     }
