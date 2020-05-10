@@ -174,14 +174,14 @@ public final class Text {
 
     public static boolean registerPlaceholderHook(String identifier, PlaceholderHook placeholderHook) {
         if (isPlaceholderAPISupported()) {
-            return PlaceholderAPI.registerPlaceholderHook("town", placeholderHook);
+            return PlaceholderAPI.registerPlaceholderHook(identifier, placeholderHook);
         }
         return false;
     }
 
     public static boolean unregisterPlaceholderHook(String identifier) {
         if (isPlaceholderAPISupported()) {
-            return PlaceholderAPI.unregisterPlaceholderHook("town");
+            return PlaceholderAPI.unregisterPlaceholderHook(identifier);
         }
         return false;
     }
