@@ -55,6 +55,7 @@ import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -169,6 +170,8 @@ public class CitizensNpcFactory implements NpcFactory {
     }
 
     private CitizensNpc spawnNpc(Location location, String nametag, Consumer<Npc> skin) {
+        Objects.requireNonNull(this.npcRegistry, "npcRegistry");
+
         // create a new npc
         NPC npc = this.npcRegistry.createNPC(EntityType.PLAYER, nametag);
 
@@ -189,7 +192,9 @@ public class CitizensNpcFactory implements NpcFactory {
 
     @Override
     public void close() {
-        this.npcRegistry.deregisterAll();
+        if (this.npcRegistry != null) {
+            this.npcRegistry.deregisterAll();
+        }
         this.registry.closeAndReportException();
     }
 

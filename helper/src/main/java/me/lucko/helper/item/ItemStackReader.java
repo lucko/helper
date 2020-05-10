@@ -112,7 +112,7 @@ public class ItemStackReader {
      * Function for replacing variables in item names and lores.
      */
     @FunctionalInterface
-    interface VariableReplacer {
+    public interface VariableReplacer {
 
         /**
          * No-op instance.
