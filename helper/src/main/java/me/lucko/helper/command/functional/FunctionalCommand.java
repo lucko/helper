@@ -67,16 +67,7 @@ class FunctionalCommand extends AbstractCommand {
 
     @Override
     public List<String> callTabComplete(@Nonnull CommandContext<?> context) throws CommandInterruptException {
-        if (tabHandler == null) {
-            return null;
-        }
-        for (Predicate<CommandContext<?>> predicate : this.predicates) {
-            if (!predicate.test(context)) {
-                return null;
-            }
-        }
-
         //noinspection unchecked
-        return this.tabHandler.handle(context);
+        return tabHandler == null ? null : this.tabHandler.handle(context);
     }
 }
