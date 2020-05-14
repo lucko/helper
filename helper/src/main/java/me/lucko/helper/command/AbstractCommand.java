@@ -27,7 +27,6 @@ package me.lucko.helper.command;
 
 import me.lucko.helper.command.context.CommandContext;
 import me.lucko.helper.command.context.ImmutableCommandContext;
-import me.lucko.helper.command.tabcomplete.CompletionSupplier;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.utils.CommandMapUtil;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
@@ -47,12 +46,12 @@ import java.util.List;
 public abstract class AbstractCommand implements Command, CommandExecutor, TabCompleter {
 
     protected @Nullable String permission;
-    protected @Nullable String permissionMessasge;
-    protected @Nullable String descritpion;
+    protected @Nullable String permissionMessage;
+    protected @Nullable String description;
 
     @Override
     public void register(String... aliases) {
-        LoaderUtils.getPlugin().registerCommand(this, permission, permissionMessasge, descritpion, aliases);
+        LoaderUtils.getPlugin().registerCommand(this, permission, permissionMessage, description, aliases);
     }
 
     @Override

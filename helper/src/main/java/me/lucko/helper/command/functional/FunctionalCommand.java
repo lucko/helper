@@ -49,8 +49,8 @@ class FunctionalCommand extends AbstractCommand {
         this.handler = handler;
         this.tabHandler = tabHandler;
         this.permission = permission;
-        this.permissionMessasge = permissionMessage;
-        this.descritpion = description;
+        this.permissionMessage = permissionMessage;
+        this.description = description;
     }
 
     @Override
