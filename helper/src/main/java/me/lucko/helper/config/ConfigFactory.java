@@ -33,6 +33,7 @@ import me.lucko.helper.config.typeserializers.ColoredStringTypeSerializer;
 import me.lucko.helper.config.typeserializers.GsonTypeSerializer;
 import me.lucko.helper.config.typeserializers.HelperTypeSerializer;
 import me.lucko.helper.config.typeserializers.JsonTreeTypeSerializer;
+import me.lucko.helper.config.typeserializers.Text3TypeSerializer;
 import me.lucko.helper.config.typeserializers.TextTypeSerializer;
 import me.lucko.helper.datatree.DataTree;
 import me.lucko.helper.gson.GsonSerializable;
@@ -116,7 +117,8 @@ public abstract class ConfigFactory<N extends ConfigurationNode, L extends Confi
         helperSerializers.registerType(TypeToken.of(ConfigurationSerializable.class), BukkitTypeSerializer.INSTANCE);
         helperSerializers.registerType(TypeToken.of(DataTree.class), JsonTreeTypeSerializer.INSTANCE);
         helperSerializers.registerType(TypeToken.of(String.class), ColoredStringTypeSerializer.INSTANCE);
-        helperSerializers.registerType(TypeToken.of(Component.class), TextTypeSerializer.INSTANCE);
+        helperSerializers.registerType(TypeToken.of(me.lucko.helper.text.Component.class), TextTypeSerializer.INSTANCE);
+        helperSerializers.registerType(TypeToken.of(Component.class), Text3TypeSerializer.INSTANCE);
 
         TYPE_SERIALIZERS = helperSerializers.newChild();
     }

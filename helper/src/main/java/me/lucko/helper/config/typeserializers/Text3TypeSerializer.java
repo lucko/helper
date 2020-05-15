@@ -26,58 +26,31 @@
 package me.lucko.helper.config.typeserializers;
 
 import com.google.common.reflect.TypeToken;
-import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonSerializationContext;
 
 import me.lucko.helper.gson.GsonProvider;
-import me.lucko.helper.text.Component;
-import me.lucko.helper.text.serializer.ComponentSerializers;
-import me.lucko.helper.text.serializer.GsonComponentSerializer;
+
+import net.kyori.text.Component;
 
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 
-import java.lang.reflect.Type;
+public class Text3TypeSerializer implements TypeSerializer<Component> {
+    public static final Text3TypeSerializer INSTANCE = new Text3TypeSerializer();
 
-@Deprecated
-public class TextTypeSerializer implements TypeSerializer<Component> {
-    private static final GsonComponentSerializer DELEGATE = (GsonComponentSerializer) ComponentSerializers.JSON;
-
-    public static final TextTypeSerializer INSTANCE = new TextTypeSerializer();
-
-    private TextTypeSerializer() {
+    private Text3TypeSerializer() {
     }
 
     @Override
     public Component deserialize(TypeToken<?> typeToken, ConfigurationNode node) throws ObjectMappingException {
         JsonElement json = node.getValue(TypeToken.of(JsonElement.class));
-        return DELEGATE.deserialize(json, typeToken.getType(), new GsonContext());
+        return GsonProvider.standard().fromJson(json, typeToken.getType());
     }
 
     @Override
     public void serialize(TypeToken<?> typeToken, Component component, ConfigurationNode node) throws ObjectMappingException {
-        JsonElement element = DELEGATE.serialize(component, typeToken.getType(), new GsonContext());
+        JsonElement element = GsonProvider.standard().toJsonTree(component, typeToken.getType());
         node.setValue(TypeToken.of(JsonElement.class), element);
-    }
-
-    private static final class GsonContext implements JsonSerializationContext, JsonDeserializationContext {
-        @Override
-        public JsonElement serialize(Object src) {
-            return GsonProvider.standard().toJsonTree(src);
-        }
-
-        @Override
-        public JsonElement serialize(Object src, Type typeOfSrc) {
-            return GsonProvider.standard().toJsonTree(src, typeOfSrc);
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <R> R deserialize(JsonElement json, Type typeOfT) throws JsonParseException {
-            return (R) GsonProvider.standard().fromJson(json, typeOfT);
-        }
     }
 }
