@@ -26,7 +26,7 @@
 package me.lucko.helper.item;
 
 import me.lucko.helper.menu.Item;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.ChatColor;
@@ -63,7 +63,7 @@ public final class ItemStackBuilder {
     private final ItemStack itemStack;
 
     public static ItemStackBuilder of(Material material) {
-        return new ItemStackBuilder(new ItemStack(material)).hideAttributes();
+        return of(new ItemStack(material));
     }
 
     public static ItemStackBuilder of(ItemStack itemStack) {
@@ -74,7 +74,7 @@ public final class ItemStackBuilder {
         return ItemStackReader.DEFAULT.read(config);
     }
 
-    private ItemStackBuilder(ItemStack itemStack) {
+    public ItemStackBuilder(ItemStack itemStack) {
         this.itemStack = Objects.requireNonNull(itemStack, "itemStack");
     }
 
@@ -177,8 +177,11 @@ public final class ItemStackBuilder {
             Material type = itemStack.getType();
             if (type == Material.LEATHER_BOOTS || type == Material.LEATHER_CHESTPLATE || type == Material.LEATHER_HELMET || type == Material.LEATHER_LEGGINGS) {
                 LeatherArmorMeta meta = (LeatherArmorMeta) itemStack.getItemMeta();
-                meta.setColor(color);
-                itemStack.setItemMeta(meta);
+
+                if (meta!= null) {
+                    meta.setColor(color);
+                    itemStack.setItemMeta(meta);
+                }
             }
         });
     }
