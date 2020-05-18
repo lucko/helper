@@ -30,29 +30,40 @@ import me.lucko.helper.item.ItemStackBuilder;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 import org.bukkit.Material;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Contains a number of default {@link SchemeMapping}s.
  */
 @NonnullByDefault
-public final class StandardSchemeMappings {
+public final class StandardSchemeMappings
+{
+    public static final List<String> COLOR_MAPPINGS = Collections.unmodifiableList(Arrays.asList("WHITE", "ORANGE", "MAGENTA", "LIGHT_BLUE", "YELLOW", "LIME", "PINK", "GRAY", "LIGHT_GRAY", "CYAN", "PURPLE", "BLUE", "BROWN", "GREEN", "RED", "BLACK"));
+    public static final List<Material> REMAPPED_STAINED_GLASS_PANE = Collections.unmodifiableList(COLOR_MAPPINGS.stream().map(s -> Material.getMaterial(s + "_STAINED_GLASS_PANE")).collect(Collectors.toList()));
+    public static final List<Material> REMAPPED_STAINED_GLASS = Collections.unmodifiableList(COLOR_MAPPINGS.stream().map(s -> Material.getMaterial(s + "_STAINED_GLASS")).collect(Collectors.toList()));
+    public static final List<Material> REMAPPED_TERRACOTTA = Collections.unmodifiableList(COLOR_MAPPINGS.stream().map(s -> Material.getMaterial(s + "_TERRACOTTA")).collect(Collectors.toList()));
+    public static final List<Material> REMAPPED_WOOL = Collections.unmodifiableList(COLOR_MAPPINGS.stream().map(s -> Material.getMaterial(s + "_WOOL")).collect(Collectors.toList()));
 
-    private static final Range<Integer> COLORED_MATERIAL_RANGE = Range.closed(0, 15);
-
-    public static final SchemeMapping STAINED_GLASS = forColoredMaterial(Material.STAINED_GLASS_PANE);
-    public static final SchemeMapping STAINED_GLASS_BLOCK = forColoredMaterial(Material.STAINED_GLASS);
-    public static final SchemeMapping HARDENED_CLAY = forColoredMaterial(Material.STAINED_CLAY);
-    public static final SchemeMapping WOOL = forColoredMaterial(Material.WOOL);
     public static final SchemeMapping EMPTY = new EmptySchemeMapping();
+    private static final Range<Integer> COLORED_MATERIAL_RANGE = Range.closed(0, 15);
+    public static final SchemeMapping STAINED_GLASS = forColoredMaterial(REMAPPED_STAINED_GLASS_PANE);
+    public static final SchemeMapping STAINED_GLASS_BLOCK = forColoredMaterial(REMAPPED_STAINED_GLASS);
+    public static final SchemeMapping TERRACOTTA = forColoredMaterial(REMAPPED_TERRACOTTA);
+    public static final SchemeMapping WOOL = forColoredMaterial(REMAPPED_WOOL);
 
-    private static SchemeMapping forColoredMaterial(Material material) {
-        return FunctionalSchemeMapping.of(
-                data -> ItemStackBuilder.of(material).name("&f").data(data).build(null),
-                COLORED_MATERIAL_RANGE
-        );
-    }
-
-    private StandardSchemeMappings() {
+    private StandardSchemeMappings()
+    {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 
+    private static SchemeMapping forColoredMaterial(List<Material> coloredMaterials)
+    {
+        return FunctionalSchemeMapping.of(
+                data -> ItemStackBuilder.of(coloredMaterials.get(data)).name("&f").data(data).build(null),
+                COLORED_MATERIAL_RANGE
+        );
+    }
 }
