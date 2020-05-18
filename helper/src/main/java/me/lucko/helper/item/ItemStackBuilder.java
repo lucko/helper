@@ -178,7 +178,7 @@ public final class ItemStackBuilder {
             if (type == Material.LEATHER_BOOTS || type == Material.LEATHER_CHESTPLATE || type == Material.LEATHER_HELMET || type == Material.LEATHER_LEGGINGS) {
                 LeatherArmorMeta meta = (LeatherArmorMeta) itemStack.getItemMeta();
 
-                if (meta!= null) {
+                if (meta != null) {
                     meta.setColor(color);
                     itemStack.setItemMeta(meta);
                 }
