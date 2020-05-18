@@ -33,15 +33,12 @@ import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.metadata.MetadataMap;
 import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -112,6 +109,13 @@ public abstract class Gui implements TerminableConsumer {
         this.player = Objects.requireNonNull(player, "player");
         this.initialTitle = Text.colorize(Objects.requireNonNull(title, "title"));
         this.inventory = Bukkit.createInventory(player, lines * 9, this.initialTitle);
+        this.slots = new HashMap<>();
+    }
+
+    public Gui(Player player, InventoryType inventoryType, String title) {
+        this.player = Objects.requireNonNull(player, "player");
+        this.initialTitle = Text.colorize(Objects.requireNonNull(title, "title"));
+        this.inventory = Bukkit.createInventory(player, inventoryType, this.initialTitle);
         this.slots = new HashMap<>();
     }
 
@@ -322,7 +326,7 @@ public abstract class Gui implements TerminableConsumer {
 
         Events.subscribe(InventoryDragEvent.class)
                 .filter(e -> e.getInventory().getHolder() != null)
-                .filter(e -> e.getInventory().getHolder().equals(this.player))
+                .filter(e -> Objects.equals(e.getInventory().getHolder(), this.player))
                 .handler(e -> {
                     e.setCancelled(true);
                     if (!isValid()) {
