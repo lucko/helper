@@ -88,7 +88,7 @@ public final class MojangApi {
      * The Mojang API has a limit of 600 requests per 10 minutes.
      *
      * @param uuid the {@link UUID} of the player from which to fetch the name history
-     * @return a promise of a {@link List <String>} with all the names owned by the player with the supplied uuid, in chronological order
+     * @return a promise of a List String with all the names owned by the player with the supplied uuid, in chronological order
      */
     public static Promise<List<String>> getUsernameHistory(UUID uuid) {
         Objects.requireNonNull(uuid, "uuid");

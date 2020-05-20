@@ -27,54 +27,54 @@ package me.lucko.helper.text;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.PlaceholderHook;
+import me.lucko.helper.text.serializer.ComponentSerializers;
 import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
 import net.kyori.text.adapter.bukkit.TextAdapter;
-import net.kyori.text.serializer.ComponentSerializers;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * Utilities for working with {@link Component}s and formatted text strings.
+ *
+ * @deprecated Use {@link me.lucko.helper.text3.Text}
  */
-@SuppressWarnings("deprecation")
+@Deprecated
 public final class Text {
 
     private static final Plugin PAPI_PLUGIN = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
-    public static final char SECTION_CHAR = '\u00A7'; // §
-    public static final char AMPERSAND_CHAR = '&';
+    public static final char SECTION_CHAR = me.lucko.helper.text3.Text.SECTION_CHAR;
+    public static final char AMPERSAND_CHAR = me.lucko.helper.text3.Text.AMPERSAND_CHAR;
 
     public static String joinNewline(String... strings) {
-        return joinNewline(Arrays.stream(strings));
+        return me.lucko.helper.text3.Text.joinNewline(strings);
     }
 
     public static String joinNewline(Stream<String> strings) {
-        return strings.collect(Collectors.joining("\n"));
+        return me.lucko.helper.text3.Text.joinNewline(strings);
     }
 
     public static TextComponent fromLegacy(String input, char character) {
-        return ComponentSerializers.LEGACY.deserialize(input, character);
+        return me.lucko.helper.text3.Text.fromLegacy(input, character);
     }
 
     public static TextComponent fromLegacy(String input) {
-        return ComponentSerializers.LEGACY.deserialize(input);
+        return me.lucko.helper.text3.Text.fromLegacy(input);
     }
 
     public static String toLegacy(Component component, char character) {
-        return ComponentSerializers.LEGACY.serialize(component, character);
+        return me.lucko.helper.text3.Text.toLegacy(component, character);
     }
 
     public static String toLegacy(Component component) {
-        return ComponentSerializers.LEGACY.serialize(component);
+        return me.lucko.helper.text3.Text.toLegacy(component);
     }
 
     public static void sendMessage(CommandSender sender, Component message) {
@@ -86,7 +86,7 @@ public final class Text {
     }
 
     public static String colorize(String s) {
-        return s == null ? null : translateAlternateColorCodes(AMPERSAND_CHAR, SECTION_CHAR, s);
+        return me.lucko.helper.text3.Text.colorize(s);
     }
 
     public static List<String> colorize(String... lines) {
@@ -106,18 +106,11 @@ public final class Text {
     }
 
     public static String decolorize(String s) {
-        return s == null ? null : translateAlternateColorCodes(SECTION_CHAR, AMPERSAND_CHAR, s);
+        return me.lucko.helper.text3.Text.decolorize(s);
     }
 
     public static String translateAlternateColorCodes(char from, char to, String textToTranslate) {
-        char[] b = textToTranslate.toCharArray();
-        for (int i = 0; i < b.length - 1; i++) {
-            if (b[i] == from && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i + 1]) > -1) {
-                b[i] = to;
-                b[i + 1] = Character.toLowerCase(b[i + 1]);
-            }
-        }
-        return new String(b);
+        return me.lucko.helper.text3.Text.translateAlternateColorCodes(from, to, textToTranslate);
     }
 
     public static String setPlaceholders(String text) {
