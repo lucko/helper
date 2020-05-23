@@ -25,14 +25,21 @@
 
 package me.lucko.helper.text3;
 
+import me.clip.placeholderapi.PlaceholderAPI;
+import me.clip.placeholderapi.PlaceholderHook;
 import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
 import net.kyori.text.adapter.bukkit.TextAdapter;
 import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
 
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,6 +47,8 @@ import java.util.stream.Stream;
  * Utilities for working with {@link Component}s and formatted text strings.
  */
 public final class Text {
+
+    private static final Plugin PAPI_PLUGIN = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
     public static final char SECTION_CHAR = '\u00A7'; // §
     public static final char AMPERSAND_CHAR = '&';
@@ -80,6 +89,22 @@ public final class Text {
         return s == null ? null : translateAlternateColorCodes(AMPERSAND_CHAR, SECTION_CHAR, s);
     }
 
+    public static List<String> colorize(String... lines) {
+        List<String> s = new ArrayList<>();
+        for (String value : lines) {
+            s.add(colorize(value));
+        }
+        return s;
+    }
+
+    public static List<String> colorize(List<String> lines) {
+        List<String> s = new ArrayList<>();
+        for (String value : lines) {
+            s.add(colorize(value));
+        }
+        return s;
+    }
+
     public static String decolorize(String s) {
         return s == null ? null : translateAlternateColorCodes(SECTION_CHAR, AMPERSAND_CHAR, s);
     }
@@ -93,6 +118,76 @@ public final class Text {
             }
         }
         return new String(b);
+    }
+
+    public static String setPlaceholders(String text) {
+        return setPlaceholders(null, text);
+    }
+
+    public static String setPlaceholders(OfflinePlayer player, String text) {
+        if (isPlaceholderAPISupported()) {
+            return PlaceholderAPI.setPlaceholders((OfflinePlayer) player, text);
+        }
+        return colorize(text);
+    }
+
+    public static List<String> setPlaceholders(String... lines) {
+        return setPlaceholders(null, lines);
+    }
+
+    public static List<String> setPlaceholders(OfflinePlayer player, String... lines) {
+        if (!isPlaceholderAPISupported()) {
+            return colorize(lines);
+        }
+        List<String> s = new ArrayList<>();
+        for (String value : lines) {
+            s.add(setPlaceholders(player, value));
+        }
+        return s;
+    }
+
+    public static List<String> setPlaceholders(List<String> lines) {
+        return setPlaceholders(null, lines);
+    }
+
+    public static List<String> setPlaceholders(OfflinePlayer player, List<String> lines) {
+        if (!isPlaceholderAPISupported()) {
+            return colorize(lines);
+        }
+        List<String> s = new ArrayList<>();
+        for (String value : lines) {
+            s.add(setPlaceholders(player, value));
+        }
+        return s;
+    }
+
+    public static String setBracketPlaceholders(String text) {
+        return setBracketPlaceholders(null, text);
+    }
+
+    public static String setBracketPlaceholders(OfflinePlayer player, String text) {
+        if (isPlaceholderAPISupported()) {
+            return PlaceholderAPI.setBracketPlaceholders(player, text);
+        }
+        return colorize(text);
+    }
+
+    public static boolean registerPlaceholderHook(String identifier, PlaceholderHook placeholderHook) {
+        if (isPlaceholderAPISupported()) {
+            return PlaceholderAPI.registerPlaceholderHook(identifier, placeholderHook);
+        }
+        return false;
+    }
+
+    public static boolean unregisterPlaceholderHook(String identifier) {
+        if (isPlaceholderAPISupported()) {
+            return PlaceholderAPI.unregisterPlaceholderHook(identifier);
+        }
+        return false;
+    }
+
+    public static boolean isPlaceholderAPISupported() {
+        return PAPI_PLUGIN != null && PAPI_PLUGIN.isEnabled();
     }
 
     private Text() {

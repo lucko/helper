@@ -27,14 +27,10 @@ package me.lucko.helper.text;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.PlaceholderHook;
-import me.lucko.helper.text.serializer.ComponentSerializers;
 import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
-import net.kyori.text.adapter.bukkit.TextAdapter;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,8 +43,6 @@ import java.util.stream.Stream;
  */
 @Deprecated
 public final class Text {
-
-    private static final Plugin PAPI_PLUGIN = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
     public static final char SECTION_CHAR = me.lucko.helper.text3.Text.SECTION_CHAR;
     public static final char AMPERSAND_CHAR = me.lucko.helper.text3.Text.AMPERSAND_CHAR;
@@ -78,11 +72,11 @@ public final class Text {
     }
 
     public static void sendMessage(CommandSender sender, Component message) {
-        TextAdapter.sendComponent(sender, message);
+        me.lucko.helper.text3.Text.sendMessage(sender, message);
     }
 
     public static void sendMessage(Iterable<CommandSender> senders, Component message) {
-        TextAdapter.sendComponent(senders, message);
+        me.lucko.helper.text3.Text.sendMessage(senders, message);
     }
 
     public static String colorize(String s) {
@@ -90,19 +84,11 @@ public final class Text {
     }
 
     public static List<String> colorize(String... lines) {
-        List<String> s = new ArrayList<>();
-        for (String value : lines) {
-            s.add(colorize(value));
-        }
-        return s;
+        return me.lucko.helper.text3.Text.colorize(lines);
     }
 
     public static List<String> colorize(List<String> lines) {
-        List<String> s = new ArrayList<>();
-        for (String value : lines) {
-            s.add(colorize(value));
-        }
-        return s;
+        return me.lucko.helper.text3.Text.colorize(lines);
     }
 
     public static String decolorize(String s) {
@@ -118,10 +104,7 @@ public final class Text {
     }
 
     public static String setPlaceholders(OfflinePlayer player, String text) {
-        if (isPlaceholderAPISupported()) {
-            return PlaceholderAPI.setPlaceholders((OfflinePlayer) player, text);
-        }
-        return colorize(text);
+        return me.lucko.helper.text3.Text.setPlaceholders(player, text);
     }
 
     public static List<String> setPlaceholders(String... lines) {
@@ -129,58 +112,35 @@ public final class Text {
     }
 
     public static List<String> setPlaceholders(OfflinePlayer player, String... lines) {
-        if (!isPlaceholderAPISupported()) {
-            return colorize(lines);
-        }
-        List<String> s = new ArrayList<>();
-        for (String value : lines) {
-            s.add(setPlaceholders(player, value));
-        }
-        return s;
+        return me.lucko.helper.text3.Text.setPlaceholders(player, lines);
     }
 
     public static List<String> setPlaceholders(List<String> lines) {
-        return setPlaceholders(null, lines);
+        return me.lucko.helper.text3.Text.setPlaceholders(lines);
     }
 
     public static List<String> setPlaceholders(OfflinePlayer player, List<String> lines) {
-        if (!isPlaceholderAPISupported()) {
-            return colorize(lines);
-        }
-        List<String> s = new ArrayList<>();
-        for (String value : lines) {
-            s.add(setPlaceholders(player, value));
-        }
-        return s;
+        return me.lucko.helper.text3.Text.setPlaceholders(player, lines);
     }
 
     public static String setBracketPlaceholders(String text) {
-        return setBracketPlaceholders(null, text);
+        return me.lucko.helper.text3.Text.setBracketPlaceholders(text);
     }
 
     public static String setBracketPlaceholders(OfflinePlayer player, String text) {
-        if (isPlaceholderAPISupported()) {
-            return PlaceholderAPI.setBracketPlaceholders(player, text);
-        }
-        return colorize(text);
+        return me.lucko.helper.text3.Text.setBracketPlaceholders(player, text);
     }
 
     public static boolean registerPlaceholderHook(String identifier, PlaceholderHook placeholderHook) {
-        if (isPlaceholderAPISupported()) {
-            return PlaceholderAPI.registerPlaceholderHook(identifier, placeholderHook);
-        }
-        return false;
+        return me.lucko.helper.text3.Text.registerPlaceholderHook(identifier, placeholderHook);
     }
 
     public static boolean unregisterPlaceholderHook(String identifier) {
-        if (isPlaceholderAPISupported()) {
-            return PlaceholderAPI.unregisterPlaceholderHook(identifier);
-        }
-        return false;
+        return me.lucko.helper.text3.Text.unregisterPlaceholderHook(identifier);
     }
 
     private static boolean isPlaceholderAPISupported() {
-        return PAPI_PLUGIN != null && PAPI_PLUGIN.isEnabled();
+        return me.lucko.helper.text3.Text.isPlaceholderAPISupported();
     }
 
     private Text() {
