@@ -184,4 +184,5 @@ public interface HelperPlugin extends Plugin, TerminableConsumer {
     @Nonnull
     ClassLoader getClassloader();
 
+    boolean classExists(String className);
 }

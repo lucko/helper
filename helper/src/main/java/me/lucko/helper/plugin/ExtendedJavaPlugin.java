@@ -213,4 +213,14 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     public ClassLoader getClassloader() {
         return super.getClassLoader();
     }
+    
+    @Override
+    public boolean classExists(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException ex) {
+            return false;
+        }
+    }
 }
