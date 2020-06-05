@@ -60,7 +60,7 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     }
 
     public FunctionalCommandBuilder<T> description(String description) {
-        Objects.requireNonNull(permission, "description");
+        Objects.requireNonNull(description, "description");
         this.description = description;
         return this;
     }
