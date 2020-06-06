@@ -27,6 +27,8 @@ package me.lucko.helper.event;
 
 import me.lucko.helper.terminable.Terminable;
 
+import java.util.Collection;
+
 /**
  * Represents a subscription to a given (set of) event(s).
  */
@@ -57,5 +59,14 @@ public interface Subscription extends Terminable {
     default void close() {
         unregister();
     }
+
+    /**
+     * Gets the functional handlers and filters used by this subscription.
+     *
+     * @return the functions used by this subscription.
+     * @deprecated not API, subject to change or removal
+     */
+    @Deprecated
+    Collection<Object> getFunctions();
 
 }

@@ -33,6 +33,9 @@ import me.lucko.helper.event.ProtocolSubscription;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.protocol.Protocol;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -169,5 +172,16 @@ class HelperProtocolListener extends PacketAdapter implements ProtocolSubscripti
 
         Protocol.manager().removePacketListener(this);
         return true;
+    }
+
+    @Override
+    public Collection<Object> getFunctions() {
+        List<Object> functions = new ArrayList<>();
+        Collections.addAll(functions, this.filters);
+        Collections.addAll(functions, this.preExpiryTests);
+        Collections.addAll(functions, this.midExpiryTests);
+        Collections.addAll(functions, this.postExpiryTests);
+        Collections.addAll(functions, this.handlers);
+        return functions;
     }
 }
