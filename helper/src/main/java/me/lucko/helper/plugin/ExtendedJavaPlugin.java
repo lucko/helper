@@ -30,6 +30,7 @@ import me.lucko.helper.Services;
 import me.lucko.helper.config.ConfigFactory;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.maven.LibraryLoader;
+import me.lucko.helper.scheduler.HelperExecutors;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.terminable.module.TerminableModule;
 import me.lucko.helper.utils.CommandMapUtil;
@@ -57,6 +58,9 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     // the backing terminable registry
     private CompositeTerminable terminableRegistry;
 
+    // are we the plugin that's providing helper?
+    private boolean isLoaderPlugin;
+
     // Used by subclasses to perform logic for plugin load/enable/disable.
     protected void load() {}
     protected void enable() {}
@@ -64,7 +68,11 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
 
     @Override
     public final void onLoad() {
-        LoaderUtils.getPlugin(); // cache the loader plugin & run initial setup
+        // LoaderUtils.getPlugin() has the side effect of caching the loader ref
+        // do that nice and early. also store whether 'this' plugin is the loader.
+        final HelperPlugin loaderPlugin = LoaderUtils.getPlugin();
+        this.isLoaderPlugin = this == loaderPlugin;
+
         this.terminableRegistry = CompositeTerminable.create();
 
         LibraryLoader.loadAll(getClass());
@@ -83,6 +91,11 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
                 .run(this.terminableRegistry::cleanup)
                 .bindWith(this.terminableRegistry);
 
+        // setup services
+        if (this.isLoaderPlugin) {
+            HelperServices.setup(this);
+        }
+
         // call subclass
         enable();
     }
@@ -95,6 +108,11 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
 
         // terminate the registry
         this.terminableRegistry.closeAndReportException();
+
+        if (this.isLoaderPlugin) {
+            // shutdown the scheduler
+            HelperExecutors.shutdown();
+        }
     }
 
     @Nonnull
