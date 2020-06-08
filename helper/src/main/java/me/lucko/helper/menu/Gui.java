@@ -308,6 +308,8 @@ public abstract class Gui implements TerminableConsumer {
 
     protected void handlePlayerInventoryClick(InventoryClickEvent event) {}
 
+    protected void handleClose() {}
+
     /**
      * Registers the event handlers for this GUI
      */
@@ -378,6 +380,8 @@ public abstract class Gui implements TerminableConsumer {
                     if (!e.getInventory().equals(this.inventory)) {
                         return;
                     }
+
+                    handleClose();
 
                     // Check for a fallback GUI
                     Function<Player, Gui> fallback = this.fallbackGui;
