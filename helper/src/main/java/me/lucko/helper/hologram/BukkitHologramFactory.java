@@ -45,6 +45,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -63,6 +65,16 @@ public class BukkitHologramFactory implements HologramFactory {
     }
 
     private static final class BukkitHologram implements Hologram {
+        private static final Method SET_CAN_TICK;
+        static {
+            Method setCanTick = null;
+            try {
+                setCanTick = ArmorStand.class.getDeclaredMethod("setCanTick", boolean.class);
+            } catch (Throwable ignored) {}
+
+            SET_CAN_TICK = setCanTick;
+        }
+
         private Position position;
         private final List<String> lines = new ArrayList<>();
         private final List<ArmorStand> spawnedEntities = new ArrayList<>();
@@ -138,6 +150,14 @@ public class BukkitHologramFactory implements HologramFactory {
                         as.setAI(false);
                         as.setCollidable(false);
                         as.setInvulnerable(true);
+                    }
+
+                    if (SET_CAN_TICK != null) {
+                        try {
+                            SET_CAN_TICK.invoke(as, false);
+                        } catch (IllegalAccessException | InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     this.spawnedEntities.add(as);

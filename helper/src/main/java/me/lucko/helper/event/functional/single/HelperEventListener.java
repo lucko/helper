@@ -36,6 +36,9 @@ import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -183,6 +186,17 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
         unregisterListener(this.eventClass, this);
 
         return true;
+    }
+
+    @Override
+    public Collection<Object> getFunctions() {
+        List<Object> functions = new ArrayList<>();
+        Collections.addAll(functions, this.filters);
+        Collections.addAll(functions, this.preExpiryTests);
+        Collections.addAll(functions, this.midExpiryTests);
+        Collections.addAll(functions, this.postExpiryTests);
+        Collections.addAll(functions, this.handlers);
+        return functions;
     }
 
     @SuppressWarnings("JavaReflectionMemberAccess")
