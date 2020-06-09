@@ -27,11 +27,9 @@ package me.lucko.helper.utils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-
 import me.lucko.helper.Helper;
 import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -327,6 +325,10 @@ public final class Players {
             if (meta.asBoolean()) return true;
         }
         return false;
+    }
+
+    public static String getDisplayName(OfflinePlayer player) {
+        return player.isOnline() ? ((Player) player).getDisplayName() : player.getName();
     }
 
     private Players() {
