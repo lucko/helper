@@ -126,7 +126,7 @@ public final class Text {
 
     public static String setPlaceholders(OfflinePlayer player, String text) {
         if (isPlaceholderAPISupported()) {
-            return PlaceholderAPI.setPlaceholders((OfflinePlayer) player, text);
+            return PlaceholderAPI.setPlaceholders(player, text);
         }
         return colorize(text);
     }
