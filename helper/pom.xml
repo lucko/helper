@@ -97,10 +97,6 @@
                             </artifactSet>
                             <relocations>
                                 <relocation>
-                                    <pattern>co.aikar.timings.lib</pattern>
-                                    <shadedPattern>me.lucko.helper.timings</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>ninja.leaping.configurate</pattern>
                                     <shadedPattern>me.lucko.helper.config</shadedPattern>
                                 </relocation>
@@ -165,7 +161,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>shadow-bukkit</artifactId>
-            <version>1.4</version>
+            <version>1.5</version>
             <scope>compile</scope>
         </dependency>
         <!-- flowpowered math -->
