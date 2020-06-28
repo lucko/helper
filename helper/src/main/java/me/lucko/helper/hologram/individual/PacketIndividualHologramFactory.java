@@ -52,6 +52,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,6 +62,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -273,6 +275,21 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
             }
 
             return true;
+        }
+
+        @Nonnull
+        @Override
+        public Collection<ArmorStand> getArmorStands() {
+            return spawnedEntities.stream().map(HologramEntity::getArmorStand).collect(Collectors.toSet());
+        }
+
+        @Nullable
+        @Override
+        public ArmorStand getArmorStand(int line) {
+            if (line >= spawnedEntities.size()) {
+                return null;
+            }
+            return spawnedEntities.get(line).armorStand;
         }
 
         @Override
