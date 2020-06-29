@@ -23,7 +23,7 @@
     </properties>
 
     <build>
-        <defaultGoal>clean package</defaultGoal>
+        <defaultGoal>clean install</defaultGoal>
         <finalName>${project.name}</finalName>
         <resources>
             <resource>
