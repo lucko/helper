@@ -12,7 +12,7 @@
 
     <artifactId>helper-sql</artifactId>
     <packaging>jar</packaging>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
 
     <name>helper-sql</name>
     <description>Provides SQL datasources using HikariCP.</description>

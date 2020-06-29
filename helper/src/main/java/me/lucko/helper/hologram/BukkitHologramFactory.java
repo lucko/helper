@@ -48,6 +48,7 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -207,6 +208,21 @@ public class BukkitHologramFactory implements HologramFactory {
             return true;
         }
 
+        @Nonnull
+        @Override
+        public Collection<ArmorStand> getArmorStands() {
+            return spawnedEntities;
+        }
+
+        @Nullable
+        @Override
+        public ArmorStand getArmorStand(int line) {
+            if (line >= spawnedEntities.size()) {
+                return null;
+            }
+            return spawnedEntities.get(line);
+        }
+
         @Override
         public void updatePosition(@Nonnull Position position) {
             Objects.requireNonNull(position, "position");
@@ -236,6 +252,7 @@ public class BukkitHologramFactory implements HologramFactory {
             this.lines.addAll(ret);
         }
 
+        @Override
         public void setClickCallback(@Nullable Consumer<Player> clickCallback) {
             // unregister any existing listeners
             if (clickCallback == null) {

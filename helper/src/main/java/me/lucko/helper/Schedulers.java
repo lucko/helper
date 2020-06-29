@@ -25,6 +25,7 @@
 
 package me.lucko.helper;
 
+import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.promise.ThreadContext;
 import me.lucko.helper.scheduler.HelperExecutors;
@@ -167,7 +168,7 @@ public final class Schedulers {
         }
     }
 
-    private static class HelperTask extends BukkitRunnable implements Task {
+    private static class HelperTask extends BukkitRunnable implements Task, Delegate<Consumer<Task>> {
         private final Consumer<Task> backingTask;
 
         private final AtomicInteger counter = new AtomicInteger(0);
@@ -216,9 +217,14 @@ public final class Schedulers {
         public boolean isClosed() {
             return this.cancelled.get();
         }
+
+        @Override
+        public Consumer<Task> getDelegate() {
+            return this.backingTask;
+        }
     }
 
-    private static class HelperAsyncTask implements Runnable, Task {
+    private static class HelperAsyncTask implements Runnable, Task, Delegate<Consumer<Task>> {
         private final Consumer<Task> backingTask;
         private final ScheduledFuture<?> future;
 
@@ -268,6 +274,11 @@ public final class Schedulers {
         @Override
         public boolean isClosed() {
             return this.cancelled.get();
+        }
+
+        @Override
+        public Consumer<Task> getDelegate() {
+            return this.backingTask;
         }
     }
 

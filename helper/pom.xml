@@ -12,7 +12,7 @@
 
     <artifactId>helper</artifactId>
     <packaging>jar</packaging>
-    <version>5.6.3</version>
+    <version>5.6.4</version>
 
     <name>helper</name>
     <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
@@ -85,6 +85,7 @@
                                     <include>net.kyori:text-adapter-bukkit</include>
                                     <include>net.kyori:text-serializer-gson</include>
                                     <include>net.kyori:text-serializer-legacy</include>
+                                    <include>net.kyori:text-feature-pagination</include>
                                     <include>me.lucko:textlegacy</include>
                                     <include>org.spongepowered:configurate-core</include>
                                     <include>org.spongepowered:configurate-yaml</include>
@@ -95,10 +96,6 @@
                                 </includes>
                             </artifactSet>
                             <relocations>
-                                <relocation>
-                                    <pattern>co.aikar.timings.lib</pattern>
-                                    <shadedPattern>me.lucko.helper.timings</shadedPattern>
-                                </relocation>
                                 <relocation>
                                     <pattern>ninja.leaping.configurate</pattern>
                                     <shadedPattern>me.lucko.helper.config</shadedPattern>
@@ -164,7 +161,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>shadow-bukkit</artifactId>
-            <version>1.4</version>
+            <version>1.5</version>
             <scope>compile</scope>
         </dependency>
         <!-- flowpowered math -->
@@ -266,6 +263,13 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>text-serializer-legacy</artifactId>
+            <version>3.0.4</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>text-feature-pagination</artifactId>
             <version>3.0.4</version>
             <scope>compile</scope>
             <optional>true</optional>

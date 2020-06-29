@@ -28,8 +28,10 @@ package me.lucko.helper.hologram;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.Terminable;
 
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
@@ -56,6 +58,23 @@ public interface BaseHologram extends Terminable {
      * @return true if spawned and active, or false otherwise
      */
     boolean isSpawned();
+
+    /**
+     * Gets the ArmorStands that hold the lines for this hologram
+     *
+     * @return the ArmorStands holding the lines
+     */
+    @Nonnull
+    Collection<ArmorStand> getArmorStands();
+
+    /**
+     * Gets the ArmorStand holding the specified line
+     *
+     * @param line the line
+     * @return the ArmorStand holding this line
+     */
+    @Nullable
+    ArmorStand getArmorStand(int line);
 
     /**
      * Updates the position of the hologram and respawns it
