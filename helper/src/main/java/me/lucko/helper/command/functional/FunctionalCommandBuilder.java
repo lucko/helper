@@ -33,6 +33,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 /**
@@ -50,6 +51,7 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
     String DEFAULT_INVALID_USAGE_MESSAGE = "&cInvalid usage. Try: {usage}.";
     String DEFAULT_INVALID_ARGUMENT_MESSAGE = "&cInvalid argument '{arg}' at index {index}.";
     String DEFAULT_INVALID_SENDER_MESSAGE = "&cYou are not able to use this command.";
+    String DEFAULT_COOLDOWN_MESSAGE = "&cThis command is on cooldown.";
 
     static FunctionalCommandBuilder<CommandSender> newBuilder() {
         return new FunctionalCommandBuilderImpl<>();
@@ -217,6 +219,25 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
      * @return the builder instance
      */
     FunctionalCommandBuilder<T> assertSender(Predicate<T> test, String failureMessage);
+
+    /**
+     * Sets a cooldown for this player for the provided time.
+     * @param time The amount of time before the sender can use this command
+     * @param unit The unit of time
+     * @return
+     */
+    default FunctionalCommandBuilder<T> playerCooldown(int time, TimeUnit unit) {
+        return playerCooldown(time, unit, DEFAULT_COOLDOWN_MESSAGE);
+    }
+
+    /**
+     * Sets a cooldown for this player for the provided time.
+     * @param time the amount of time before the sender can use this command
+     * @param unit the unit of time
+     * @param failureMessage the failure message to send if the cooldown has not been reached
+     * @return
+     */
+    FunctionalCommandBuilder<T> playerCooldown(int time, TimeUnit unit, String failureMessage);
 
     /**
      * Builds this {@link FunctionalCommandBuilder} into a {@link Command} instance.
