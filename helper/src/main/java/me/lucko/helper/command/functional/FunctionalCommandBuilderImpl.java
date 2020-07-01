@@ -36,10 +36,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+
+import javax.annotation.Nullable;
 
 @NonnullByDefault
 class FunctionalCommandBuilderImpl<T extends CommandSender> implements FunctionalCommandBuilder<T> {
@@ -62,6 +63,13 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     public FunctionalCommandBuilder<T> description(String description) {
         Objects.requireNonNull(description, "description");
         this.description = description;
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public FunctionalCommandBuilder<T> assertFunction(Predicate<? super CommandContext<? extends T>> test) {
+        this.predicates.add((Predicate<CommandContext<?>>) test);
         return this;
     }
 
