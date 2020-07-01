@@ -26,14 +26,16 @@
 package me.lucko.helper.command.functional;
 
 import me.lucko.helper.command.Command;
+import me.lucko.helper.command.context.CommandContext;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
 import java.util.function.Predicate;
+
+import javax.annotation.Nullable;
 
 /**
  * Functional builder API for {@link Command}
@@ -62,6 +64,14 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
      * @return the builder instance
      */
     FunctionalCommandBuilder<T> description(String description);
+
+    /**
+     * Asserts that some function returns true.
+     *
+     * @param test the test to run
+     * @return the builder instance
+     */
+    FunctionalCommandBuilder<T> assertFunction(Predicate<? super CommandContext<? extends T>> test);
 
     /**
      * Asserts that the sender has the specified permission, and sends them the default failure message
