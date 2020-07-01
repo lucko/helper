@@ -34,19 +34,16 @@ import org.bukkit.command.CommandSender;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class ImmutableCommandContext<T extends CommandSender> implements CommandContext<T> {
     private final T sender;
     private final String label;
     private final ImmutableList<String> args;
-    private final List<String> aliases;
 
-    public ImmutableCommandContext(T sender, String label, String[] args, List<String> aliases) {
+    public ImmutableCommandContext(T sender, String label, String[] args) {
         this.sender = sender;
         this.label = label;
         this.args = ImmutableList.copyOf(args);
-        this.aliases = ImmutableList.copyOf(aliases);
     }
 
     @Nonnull
@@ -81,8 +78,4 @@ public class ImmutableCommandContext<T extends CommandSender> implements Command
     public String label() {
         return this.label;
     }
-
-    @Nonnull
-    @Override
-    public List<String> aliases() { return this.aliases; }
 }

@@ -29,7 +29,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.command.Command;
-import me.lucko.helper.command.CooldownProvider;
 import me.lucko.helper.command.context.CommandContext;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
@@ -40,8 +39,6 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 @NonnullByDefault
@@ -177,25 +174,6 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
 
             context.reply(failureMessage);
             return false;
-        });
-        return this;
-    }
-
-    @Override
-    public FunctionalCommandBuilder<T> playerCooldown(int time, TimeUnit unit, String failureMessage) {
-        Objects.requireNonNull(time, "time");
-        Objects.requireNonNull(unit, "unit");
-        Objects.requireNonNull(failureMessage, "failureMessage");
-        this.predicates.add(context -> {
-            UUID playerId = ((Player) context.sender()).getUniqueId();
-            String identifier = playerId.toString() + String.join("", context.aliases());
-            Long ttl = CooldownProvider.getCooldown(identifier);
-            if (ttl != null && ttl > System.currentTimeMillis()) {
-                context.reply(failureMessage);
-                return false;
-            }
-            CooldownProvider.addCooldown(identifier, System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(time, unit));
-            return true;
         });
         return this;
     }

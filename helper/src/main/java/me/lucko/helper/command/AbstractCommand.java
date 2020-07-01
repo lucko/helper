@@ -58,7 +58,7 @@ public abstract class AbstractCommand implements Command, CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
-        CommandContext<CommandSender> context = new ImmutableCommandContext<>(sender, label, args, command.getAliases());
+        CommandContext<CommandSender> context = new ImmutableCommandContext<>(sender, label, args);
         try {
             call(context);
         } catch (CommandInterruptException e) {

@@ -34,7 +34,6 @@ import org.bukkit.command.CommandSender;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 /**
  * Represents the context for a given command execution
@@ -95,10 +94,4 @@ public interface CommandContext<T extends CommandSender> {
     @Nonnull
     String label();
 
-    /**
-     * Gets the command's aliases.
-     * @return the command labels that can be used to execute this command
-     */
-    @Nonnull
-    List<String> aliases();
 }
