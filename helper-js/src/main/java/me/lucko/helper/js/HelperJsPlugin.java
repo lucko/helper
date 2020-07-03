@@ -38,7 +38,7 @@ import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.scheduler.Ticks;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 import me.lucko.scriptcontroller.ScriptController;
 import me.lucko.scriptcontroller.bindings.BindingsBuilder;
 import me.lucko.scriptcontroller.bindings.BindingsSupplier;

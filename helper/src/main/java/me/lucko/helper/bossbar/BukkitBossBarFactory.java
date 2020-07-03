@@ -25,7 +25,7 @@
 
 package me.lucko.helper.bossbar;
 
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 
 import org.bukkit.Server;
 import org.bukkit.boss.BarColor;

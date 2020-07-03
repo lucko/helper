@@ -34,7 +34,7 @@ import me.lucko.helper.reflect.MinecraftVersion;
 import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 
 import org.bukkit.Chunk;
 import org.bukkit.Location;

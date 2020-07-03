@@ -33,7 +33,7 @@ import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.metadata.MetadataMap;
 import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

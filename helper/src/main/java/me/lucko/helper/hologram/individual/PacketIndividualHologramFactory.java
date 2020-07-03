@@ -39,7 +39,7 @@ import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.reflect.ServerReflection;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 import me.lucko.helper.utils.entityspawner.EntitySpawner;
 
 import org.bukkit.Chunk;

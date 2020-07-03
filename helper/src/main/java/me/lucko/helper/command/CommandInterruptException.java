@@ -25,7 +25,7 @@
 
 package me.lucko.helper.command;
 
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 
 import org.bukkit.command.CommandSender;
 
