@@ -259,22 +259,28 @@ public abstract class Gui implements TerminableConsumer {
         if (this.valid) {
             throw new IllegalStateException("Gui is already opened.");
         }
+        // 1.16 calls an PlayerInteractEvent when opening a UI from an InventoryClickEvent.
+        // Delaying by 1 tick prevent this.
+        Schedulers.sync().runLater(() -> {
+            if (!this.player.isOnline()) {
+                return;
+            }
+            this.firstDraw = true;
+            this.invalidated = false;
+            try {
+                redraw();
+            } catch (Exception e) {
+                e.printStackTrace();
+                invalidate();
+                return;
+            }
 
-        this.firstDraw = true;
-        this.invalidated = false;
-        try {
-            redraw();
-        } catch (Exception e) {
-            e.printStackTrace();
-            invalidate();
-            return;
-        }
-
-        this.firstDraw = false;
-        startListening();
-        this.player.openInventory(this.inventory);
-        Metadata.provideForPlayer(this.player).put(OPEN_GUI_KEY, this);
-        this.valid = true;
+            this.firstDraw = false;
+            startListening();
+            this.player.openInventory(this.inventory);
+            Metadata.provideForPlayer(this.player).put(OPEN_GUI_KEY, this);
+            this.valid = true;
+        }, 1L);
     }
 
     public void close() {
