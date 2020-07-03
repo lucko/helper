@@ -93,6 +93,7 @@ public class AbstractNetwork implements Network {
                 case "disconnect":
                     if (!instanceData.getId().equals(message.id)) {
                         postEvent(new ServerDisconnectEvent(message.id, message.reason));
+                        servers.remove(message.id);
                     }
                     break;
             }
