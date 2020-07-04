@@ -28,7 +28,6 @@ package me.lucko.helper.item;
 import me.lucko.helper.menu.Item;
 import me.lucko.helper.text3.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -41,13 +40,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-
-import javax.annotation.Nullable;
 
 /**
  * Easily construct {@link ItemStack} instances
@@ -104,7 +102,10 @@ public final class ItemStackBuilder {
         return transform(itemStack -> itemStack.setType(material));
     }
 
-    public ItemStackBuilder lore(String line) {
+    public ItemStackBuilder lore(@Nullable String line) {
+        if (line == null || line.isEmpty()) {
+            return this;
+        }
         return transformMeta(meta -> {
             List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
             lore.add(Text.colorize(line));
@@ -113,6 +114,9 @@ public final class ItemStackBuilder {
     }
 
     public ItemStackBuilder lore(String... lines) {
+        if (lines.length == 0) {
+            return this;
+        }
         return transformMeta(meta -> {
             List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
             for (String line : lines) {
@@ -128,7 +132,9 @@ public final class ItemStackBuilder {
             for (String line : lines) {
                 lore.add(Text.colorize(line));
             }
-            meta.setLore(lore);
+            if (!lore.isEmpty()) {
+                meta.setLore(lore);
+            }
         });
     }
 
