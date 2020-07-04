@@ -187,6 +187,13 @@ public final class ItemStackBuilder {
         return this;
     }
 
+    public ItemStackBuilder glow(boolean state) {
+        if (state) {
+            glow();
+        }
+        return this;
+    }
+
     public ItemStackBuilder color(Color color) {
         return transform(itemStack -> {
             Material type = itemStack.getType();
