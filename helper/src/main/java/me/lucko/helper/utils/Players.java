@@ -43,14 +43,15 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
-import javax.annotation.Nullable;
 
 /**
  * A collection of Player related utilities
@@ -325,6 +326,26 @@ public final class Players {
             if (meta.asBoolean()) return true;
         }
         return false;
+    }
+
+    public static List<Player> visible() {
+        List<Player> players = new ArrayList<>();
+        for (Player player : all()) {
+            if (!isVanished(player)) {
+                players.add(player);
+            }
+        }
+        return players;
+    }
+
+    public static List<Player> vanished() {
+        List<Player> players = new ArrayList<>();
+        for (Player player : all()) {
+            if (isVanished(player)) {
+                players.add(player);
+            }
+        }
+        return players;
     }
 
     public static String getDisplayName(OfflinePlayer player) {
