@@ -29,6 +29,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 
 import me.lucko.helper.Events;
+import me.lucko.helper.Helper;
 import me.lucko.helper.gson.JsonBuilder;
 import me.lucko.helper.reflect.MinecraftVersion;
 import me.lucko.helper.reflect.MinecraftVersions;
@@ -36,14 +37,20 @@ import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.text3.Text;
 
+import me.lucko.helper.text3.Text;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.entity.PigZapEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -83,6 +90,7 @@ public class BukkitHologramFactory implements HologramFactory {
 
         private CompositeTerminable listeners = null;
         private Consumer<Player> clickCallback = null;
+        private final List<Pig> spawnedPassengers = new ArrayList<>();
 
         BukkitHologram(Position position, List<String> lines) {
             this.position = Objects.requireNonNull(position, "position");
@@ -113,6 +121,11 @@ public class BukkitHologramFactory implements HologramFactory {
                     // get and remove the last entry
                     ArmorStand as = this.spawnedEntities.remove(this.spawnedEntities.size() - 1);
                     as.remove();
+
+                    if (this.listeners != null) {
+                        Pig pig = this.spawnedPassengers.remove(this.spawnedPassengers.size() - 1);
+                        pig.remove();
+                    }
                 }
             }
 
@@ -159,6 +172,26 @@ public class BukkitHologramFactory implements HologramFactory {
                         } catch (IllegalAccessException | InvocationTargetException e) {
                             e.printStackTrace();
                         }
+                    }
+
+                    if (this.listeners != null) {
+                        Pig pig = (Pig) as.getWorld().spawnEntity(as.getLocation(), EntityType.PIG);
+                        pig.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 0, false, false));
+                        pig.setCustomNameVisible(false);
+                        pig.setSilent(true);
+                        pig.setGravity(false);
+
+                        pig.setMetadata("nodespawn", new FixedMetadataValue(Helper.hostPlugin(), true));
+
+                        if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_9)) {
+                            pig.setAI(false);
+                            pig.setCollidable(false);
+                            pig.setInvulnerable(true);
+                        }
+
+                        as.addPassenger(pig);
+
+                        this.spawnedPassengers.add(pig);
                     }
 
                     this.spawnedEntities.add(as);
@@ -211,16 +244,16 @@ public class BukkitHologramFactory implements HologramFactory {
         @Nonnull
         @Override
         public Collection<ArmorStand> getArmorStands() {
-            return spawnedEntities;
+            return this.spawnedEntities;
         }
 
         @Nullable
         @Override
         public ArmorStand getArmorStand(int line) {
-            if (line >= spawnedEntities.size()) {
+            if (line >= this.spawnedEntities.size()) {
                 return null;
             }
-            return spawnedEntities.get(line);
+            return this.spawnedEntities.get(line);
         }
 
         @Override
@@ -268,14 +301,51 @@ public class BukkitHologramFactory implements HologramFactory {
 
             if (this.listeners == null) {
                 this.listeners = CompositeTerminable.create();
-                Events.subscribe(PlayerInteractAtEntityEvent.class)
-                        .filter(e -> e.getRightClicked() instanceof ArmorStand)
+
+                this.listeners.bind(() -> {
+                    this.spawnedPassengers.forEach(Entity::remove);
+                    this.spawnedPassengers.clear();
+                });
+
+                this.spawnedPassengers.forEach(Entity::remove);
+                this.spawnedPassengers.clear();
+
+                for (ArmorStand as : this.spawnedEntities) {
+                    Pig pig = (Pig) as.getWorld().spawnEntity(as.getLocation(), EntityType.PIG);
+                    pig.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 0, false, false));
+                    pig.setCustomNameVisible(false);
+                    pig.setSilent(true);
+                    pig.setGravity(false);
+
+                    pig.setMetadata("nodespawn", new FixedMetadataValue(Helper.hostPlugin(), true));
+
+                    if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_9)) {
+                        pig.setAI(false);
+                        pig.setCollidable(false);
+                        pig.setInvulnerable(true);
+                    }
+
+                    as.addPassenger(pig);
+                }
+
+                Events.subscribe(PigZapEvent.class)
+                        .handler(e -> {
+                            for (Pig spawned : this.spawnedPassengers) {
+                                if (spawned.equals(e.getEntity())) {
+                                    e.setCancelled(true);
+                                    return;
+                                }
+                            }
+                        }).bindWith(this.listeners);
+
+                Events.subscribe(PlayerInteractEntityEvent.class)
+                        .filter(e -> e.getRightClicked() instanceof Pig)
                         .handler(e -> {
                             Player p = e.getPlayer();
-                            ArmorStand as = (ArmorStand) e.getRightClicked();
+                            Pig pig = (Pig) e.getRightClicked();
 
-                            for (ArmorStand spawned : this.spawnedEntities) {
-                                if (spawned.equals(as)) {
+                            for (Pig spawned : this.spawnedPassengers) {
+                                if (spawned.equals(pig)) {
                                     e.setCancelled(true);
                                     this.clickCallback.accept(p);
                                     return;
@@ -285,14 +355,14 @@ public class BukkitHologramFactory implements HologramFactory {
                         .bindWith(this.listeners);
 
                 Events.subscribe(EntityDamageByEntityEvent.class)
-                        .filter(e -> e.getEntity() instanceof ArmorStand)
+                        .filter(e -> e.getEntity() instanceof Pig)
                         .filter(e -> e.getDamager() instanceof Player)
                         .handler(e -> {
                             Player p = (Player) e.getDamager();
-                            ArmorStand as = (ArmorStand) e.getEntity();
+                            Pig pig = (Pig) e.getEntity();
 
-                            for (ArmorStand spawned : this.spawnedEntities) {
-                                if (spawned.equals(as)) {
+                            for (Pig spawned : this.spawnedPassengers) {
+                                if (spawned.equals(pig)) {
                                     e.setCancelled(true);
                                     this.clickCallback.accept(p);
                                     return;
