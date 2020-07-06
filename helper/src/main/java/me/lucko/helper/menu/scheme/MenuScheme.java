@@ -91,6 +91,13 @@ public class MenuScheme {
         return this;
     }
 
+    public MenuScheme mask(String s, int repeat) {
+        for (int i = 0; i < repeat; i++) {
+            mask(s);
+        }
+        return this;
+    }
+
     public MenuScheme masks(String... strings) {
         for (String s : strings) {
             mask(s);
