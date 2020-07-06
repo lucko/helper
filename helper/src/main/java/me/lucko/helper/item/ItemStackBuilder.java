@@ -223,7 +223,7 @@ public final class ItemStackBuilder {
     }
 
     public Item build(@Nullable Runnable handler) {
-        return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT).build();
+        return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT, ClickType.SHIFT_LEFT, ClickType.SHIFT_RIGHT).build();
     }
 
     public Item build(ClickType type, @Nullable Runnable handler) {
@@ -231,7 +231,7 @@ public final class ItemStackBuilder {
     }
 
     public Item build(@Nullable Runnable rightClick, @Nullable Runnable leftClick) {
-        return buildItem().bind(ClickType.RIGHT, rightClick).bind(ClickType.LEFT, leftClick).build();
+        return buildItem().bind(rightClick, ClickType.RIGHT, ClickType.SHIFT_RIGHT).bind(leftClick, ClickType.LEFT, ClickType.SHIFT_LEFT).build();
     }
 
     public Item buildFromMap(Map<ClickType, Runnable> handlers) {
@@ -239,7 +239,7 @@ public final class ItemStackBuilder {
     }
 
     public Item buildConsumer(@Nullable Consumer<InventoryClickEvent> handler) {
-        return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT).build();
+        return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT, ClickType.SHIFT_LEFT, ClickType.SHIFT_RIGHT).build();
     }
 
     public Item buildConsumer(ClickType type, @Nullable Consumer<InventoryClickEvent> handler) {
@@ -247,7 +247,7 @@ public final class ItemStackBuilder {
     }
 
     public Item buildConsumer(@Nullable Consumer<InventoryClickEvent> rightClick, @Nullable Consumer<InventoryClickEvent> leftClick) {
-        return buildItem().bind(ClickType.RIGHT, rightClick).bind(ClickType.LEFT, leftClick).build();
+        return buildItem().bind(rightClick, ClickType.RIGHT, ClickType.SHIFT_RIGHT).bind(leftClick, ClickType.LEFT, ClickType.SHIFT_LEFT).build();
     }
 
     public Item buildFromConsumerMap(Map<ClickType, Consumer<InventoryClickEvent>> handlers) {
