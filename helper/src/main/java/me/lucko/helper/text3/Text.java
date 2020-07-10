@@ -78,11 +78,11 @@ public final class Text {
     }
 
     public static void sendMessage(CommandSender sender, Component message) {
-        TextAdapter.sendComponent(sender, message);
+        TextAdapter.sendMessage(sender, message);
     }
 
     public static void sendMessage(Iterable<CommandSender> senders, Component message) {
-        TextAdapter.sendComponent(senders, message);
+        TextAdapter.sendMessage(senders, message);
     }
 
     public static String colorize(String s) {
