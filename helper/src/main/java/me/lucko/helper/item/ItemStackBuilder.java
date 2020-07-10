@@ -25,6 +25,7 @@
 
 package me.lucko.helper.item;
 
+import com.google.common.collect.Iterables;
 import me.lucko.helper.menu.Item;
 import me.lucko.helper.text3.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
@@ -127,14 +128,15 @@ public final class ItemStackBuilder {
     }
 
     public ItemStackBuilder lore(Iterable<String> lines) {
+        if (Iterables.isEmpty(lines)) {
+            return this;
+        }
         return transformMeta(meta -> {
             List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
             for (String line : lines) {
                 lore.add(Text.colorize(line));
             }
-            if (!lore.isEmpty()) {
-                meta.setLore(lore);
-            }
+            meta.setLore(lore);
         });
     }
 
