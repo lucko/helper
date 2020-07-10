@@ -196,6 +196,10 @@ public final class ItemStackBuilder {
         return this;
     }
 
+    public ItemStackBuilder color(java.awt.Color color) {
+        return color(Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue()));
+    }
+
     public ItemStackBuilder color(Color color) {
         return transform(itemStack -> {
             Material type = itemStack.getType();
