@@ -123,6 +123,24 @@ public interface BossBar extends Terminable {
     BossBar visible(boolean visible);
 
     /**
+     * Add an optional flag to this boss bar
+     *
+     * @param flag an optional flag to set on the boss bar
+     * @return this bar (for chaining)
+     */
+    @Nonnull
+    BossBar addFlag(@Nonnull BossBarFlag flag);
+
+    /**
+     * Remove an existing flag on this boss bar
+     *
+     * @param flag the existing flag to remove
+     * @return this bar (for chaining)
+     */
+    @Nonnull
+    BossBar removeFlag(@Nonnull BossBarFlag flag);
+
+    /**
      * Returns all players viewing this boss bar
      *
      * @return a immutable list of players

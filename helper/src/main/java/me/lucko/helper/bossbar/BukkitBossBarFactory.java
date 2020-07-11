@@ -26,15 +26,15 @@
 package me.lucko.helper.bossbar;
 
 import me.lucko.helper.text3.Text;
-
 import org.bukkit.Server;
 import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 
-import java.util.List;
-
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Implementation of {@link BossBarFactory} using Bukkit.
@@ -119,6 +119,26 @@ public class BukkitBossBarFactory implements BossBarFactory {
         @Override
         public BossBar visible(boolean visible) {
             this.bar.setVisible(visible);
+            return this;
+        }
+
+        @Nonnull
+        @Override
+        public BossBar addFlag(@Nonnull BossBarFlag flag) {
+            BarFlag converted = convertFlag(flag);
+            if (converted != null) {
+                this.bar.addFlag(converted);
+            }
+            return this;
+        }
+
+        @Nonnull
+        @Override
+        public BossBar removeFlag(@Nonnull BossBarFlag flag) {
+            BarFlag converted = convertFlag(flag);
+            if (converted != null) {
+                this.bar.removeFlag(converted);
+            }
             return this;
         }
 
@@ -222,6 +242,20 @@ public class BukkitBossBarFactory implements BossBarFactory {
                 return BarColor.WHITE;
             default:
                 return convertColor(BossBarColor.defaultColor());
+        }
+    }
+
+    @Nullable
+    private static BarFlag convertFlag(BossBarFlag flag) {
+        switch (flag) {
+            case DARKEN_SKY:
+                return BarFlag.DARKEN_SKY;
+            case PLAY_BOSS_MUSIC:
+                return BarFlag.PLAY_BOSS_MUSIC;
+            case CREATE_FOG:
+                return BarFlag.CREATE_FOG;
+            default:
+                return null;
         }
     }
 }

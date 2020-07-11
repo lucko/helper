@@ -28,18 +28,17 @@ package me.lucko.helper.bossbar;
 import me.lucko.helper.text3.Text;
 import me.lucko.helper.utils.ImmutableCollectors;
 import me.lucko.helper.utils.Players;
-
 import org.bukkit.entity.Player;
-
 import us.myles.ViaVersion.api.Via;
 import us.myles.ViaVersion.api.boss.BossColor;
+import us.myles.ViaVersion.api.boss.BossFlag;
 import us.myles.ViaVersion.api.boss.BossStyle;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
-import javax.annotation.Nonnull;
 
 /**
  * Implementation of {@link BossBarFactory} using ViaVersion.
@@ -122,6 +121,26 @@ public class ViaBossBarFactory implements BossBarFactory {
                 this.bar.show();
             } else {
                 this.bar.hide();
+            }
+            return this;
+        }
+
+        @Nonnull
+        @Override
+        public BossBar addFlag(@Nonnull BossBarFlag flag) {
+            BossFlag converted = convertFlag(flag);
+            if (converted != null) {
+                this.bar.addFlag(converted);
+            }
+            return this;
+        }
+
+        @Nonnull
+        @Override
+        public BossBar removeFlag(@Nonnull BossBarFlag flag) {
+            BossFlag converted = convertFlag(flag);
+            if (converted != null) {
+                this.bar.removeFlag(converted);
             }
             return this;
         }
@@ -231,6 +250,18 @@ public class ViaBossBarFactory implements BossBarFactory {
                 return BossColor.WHITE;
             default:
                 return convertColor(BossBarColor.defaultColor());
+        }
+    }
+
+    @Nullable
+    private static BossFlag convertFlag(BossBarFlag flag) {
+        switch (flag) {
+            case DARKEN_SKY:
+                return BossFlag.DARKEN_SKY;
+            case PLAY_BOSS_MUSIC:
+                return BossFlag.PLAY_BOSS_MUSIC;
+            default:
+                return null;
         }
     }
 }
