@@ -43,12 +43,12 @@ import javax.annotation.Nullable;
 public abstract class AbstractCommand implements Command, CommandExecutor {
 
     protected @Nullable String permission;
-    protected @Nullable String permissionMessasge;
-    protected @Nullable String descritpion;
+    protected @Nullable String permissionMessage;
+    protected @Nullable String description;
 
     @Override
     public void register(String... aliases) {
-        LoaderUtils.getPlugin().registerCommand(this, permission, permissionMessasge, descritpion, aliases);
+        LoaderUtils.getPlugin().registerCommand(this, permission, permissionMessage, description, aliases);
     }
 
     @Override
