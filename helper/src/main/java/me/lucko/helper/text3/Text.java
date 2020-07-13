@@ -40,6 +40,7 @@ import org.bukkit.plugin.Plugin;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,6 +50,8 @@ import java.util.stream.Stream;
 public final class Text {
 
     private static final Plugin PAPI_PLUGIN = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+
+    private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)(" + String.valueOf('§') + "|&)[0-9A-FK-OR]");
 
     public static final char SECTION_CHAR = '\u00A7'; // §
     public static final char AMPERSAND_CHAR = '&';
@@ -107,6 +110,10 @@ public final class Text {
 
     public static String decolorize(String s) {
         return s == null ? null : translateAlternateColorCodes(SECTION_CHAR, AMPERSAND_CHAR, s);
+    }
+
+    public static String stripColor(String s) {
+        return s == null ? null : STRIP_COLOR_PATTERN.matcher(s).replaceAll("");
     }
 
     public static String translateAlternateColorCodes(char from, char to, String textToTranslate) {
