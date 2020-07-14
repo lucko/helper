@@ -87,7 +87,7 @@ public final class VectorPoint implements GsonSerializable {
     }
 
     public synchronized Location toLocation(World world) {
-        if (this.bukkitLocation == null) {
+        if (this.bukkitLocation == null || !this.bukkitLocation.getWorld().equals(world)) {
             this.bukkitLocation = new Location(world, this.position.getX(), this.position.getY(), this.position.getZ(), this.direction.getYaw(), this.direction.getPitch());
         }
 
