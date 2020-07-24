@@ -99,6 +99,8 @@ public interface CooldownMap<T> {
         get(key).reset();
     }
 
+    void clear(@Nonnull T key);
+
     default long remainingMillis(@Nonnull T key) {
         return get(key).remainingMillis();
     }

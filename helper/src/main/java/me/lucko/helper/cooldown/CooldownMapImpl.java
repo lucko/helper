@@ -77,4 +77,9 @@ class CooldownMapImpl<T> implements CooldownMap<T> {
     public Map<T, Cooldown> getAll() {
         return this.cache.asMap();
     }
+
+    @Override
+    public void clear(@Nonnull T key) {
+        this.cache.invalidate(key);
+    }
 }
