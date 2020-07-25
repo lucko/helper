@@ -321,7 +321,10 @@ public final class Players {
         player.setFlySpeed(0.1f);
     }
 
-    public static boolean isVanished(Player player) {
+    public static boolean isVanished(@Nullable Player player) {
+        if (player == null) {
+            return false;
+        }
         for (MetadataValue meta : player.getMetadata("vanished")) {
             if (meta.asBoolean()) return true;
         }
