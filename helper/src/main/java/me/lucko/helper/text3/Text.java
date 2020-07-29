@@ -179,6 +179,7 @@ public final class Text {
         return colorize(text);
     }
 
+    @Deprecated
     public static boolean registerPlaceholderHook(String identifier, PlaceholderHook placeholderHook) {
         if (isPlaceholderAPISupported()) {
             return PlaceholderAPI.registerPlaceholderHook(identifier, placeholderHook);
@@ -186,6 +187,7 @@ public final class Text {
         return false;
     }
 
+    @Deprecated
     public static boolean unregisterPlaceholderHook(String identifier) {
         if (isPlaceholderAPISupported()) {
             return PlaceholderAPI.unregisterPlaceholderHook(identifier);
