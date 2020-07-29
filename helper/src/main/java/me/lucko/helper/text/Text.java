@@ -131,14 +131,6 @@ public final class Text {
         return me.lucko.helper.text3.Text.setBracketPlaceholders(player, text);
     }
 
-    public static boolean registerPlaceholderHook(String identifier, PlaceholderHook placeholderHook) {
-        return me.lucko.helper.text3.Text.registerPlaceholderHook(identifier, placeholderHook);
-    }
-
-    public static boolean unregisterPlaceholderHook(String identifier) {
-        return me.lucko.helper.text3.Text.unregisterPlaceholderHook(identifier);
-    }
-
     private static boolean isPlaceholderAPISupported() {
         return me.lucko.helper.text3.Text.isPlaceholderAPISupported();
     }

@@ -161,6 +161,10 @@
             <id>placeholderapi</id>
             <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
+        <repository>
+            <id>rayzr</id>
+            <url>https://rayzr.dev/repo/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -351,8 +355,8 @@
         <!-- PlaceholderAPI -->
         <dependency>
             <groupId>me.clip</groupId>
-            <artifactId>placeholderapi</artifactId>
-            <version>2.10.6</version>
+            <artifactId>PlaceholderAPI</artifactId>
+            <version>2.10.7</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

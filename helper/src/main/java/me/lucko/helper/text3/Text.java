@@ -26,17 +26,17 @@
 package me.lucko.helper.text3;
 
 import me.clip.placeholderapi.PlaceholderAPI;
-import me.clip.placeholderapi.PlaceholderHook;
 import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
 import net.kyori.text.adapter.bukkit.TextAdapter;
 import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
-
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -88,11 +88,16 @@ public final class Text {
         TextAdapter.sendMessage(senders, message);
     }
 
-    public static String colorize(String s) {
+    @Nullable
+    public static String colorize(@Nullable String s) {
         return s == null ? null : translateAlternateColorCodes(AMPERSAND_CHAR, SECTION_CHAR, s);
     }
 
-    public static List<String> colorize(String... lines) {
+    @Nullable
+    public static List<String> colorize(@Nullable String... lines) {
+        if (lines == null) {
+            return null;
+        }
         List<String> s = new ArrayList<>();
         for (String value : lines) {
             s.add(colorize(value));
@@ -100,7 +105,11 @@ public final class Text {
         return s;
     }
 
-    public static List<String> colorize(List<String> lines) {
+    @Nullable
+    public static List<String> colorize(@Nullable List<String> lines) {
+        if (lines == null) {
+            return null;
+        }
         List<String> s = new ArrayList<>();
         for (String value : lines) {
             s.add(colorize(value));
@@ -108,91 +117,65 @@ public final class Text {
         return s;
     }
 
-    public static String decolorize(String s) {
+    @Nullable
+    public static String decolorize(@Nullable String s) {
         return s == null ? null : translateAlternateColorCodes(SECTION_CHAR, AMPERSAND_CHAR, s);
     }
 
-    public static String stripColor(String s) {
+    @Nullable
+    public static String stripColor(@Nullable String s) {
         return s == null ? null : STRIP_COLOR_PATTERN.matcher(s).replaceAll("");
     }
 
-    public static String translateAlternateColorCodes(char from, char to, String textToTranslate) {
+    public static String translateAlternateColorCodes(char from, char to, @Nonnull String textToTranslate) {
         char[] b = textToTranslate.toCharArray();
         for (int i = 0; i < b.length - 1; i++) {
-            if (b[i] == from && "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(b[i+1]) > -1) {
+            if (b[i] == from && "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(b[i + 1]) > -1) {
                 b[i] = to;
-                b[i+1] = Character.toLowerCase(b[i+1]);
+                b[i + 1] = Character.toLowerCase(b[i + 1]);
             }
         }
         return new String(b);
     }
 
-    public static String setPlaceholders(String text) {
+    @Nullable
+    public static String setPlaceholders(@Nonnull String text) {
         return setPlaceholders(null, text);
     }
 
-    public static String setPlaceholders(OfflinePlayer player, String text) {
-        if (isPlaceholderAPISupported()) {
-            return PlaceholderAPI.setPlaceholders(player, text);
-        }
-        return colorize(text);
+    @Nullable
+    public static String setPlaceholders(@Nullable OfflinePlayer player, @Nullable String text) {
+        return isPlaceholderAPISupported() && text != null ? PlaceholderAPI.setPlaceholders(player, text) : colorize(text);
     }
 
+    @Nullable
     public static List<String> setPlaceholders(String... lines) {
         return setPlaceholders(null, lines);
     }
 
-    public static List<String> setPlaceholders(OfflinePlayer player, String... lines) {
-        if (!isPlaceholderAPISupported()) {
-            return colorize(lines);
-        }
-        List<String> s = new ArrayList<>();
-        for (String value : lines) {
-            s.add(setPlaceholders(player, value));
-        }
-        return s;
+    @Nullable
+    public static List<String> setPlaceholders(@Nullable OfflinePlayer player, @Nullable String... lines) {
+        return isPlaceholderAPISupported() && lines != null ? setPlaceholders(player, Arrays.asList(lines)) : colorize(lines);
     }
 
-    public static List<String> setPlaceholders(List<String> lines) {
+    @Nullable
+    public static List<String> setPlaceholders(@Nullable List<String> lines) {
         return setPlaceholders(null, lines);
     }
 
-    public static List<String> setPlaceholders(OfflinePlayer player, List<String> lines) {
-        if (!isPlaceholderAPISupported()) {
-            return colorize(lines);
-        }
-        List<String> s = new ArrayList<>();
-        for (String value : lines) {
-            s.add(setPlaceholders(player, value));
-        }
-        return s;
+    @Nullable
+    public static List<String> setPlaceholders(@Nullable OfflinePlayer player, @Nullable List<String> lines) {
+        return isPlaceholderAPISupported() && lines != null ? PlaceholderAPI.setPlaceholders(player, lines) : colorize(lines);
     }
 
-    public static String setBracketPlaceholders(String text) {
+    @Nullable
+    public static String setBracketPlaceholders(@Nullable String text) {
         return setBracketPlaceholders(null, text);
     }
 
-    public static String setBracketPlaceholders(OfflinePlayer player, String text) {
-        if (isPlaceholderAPISupported()) {
-            return PlaceholderAPI.setBracketPlaceholders(player, text);
-        }
-        return colorize(text);
-    }
-
-    @Deprecated
-    public static boolean registerPlaceholderHook(String identifier, PlaceholderHook placeholderHook) {
-        if (isPlaceholderAPISupported()) {
-            return PlaceholderAPI.registerPlaceholderHook(identifier, placeholderHook);
-        }
-        return false;
-    }
-
-    @Deprecated
-    public static boolean unregisterPlaceholderHook(String identifier) {
-        if (isPlaceholderAPISupported()) {
-            return PlaceholderAPI.unregisterPlaceholderHook(identifier);
-        }
-        return false;
+    @Nullable
+    public static String setBracketPlaceholders(@Nullable OfflinePlayer player, @Nullable String text) {
+        return isPlaceholderAPISupported() && text != null ? PlaceholderAPI.setBracketPlaceholders(player, text) : colorize(text);
     }
 
     public static boolean isPlaceholderAPISupported() {
