@@ -27,6 +27,7 @@ package me.lucko.helper.command.functional;
 
 import me.lucko.helper.command.Command;
 import me.lucko.helper.command.context.CommandContext;
+import me.lucko.helper.command.tabcomplete.TabCompleter;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.command.CommandSender;
@@ -44,7 +45,7 @@ import javax.annotation.Nullable;
  */
 @NonnullByDefault
 public interface FunctionalCommandBuilder<T extends CommandSender> {
-    
+
     // Default failure messages
     String DEFAULT_NOT_OP_MESSAGE = "&cOnly server operators are able to use this command.";
     String DEFAULT_NOT_PLAYER_MESSAGE = "&cOnly players are able to use this command.";
@@ -239,4 +240,6 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
     Command handler(FunctionalCommandHandler<T> handler);
 
     FunctionalCommandBuilder<T> tabHandler(FunctionalTabHandler<T> tabHandler);
+
+    FunctionalCommandBuilder<T> tabHandler(TabCompleter completer);
 }

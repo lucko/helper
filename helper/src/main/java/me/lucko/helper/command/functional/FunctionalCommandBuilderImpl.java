@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.command.Command;
 import me.lucko.helper.command.context.CommandContext;
+import me.lucko.helper.command.tabcomplete.TabCompleter;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.command.CommandSender;
@@ -191,6 +192,11 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     public FunctionalCommandBuilder<T> tabHandler(FunctionalTabHandler<T> tabHandler) {
         this.tabHandler = tabHandler;
         return this;
+    }
+
+    @Override
+    public FunctionalCommandBuilder<T> tabHandler(TabCompleter completer) {
+        return tabHandler(c -> completer.complete(c.args()));
     }
 
     @Override
