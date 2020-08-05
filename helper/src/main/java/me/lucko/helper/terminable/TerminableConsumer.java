@@ -25,6 +25,7 @@
 
 package me.lucko.helper.terminable;
 
+import me.lucko.helper.terminable.module.ClosableTerminableModule;
 import me.lucko.helper.terminable.module.TerminableModule;
 
 import javax.annotation.Nonnull;
@@ -59,4 +60,9 @@ public interface TerminableConsumer {
         return module;
     }
 
+    @Nonnull
+    default <T extends ClosableTerminableModule> T bindModule(@Nonnull T module) {
+        module.setup(this);
+        return bind(module);
+    }
 }
