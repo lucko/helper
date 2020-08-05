@@ -62,6 +62,7 @@ public interface Command extends Terminable {
      */
     void call(@Nonnull CommandContext<?> context) throws CommandInterruptException;
 
+    @Nonnull
     List<String> callTabComplete(@Nonnull CommandContext<?> context) throws CommandInterruptException;
 
 }

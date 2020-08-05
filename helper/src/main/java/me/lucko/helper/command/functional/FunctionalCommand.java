@@ -26,17 +26,16 @@
 package me.lucko.helper.command.functional;
 
 import com.google.common.collect.ImmutableList;
-
 import me.lucko.helper.command.AbstractCommand;
 import me.lucko.helper.command.CommandInterruptException;
 import me.lucko.helper.command.context.CommandContext;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
-import java.util.List;
-import java.util.function.Predicate;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Predicate;
 
 @NonnullByDefault
 class FunctionalCommand extends AbstractCommand {
@@ -44,7 +43,7 @@ class FunctionalCommand extends AbstractCommand {
     private final FunctionalCommandHandler handler;
     private final @Nullable FunctionalTabHandler tabHandler;
 
-    FunctionalCommand(ImmutableList<Predicate<CommandContext<?>>> predicates, FunctionalCommandHandler handler, FunctionalTabHandler tabHandler, @Nullable String permission, @Nullable String permissionMessage, @Nullable String description) {
+    FunctionalCommand(ImmutableList<Predicate<CommandContext<?>>> predicates, FunctionalCommandHandler handler, @Nullable FunctionalTabHandler tabHandler, @Nullable String permission, @Nullable String permissionMessage, @Nullable String description) {
         this.predicates = predicates;
         this.handler = handler;
         this.tabHandler = tabHandler;
@@ -66,8 +65,9 @@ class FunctionalCommand extends AbstractCommand {
     }
 
     @Override
+    @Nonnull
     public List<String> callTabComplete(@Nonnull CommandContext<?> context) throws CommandInterruptException {
         //noinspection unchecked
-        return tabHandler == null ? null : this.tabHandler.handle(context);
+        return this.tabHandler == null ? Collections.emptyList() : this.tabHandler.handle(context);
     }
 }
