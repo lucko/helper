@@ -104,7 +104,9 @@ public enum NmsVersion {
     ),
     v1_16_R1(
             MinecraftVersion.of(1, 16, 0),
-            MinecraftVersion.of(1, 16, 1),
+            MinecraftVersion.of(1, 16, 1)
+    ),
+    v1_16_R2(
             MinecraftVersion.of(1, 16, 2)
     );
 
