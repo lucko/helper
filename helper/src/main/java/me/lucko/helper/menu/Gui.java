@@ -260,21 +260,26 @@ public abstract class Gui implements TerminableConsumer {
             throw new IllegalStateException("Gui is already opened.");
         }
 
-        this.firstDraw = true;
-        this.invalidated = false;
-        try {
-            redraw();
-        } catch (Exception e) {
-            e.printStackTrace();
-            invalidate();
-            return;
-        }
+        Schedulers.sync().runLater(() -> {
+            if (!player.isOnline()) {
+                return;
+            }
+            this.firstDraw = true;
+            this.invalidated = false;
+            try {
+                redraw();
+            } catch (Exception e) {
+                e.printStackTrace();
+                invalidate();
+                return;
+            }
 
-        this.firstDraw = false;
-        startListening();
-        this.player.openInventory(this.inventory);
-        Metadata.provideForPlayer(this.player).put(OPEN_GUI_KEY, this);
-        this.valid = true;
+            this.firstDraw = false;
+            startListening();
+            this.player.openInventory(this.inventory);
+            Metadata.provideForPlayer(this.player).put(OPEN_GUI_KEY, this);
+            this.valid = true;
+        }, 1L);
     }
 
     public void close() {
