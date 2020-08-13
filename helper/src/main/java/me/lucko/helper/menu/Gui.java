@@ -259,7 +259,7 @@ public abstract class Gui implements TerminableConsumer {
 
     public void open() {
         if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_16)) {
-            // delay by a tick in 1.16+ to prevent an unwanted PlayerInteractEvent interfering inventory clicks
+            // delay by a tick in 1.16+ to prevent an unwanted PlayerInteractEvent interfering with inventory clicks
             Schedulers.sync().runLater(() -> {
                 if (!this.player.isOnline()) {
                     return;
