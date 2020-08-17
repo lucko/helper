@@ -35,7 +35,7 @@ import me.lucko.helper.reflect.MinecraftVersion;
 import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -321,6 +321,10 @@ public abstract class Gui implements TerminableConsumer {
         return this.valid;
     }
 
+    protected void handlePlayerInventoryClick(InventoryClickEvent event) {}
+
+    protected void handleClose() {}
+
     /**
      * Registers the event handlers for this GUI
      */
@@ -364,6 +368,7 @@ public abstract class Gui implements TerminableConsumer {
 
                     // check if the click was in the top inventory
                     if (slotId != e.getSlot()) {
+                        handlePlayerInventoryClick(e);
                         return;
                     }
 
@@ -390,6 +395,8 @@ public abstract class Gui implements TerminableConsumer {
                     if (!e.getInventory().equals(this.inventory)) {
                         return;
                     }
+
+                    handleClose();
 
                     // Check for a fallback GUI
                     Function<Player, Gui> fallback = this.fallbackGui;

@@ -30,11 +30,14 @@ import me.lucko.helper.Services;
 import me.lucko.helper.config.ConfigFactory;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.maven.LibraryLoader;
+import me.lucko.helper.menu.Gui;
+import me.lucko.helper.metadata.Metadata;
 import me.lucko.helper.scheduler.HelperExecutors;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.terminable.module.TerminableModule;
 import me.lucko.helper.utils.CommandMapUtil;
 
+import me.lucko.helper.utils.Players;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
@@ -44,6 +47,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -102,6 +106,11 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
 
     @Override
     public final void onDisable() {
+        Players.forEach(player -> {
+            if (Metadata.provideForPlayer(player).has(Gui.OPEN_GUI_KEY)) {
+                player.closeInventory();
+            }
+        });
 
         // call subclass
         disable();
@@ -173,7 +182,11 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
         return (T) getServer().getPluginManager().getPlugin(name);
     }
 
-    private File getRelativeFile(@Nonnull String name) {
+    public Path getDataDirectory() {
+        return getDataFolder().toPath().toAbsolutePath();
+    }
+
+    public File getRelativeFile(@Nonnull String name) {
         getDataFolder().mkdirs();
         return new File(getDataFolder(), name);
     }
@@ -217,5 +230,15 @@ public class ExtendedJavaPlugin extends JavaPlugin implements HelperPlugin {
     @Override
     public ClassLoader getClassloader() {
         return super.getClassLoader();
+    }
+    
+    @Override
+    public boolean classExists(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException ex) {
+            return false;
+        }
     }
 }

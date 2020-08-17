@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.command.Command;
 import me.lucko.helper.command.context.CommandContext;
+import me.lucko.helper.command.tabcomplete.TabCompleter;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.command.CommandSender;
@@ -45,6 +46,7 @@ import javax.annotation.Nullable;
 @NonnullByDefault
 class FunctionalCommandBuilderImpl<T extends CommandSender> implements FunctionalCommandBuilder<T> {
     private final ImmutableList.Builder<Predicate<CommandContext<?>>> predicates;
+    private @Nullable FunctionalTabHandler tabHandler;
     private @Nullable String permission;
     private @Nullable String permissionMessage;
     private @Nullable String description;
@@ -187,8 +189,19 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     }
 
     @Override
+    public FunctionalCommandBuilder<T> tabHandler(FunctionalTabHandler<T> tabHandler) {
+        this.tabHandler = tabHandler;
+        return this;
+    }
+
+    @Override
+    public FunctionalCommandBuilder<T> tabHandler(TabCompleter completer) {
+        return tabHandler(c -> completer.complete(c.args()));
+    }
+
+    @Override
     public Command handler(FunctionalCommandHandler handler) {
         Objects.requireNonNull(handler, "handler");
-        return new FunctionalCommand(this.predicates.build(), handler, permission, permissionMessage, description);
+        return new FunctionalCommand(this.predicates.build(), handler, tabHandler, permission, permissionMessage, description);
     }
 }

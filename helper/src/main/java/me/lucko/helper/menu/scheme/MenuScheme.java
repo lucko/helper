@@ -42,6 +42,7 @@ import javax.annotation.Nullable;
 @NonnullByDefault
 public class MenuScheme {
     private static final boolean[] EMPTY_MASK = new boolean[]{false, false, false, false, false, false, false, false, false};
+    private static final boolean[] FULL_MASK = new boolean[]{true, true, true, true, true, true, true, true, true};
     private static final int[] EMPTY_SCHEME = new int[0];
 
     private final SchemeMapping mapping;
@@ -90,9 +91,23 @@ public class MenuScheme {
         return this;
     }
 
+    public MenuScheme mask(String s, int repeat) {
+        for (int i = 0; i < repeat; i++) {
+            mask(s);
+        }
+        return this;
+    }
+
     public MenuScheme masks(String... strings) {
         for (String s : strings) {
             mask(s);
+        }
+        return this;
+    }
+
+    public MenuScheme mask(int lines) {
+        for (int i = 0; i < lines; i++) {
+            this.maskRows.add(FULL_MASK);
         }
         return this;
     }
@@ -172,6 +187,8 @@ public class MenuScheme {
     public ImmutableList<Integer> getMaskedIndexesImmutable() {
         return ImmutableList.copyOf(getMaskedIndexes());
     }
+
+    public int first() { return getMaskedIndexes().get(0); }
 
     public MenuPopulator newPopulator(Gui gui) {
         return new MenuPopulator(gui, this);

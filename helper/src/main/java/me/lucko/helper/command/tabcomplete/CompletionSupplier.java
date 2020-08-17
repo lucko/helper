@@ -1,5 +1,5 @@
 /*
- * This file is part of helper, licensed under the MIT License.
+ * This file is part of LuckPerms, licensed under the MIT License.
  *
  *  Copyright (c) lucko (Luck) <luck@lucko.me>
  *  Copyright (c) contributors
@@ -23,46 +23,34 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.terminable;
+package me.lucko.helper.command.tabcomplete;
 
-import me.lucko.helper.terminable.module.ClosableTerminableModule;
-import me.lucko.helper.terminable.module.TerminableModule;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
+public interface CompletionSupplier {
 
-/**
- * Accepts {@link AutoCloseable}s (and by inheritance {@link Terminable}s),
- * as well as {@link TerminableModule}s.
- */
-@FunctionalInterface
-public interface TerminableConsumer {
+    CompletionSupplier EMPTY = partial -> Collections.emptyList();
 
-    /**
-     * Binds with the given terminable.
-     *
-     * @param terminable the terminable to bind with
-     * @param <T> the terminable type
-     * @return the same terminable
-     */
-    @Nonnull
-    <T extends AutoCloseable> T bind(@Nonnull T terminable);
-
-    /**
-     * Binds with the given terminable module.
-     *
-     * @param module the module to bind with
-     * @param <T> the module type
-     * @return the same module
-     */
-    @Nonnull
-    default <T extends TerminableModule> T bindModule(@Nonnull T module) {
-        module.setup(this);
-        return module;
+    static CompletionSupplier startsWith(String... strings) {
+        return startsWith(() -> Arrays.stream(strings));
     }
 
-    @Nonnull
-    default <T extends ClosableTerminableModule> T bindModule(@Nonnull T module) {
-        module.setup(this);
-        return bind(module);
+    static CompletionSupplier startsWith(Collection<String> strings) {
+        return startsWith(strings::stream);
     }
+
+    static CompletionSupplier startsWith(Supplier<Stream<String>> stringsSupplier) {
+        return partial -> stringsSupplier.get()
+                .filter(TabCompleter.startsWithIgnoreCase(partial))
+                .collect(Collectors.toList());
+    }
+
+    List<String> supplyCompletions(String partial);
+
 }

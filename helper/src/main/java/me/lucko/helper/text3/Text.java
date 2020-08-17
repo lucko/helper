@@ -25,14 +25,22 @@
 
 package me.lucko.helper.text3;
 
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
 import net.kyori.text.adapter.bukkit.TextAdapter;
 import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
-
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,6 +48,10 @@ import java.util.stream.Stream;
  * Utilities for working with {@link Component}s and formatted text strings.
  */
 public final class Text {
+
+    private static final Plugin PAPI_PLUGIN = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+
+    private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)(" + String.valueOf('§') + "|&)[0-9A-FK-ORX]");
 
     public static final char SECTION_CHAR = '\u00A7'; // §
     public static final char AMPERSAND_CHAR = '&';
@@ -69,30 +81,92 @@ public final class Text {
     }
 
     public static void sendMessage(CommandSender sender, Component message) {
-        TextAdapter.sendComponent(sender, message);
+        TextAdapter.sendMessage(sender, message);
     }
 
     public static void sendMessage(Iterable<CommandSender> senders, Component message) {
-        TextAdapter.sendComponent(senders, message);
+        TextAdapter.sendMessage(senders, message);
     }
 
     public static String colorize(String s) {
         return s == null ? null : translateAlternateColorCodes(AMPERSAND_CHAR, SECTION_CHAR, s);
     }
 
+    public static List<String> colorize(String... lines) {
+        if (lines == null) {
+            return null;
+        }
+        List<String> s = new ArrayList<>();
+        for (String value : lines) {
+            s.add(colorize(value));
+        }
+        return s;
+    }
+
+    public static List<String> colorize(List<String> lines) {
+        if (lines == null) {
+            return null;
+        }
+        List<String> s = new ArrayList<>();
+        for (String value : lines) {
+            s.add(colorize(value));
+        }
+        return s;
+    }
+
     public static String decolorize(String s) {
         return s == null ? null : translateAlternateColorCodes(SECTION_CHAR, AMPERSAND_CHAR, s);
     }
 
-    public static String translateAlternateColorCodes(char from, char to, String textToTranslate) {
+    public static String stripColor(String s) {
+        return s == null ? null : STRIP_COLOR_PATTERN.matcher(s).replaceAll("");
+    }
+
+    public static String translateAlternateColorCodes(char from, char to, @Nonnull String textToTranslate) {
         char[] b = textToTranslate.toCharArray();
         for (int i = 0; i < b.length - 1; i++) {
             if (b[i] == from && "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(b[i+1]) > -1) {
                 b[i] = to;
-                b[i+1] = Character.toLowerCase(b[i+1]);
+                b[i + 1] = Character.toLowerCase(b[i + 1]);
             }
         }
         return new String(b);
+    }
+
+    public static String setPlaceholders(String text) {
+        return setPlaceholders(null, text);
+    }
+
+    public static String setPlaceholders(@Nullable OfflinePlayer player, String text) {
+        return isPlaceholderAPISupported() && text != null ? PlaceholderAPI.setPlaceholders(player, text) : colorize(text);
+    }
+
+    public static List<String> setPlaceholders(String... lines) {
+        return setPlaceholders(null, lines);
+    }
+
+    public static List<String> setPlaceholders(@Nullable OfflinePlayer player, String... lines) {
+        return isPlaceholderAPISupported() && lines != null ? setPlaceholders(player, Arrays.asList(lines)) : colorize(lines);
+    }
+
+    public static List<String> setPlaceholders(List<String> lines) {
+        return setPlaceholders(null, lines);
+    }
+
+    public static List<String> setPlaceholders(@Nullable OfflinePlayer player, List<String> lines) {
+        return isPlaceholderAPISupported() && lines != null ? PlaceholderAPI.setPlaceholders(player, lines) : colorize(lines);
+    }
+
+    public static String setBracketPlaceholders(String text) {
+        return setBracketPlaceholders(null, text);
+    }
+
+    public static String setBracketPlaceholders(@Nullable OfflinePlayer player, String text) {
+        return isPlaceholderAPISupported() && text != null ? PlaceholderAPI.setBracketPlaceholders(player, text) : colorize(text);
+    }
+
+    public static boolean isPlaceholderAPISupported() {
+        return PAPI_PLUGIN != null && PAPI_PLUGIN.isEnabled();
     }
 
     private Text() {

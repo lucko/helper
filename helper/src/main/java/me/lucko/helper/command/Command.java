@@ -30,6 +30,7 @@ import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.terminable.TerminableConsumer;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 /**
  * Represents a command
@@ -60,5 +61,8 @@ public interface Command extends Terminable {
      * @param context the contexts for the command
      */
     void call(@Nonnull CommandContext<?> context) throws CommandInterruptException;
+
+    @Nonnull
+    List<String> callTabComplete(@Nonnull CommandContext<?> context) throws CommandInterruptException;
 
 }

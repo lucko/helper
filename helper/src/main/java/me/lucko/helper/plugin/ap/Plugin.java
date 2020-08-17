@@ -130,4 +130,7 @@ public @interface Plugin {
     @Nonnull
     String[] loadBefore() default {};
 
+    @Nonnull
+    PluginCommand[] commands() default {};
+
 }

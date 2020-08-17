@@ -25,10 +25,10 @@
 
 package me.lucko.helper.item;
 
+import com.google.common.collect.Iterables;
 import me.lucko.helper.menu.Item;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -41,13 +41,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-
-import javax.annotation.Nullable;
 
 /**
  * Easily construct {@link ItemStack} instances
@@ -68,6 +67,10 @@ public final class ItemStackBuilder {
 
     public static ItemStackBuilder of(ItemStack itemStack) {
         return new ItemStackBuilder(itemStack).hideAttributes();
+    }
+
+    public static ItemStackBuilder from(ItemStack itemStack) {
+        return new ItemStackBuilder(itemStack.clone()).hideAttributes();
     }
 
     public static ItemStackBuilder of(ConfigurationSection config) {
@@ -100,7 +103,10 @@ public final class ItemStackBuilder {
         return transform(itemStack -> itemStack.setType(material));
     }
 
-    public ItemStackBuilder lore(String line) {
+    public ItemStackBuilder lore(@Nullable String line) {
+        if (line == null || line.isEmpty()) {
+            return this;
+        }
         return transformMeta(meta -> {
             List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
             lore.add(Text.colorize(line));
@@ -109,6 +115,9 @@ public final class ItemStackBuilder {
     }
 
     public ItemStackBuilder lore(String... lines) {
+        if (lines.length == 0) {
+            return this;
+        }
         return transformMeta(meta -> {
             List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
             for (String line : lines) {
@@ -119,6 +128,9 @@ public final class ItemStackBuilder {
     }
 
     public ItemStackBuilder lore(Iterable<String> lines) {
+        if (Iterables.isEmpty(lines)) {
+            return this;
+        }
         return transformMeta(meta -> {
             List<String> lore = meta.getLore() == null ? new ArrayList<>() : meta.getLore();
             for (String line : lines) {
@@ -172,6 +184,22 @@ public final class ItemStackBuilder {
         return unflag(ALL_FLAGS);
     }
 
+    public ItemStackBuilder glow() {
+        itemStack.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+        return this;
+    }
+
+    public ItemStackBuilder glow(boolean state) {
+        if (state) {
+            glow();
+        }
+        return this;
+    }
+
+    public ItemStackBuilder color(java.awt.Color color) {
+        return color(Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue()));
+    }
+
     public ItemStackBuilder color(Color color) {
         return transform(itemStack -> {
             Material type = itemStack.getType();
@@ -201,7 +229,7 @@ public final class ItemStackBuilder {
     }
 
     public Item build(@Nullable Runnable handler) {
-        return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT).build();
+        return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT, ClickType.SHIFT_LEFT, ClickType.SHIFT_RIGHT).build();
     }
 
     public Item build(ClickType type, @Nullable Runnable handler) {
@@ -209,7 +237,7 @@ public final class ItemStackBuilder {
     }
 
     public Item build(@Nullable Runnable rightClick, @Nullable Runnable leftClick) {
-        return buildItem().bind(ClickType.RIGHT, rightClick).bind(ClickType.LEFT, leftClick).build();
+        return buildItem().bind(rightClick, ClickType.RIGHT, ClickType.SHIFT_RIGHT).bind(leftClick, ClickType.LEFT, ClickType.SHIFT_LEFT).build();
     }
 
     public Item buildFromMap(Map<ClickType, Runnable> handlers) {
@@ -217,7 +245,7 @@ public final class ItemStackBuilder {
     }
 
     public Item buildConsumer(@Nullable Consumer<InventoryClickEvent> handler) {
-        return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT).build();
+        return buildItem().bind(handler, ClickType.RIGHT, ClickType.LEFT, ClickType.SHIFT_LEFT, ClickType.SHIFT_RIGHT).build();
     }
 
     public Item buildConsumer(ClickType type, @Nullable Consumer<InventoryClickEvent> handler) {
@@ -225,7 +253,7 @@ public final class ItemStackBuilder {
     }
 
     public Item buildConsumer(@Nullable Consumer<InventoryClickEvent> rightClick, @Nullable Consumer<InventoryClickEvent> leftClick) {
-        return buildItem().bind(ClickType.RIGHT, rightClick).bind(ClickType.LEFT, leftClick).build();
+        return buildItem().bind(rightClick, ClickType.RIGHT, ClickType.SHIFT_RIGHT).bind(leftClick, ClickType.LEFT, ClickType.SHIFT_LEFT).build();
     }
 
     public Item buildFromConsumerMap(Map<ClickType, Consumer<InventoryClickEvent>> handlers) {

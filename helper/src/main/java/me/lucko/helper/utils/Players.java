@@ -27,11 +27,9 @@ package me.lucko.helper.utils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-
 import me.lucko.helper.Helper;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -41,16 +39,19 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.MetadataValue;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
-import javax.annotation.Nullable;
 
 /**
  * A collection of Player related utilities
@@ -77,6 +78,11 @@ public final class Players {
      */
     public static Optional<Player> get(UUID uuid) {
         return Optional.ofNullable(getNullable(uuid));
+    }
+
+    public static Optional<Player> getByIdOrName(String idOrName) {
+        UUID u = Uuids.parse(idOrName);
+        return u != null ? get(u) : get(idOrName);
     }
 
     /**
@@ -120,6 +126,14 @@ public final class Players {
         return all().stream();
     }
 
+    public static Stream<String> names() {
+        return stream().map(HumanEntity::getName);
+    }
+
+    public static Stream<String> displayNames() {
+        return stream().map(Player::getDisplayName);
+    }
+
     /**
      * Applies a given action to all players on the server
      *
@@ -132,7 +146,7 @@ public final class Players {
     /**
      * Applies an action to each object in the iterable, if it is a player.
      *
-     * @param objects the objects to iterate
+     * @param objects  the objects to iterate
      * @param consumer the action to apply
      */
     public static void forEachIfPlayer(Iterable<Object> objects, Consumer<Player> consumer) {
@@ -159,8 +173,8 @@ public final class Players {
     /**
      * Applies an action to all players within a given radius of a point
      *
-     * @param center the point
-     * @param radius the radius
+     * @param center   the point
+     * @param radius   the radius
      * @param consumer the action to apply
      */
     public static void forEachInRange(Location center, double radius, Consumer<Player> consumer) {
@@ -171,7 +185,7 @@ public final class Players {
      * Messages a sender a set of messages.
      *
      * @param sender the sender
-     * @param msgs the messages to send
+     * @param msgs   the messages to send
      */
     public static void msg(CommandSender sender, String... msgs) {
         for (String s : msgs) {
@@ -305,6 +319,40 @@ public final class Players {
 
     public static void resetFlySpeed(Player player) {
         player.setFlySpeed(0.1f);
+    }
+
+    public static boolean isVanished(@Nullable Player player) {
+        if (player == null) {
+            return false;
+        }
+        for (MetadataValue meta : player.getMetadata("vanished")) {
+            if (meta.asBoolean()) return true;
+        }
+        return false;
+    }
+
+    public static List<Player> visible() {
+        List<Player> players = new ArrayList<>();
+        for (Player player : all()) {
+            if (!isVanished(player)) {
+                players.add(player);
+            }
+        }
+        return players;
+    }
+
+    public static List<Player> vanished() {
+        List<Player> players = new ArrayList<>();
+        for (Player player : all()) {
+            if (isVanished(player)) {
+                players.add(player);
+            }
+        }
+        return players;
+    }
+
+    public static String getDisplayName(OfflinePlayer player) {
+        return player.isOnline() ? ((Player) player).getDisplayName() : player.getName();
     }
 
     private Players() {
