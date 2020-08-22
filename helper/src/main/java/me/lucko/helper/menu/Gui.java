@@ -31,6 +31,8 @@ import me.lucko.helper.Schedulers;
 import me.lucko.helper.metadata.Metadata;
 import me.lucko.helper.metadata.MetadataKey;
 import me.lucko.helper.metadata.MetadataMap;
+import me.lucko.helper.reflect.MinecraftVersion;
+import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
 import me.lucko.helper.text.Text;
@@ -256,10 +258,23 @@ public abstract class Gui implements TerminableConsumer {
     }
 
     public void open() {
+        if (MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_16)) {
+            // delay by a tick in 1.16+ to prevent an unwanted PlayerInteractEvent interfering with inventory clicks
+            Schedulers.sync().runLater(() -> {
+                if (!this.player.isOnline()) {
+                    return;
+                }
+                handleOpen();
+            }, 1);
+        } else {
+            handleOpen();
+        }
+    }
+
+    private void handleOpen() {
         if (this.valid) {
             throw new IllegalStateException("Gui is already opened.");
         }
-
         this.firstDraw = true;
         this.invalidated = false;
         try {
