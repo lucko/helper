@@ -95,23 +95,28 @@ public class CitizensNpcFactory implements NpcFactory {
         // don't let players move npcs
         Events.subscribe(PlayerFishEvent.class)
                 .filter(e -> e.getCaught() != null)
-                .filter(e -> e.getCaught().hasMetadata("NPC"))
+                .filter(e -> isHelperNpc(e.getCaught()))
                 .handler(e -> e.setCancelled(true))
                 .bindWith(this.registry);
 
         /* Events.subscribe(ProjectileCollideEvent.class)
                 .filter(e -> e.getCollidedWith() != null)
-                .filter(e -> e.getCollidedWith().hasMetadata("NPC"))
+                .filter(e -> isHelperNpc(e.getCollidedWith()))
                 .handler(e -> e.setCancelled(true))
                 .bindWith(this.registry); */
 
         Events.subscribe(EntityDamageByEntityEvent.class)
-                .filter(e -> e.getEntity().hasMetadata("NPC"))
+                .filter(e -> isHelperNpc(e.getEntity()))
                 .handler(e -> e.setCancelled(true))
                 .bindWith(this.registry);
 
         // update npcs every 10 ticks
         Schedulers.sync().runRepeating(this::tickNpcs, 10L, 10L).bindWith(this.registry);
+    }
+
+    private boolean isHelperNpc(Entity entity) {
+        NPC npc = this.npcRegistry.getNPC(entity);
+        return npc != null && npc.hasTrait(ClickableTrait.class);
     }
 
     private void handleClick(NPC npc, Player clicker) {
