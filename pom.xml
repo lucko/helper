@@ -79,7 +79,7 @@
         <url>https://github.com/lucko/helper/issues</url>
     </issueManagement>
 
-<!--    <profiles>
+    <profiles>
         <profile>
             <id>sign</id>
             <build>
@@ -114,7 +114,7 @@
                 </repository>
             </distributionManagement>
         </profile>
-    </profiles>-->
+    </profiles>
 
     <repositories>
         <repository>
@@ -125,10 +125,6 @@
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
         </repository>
-<!--        <repository>
-            <id>sponge-repo</id>
-            <url>https://repo.spongepowered.org/maven</url>
-        </repository>-->
     </repositories>
 
 </project>
