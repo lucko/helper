@@ -20,6 +20,8 @@
 
     <properties>
         <shade.pattern>me.lucko.helper.external.</shade.pattern>
+
+        <configurate.version>3.7.1</configurate.version>
     </properties>
 
     <build>
@@ -175,14 +177,14 @@
         <dependency>
             <groupId>net.jodah</groupId>
             <artifactId>expiringmap</artifactId>
-            <version>0.5.8</version>
+            <version>0.5.9</version>
             <scope>compile</scope>
         </dependency>
         <!-- configurate -->
         <dependency>
             <groupId>org.spongepowered</groupId>
             <artifactId>configurate-core</artifactId>
-            <version>3.6</version>
+            <version>${configurate.version}</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
@@ -195,7 +197,7 @@
         <dependency>
             <groupId>org.spongepowered</groupId>
             <artifactId>configurate-yaml</artifactId>
-            <version>3.6</version>
+            <version>${configurate.version}</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
@@ -212,7 +214,7 @@
         <dependency>
             <groupId>org.spongepowered</groupId>
             <artifactId>configurate-gson</artifactId>
-            <version>3.6</version>
+            <version>${configurate.version}</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
@@ -229,7 +231,7 @@
         <dependency>
             <groupId>org.spongepowered</groupId>
             <artifactId>configurate-hocon</artifactId>
-            <version>3.6</version>
+            <version>${configurate.version}</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
@@ -277,7 +279,7 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>text-adapter-bukkit</artifactId>
-            <version>3.0.5</version>
+            <version>3.0.6</version>
             <scope>compile</scope>
             <optional>true</optional>
         </dependency>
@@ -311,15 +313,15 @@
         <!-- protocollib -->
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
-            <artifactId>ProtocolLib-API</artifactId>
-            <version>4.4.0-SNAPSHOT</version>
+            <artifactId>ProtocolLib</artifactId>
+            <version>4.5.0</version>
             <scope>provided</scope>
         </dependency>
         <!-- citizens -->
         <dependency>
             <groupId>net.citizensnpcs</groupId>
             <artifactId>citizens</artifactId>
-            <version>2.0.22-SNAPSHOT</version>
+            <version>2.0.26-SNAPSHOT</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
