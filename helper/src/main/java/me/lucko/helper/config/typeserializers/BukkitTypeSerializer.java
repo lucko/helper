@@ -53,7 +53,7 @@ public final class BukkitTypeSerializer implements TypeSerializer<ConfigurationS
     }
 
     @Override
-    public void serialize(TypeToken<?> type, ConfigurationSerializable from, ConfigurationNode to) throws ObjectMappingException {
+    public void serialize(TypeToken<?> type, ConfigurationSerializable from, ConfigurationNode to) {
         Map<String, Object> serialized = from.serialize();
 
         Map<String, Object> map = new LinkedHashMap<>(serialized.size() + 1);

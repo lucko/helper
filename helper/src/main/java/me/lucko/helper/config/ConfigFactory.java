@@ -77,7 +77,7 @@ public abstract class ConfigFactory<N extends ConfigurationNode, L extends Confi
                     .setSource(() -> Files.newBufferedReader(path, StandardCharsets.UTF_8))
                     .setSink(() -> Files.newBufferedWriter(path, StandardCharsets.UTF_8));
 
-            builder.setDefaultOptions(builder.getDefaultOptions().setSerializers(TYPE_SERIALIZERS));
+            builder.setDefaultOptions(builder.getDefaultOptions().withSerializers(TYPE_SERIALIZERS));
             return builder.build();
         }
     };
@@ -91,7 +91,7 @@ public abstract class ConfigFactory<N extends ConfigurationNode, L extends Confi
                     .setSource(() -> Files.newBufferedReader(path, StandardCharsets.UTF_8))
                     .setSink(() -> Files.newBufferedWriter(path, StandardCharsets.UTF_8));
 
-            builder.setDefaultOptions(builder.getDefaultOptions().setSerializers(TYPE_SERIALIZERS));
+            builder.setDefaultOptions(builder.getDefaultOptions().withSerializers(TYPE_SERIALIZERS));
             return builder.build();
         }
     };
@@ -104,21 +104,21 @@ public abstract class ConfigFactory<N extends ConfigurationNode, L extends Confi
                     .setSource(() -> Files.newBufferedReader(path, StandardCharsets.UTF_8))
                     .setSink(() -> Files.newBufferedWriter(path, StandardCharsets.UTF_8));
 
-            builder.setDefaultOptions(builder.getDefaultOptions().setSerializers(TYPE_SERIALIZERS));
+            builder.setDefaultOptions(builder.getDefaultOptions().withSerializers(TYPE_SERIALIZERS));
             return builder.build();
         }
     };
 
     private static final TypeSerializerCollection TYPE_SERIALIZERS;
     static {
-        TypeSerializerCollection helperSerializers = TypeSerializers.newCollection();
-        helperSerializers.registerType(TypeToken.of(JsonElement.class), GsonTypeSerializer.INSTANCE);
-        helperSerializers.registerType(TypeToken.of(GsonSerializable.class), HelperTypeSerializer.INSTANCE);
-        helperSerializers.registerType(TypeToken.of(ConfigurationSerializable.class), BukkitTypeSerializer.INSTANCE);
-        helperSerializers.registerType(TypeToken.of(DataTree.class), JsonTreeTypeSerializer.INSTANCE);
-        helperSerializers.registerType(TypeToken.of(String.class), ColoredStringTypeSerializer.INSTANCE);
-        helperSerializers.registerType(TypeToken.of(me.lucko.helper.text.Component.class), TextTypeSerializer.INSTANCE);
-        helperSerializers.registerType(TypeToken.of(Component.class), Text3TypeSerializer.INSTANCE);
+        TypeSerializerCollection helperSerializers = TypeSerializerCollection.create();
+        helperSerializers.register(TypeToken.of(JsonElement.class), GsonTypeSerializer.INSTANCE);
+        helperSerializers.register(TypeToken.of(GsonSerializable.class), HelperTypeSerializer.INSTANCE);
+        helperSerializers.register(TypeToken.of(ConfigurationSerializable.class), BukkitTypeSerializer.INSTANCE);
+        helperSerializers.register(TypeToken.of(DataTree.class), JsonTreeTypeSerializer.INSTANCE);
+        helperSerializers.register(TypeToken.of(String.class), ColoredStringTypeSerializer.INSTANCE);
+        helperSerializers.register(TypeToken.of(me.lucko.helper.text.Component.class), TextTypeSerializer.INSTANCE);
+        helperSerializers.register(TypeToken.of(Component.class), Text3TypeSerializer.INSTANCE);
 
         TYPE_SERIALIZERS = helperSerializers.newChild();
     }

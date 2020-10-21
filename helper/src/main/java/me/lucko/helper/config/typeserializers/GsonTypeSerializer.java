@@ -57,7 +57,7 @@ public final class GsonTypeSerializer implements TypeSerializer<JsonElement> {
             return JsonNull.INSTANCE;
         }
 
-        if (from.hasListChildren()) {
+        if (from.isList()) {
             List<? extends ConfigurationNode> childrenList = from.getChildrenList();
             JsonArray array = new JsonArray();
             for (ConfigurationNode node : childrenList) {
@@ -95,7 +95,7 @@ public final class GsonTypeSerializer implements TypeSerializer<JsonElement> {
             // ensure 'to' is a list node
             to.setValue(ImmutableList.of());
             for (JsonElement element : array) {
-                serialize(TYPE, element, to.getAppendedNode());
+                serialize(TYPE, element, to.appendListNode());
             }
         } else if (from.isJsonObject()) {
             JsonObject object = from.getAsJsonObject();
