@@ -25,6 +25,7 @@
 
 package me.lucko.helper.sql.plugin;
 
+import com.google.common.collect.ImmutableMap;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -42,10 +43,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -59,9 +62,9 @@ public class HelperSql implements Sql {
     private static final int MAXIMUM_POOL_SIZE = (Runtime.getRuntime().availableProcessors() * 2) + 1;
     private static final int MINIMUM_IDLE = Math.min(MAXIMUM_POOL_SIZE, 10);
 
-    private static final long MAX_LIFETIME = TimeUnit.MINUTES.toMillis(30); // 30 Minutes
-    private static final long CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMillis(10); // 10 seconds
-    private static final long LEAK_DETECTION_THRESHOLD = TimeUnit.SECONDS.toMillis(10); // 10 seconds
+    private static final long MAX_LIFETIME = TimeUnit.MINUTES.toMillis(30);
+    private static final long CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
+    private static final long LEAK_DETECTION_THRESHOLD = TimeUnit.SECONDS.toMillis(10);
 
     private final HikariDataSource source;
     private final SqlStream stream;
@@ -86,8 +89,23 @@ public class HelperSql implements Sql {
         hikari.setConnectionTimeout(CONNECTION_TIMEOUT);
         hikari.setLeakDetectionThreshold(LEAK_DETECTION_THRESHOLD);
 
-        // ensure we use unicode (this calls #setProperties, a hack for the mariadb driver)
-        hikari.addDataSourceProperty("properties", "useUnicode=true;characterEncoding=utf8");
+        Map<String, String> properties = ImmutableMap.<String, String>builder()
+                // Ensure we use utf8 encoding
+                .put("useUnicode", "true")
+                .put("characterEncoding", "utf8")
+
+                // Set the driver level TCP socket timeout
+                // See: https://github.com/brettwooldridge/HikariCP/wiki/Rapid-Recovery
+                .put("socketTimeout", String.valueOf(TimeUnit.SECONDS.toMillis(30)))
+                .build();
+
+        String propertiesString = properties.entrySet().stream()
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining(";"));
+
+        // kinda hacky. this will call #setProperties on the datasource, which will append these options
+        // onto the connections.
+        hikari.addDataSourceProperty("properties", propertiesString);
 
         this.source = new HikariDataSource(hikari);
         this.stream = SqlStream.connect(this.source);
