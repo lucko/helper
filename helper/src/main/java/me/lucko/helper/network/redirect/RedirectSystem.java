@@ -56,7 +56,7 @@ public interface RedirectSystem extends Terminable {
      * @param redirecter the redirecter
      * @return the new RedirectSystem
      */
-    static RedirectSystem create(Messenger messenger, InstanceData instanceData, PlayerRedirecter redirecter) {
+    static RedirectSystem create(Messenger messenger, InstanceData instanceData, PlayerRedirector redirecter) {
         return new AbstractRedirectSystem(messenger, instanceData, redirecter);
     }
 
@@ -66,7 +66,7 @@ public interface RedirectSystem extends Terminable {
      * @param messenger the messenger
      * @return the new RedirectSystem
      */
-    static <M extends Messenger & InstanceData & PlayerRedirecter> RedirectSystem create(M messenger) {
+    static <M extends Messenger & InstanceData & PlayerRedirector> RedirectSystem create(M messenger) {
         return new AbstractRedirectSystem(messenger, messenger, messenger);
     }
 

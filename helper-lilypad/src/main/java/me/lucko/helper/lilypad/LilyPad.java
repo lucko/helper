@@ -27,7 +27,7 @@ package me.lucko.helper.lilypad;
 
 import me.lucko.helper.messaging.InstanceData;
 import me.lucko.helper.messaging.Messenger;
-import me.lucko.helper.network.redirect.PlayerRedirecter;
+import me.lucko.helper.network.redirect.PlayerRedirector;
 import me.lucko.helper.profiles.Profile;
 
 import org.bukkit.entity.Player;
@@ -39,7 +39,7 @@ import javax.annotation.Nonnull;
 /**
  * Represents a hook with LilyPad {@link Connect}.
  */
-public interface LilyPad extends Messenger, InstanceData, PlayerRedirecter {
+public interface LilyPad extends Messenger, InstanceData, PlayerRedirector {
 
     /**
      * Gets the Connect instance

@@ -29,7 +29,7 @@ import me.lucko.helper.profiles.Profile;
 
 import javax.annotation.Nonnull;
 
-public interface PlayerRedirecter {
+public interface PlayerRedirector {
 
     /**
      * Requests that a certain player is moved to the given server.

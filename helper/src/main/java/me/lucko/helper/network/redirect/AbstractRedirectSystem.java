@@ -58,7 +58,7 @@ import javax.annotation.Nonnull;
 
 public class AbstractRedirectSystem implements RedirectSystem {
     private final InstanceData instanceData;
-    private final PlayerRedirecter redirecter;
+    private final PlayerRedirector redirecter;
 
     private final ConversationChannel<RequestMessage, ResponseMessage> channel;
     private final ConversationChannelAgent<RequestMessage, ResponseMessage> agent;
@@ -74,7 +74,7 @@ public class AbstractRedirectSystem implements RedirectSystem {
     private RequestHandler handler = new AllowAllHandler();
     private final List<RedirectParameterProvider> defaultParameters = new CopyOnWriteArrayList<>();
 
-    public AbstractRedirectSystem(Messenger messenger, InstanceData instanceData, PlayerRedirecter redirecter) {
+    public AbstractRedirectSystem(Messenger messenger, InstanceData instanceData, PlayerRedirector redirecter) {
         this.instanceData = instanceData;
         this.redirecter = redirecter;
 
