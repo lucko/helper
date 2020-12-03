@@ -27,6 +27,8 @@ package me.lucko.helper.network.redirect;
 
 import me.lucko.helper.profiles.Profile;
 
+import org.bukkit.entity.Player;
+
 import javax.annotation.Nonnull;
 
 public interface PlayerRedirector {
@@ -38,5 +40,15 @@ public interface PlayerRedirector {
      * @param profile the player to redirect
      */
     void redirectPlayer(@Nonnull String serverId, @Nonnull Profile profile);
+
+    /**
+     * Requests that a certain player is moved to the given server.
+     *
+     * @param serverId the id of the server
+     * @param player the player to redirect
+     */
+    default void redirectPlayer(@Nonnull String serverId, @Nonnull Player player) {
+        redirectPlayer(serverId, Profile.create(player));
+    }
 
 }

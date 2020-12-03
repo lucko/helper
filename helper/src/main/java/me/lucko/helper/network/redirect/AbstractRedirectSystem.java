@@ -58,7 +58,7 @@ import javax.annotation.Nonnull;
 
 public class AbstractRedirectSystem implements RedirectSystem {
     private final InstanceData instanceData;
-    private final PlayerRedirector redirecter;
+    private final PlayerRedirector redirector;
 
     private final ConversationChannel<RequestMessage, ResponseMessage> channel;
     private final ConversationChannelAgent<RequestMessage, ResponseMessage> agent;
@@ -74,9 +74,9 @@ public class AbstractRedirectSystem implements RedirectSystem {
     private RequestHandler handler = new AllowAllHandler();
     private final List<RedirectParameterProvider> defaultParameters = new CopyOnWriteArrayList<>();
 
-    public AbstractRedirectSystem(Messenger messenger, InstanceData instanceData, PlayerRedirector redirecter) {
+    public AbstractRedirectSystem(Messenger messenger, InstanceData instanceData, PlayerRedirector redirector) {
         this.instanceData = instanceData;
-        this.redirecter = redirecter;
+        this.redirector = redirector;
 
         this.channel = messenger.getConversationChannel("hlp-redirect", RequestMessage.class, ResponseMessage.class);
 
@@ -99,7 +99,7 @@ public class AbstractRedirectSystem implements RedirectSystem {
                 this.expectedPlayers.put(message.uuid, r);
 
                 // tell the connect server to move the player
-                this.redirecter.redirectPlayer(this.instanceData.getId(), Profile.create(message.uuid, message.username));
+                this.redirector.redirectPlayer(this.instanceData.getId(), Profile.create(message.uuid, message.username));
             });
 
             // send the response
