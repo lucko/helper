@@ -23,52 +23,32 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad;
+package me.lucko.helper.network.redirect;
 
-import me.lucko.helper.messaging.InstanceData;
-import me.lucko.helper.messaging.Messenger;
-import me.lucko.helper.network.redirect.PlayerRedirector;
 import me.lucko.helper.profiles.Profile;
 
 import org.bukkit.entity.Player;
 
-import lilypad.client.connect.api.Connect;
-
 import javax.annotation.Nonnull;
 
-/**
- * Represents a hook with LilyPad {@link Connect}.
- */
-public interface LilyPad extends Messenger, InstanceData, PlayerRedirector {
-
-    /**
-     * Gets the Connect instance
-     *
-     * @return the Connect instance
-     */
-    @Nonnull
-    Connect getConnect();
+public interface PlayerRedirector {
 
     /**
      * Requests that a certain player is moved to the given server.
      *
      * @param serverId the id of the server
-     * @param playerUsername the username of the player
+     * @param profile the player to redirect
      */
-    void redirectPlayer(@Nonnull String serverId, @Nonnull String playerUsername);
+    void redirectPlayer(@Nonnull String serverId, @Nonnull Profile profile);
 
     /**
      * Requests that a certain player is moved to the given server.
      *
      * @param serverId the id of the server
-     * @param player the player
+     * @param player the player to redirect
      */
     default void redirectPlayer(@Nonnull String serverId, @Nonnull Player player) {
-        redirectPlayer(serverId, player.getName());
+        redirectPlayer(serverId, Profile.create(player));
     }
 
-    @Override
-    default void redirectPlayer(String serverId, Profile profile) {
-        redirectPlayer(serverId, profile.getName().orElseThrow(() -> new IllegalArgumentException("Username must be set")));
-    }
 }

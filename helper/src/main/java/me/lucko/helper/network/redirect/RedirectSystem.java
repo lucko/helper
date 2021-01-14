@@ -23,11 +23,13 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.redirect;
+package me.lucko.helper.network.redirect;
 
 import com.google.common.collect.ImmutableMap;
 
-import me.lucko.helper.lilypad.LilyPad;
+import me.lucko.helper.Services;
+import me.lucko.helper.messaging.InstanceData;
+import me.lucko.helper.messaging.Messenger;
 import me.lucko.helper.profiles.Profile;
 import me.lucko.helper.promise.Promise;
 import me.lucko.helper.terminable.Terminable;
@@ -36,6 +38,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,15 +49,41 @@ import javax.annotation.Nullable;
 public interface RedirectSystem extends Terminable {
 
     /**
-     * Creates a new redirect system.
+     * Creates a new {@link RedirectSystem} instance. These should be shared if possible.
      *
-     * <p>Only one system should be created per instance.</p>
-     *
-     * @param lilyPad the lilypad instance.
-     * @return the new system
+     * @param messenger the messenger
+     * @param instanceData the instance data
+     * @param redirecter the redirecter
+     * @return the new RedirectSystem
      */
-    static RedirectSystem create(LilyPad lilyPad) {
-        return new RedirectSystemImpl(lilyPad);
+    static RedirectSystem create(Messenger messenger, InstanceData instanceData, PlayerRedirector redirecter) {
+        return new AbstractRedirectSystem(messenger, instanceData, redirecter);
+    }
+
+    /**
+     * Creates a new {@link RedirectSystem} instance. These should be shared if possible.
+     *
+     * @param messenger the messenger
+     * @return the new RedirectSystem
+     */
+    static <M extends Messenger & InstanceData & PlayerRedirector> RedirectSystem create(M messenger) {
+        return new AbstractRedirectSystem(messenger, messenger, messenger);
+    }
+
+    /**
+     * Tries to obtain an instance of RedirectSystem from the services manager, falling
+     * back to given supplier if one is not already present.
+     *
+     * @param ifElse the supplier
+     * @return the RedirectSystem instance
+     */
+    static RedirectSystem obtain(Supplier<RedirectSystem> ifElse) {
+        RedirectSystem network = Services.get(RedirectSystem.class).orElse(null);
+        if (network == null) {
+            network = ifElse.get();
+            Services.provide(RedirectSystem.class, network);
+        }
+        return network;
     }
 
     /**
