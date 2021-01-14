@@ -23,7 +23,7 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.redirect;
+package me.lucko.helper.network.redirect;
 
 import me.lucko.helper.profiles.Profile;
 

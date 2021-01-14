@@ -12,7 +12,7 @@
 
     <artifactId>helper</artifactId>
     <packaging>jar</packaging>
-    <version>5.6.6</version>
+    <version>5.6.7</version>
 
     <name>helper</name>
     <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
@@ -163,7 +163,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>shadow-bukkit</artifactId>
-            <version>1.6</version>
+            <version>1.7-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- flowpowered math -->

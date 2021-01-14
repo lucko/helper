@@ -23,13 +23,14 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.lilypad.redirect;
+package me.lucko.helper.network.redirect;
 
 import com.google.common.collect.ImmutableMap;
 
 import me.lucko.helper.Events;
 import me.lucko.helper.event.SingleSubscription;
-import me.lucko.helper.lilypad.LilyPad;
+import me.lucko.helper.messaging.InstanceData;
+import me.lucko.helper.messaging.Messenger;
 import me.lucko.helper.messaging.conversation.ConversationChannel;
 import me.lucko.helper.messaging.conversation.ConversationChannelAgent;
 import me.lucko.helper.messaging.conversation.ConversationMessage;
@@ -37,7 +38,7 @@ import me.lucko.helper.messaging.conversation.ConversationReply;
 import me.lucko.helper.messaging.conversation.ConversationReplyListener;
 import me.lucko.helper.profiles.Profile;
 import me.lucko.helper.promise.Promise;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
@@ -55,8 +56,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
-class RedirectSystemImpl implements RedirectSystem {
-    private final LilyPad lilyPad;
+public class AbstractRedirectSystem implements RedirectSystem {
+    private final InstanceData instanceData;
+    private final PlayerRedirector redirector;
 
     private final ConversationChannel<RequestMessage, ResponseMessage> channel;
     private final ConversationChannelAgent<RequestMessage, ResponseMessage> agent;
@@ -72,14 +74,15 @@ class RedirectSystemImpl implements RedirectSystem {
     private RequestHandler handler = new AllowAllHandler();
     private final List<RedirectParameterProvider> defaultParameters = new CopyOnWriteArrayList<>();
 
-    RedirectSystemImpl(LilyPad lilyPad) {
-        this.lilyPad = lilyPad;
+    public AbstractRedirectSystem(Messenger messenger, InstanceData instanceData, PlayerRedirector redirector) {
+        this.instanceData = instanceData;
+        this.redirector = redirector;
 
-        this.channel = this.lilyPad.getConversationChannel("hlp-redirect", RequestMessage.class, ResponseMessage.class);
+        this.channel = messenger.getConversationChannel("hlp-redirect", RequestMessage.class, ResponseMessage.class);
 
         this.agent = this.channel.newAgent();
         this.agent.addListener((agent, message) -> {
-            if (!this.lilyPad.getId().equalsIgnoreCase(message.targetServer)) {
+            if (!this.instanceData.getId().equalsIgnoreCase(message.targetServer)) {
                 return ConversationReply.noReply();
             }
 
@@ -96,7 +99,7 @@ class RedirectSystemImpl implements RedirectSystem {
                 this.expectedPlayers.put(message.uuid, r);
 
                 // tell the connect server to move the player
-                this.lilyPad.redirectPlayer(this.lilyPad.getId(), message.username);
+                this.redirector.redirectPlayer(this.instanceData.getId(), Profile.create(message.uuid, message.username));
             });
 
             // send the response
@@ -126,7 +129,7 @@ class RedirectSystemImpl implements RedirectSystem {
         req.convoId = UUID.randomUUID();
         req.targetServer = serverId;
         req.uuid = profile.getUniqueId();
-        req.username = profile.getName().orElseThrow(() -> new IllegalArgumentException("Profile missing username"));
+        req.username = profile.getName().orElse(null);
         req.params = new HashMap<>(params);
 
         // include default parameters

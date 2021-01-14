@@ -12,7 +12,7 @@
 
     <artifactId>helper-lilypad</artifactId>
     <packaging>jar</packaging>
-    <version>2.2.0</version>
+    <version>3.0.0</version>
 
     <name>helper-lilypad</name>
     <description>Implements the helper Messaging system using LilyPad.</description>
