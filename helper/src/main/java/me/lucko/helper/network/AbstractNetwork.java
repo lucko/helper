@@ -316,7 +316,7 @@ public class AbstractNetwork implements Network {
 
         @Override
         public boolean isFull() {
-            return this.players.size() == this.maxPlayers;
+            return this.players.size() >= this.maxPlayers;
         }
 
         @Override
