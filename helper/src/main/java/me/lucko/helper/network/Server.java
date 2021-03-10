@@ -69,6 +69,13 @@ public interface Server extends InstanceData {
     int getMaxPlayers();
 
     /**
+     * Checks if the server is full.
+     *
+     * @return if the server is full or not
+     */
+    boolean isFull();
+
+    /**
      * Gets whether the server is currently whitelisted.
      *
      * @return if the server is whitelisted
