@@ -315,6 +315,11 @@ public class AbstractNetwork implements Network {
         }
 
         @Override
+        public boolean isFull() {
+            return this.players.size() >= this.maxPlayers;
+        }
+
+        @Override
         public boolean isWhitelisted() {
             return this.whitelisted;
         }
