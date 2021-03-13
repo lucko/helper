@@ -68,7 +68,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.zaxxer:HikariCP</include>
-                                    <include>org.mariadb.jdbc:mariadb-java-client</include>
+                                    <include>mysql:mysql-connector-java</include>
                                     <include>me.lucko:sql-streams</include>
                                 </includes>
                             </artifactSet>
@@ -78,8 +78,8 @@
                                     <shadedPattern>${shade.pattern}hikari</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.mariadb</pattern>
-                                    <shadedPattern>${shade.pattern}mariadb</shadedPattern>
+                                    <pattern>com.mysql</pattern>
+                                    <shadedPattern>${shade.pattern}mysql</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>be.bendem.sqlstreams</pattern>
@@ -154,7 +154,7 @@
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>3.4.5</version>
+            <version>4.0.3</version>
             <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
@@ -165,9 +165,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <version>2.7.0</version>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.23</version>
             <scope>compile</scope>
             <optional>true</optional>
         </dependency>
