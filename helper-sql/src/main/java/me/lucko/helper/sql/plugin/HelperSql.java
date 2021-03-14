@@ -48,15 +48,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
 public class HelperSql implements Sql {
 
     private static final AtomicInteger POOL_COUNTER = new AtomicInteger(0);
-
-    private static final String DATA_SOURCE_CLASS = "org.mariadb.jdbc.MySQLDataSource";
 
     // https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
     private static final int MAXIMUM_POOL_SIZE = (Runtime.getRuntime().availableProcessors() * 2) + 1;
@@ -74,10 +71,8 @@ public class HelperSql implements Sql {
 
         hikari.setPoolName("helper-sql-" + POOL_COUNTER.getAndIncrement());
 
-        hikari.setDataSourceClassName(DATA_SOURCE_CLASS);
-        hikari.addDataSourceProperty("serverName", credentials.getAddress());
-        hikari.addDataSourceProperty("port", credentials.getPort());
-        hikari.addDataSourceProperty("databaseName", credentials.getDatabase());
+        hikari.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        hikari.setJdbcUrl("jdbc:mysql://" + credentials.getAddress() + ":" + credentials.getPort() + "/" + credentials.getDatabase());
 
         hikari.setUsername(credentials.getUsername());
         hikari.setPassword(credentials.getPassword());
@@ -94,18 +89,28 @@ public class HelperSql implements Sql {
                 .put("useUnicode", "true")
                 .put("characterEncoding", "utf8")
 
+                // https://github.com/brettwooldridge/HikariCP/wiki/MySQL-Configuration
+                .put("cachePrepStmts", "true")
+                .put("prepStmtCacheSize", "250")
+                .put("prepStmtCacheSqlLimit", "2048")
+                .put("useServerPrepStmts", "true")
+                .put("useLocalSessionState", "true")
+                .put("rewriteBatchedStatements", "true")
+                .put("cacheResultSetMetadata", "true")
+                .put("cacheServerConfiguration", "true")
+                .put("elideSetAutoCommits", "true")
+                .put("maintainTimeStats", "false")
+                .put("alwaysSendSetIsolation", "false")
+                .put("cacheCallableStmts", "true")
+
                 // Set the driver level TCP socket timeout
                 // See: https://github.com/brettwooldridge/HikariCP/wiki/Rapid-Recovery
                 .put("socketTimeout", String.valueOf(TimeUnit.SECONDS.toMillis(30)))
                 .build();
 
-        String propertiesString = properties.entrySet().stream()
-                .map(e -> e.getKey() + "=" + e.getValue())
-                .collect(Collectors.joining(";"));
-
-        // kinda hacky. this will call #setProperties on the datasource, which will append these options
-        // onto the connections.
-        hikari.addDataSourceProperty("properties", propertiesString);
+        for (Map.Entry<String, String> property : properties.entrySet()) {
+            hikari.addDataSourceProperty(property.getKey(), property.getValue());
+        }
 
         this.source = new HikariDataSource(hikari);
         this.stream = SqlStream.connect(this.source);
