@@ -30,6 +30,8 @@ import com.google.common.reflect.TypeToken;
 import me.lucko.helper.messaging.conversation.ConversationChannel;
 import me.lucko.helper.messaging.conversation.ConversationMessage;
 import me.lucko.helper.messaging.conversation.SimpleConversationChannel;
+import me.lucko.helper.messaging.reqresp.ReqRespChannel;
+import me.lucko.helper.messaging.reqresp.SimpleReqRespChannel;
 
 import java.util.Objects;
 
@@ -68,6 +70,21 @@ public interface Messenger {
     }
 
     /**
+     * Gets a req/resp channel by name.
+     *
+     * @param name the name of the channel
+     * @param reqType the request typetoken
+     * @param respType the response typetoken
+     * @param <Req> the request type
+     * @param <Resp> the response type
+     * @return the req/resp channel
+     */
+    @Nonnull
+    default <Req, Resp> ReqRespChannel<Req, Resp> getReqRespChannel(@Nonnull String name, @Nonnull TypeToken<Req> reqType, @Nonnull TypeToken<Resp> respType) {
+        return new SimpleReqRespChannel<>(this, name, reqType, respType);
+    }
+
+    /**
      * Gets a channel by name.
      *
      * @param name the name of the channel.
@@ -95,4 +112,18 @@ public interface Messenger {
         return getConversationChannel(name, TypeToken.of(Objects.requireNonNull(clazz)), TypeToken.of(Objects.requireNonNull(replyClazz)));
     }
 
+    /**
+     * Gets a req/resp channel by name.
+     *
+     * @param name the name of the channel
+     * @param reqClass the request class
+     * @param respClass the response class
+     * @param <Req> the request type
+     * @param <Resp> the response type
+     * @return the req/resp channel
+     */
+    @Nonnull
+    default <Req, Resp> ReqRespChannel<Req, Resp> getReqRespChannel(@Nonnull String name, @Nonnull Class<Req> reqClass, @Nonnull Class<Resp> respClass) {
+        return getReqRespChannel(name, TypeToken.of(Objects.requireNonNull(reqClass)), TypeToken.of(Objects.requireNonNull(respClass)));
+    }
 }
