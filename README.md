@@ -1,6 +1,25 @@
 ![](https://i.imgur.com/zllxTFp.png "Banner")
 # helper [![Build Status](https://ci.lucko.me/job/helper/badge/icon)](https://ci.lucko.me/job/helper/) [![Discord](https://img.shields.io/badge/chat-on%20discord-blue.svg)](https://discord.gg/Rnbpc7s)
-A collection of utilities and extended APIs to support the rapid and easy development of Bukkit plugins.
+
+helper is a development toolkit / library for Bukkit plugin developers. It provides a number of utilities and extended APIs which help to reduce boilerplate code and offer alternative paradigms for creating content.
+
+#### History
+
+💡 helper started off as a library to experiment with an alternative paradigm for creating [event listeners](https://github.com/lucko/helper/wiki/helper:-Events). Over time, more functionality has been added, usually as a response to a specific development need as I completed freelance work.
+
+🌍 I don't use helper in any of my public projects - it's quite a big library, and I don't like to add bloat unnecessarily!
+
+✅ However, it has been used extensively in a number of private server projects, most notably, in most custom plugins on servers operated by [Voldex Games](https://voldex.net/) (TheArchon, PrimeMC, etc). I'm also aware of a number of other developers / development teams who still actively use helper, which is awesome!
+
+#### Status
+
+I'm no longer actively working on further API additions, but the project is still being used frequntly by various development teams, and I accept pull requests!
+
+### Links
+
+* [**Download**](https://ci.lucko.me/job/helper/) (download links for the standalone helper plugins)
+* [**Wiki**](https://github.com/lucko/helper/wiki/) (*almost-fully-complete* documentation for helper)
+
 
 ### Modules
 ##### [`helper`](https://github.com/lucko/helper/tree/master/helper): The main helper project
@@ -46,11 +65,3 @@ A collection of utilities and extended APIs to support the rapid and easy develo
 * [`JavaScript Plugins`](https://github.com/lucko/helper/wiki/helper-js:-Introduction) - javascript plugins using helper-js and Nashorn
 
 ... and much more!
-
-* [**How to add helper to your project**](https://github.com/lucko/helper/wiki/General:-Using-helper)
-* [**Standalone plugin download**](https://ci.lucko.me/job/helper/)
-
-
-## Documentation
-
-Documentation and a more detailed feature overview can be found on the wiki, here: https://github.com/lucko/helper/wiki
