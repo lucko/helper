@@ -25,6 +25,9 @@
 
 package me.lucko.helper.maven;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.utils.Log;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
@@ -44,15 +47,17 @@ import java.util.Objects;
  */
 @NonnullByDefault
 public final class LibraryLoader {
-    private static final Method ADD_URL_METHOD;
-    static {
+
+    @SuppressWarnings("Guava")
+    private static final Supplier<Method> ADD_URL_METHOD = Suppliers.memoize(() -> {
         try {
-            ADD_URL_METHOD = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-            ADD_URL_METHOD.setAccessible(true);
+            Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+            addUrlMethod.setAccessible(true);
+            return addUrlMethod;
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
-    }
+    });
 
     /**
      * Resolves all {@link MavenLibrary} annotations on the given object.
@@ -115,7 +120,7 @@ public final class LibraryLoader {
 
         URLClassLoader classLoader = (URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader();
         try {
-            ADD_URL_METHOD.invoke(classLoader, saveLocation.toURI().toURL());
+            ADD_URL_METHOD.get().invoke(classLoader, saveLocation.toURI().toURL());
         } catch (Exception e) {
             throw new RuntimeException("Unable to load dependency: " + saveLocation.toString(), e);
         }
