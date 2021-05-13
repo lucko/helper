@@ -120,8 +120,8 @@ public class AbstractMessenger implements Messenger {
                 Class<? extends Codec<?>> codec = message.codec();
                 try {
                     //noinspection unchecked
-                    return (Codec<T>) codec.newInstance();
-                } catch (InstantiationException | IllegalAccessException e) {
+                    return (Codec<T>) codec.getDeclaredConstructor().newInstance();
+                } catch (ReflectiveOperationException e) {
                     e.printStackTrace();
                 }
             }
