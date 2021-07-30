@@ -39,6 +39,7 @@ import javax.annotation.Nonnull;
 @Documented
 @Target(ElementType.LOCAL_VARIABLE)
 @Retention(RetentionPolicy.RUNTIME)
+@Deprecated
 public @interface Repository {
 
     /**

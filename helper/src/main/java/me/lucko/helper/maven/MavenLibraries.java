@@ -39,6 +39,7 @@ import javax.annotation.Nonnull;
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@Deprecated
 public @interface MavenLibraries {
 
     @Nonnull

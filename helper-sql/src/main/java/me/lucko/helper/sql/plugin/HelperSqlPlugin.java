@@ -26,7 +26,6 @@
 package me.lucko.helper.sql.plugin;
 
 import me.lucko.helper.internal.HelperImplementationPlugin;
-import me.lucko.helper.maven.MavenLibrary;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.sql.DatabaseCredentials;
 import me.lucko.helper.sql.Sql;
@@ -35,7 +34,7 @@ import me.lucko.helper.sql.SqlProvider;
 import javax.annotation.Nonnull;
 
 @HelperImplementationPlugin
-@MavenLibrary(groupId = "org.slf4j", artifactId = "slf4j-api", version = "1.7.30")
+//@MavenLibrary(groupId = "org.slf4j", artifactId = "slf4j-api", version = "1.7.30")
 public class HelperSqlPlugin extends ExtendedJavaPlugin implements SqlProvider {
     private DatabaseCredentials globalCredentials;
     private Sql globalDataSource;

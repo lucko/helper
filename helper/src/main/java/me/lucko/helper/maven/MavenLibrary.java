@@ -36,11 +36,14 @@ import javax.annotation.Nonnull;
 
 /**
  * Annotation to indicate a required library for a class.
+ *
+ * @deprecated No longer works on Java 16+, no plans to fix.
  */
 @Documented
 @Repeatable(MavenLibraries.class)
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@Deprecated
 public @interface MavenLibrary {
 
     /**
