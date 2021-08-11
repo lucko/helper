@@ -55,7 +55,7 @@ public final class LibraryLoader {
             addUrlMethod.setAccessible(true);
             return addUrlMethod::invoke;
         } catch (ReflectiveOperationException e) {
-            return UnsafeInserter.create((URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader());
+            return UnsafeURLInjector.create((URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader());
         }
     });
 

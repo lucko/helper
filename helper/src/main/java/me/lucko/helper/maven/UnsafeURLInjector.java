@@ -15,12 +15,12 @@ import java.util.ArrayList;
  * <p>
  * This implementation works on Java 9+ only.
  */
-final class UnsafeInserter implements URLInjector {
+final class UnsafeURLInjector implements URLInjector {
 
     private final ArrayDeque<URL> unopenedURLs;
     private final ArrayList<URL> pathURLs;
 
-    public UnsafeInserter(final ArrayDeque<URL> unopenedURLs, final ArrayList<URL> pathURLs) {
+    public UnsafeURLInjector(final ArrayDeque<URL> unopenedURLs, final ArrayList<URL> pathURLs) {
         this.unopenedURLs = unopenedURLs;
         this.pathURLs = pathURLs;
     }
@@ -33,7 +33,7 @@ final class UnsafeInserter implements URLInjector {
             final Object ucp = fetchField(unsafe, URLClassLoader.class, classLoader, "ucp");
             final ArrayDeque<URL> unopenedURLs = (ArrayDeque<URL>) fetchField(unsafe, ucp, "unopenedUrls");
             final ArrayList<URL> pathURLs = (ArrayList<URL>) fetchField(unsafe, ucp, "path");
-            return new UnsafeInserter(unopenedURLs, pathURLs);
+            return new UnsafeURLInjector(unopenedURLs, pathURLs);
         } catch (Throwable t) {
             return (loader, url) -> { throw new UnsupportedOperationException(); };
         }
