@@ -44,11 +44,8 @@ import java.util.Objects;
 /**
  * Resolves {@link MavenLibrary} annotations for a class, and loads the dependency
  * into the classloader.
- *
- * @deprecated No longer works on Java 16+, no plans to fix.
  */
 @NonnullByDefault
-@Deprecated
 public final class LibraryLoader {
 
     @SuppressWarnings("Guava")
