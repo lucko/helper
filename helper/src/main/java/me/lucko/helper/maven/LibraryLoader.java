@@ -54,7 +54,7 @@ public final class LibraryLoader {
             Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             addUrlMethod.setAccessible(true);
             return addUrlMethod::invoke;
-        } catch (NoSuchMethodException e) {
+        } catch (ReflectiveOperationException e) {
             return UnsafeInserter.create((URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader());
         }
     });
