@@ -49,7 +49,7 @@ import java.util.Objects;
 public final class LibraryLoader {
 
     @SuppressWarnings("Guava")
-    private static final Supplier<URLInjector> ADD_URL = Suppliers.memoize(() -> {
+    private static final Supplier<URLInjector> URL_INJECTOR = Suppliers.memoize(() -> {
         try {
             Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             addUrlMethod.setAccessible(true);
@@ -120,7 +120,7 @@ public final class LibraryLoader {
 
         URLClassLoader classLoader = (URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader();
         try {
-            ADD_URL.get().addURL(classLoader, saveLocation.toURI().toURL());
+            URL_INJECTOR.get().addURL(classLoader, saveLocation.toURI().toURL());
         } catch (Exception e) {
             throw new RuntimeException("Unable to load dependency: " + saveLocation.toString(), e);
         }
