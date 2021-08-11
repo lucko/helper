@@ -52,13 +52,13 @@ import java.util.Objects;
 public final class LibraryLoader {
 
     @SuppressWarnings("Guava")
-    private static final Supplier<Method> ADD_URL_METHOD = Suppliers.memoize(() -> {
+    private static final Supplier<URLInjector> ADD_URL = Suppliers.memoize(() -> {
         try {
             Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             addUrlMethod.setAccessible(true);
-            return addUrlMethod;
+            return addUrlMethod::invoke;
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            return UnsafeInserter.create((URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader());
         }
     });
 
@@ -123,7 +123,7 @@ public final class LibraryLoader {
 
         URLClassLoader classLoader = (URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader();
         try {
-            ADD_URL_METHOD.get().invoke(classLoader, saveLocation.toURI().toURL());
+            ADD_URL.get().addURL(classLoader, saveLocation.toURI().toURL());
         } catch (Exception e) {
             throw new RuntimeException("Unable to load dependency: " + saveLocation.toString(), e);
         }
