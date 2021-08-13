@@ -44,21 +44,18 @@ import java.util.Objects;
 /**
  * Resolves {@link MavenLibrary} annotations for a class, and loads the dependency
  * into the classloader.
- *
- * @deprecated No longer works on Java 16+, no plans to fix.
  */
 @NonnullByDefault
-@Deprecated
 public final class LibraryLoader {
 
     @SuppressWarnings("Guava")
-    private static final Supplier<Method> ADD_URL_METHOD = Suppliers.memoize(() -> {
+    private static final Supplier<URLInjector> URL_INJECTOR = Suppliers.memoize(() -> {
         try {
             Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             addUrlMethod.setAccessible(true);
-            return addUrlMethod;
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            return addUrlMethod::invoke;
+        } catch (ReflectiveOperationException e) {
+            return UnsafeURLInjector.create((URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader());
         }
     });
 
@@ -123,7 +120,7 @@ public final class LibraryLoader {
 
         URLClassLoader classLoader = (URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader();
         try {
-            ADD_URL_METHOD.get().invoke(classLoader, saveLocation.toURI().toURL());
+            URL_INJECTOR.get().addURL(classLoader, saveLocation.toURI().toURL());
         } catch (Exception e) {
             throw new RuntimeException("Unable to load dependency: " + saveLocation.toString(), e);
         }
