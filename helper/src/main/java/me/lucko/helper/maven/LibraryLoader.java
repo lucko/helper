@@ -34,7 +34,6 @@ import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import java.io.File;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -49,15 +48,7 @@ import java.util.Objects;
 public final class LibraryLoader {
 
     @SuppressWarnings("Guava")
-    private static final Supplier<URLInjector> URL_INJECTOR = Suppliers.memoize(() -> {
-        try {
-            Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-            addUrlMethod.setAccessible(true);
-            return addUrlMethod::invoke;
-        } catch (ReflectiveOperationException e) {
-            return UnsafeURLInjector.create((URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader());
-        }
-    });
+    private static final Supplier<URLClassLoaderAccess> URL_INJECTOR = Suppliers.memoize(() -> URLClassLoaderAccess.create((URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader()));
 
     /**
      * Resolves all {@link MavenLibrary} annotations on the given object.
@@ -118,9 +109,8 @@ public final class LibraryLoader {
             throw new RuntimeException("Unable to download dependency: " + d.toString());
         }
 
-        URLClassLoader classLoader = (URLClassLoader) LoaderUtils.getPlugin().getClass().getClassLoader();
         try {
-            URL_INJECTOR.get().addURL(classLoader, saveLocation.toURI().toURL());
+            URL_INJECTOR.get().addURL(saveLocation.toURI().toURL());
         } catch (Exception e) {
             throw new RuntimeException("Unable to load dependency: " + saveLocation.toString(), e);
         }
