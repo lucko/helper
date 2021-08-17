@@ -79,7 +79,7 @@ public abstract class URLClassLoaderAccess {
             try {
                 addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
                 addUrlMethod.setAccessible(true);
-            } catch (ReflectiveOperationException e) {
+            } catch (Exception e) {
                 addUrlMethod = null;
             }
             ADD_URL_METHOD = addUrlMethod;
