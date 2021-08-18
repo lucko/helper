@@ -27,6 +27,7 @@ package me.lucko.helper.redis.plugin;
 
 import com.google.common.reflect.TypeToken;
 
+import java.util.concurrent.locks.ReentrantLock;
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.messaging.AbstractMessenger;
 import me.lucko.helper.messaging.Channel;
@@ -53,6 +54,7 @@ public class HelperRedis implements Redis {
     private final JedisPool jedisPool;
     private final AbstractMessenger messenger;
     private PubSubListener listener = null;
+    private ReentrantLock listenerLock = new ReentrantLock();
     private Set<String> channels = new HashSet<>();
     private CompositeTerminable registry = CompositeTerminable.create();
 
@@ -84,7 +86,7 @@ public class HelperRedis implements Redis {
                 try (Jedis jedis = getJedis()) {
                     try {
                         HelperRedis.this.listener = new PubSubListener();
-                        jedis.psubscribe(HelperRedis.this.listener, "helper-redis-dummy".getBytes(StandardCharsets.UTF_8));
+                        jedis.subscribe(HelperRedis.this.listener, "helper-redis-dummy".getBytes(StandardCharsets.UTF_8));
                     } catch (Exception e) {
                         // Attempt to unsubscribe this instance and try again.
                         new RuntimeException("Error subscribing to listener", e).printStackTrace();
@@ -128,12 +130,22 @@ public class HelperRedis implements Redis {
                 channel -> {
                     Log.info("[helper-redis] Subscribing to channel: " + channel);
                     this.channels.add(channel);
-                    HelperRedis.this.listener.subscribe(channel.getBytes(StandardCharsets.UTF_8));
+                    this.listenerLock.lock();
+                    try {
+                        HelperRedis.this.listener.subscribe(channel.getBytes(StandardCharsets.UTF_8));
+                    } finally {
+                        this.listenerLock.unlock();
+                    }
                 },
                 channel -> {
                     Log.info("[helper-redis] Unsubscribing from channel: " + channel);
                     this.channels.remove(channel);
-                    HelperRedis.this.listener.unsubscribe(channel.getBytes(StandardCharsets.UTF_8));
+                    this.listenerLock.lock();
+                    try {
+                        HelperRedis.this.listener.unsubscribe(channel.getBytes(StandardCharsets.UTF_8));
+                    } finally {
+                        this.listenerLock.unlock();
+                    }
                 }
         );
     }
