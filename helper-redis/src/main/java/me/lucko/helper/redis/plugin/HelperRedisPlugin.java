@@ -32,8 +32,6 @@ import me.lucko.helper.redis.Redis;
 import me.lucko.helper.redis.RedisCredentials;
 import me.lucko.helper.redis.RedisProvider;
 
-import java.util.concurrent.CompletableFuture;
-
 import javax.annotation.Nonnull;
 
 @HelperImplementationPlugin
@@ -63,7 +61,7 @@ public class HelperRedisPlugin extends ExtendedJavaPlugin implements RedisProvid
     @Nonnull
     @Override
     public Redis getRedis(@Nonnull RedisCredentials credentials) {
-        return CompletableFuture.supplyAsync(() -> new HelperRedis(credentials)).join();
+        return new HelperRedis(credentials);
     }
 
     @Nonnull
