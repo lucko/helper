@@ -26,6 +26,7 @@
 package me.lucko.helper.scoreboard;
 
 import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.events.InternalStructure;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.utility.MinecraftReflection;
 import com.google.common.base.Preconditions;
@@ -37,19 +38,12 @@ import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
+import me.lucko.shadow.bukkit.PackageVersion;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Implements {@link ScoreboardTeam} using ProtocolLib.
@@ -61,6 +55,8 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     private static final boolean SUPPORTS_COLLISION_RULE = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_9);
     // anything >= 1.13 uses chat components for display name, prefix and suffix
     private static final boolean GTEQ_1_13 = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_13);
+    // I think 1.17 uses strings again or something
+    private static final boolean GTEQ_1_17 = PackageVersion.runtimeVersion().isAfterOrEq(PackageVersion.v1_17_R1);
 
     // the display name value in teams if limited to 32 chars
     private static final int MAX_NAME_LENGTH = 32;
@@ -378,51 +374,87 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
         // set mode - byte
         packet.getIntegers().write(GTEQ_1_13 ? 0 : 1, UpdateType.UPDATE.getCode());
-
-        if (GTEQ_1_13) {
+        if(GTEQ_1_17){
+            InternalStructure subPacket = (InternalStructure) packet.getOptionalStructures().readSafely(0).get();
             // set display name - Component
-            packet.getChatComponents().write(0, PacketScoreboard.toComponent(getDisplayName()));
+            subPacket.getChatComponents().write(0, PacketScoreboard.toComponent(getDisplayName()));
 
             // set prefix - Component
-            packet.getChatComponents().write(1, PacketScoreboard.toComponent(getPrefix()));
+            subPacket.getChatComponents().write(1, PacketScoreboard.toComponent(getPrefix()));
 
             // set suffix - Component
-            packet.getChatComponents().write(2, PacketScoreboard.toComponent(getSuffix()));
-        } else {
-            // set display name - String(32)
-            packet.getStrings().write(1, getDisplayName());
+            subPacket.getChatComponents().write(2, PacketScoreboard.toComponent(getSuffix()));
+            // set nametag visibility - String Enum (32)
+            subPacket.getStrings().write(0, getNameTagVisibility().getProtocolName());
 
-            // set prefix - String(16)
-            packet.getStrings().write(2, getPrefix());
+            // set friendly flags - byte - Bit mask. 0x01: Allow friendly fire, 0x02: can see invisible entities on same team
+            int data = 0;
+            if (isAllowFriendlyFire()) {
+                data |= 1;
+            }
+            if (isCanSeeFriendlyInvisibles()) {
+                data |= 2;
+            }
+            subPacket.getIntegers().write(0, data);
 
-            // set suffix - String(16)
-            packet.getStrings().write(3, getSuffix());
-        }
-
-        // set friendly flags - byte - Bit mask. 0x01: Allow friendly fire, 0x02: can see invisible entities on same team
-        int data = 0;
-        if (isAllowFriendlyFire()) {
-            data |= 1;
-        }
-        if (isCanSeeFriendlyInvisibles()) {
-            data |= 2;
-        }
-
-        packet.getIntegers().write(GTEQ_1_13 ? 1 : 2, data);
-
-        // set nametag visibility - String Enum (32)
-        packet.getStrings().write(GTEQ_1_13 ? 1 : 4, getNameTagVisibility().getProtocolName());
-
-        if (SUPPORTS_COLLISION_RULE) {
             // set collision rule - String Enum (32)
-            packet.getStrings().write(GTEQ_1_13 ? 2 : 5, getCollisionRule().getProtocolName());
-        }
+            subPacket.getStrings().write(1, getCollisionRule().getProtocolName());
 
-        // set color - byte - For colors, the same Chat colors (0-15). -1 indicates RESET/no color.
-        if (GTEQ_1_13) {
-            packet.getEnumModifier(ChatColor.class, MinecraftReflection.getMinecraftClass("EnumChatFormat")).write(0, getColor());
-        } else {
-            packet.getIntegers().write(0, COLOR_CODES.getOrDefault(getColor(), -1));
+            // set color - byte - For colors, the same Chat colors (0-15). -1 indicates RESET/no color.
+            subPacket.getEnumModifier(ChatColor.class, MinecraftReflection.getMinecraftClass("EnumChatFormat")).write(0, getColor());
+
+            packet.getOptionalStructures().write(0, Optional.of(subPacket));
+
+        }else{
+            if (GTEQ_1_13) {
+                // set display name - Component
+                packet.getChatComponents().write(0, PacketScoreboard.toComponent(getDisplayName()));
+
+                // set prefix - Component
+                packet.getChatComponents().write(1, PacketScoreboard.toComponent(getPrefix()));
+
+                // set suffix - Component
+                packet.getChatComponents().write(2, PacketScoreboard.toComponent(getSuffix()));
+            } else {
+                // set display name - String(32)
+                packet.getStrings().write(1, getDisplayName());
+
+                // set prefix - String(16)
+                packet.getStrings().write(2, getPrefix());
+
+                // set suffix - String(16)
+                packet.getStrings().write(3, getSuffix());
+            }
+        }
+        if(!GTEQ_1_17) {
+            // set friendly flags - byte - Bit mask. 0x01: Allow friendly fire, 0x02: can see invisible entities on same team
+            int data = 0;
+            if (isAllowFriendlyFire()) {
+                data |= 1;
+            }
+            if (isCanSeeFriendlyInvisibles()) {
+                data |= 2;
+            }
+
+            packet.getIntegers().write(GTEQ_1_13 ? 1 : 2, data);
+
+
+            // set nametag visibility - String Enum (32)
+            packet.getStrings().write(GTEQ_1_13 ? 1 : 4, getNameTagVisibility().getProtocolName());
+
+
+            if (SUPPORTS_COLLISION_RULE) {
+                // set collision rule - String Enum (32)
+                packet.getStrings().write(GTEQ_1_13 ? 2 : 5, getCollisionRule().getProtocolName());
+            }
+
+
+            // set color - byte - For colors, the same Chat colors (0-15). -1 indicates RESET/no color.
+            if (GTEQ_1_13) {
+                packet.getEnumModifier(ChatColor.class, MinecraftReflection.getMinecraftClass("EnumChatFormat")).write(0, getColor());
+            } else {
+                packet.getIntegers().write(0, COLOR_CODES.getOrDefault(getColor(), -1));
+            }
         }
 
         return packet;
