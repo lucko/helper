@@ -425,8 +425,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
                 // set suffix - String(16)
                 packet.getStrings().write(3, getSuffix());
             }
-        }
-        if(!GTEQ_1_17) {
+            
             // set friendly flags - byte - Bit mask. 0x01: Allow friendly fire, 0x02: can see invisible entities on same team
             int data = 0;
             if (isAllowFriendlyFire()) {
