@@ -55,7 +55,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
     private static final boolean SUPPORTS_COLLISION_RULE = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_9);
     // anything >= 1.13 uses chat components for display name, prefix and suffix
     private static final boolean GTEQ_1_13 = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_13);
-    // I think 1.17 uses strings again or something
+    // 1.17 uses fancy optional subpacket structure so has to be handled in a specific way
     private static final boolean GTEQ_1_17 = PackageVersion.runtimeVersion().isAfterOrEq(PackageVersion.v1_17_R1);
 
     // the display name value in teams if limited to 32 chars
@@ -375,7 +375,7 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
         // set mode - byte
         packet.getIntegers().write(GTEQ_1_13 ? 0 : 1, UpdateType.UPDATE.getCode());
         if(GTEQ_1_17){
-            InternalStructure subPacket = (InternalStructure) packet.getOptionalStructures().readSafely(0).get();
+            InternalStructure subPacket = packet.getOptionalStructures().readSafely(0).get();
             // set display name - Component
             subPacket.getChatComponents().write(0, PacketScoreboard.toComponent(getDisplayName()));
 
