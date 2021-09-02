@@ -147,6 +147,11 @@ public class PluginProcessor extends AbstractProcessor {
             data.put("loadbefore", new ArrayList<>(Arrays.asList(loadBefore)));
         }
 
+        String[] libraries = annotation.libraries();
+        if (libraries.length != 0) {
+            data.put("libraries", new ArrayList<>(Arrays.asList(libraries)));
+        }
+
         try {
             Yaml yaml = new Yaml();
             FileObject resource = this.processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", "plugin.yml");

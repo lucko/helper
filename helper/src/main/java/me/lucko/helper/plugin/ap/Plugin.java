@@ -130,4 +130,9 @@ public @interface Plugin {
     @Nonnull
     String[] loadBefore() default {};
 
+    /**
+     * Libraries from maven central which are loaded at runtime.
+     */
+    @Nonnull
+    String[] libraries() default {};
 }
