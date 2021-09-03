@@ -26,6 +26,7 @@
 package me.lucko.helper.scoreboard;
 
 import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.events.AbstractStructure;
 import com.comphenix.protocol.events.InternalStructure;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.utility.MinecraftReflection;
@@ -37,13 +38,22 @@ import me.lucko.helper.reflect.MinecraftVersion;
 import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.text.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
 import me.lucko.shadow.bukkit.PackageVersion;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Implements {@link ScoreboardTeam} using ProtocolLib.
@@ -374,86 +384,63 @@ public class PacketScoreboardTeam implements ScoreboardTeam {
 
         // set mode - byte
         packet.getIntegers().write(GTEQ_1_13 ? 0 : 1, UpdateType.UPDATE.getCode());
-        if(GTEQ_1_17){
-            InternalStructure subPacket = packet.getOptionalStructures().readSafely(0).get();
+
+        AbstractStructure struct;
+        if (GTEQ_1_17) {
+            struct = packet.getOptionalStructures().readSafely(0).get();
+        } else {
+            struct = packet;
+        }
+
+        if (GTEQ_1_13) {
             // set display name - Component
-            subPacket.getChatComponents().write(0, PacketScoreboard.toComponent(getDisplayName()));
+            struct.getChatComponents().write(0, PacketScoreboard.toComponent(getDisplayName()));
 
             // set prefix - Component
-            subPacket.getChatComponents().write(1, PacketScoreboard.toComponent(getPrefix()));
+            struct.getChatComponents().write(1, PacketScoreboard.toComponent(getPrefix()));
 
             // set suffix - Component
-            subPacket.getChatComponents().write(2, PacketScoreboard.toComponent(getSuffix()));
-            // set nametag visibility - String Enum (32)
-            subPacket.getStrings().write(0, getNameTagVisibility().getProtocolName());
+            struct.getChatComponents().write(2, PacketScoreboard.toComponent(getSuffix()));
+        } else {
+            // set display name - String(32)
+            struct.getStrings().write(1, getDisplayName());
 
-            // set friendly flags - byte - Bit mask. 0x01: Allow friendly fire, 0x02: can see invisible entities on same team
-            int data = 0;
-            if (isAllowFriendlyFire()) {
-                data |= 1;
-            }
-            if (isCanSeeFriendlyInvisibles()) {
-                data |= 2;
-            }
-            subPacket.getIntegers().write(0, data);
+            // set prefix - String(16)
+            struct.getStrings().write(2, getPrefix());
 
+            // set suffix - String(16)
+            struct.getStrings().write(3, getSuffix());
+        }
+
+        // friendly flags - byte - Bit mask. 0x01: Allow friendly fire, 0x02: can see invisible entities on same team
+        int flags = 0;
+        if (isAllowFriendlyFire()) {
+            flags |= 1;
+        }
+        if (isCanSeeFriendlyInvisibles()) {
+            flags |= 2;
+        }
+
+        // set flags
+        struct.getIntegers().write(GTEQ_1_17 ? 0 : GTEQ_1_13 ? 1 : 2, flags);
+
+        // set nametag visibility - String Enum (32)
+        struct.getStrings().write(GTEQ_1_17 ? 0 : GTEQ_1_13 ? 1 : 4, getNameTagVisibility().getProtocolName());
+
+        if (SUPPORTS_COLLISION_RULE) {
             // set collision rule - String Enum (32)
-            subPacket.getStrings().write(1, getCollisionRule().getProtocolName());
+            struct.getStrings().write(GTEQ_1_17 ? 1 : GTEQ_1_13 ? 2 : 5, getCollisionRule().getProtocolName());
+        }
 
-            // set color - byte - For colors, the same Chat colors (0-15). -1 indicates RESET/no color.
-            subPacket.getEnumModifier(ChatColor.class, MinecraftReflection.getMinecraftClass("EnumChatFormat")).write(0, getColor());
+        // set color - byte - For colors, the same Chat colors (0-15). -1 indicates RESET/no color.
+        if (GTEQ_1_13) {
+            struct.getEnumModifier(ChatColor.class, MinecraftReflection.getMinecraftClass("EnumChatFormat")).write(0, getColor());
+        } else {
+            struct.getIntegers().write(0, COLOR_CODES.getOrDefault(getColor(), -1));
+        }
 
-            packet.getOptionalStructures().write(0, Optional.of(subPacket));
-
-        }else{
-            if (GTEQ_1_13) {
-                // set display name - Component
-                packet.getChatComponents().write(0, PacketScoreboard.toComponent(getDisplayName()));
-
-                // set prefix - Component
-                packet.getChatComponents().write(1, PacketScoreboard.toComponent(getPrefix()));
-
-                // set suffix - Component
-                packet.getChatComponents().write(2, PacketScoreboard.toComponent(getSuffix()));
-            } else {
-                // set display name - String(32)
-                packet.getStrings().write(1, getDisplayName());
-
-                // set prefix - String(16)
-                packet.getStrings().write(2, getPrefix());
-
-                // set suffix - String(16)
-                packet.getStrings().write(3, getSuffix());
-            }
-            
-            // set friendly flags - byte - Bit mask. 0x01: Allow friendly fire, 0x02: can see invisible entities on same team
-            int data = 0;
-            if (isAllowFriendlyFire()) {
-                data |= 1;
-            }
-            if (isCanSeeFriendlyInvisibles()) {
-                data |= 2;
-            }
-
-            packet.getIntegers().write(GTEQ_1_13 ? 1 : 2, data);
-
-
-            // set nametag visibility - String Enum (32)
-            packet.getStrings().write(GTEQ_1_13 ? 1 : 4, getNameTagVisibility().getProtocolName());
-
-
-            if (SUPPORTS_COLLISION_RULE) {
-                // set collision rule - String Enum (32)
-                packet.getStrings().write(GTEQ_1_13 ? 2 : 5, getCollisionRule().getProtocolName());
-            }
-
-
-            // set color - byte - For colors, the same Chat colors (0-15). -1 indicates RESET/no color.
-            if (GTEQ_1_13) {
-                packet.getEnumModifier(ChatColor.class, MinecraftReflection.getMinecraftClass("EnumChatFormat")).write(0, getColor());
-            } else {
-                packet.getIntegers().write(0, COLOR_CODES.getOrDefault(getColor(), -1));
-            }
+        if (GTEQ_1_17) {
+            packet.getOptionalStructures().write(0, Optional.of((InternalStructure) struct));
         }
 
         return packet;
