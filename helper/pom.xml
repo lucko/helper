@@ -163,7 +163,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>shadow-bukkit</artifactId>
-            <version>1.7-SNAPSHOT</version>
+            <version>1.7</version>
             <scope>compile</scope>
         </dependency>
         <!-- flowpowered math -->
