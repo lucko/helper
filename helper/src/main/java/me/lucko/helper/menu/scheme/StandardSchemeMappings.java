@@ -30,6 +30,8 @@ import me.lucko.helper.item.ItemStackBuilder;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 import org.bukkit.Material;
 
+import java.util.Arrays;
+
 /**
  * Contains a number of default {@link SchemeMapping}s.
  */
@@ -37,16 +39,33 @@ import org.bukkit.Material;
 public final class StandardSchemeMappings {
 
     private static final Range<Integer> COLORED_MATERIAL_RANGE = Range.closed(0, 15);
+    private static final String[] BLOCk_COLORS = {
+            "WHITE", "ORANGE", "MAGENTA", "LIGHT_BLUE", "YELLOW", "LIME", "PINK", "GRAY",
+            "LIGHT_GRAY", "CYAN", "PURPLE", "BLUE", "BROWN", "GREEN", "RED", "BLACK",
+    };
 
-    public static final SchemeMapping STAINED_GLASS = forColoredMaterial(Material.STAINED_GLASS_PANE);
-    public static final SchemeMapping STAINED_GLASS_BLOCK = forColoredMaterial(Material.STAINED_GLASS);
-    public static final SchemeMapping HARDENED_CLAY = forColoredMaterial(Material.STAINED_CLAY);
-    public static final SchemeMapping WOOL = forColoredMaterial(Material.WOOL);
+    public static final SchemeMapping STAINED_GLASS = forColoredMaterial("STAINED_GLASS_PANE", "_STAINED_GLASS_PANE");
+    public static final SchemeMapping STAINED_GLASS_BLOCK = forColoredMaterial("STAINED_GLASS", "_STAINED_GLASS");
+    public static final SchemeMapping HARDENED_CLAY = forColoredMaterial("STAINED_CLAY", "_TERRACOTTA");
+    public static final SchemeMapping WOOL = forColoredMaterial("WOOL", "_WOOL");
     public static final SchemeMapping EMPTY = new EmptySchemeMapping();
 
-    private static SchemeMapping forColoredMaterial(Material material) {
+    private static SchemeMapping forColoredMaterial(String legacyName, String modernSuffix) {
+        Material material = Material.getMaterial(legacyName);
+
+        if (material != null) {
+            return FunctionalSchemeMapping.of(
+                    data -> ItemStackBuilder.of(material).name("&f").data(data).build(null),
+                    COLORED_MATERIAL_RANGE
+            );
+        }
+
+        Material[] materials = Arrays.stream(BLOCk_COLORS)
+                .map(color -> Material.valueOf(color + modernSuffix))
+                .toArray(Material[]::new);
+
         return FunctionalSchemeMapping.of(
-                data -> ItemStackBuilder.of(material).name("&f").data(data).build(null),
+                data -> ItemStackBuilder.of(materials[data]).name("&f").build(null),
                 COLORED_MATERIAL_RANGE
         );
     }
@@ -54,5 +73,4 @@ public final class StandardSchemeMappings {
     private StandardSchemeMappings() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
-
 }
