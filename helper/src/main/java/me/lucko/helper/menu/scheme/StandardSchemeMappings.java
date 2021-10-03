@@ -39,7 +39,7 @@ import java.util.Arrays;
 public final class StandardSchemeMappings {
 
     private static final Range<Integer> COLORED_MATERIAL_RANGE = Range.closed(0, 15);
-    private static final String[] BLOCk_COLORS = {
+    private static final String[] BLOCK_COLORS = {
             "WHITE", "ORANGE", "MAGENTA", "LIGHT_BLUE", "YELLOW", "LIME", "PINK", "GRAY",
             "LIGHT_GRAY", "CYAN", "PURPLE", "BLUE", "BROWN", "GREEN", "RED", "BLACK",
     };
@@ -60,7 +60,7 @@ public final class StandardSchemeMappings {
             );
         }
 
-        Material[] materials = Arrays.stream(BLOCk_COLORS)
+        Material[] materials = Arrays.stream(BLOCK_COLORS)
                 .map(color -> Material.valueOf(color + modernSuffix))
                 .toArray(Material[]::new);
 
