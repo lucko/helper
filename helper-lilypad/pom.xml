@@ -95,12 +95,6 @@
             <version>[5.5.0,6.0.0)</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>${bukkit.version}</version>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- helper-lilypad related dependencies -->
         <dependency>
