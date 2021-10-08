@@ -23,51 +23,24 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.command;
+package me.lucko.helper.command.functional;
 
+import me.lucko.helper.command.CommandInterruptException;
 import me.lucko.helper.command.context.CommandContext;
-import me.lucko.helper.terminable.Terminable;
-import me.lucko.helper.terminable.TerminableConsumer;
+import org.bukkit.command.CommandSender;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
-/**
- * Represents a command
- */
-public interface Command extends Terminable {
+public interface FunctionalTabHandler<T extends CommandSender> {
 
     /**
-     * Registers this command with the server, via the given plugin instance
+     * Executes the tab completer using the given command context and returns the completions.
      *
-     * @param aliases the aliases for the command
-     */
-    void register(@Nonnull String... aliases);
-
-    /**
-     * Registers this command with the server, via the given plugin instance, and then binds it with the composite terminable.
-     *
-     * @param consumer the terminable consumer to bind with
-     * @param aliases the aliases for the command
-     */
-    default void registerAndBind(@Nonnull TerminableConsumer consumer, @Nonnull String... aliases) {
-        register(aliases);
-        bindWith(consumer);
-    }
-
-    /**
-     * Calls the command handler
-     *
-     * @param context the contexts for the command
-     */
-    void call(@Nonnull CommandContext<?> context) throws CommandInterruptException;
-
-    /**
-     * Calls the command tab completer
-     *
-     * @param context the contexts for the command
+     * @param c the command context
      * @return a {@link List} with the completions
      */
-    List<String> callTabCompleter(@Nonnull CommandContext<?> context) throws CommandInterruptException;
+    @Nullable
+    List<String> handle(CommandContext<T> c) throws CommandInterruptException;
 
 }

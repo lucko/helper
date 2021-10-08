@@ -32,6 +32,7 @@ import me.lucko.helper.command.CommandInterruptException;
 import me.lucko.helper.command.context.CommandContext;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
@@ -41,10 +42,12 @@ import javax.annotation.Nullable;
 class FunctionalCommand extends AbstractCommand {
     private final ImmutableList<Predicate<CommandContext<?>>> predicates;
     private final FunctionalCommandHandler handler;
+    private @Nullable final FunctionalTabHandler tabHandler;
 
-    FunctionalCommand(ImmutableList<Predicate<CommandContext<?>>> predicates, FunctionalCommandHandler handler, @Nullable String permission, @Nullable String permissionMessage, @Nullable String description) {
+    FunctionalCommand(ImmutableList<Predicate<CommandContext<?>>> predicates, FunctionalCommandHandler handler, @Nullable FunctionalTabHandler tabHandler, @Nullable String permission, @Nullable String permissionMessage, @Nullable String description) {
         this.predicates = predicates;
         this.handler = handler;
+        this.tabHandler = tabHandler;
         this.permission = permission;
         this.permissionMessage = permissionMessage;
         this.description = description;
@@ -60,5 +63,21 @@ class FunctionalCommand extends AbstractCommand {
 
         //noinspection unchecked
         this.handler.handle(context);
+    }
+
+    @Nullable
+    @Override
+    public List<String> callTabCompleter(@Nonnull CommandContext<?> context) throws CommandInterruptException {
+        if (tabHandler == null) {
+            return null;
+        }
+        for (Predicate<CommandContext<?>> predicate : this.predicates) {
+            if (!predicate.test(context)) {
+                return null;
+            }
+        }
+
+        //noinspection unchecked
+        return this.tabHandler.handle(context);
     }
 }
