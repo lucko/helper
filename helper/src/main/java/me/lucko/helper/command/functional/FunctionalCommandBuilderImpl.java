@@ -68,19 +68,14 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
 
     @SuppressWarnings("unchecked")
     @Override
-    public FunctionalCommandBuilder<T> assertFunction(Predicate<? super CommandContext<? extends T>> test) {
-        this.predicates.add((Predicate<CommandContext<?>>) test);
-        return this;
-    }
-
-    @Override
-    public FunctionalCommandBuilder<T> assertFunction(CommandContext<? extends T> testing, Predicate<? super CommandContext<? extends T>> test, String failureMessage) {
-        Objects.requireNonNull(failureMessage, "failureMessage");
+    public FunctionalCommandBuilder<T> assertFunction(Predicate<? super CommandContext<? extends T>> test, @Nullable String failureMessage) {
         this.predicates.add(context -> {
-            if (test.test(testing)) {
+            if (test.test((CommandContext<? extends T>) context)) {
                 return true;
             }
-            context.reply(failureMessage);
+            if (failureMessage != null) {
+                context.reply(failureMessage);
+            }
             return false;
         });
         return this;

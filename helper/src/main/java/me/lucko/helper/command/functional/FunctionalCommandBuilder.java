@@ -71,17 +71,18 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
      * @param test the test to run
      * @return the builder instance
      */
-    FunctionalCommandBuilder<T> assertFunction(Predicate<? super CommandContext<? extends T>> test);
+    default FunctionalCommandBuilder<T> assertFunction(Predicate<? super CommandContext<? extends T>> test) {
+        return assertFunction(test, null);
+    }
 
     /**
      * Asserts that some function returns true.
      *
-     * @param testing the context to test
      * @param test the test to run
      * @param failureMessage the failure message if the test fails
      * @return the builder instance
      */
-    FunctionalCommandBuilder<T> assertFunction(CommandContext<? extends T> testing, Predicate<? super CommandContext<? extends T>> test, String failureMessage);
+    FunctionalCommandBuilder<T> assertFunction(Predicate<? super CommandContext<? extends T>> test, @Nullable String failureMessage);
 
     /**
      * Asserts that the sender has the specified permission, and sends them the default failure message
