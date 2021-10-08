@@ -28,13 +28,17 @@ package me.lucko.helper.signprompt;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
+import com.comphenix.protocol.wrappers.ComponentConverter;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
 
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.protocol.Protocol;
+import me.lucko.helper.reflect.MinecraftVersion;
+import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.utils.Players;
-
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -43,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -91,7 +96,9 @@ public class PacketSignPromptFactory implements SignPromptFactory {
 
                     PacketContainer container = event.getPacket();
 
-                    List<String> input = new ArrayList<>(Arrays.asList(container.getStringArrays().read(0)));
+                    List<String> input = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_9)
+                            ? new ArrayList<>(Arrays.asList(container.getStringArrays().read(0)))
+                            : getInputForLegacyVersions(container);
                     Response response = responseHandler.handleResponse(input);
 
                     if (response == Response.TRY_AGAIN) {
@@ -109,4 +116,12 @@ public class PacketSignPromptFactory implements SignPromptFactory {
                 });
     }
 
+    private List<String> getInputForLegacyVersions(PacketContainer container) {
+        WrappedChatComponent[] components = container.getChatComponentArrays().read(0);
+
+        return Arrays.stream(components)
+                .map(ComponentConverter::fromWrapper)
+                .map(BaseComponent::toPlainText)
+                .collect(Collectors.toList());
+    }
 }
