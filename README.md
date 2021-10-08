@@ -13,7 +13,7 @@ helper is a development toolkit / library for Bukkit plugin developers. It provi
 
 #### Status
 
-I'm no longer actively working on further API additions, but the project is still being used frequntly by various development teams, and I accept pull requests!
+I'm no longer actively working on further API additions, but the project is still being used frequently by various development teams, and I accept pull requests!
 
 ### Links
 
@@ -64,4 +64,4 @@ I'm no longer actively working on further API additions, but the project is stil
 * [`Bungee Messaging`](https://github.com/lucko/helper/wiki/helper:-Bungee-Messaging) - wrapper for BungeeCord's plugin messaging API
 * [`JavaScript Plugins`](https://github.com/lucko/helper/wiki/helper-js:-Introduction) - javascript plugins using helper-js and Nashorn
 
-... and much more!
+[`... and much more!`](https://github.com/lucko/helper/wiki/)
