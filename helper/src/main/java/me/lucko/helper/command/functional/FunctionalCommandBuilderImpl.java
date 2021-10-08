@@ -74,6 +74,19 @@ class FunctionalCommandBuilderImpl<T extends CommandSender> implements Functiona
     }
 
     @Override
+    public FunctionalCommandBuilder<T> assertFunction(CommandContext<? extends T> testing, Predicate<? super CommandContext<? extends T>> test, String failureMessage) {
+        Objects.requireNonNull(failureMessage, "failureMessage");
+        this.predicates.add(context -> {
+            if (test.test(testing)) {
+                return true;
+            }
+            context.reply(failureMessage);
+            return false;
+        });
+        return this;
+    }
+
+    @Override
     public FunctionalCommandBuilder<T> assertPermission(String permission, @Nullable String failureMessage) {
         Objects.requireNonNull(permission, "permission");
         this.permission = permission;
