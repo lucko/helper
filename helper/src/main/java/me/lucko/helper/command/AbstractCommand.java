@@ -71,7 +71,7 @@ public abstract class AbstractCommand implements Command, CommandExecutor, TabCo
 
     @Override
     public List<String> onTabComplete(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
-        CommandContext<CommandSender> context = new ImmutableCommandContext<>(sender, label, args);
+        CommandContext<CommandSender> context = new ImmutableCommandContext<>(sender, label, args, command.getAliases());
         try {
             return callTabCompleter(context);
         } catch (CommandInterruptException e) {

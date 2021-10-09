@@ -28,6 +28,7 @@ package me.lucko.helper.hologram.individual;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
@@ -39,7 +40,7 @@ import me.lucko.helper.reflect.MinecraftVersions;
 import me.lucko.helper.reflect.ServerReflection;
 import me.lucko.helper.serialize.Position;
 import me.lucko.helper.terminable.composite.CompositeTerminable;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.text3.Text;
 import me.lucko.helper.utils.entityspawner.EntitySpawner;
 
 import org.bukkit.Chunk;
@@ -59,6 +60,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
@@ -159,11 +161,10 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
         private Position getNewLinePosition() {
             if (this.spawnedEntities.isEmpty()) {
                 return this.position;
-            } else {
-                // get the last entry
-                ArmorStand last = this.spawnedEntities.get(this.spawnedEntities.size() - 1).getArmorStand();
-                return Position.of(last.getLocation()).subtract(0.0d, 0.25d, 0.0d);
             }
+            // get the last entry
+            ArmorStand last = this.spawnedEntities.get(this.spawnedEntities.size() - 1).getArmorStand();
+            return Position.of(last.getLocation()).subtract(0.0, 0.25, 0.0);
         }
 
         @Override
@@ -333,6 +334,7 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
             }
 
             boolean modern = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_9);
+            boolean post1_14 = MinecraftVersion.getRuntimeVersion().isAfterOrEq(MinecraftVersions.v1_14);
 
             // handle resending
             for (HologramEntity entity : this.spawnedEntities) {
@@ -366,11 +368,10 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                 spawnPacket.getIntegers().write(modern ? 6 : 9, 78);
 
                 // write object data
-                spawnPacket.getIntegers().write(modern ? 7 : 10, 0);
+                spawnPacket.getIntegers().write(post1_14 ? 6 : (modern ? 7 : 10), 0);
 
                 // send it
                 Protocol.sendPacket(player, spawnPacket);
-
 
                 // send missed metadata
                 PacketContainer metadataPacket = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
@@ -380,20 +381,10 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
 
                 // write metadata
                 List<WrappedWatchableObject> watchableObjects = new ArrayList<>();
-                // set custom name
-                watchableObjects.add(new WrappedWatchableObject(2, Text.colorize(entity.getLine().resolve(player))));
-                // set custom name visible
-                if (modern) {
-                    watchableObjects.add(new WrappedWatchableObject(3, true));
-                } else {
-                    watchableObjects.add(new WrappedWatchableObject(3, (byte) 1));
-                }
 
                 // re-add all other cached metadata
                 for (Map.Entry<Integer, WrappedWatchableObject> ent : entity.getCachedMetadata().entrySet()) {
-                    if (ent.getKey() != 2 && ent.getKey() != 3) {
-                        watchableObjects.add(ent.getValue());
-                    }
+                    watchableObjects.add(ent.getValue());
                 }
 
                 metadataPacket.getWatchableCollectionModifier().write(0, watchableObjects);
@@ -471,9 +462,7 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                         if (!this.viewers.contains(player)) {
                             // attempt to cache metadata anyway
                             for (WrappedWatchableObject value : metadata) {
-                                if (value.getIndex() != 2) {
-                                    hologram.getCachedMetadata().put(value.getIndex(), value);
-                                }
+                                hologram.getCachedMetadata().put(value.getIndex(), value);
                             }
 
                             e.setCancelled(true);
@@ -482,11 +471,13 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
 
                         // process metadata
                         for (WrappedWatchableObject value : metadata) {
+                            // cache the metadata
+                            hologram.getCachedMetadata().put(value.getIndex(), value);
+
                             if (value.getIndex() == 2) {
-                                value.setValue(Text.colorize(hologram.getLine().resolve(player)));
-                            } else {
-                                // cache the metadata
-                                hologram.getCachedMetadata().put(value.getIndex(), value);
+                                String line = Text.colorize(hologram.getLine().resolve(player));
+
+                                value.setValue(convertNameMeta(value.getValue().getClass(), line));
                             }
                         }
 
@@ -551,6 +542,20 @@ public class PacketIndividualHologramFactory implements IndividualHologramFactor
                         this.clickCallback.accept(player);
                     })
                     .bindWith(this.listeners);
+        }
+
+        private Object convertNameMeta(Class<?> metaClass, String value) {
+            // Optional<ChatComponent> on 1.13+
+            if (metaClass == Optional.class) {
+                return Optional.of(WrappedChatComponent.fromLegacyText(value).getHandle());
+            }
+
+            // String on legacy versions
+            if (metaClass == String.class) {
+                return value;
+            }
+
+            throw new UnsupportedOperationException("Unsupported name meta type: " + metaClass.getName());
         }
     }
 }
