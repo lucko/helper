@@ -76,8 +76,8 @@ public class BukkitHologramFactory implements HologramFactory {
         static {
             Method setCanTick = null;
             try {
-                setCanTick = ArmorStand.class.getDeclaredMethod("setCanTick", boolean.class);
-            } catch (Throwable ignored) {}
+                setCanTick = ArmorStand.class.getMethod("setCanTick", boolean.class);
+            } catch (NoSuchMethodException ignored) {}
 
             SET_CAN_TICK = setCanTick;
         }
@@ -102,7 +102,7 @@ public class BukkitHologramFactory implements HologramFactory {
             } else {
                 // get the last entry
                 ArmorStand last = this.spawnedEntities.get(this.spawnedEntities.size() - 1);
-                return Position.of(last.getLocation()).subtract(0.0d, 0.25d, 0.0d);
+                return Position.of(last.getLocation()).subtract(0.0, 0.25, 0.0);
             }
         }
 
