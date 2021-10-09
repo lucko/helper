@@ -84,5 +84,7 @@ public class ImmutableCommandContext<T extends CommandSender> implements Command
 
     @Nonnull
     @Override
-    public ImmutableList<String> aliases() { return  this.aliases; }
+    public ImmutableList<String> aliases() {
+        return this.aliases;
+    }
 }
