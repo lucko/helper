@@ -107,7 +107,12 @@ public enum NmsVersion {
             MinecraftVersion.of(1, 16, 1)
     ),
     v1_16_R2(
-            MinecraftVersion.of(1, 16, 2)
+            MinecraftVersion.of(1, 16, 2),
+            MinecraftVersion.of(1, 16, 3)
+    ),
+    v1_16_R3(
+            MinecraftVersion.of(1, 16, 4),
+            MinecraftVersion.of(1, 16, 5)
     );
 
     private final Set<MinecraftVersion> minecraftVersions;
