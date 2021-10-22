@@ -123,9 +123,9 @@ public @interface Plugin {
     String[] softDepends() default {};
 
     /**
-     * A list of plugins which should be loaded before this plugin
+     * A list of plugins which should be loaded after this plugin
      *
-     * @return a list of plugins which should be loaded before this plugin
+     * @return a list of plugins which should be loaded after this plugin
      */
     @Nonnull
     String[] loadBefore() default {};
