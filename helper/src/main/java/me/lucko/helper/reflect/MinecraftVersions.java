@@ -110,7 +110,7 @@ public final class MinecraftVersions {
     /**
      * Regular expression used to parse version strings.
      */
-    private static final Pattern VERSION_PATTERN = Pattern.compile(".*\\(.*MC.\\s*([a-zA-z0-9\\-\\.]+)\\s*\\)");
+    private static final Pattern VERSION_PATTERN = Pattern.compile(".*\\(.*MC.\\s*([a-zA-z0-9\\-.]+)\\s*\\)");
 
     /**
      * The version of the runtime
