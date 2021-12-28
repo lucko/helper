@@ -32,31 +32,11 @@ import java.time.temporal.ChronoUnit;
  * Formats durations to a readable form
  */
 public enum DurationFormatter {
-    LONG,
-    CONCISE {
-        @Override
-        protected String formatUnitPlural(ChronoUnit unit) {
-            return String.valueOf(Character.toLowerCase(unit.name().charAt(0)));
-        }
+    LONG(false, Integer.MAX_VALUE),
+    CONCISE(true, Integer.MAX_VALUE),
+    CONCISE_LOW_ACCURACY(true, 3);
 
-        @Override
-        protected String formatUnitSingular(ChronoUnit unit) {
-            return formatUnitPlural(unit);
-        }
-    },
-    CONCISE_LOW_ACCURACY(3) {
-        @Override
-        protected String formatUnitPlural(ChronoUnit unit) {
-            return String.valueOf(Character.toLowerCase(unit.name().charAt(0)));
-        }
-
-        @Override
-        protected String formatUnitSingular(ChronoUnit unit) {
-            return formatUnitPlural(unit);
-        }
-    };
-
-    private final Unit[] units = new Unit[]{
+    private static final Unit[] UNITS = new Unit[]{
             new Unit(ChronoUnit.YEARS),
             new Unit(ChronoUnit.MONTHS),
             new Unit(ChronoUnit.WEEKS),
@@ -67,67 +47,85 @@ public enum DurationFormatter {
     };
 
     private final int accuracy;
+    private final boolean concise;
 
-    DurationFormatter() {
-        this(Integer.MAX_VALUE);
-    }
-
-    DurationFormatter(int accuracy) {
+    DurationFormatter(boolean concise, int accuracy) {
+        this.concise = concise;
         this.accuracy = accuracy;
     }
 
     /**
-     * Formats {@code duration} as a string.
+     * Convenience method for accessing {@link #format(Duration, boolean, int)}
+     * through existing enumeration implementations.
      *
      * @param duration the duration
      * @return the formatted string
      */
     public String format(Duration duration) {
+        return format(duration, concise, accuracy);
+    }
+
+    /**
+     * Formats {@code duration} as a string, either in a {@code concise} (1 letter)
+     * or full length format, displaying up to the specified number of {@code elements}.
+     *
+     * @param duration the duration
+     * @param concise  if the output should be concisely formatted
+     * @param elements the maximum number of elements to display
+     * @return the formatted string
+     */
+    public static String format(Duration duration, boolean concise, int elements) {
         long seconds = duration.getSeconds();
         StringBuilder output = new StringBuilder();
         int outputSize = 0;
 
-        for (Unit unit : this.units) {
+        for (Unit unit : UNITS) {
             long n = seconds / unit.duration;
             if (n > 0) {
                 seconds -= unit.duration * n;
-                output.append(' ').append(n).append(unit.toString(n));
+                output.append(' ').append(n).append(unit.toString(concise, n));
                 outputSize++;
             }
-            if (seconds <= 0 || outputSize >= this.accuracy) {
+            if (seconds <= 0 || outputSize >= elements) {
                 break;
             }
         }
 
         if (output.length() == 0) {
-            return "0" + this.units[this.units.length - 1].stringPlural;
+            return "0" + (UNITS[UNITS.length - 1].toString(concise, 0));
         }
         return output.substring(1);
     }
 
-    protected String formatUnitPlural(ChronoUnit unit) {
-        return " " + unit.name().toLowerCase();
+    /**
+     * Formats {@code duration} as a string, either in a {@code concise} (1 letter)
+     * or full length format, displaying all possible elements.
+     *
+     * @param duration the duration
+     * @param concise  if the output should be concisely formatted
+     * @return the formatted string
+     */
+    public static String format(Duration duration, boolean concise) {
+        return format(duration, concise, Integer.MAX_VALUE);
     }
 
-    protected String formatUnitSingular(ChronoUnit unit) {
-        String s = unit.name().toLowerCase();
-        return " " + s.substring(0, s.length() - 1);
-    }
-
-    private final class Unit {
+    private static final class Unit {
         private final long duration;
-        private final String stringPlural;
-        private final String stringSingular;
+        private final String formalStringPlural, formalStringSingular;
+        private final String conciseString;
 
         Unit(ChronoUnit unit) {
             this.duration = unit.getDuration().getSeconds();
-            this.stringPlural = formatUnitPlural(unit);
-            this.stringSingular = formatUnitSingular(unit);
+            this.formalStringPlural = " " + unit.name().toLowerCase();
+            this.formalStringSingular = unit.name().substring(0, unit.name().length() - 1).toLowerCase();
+            this.conciseString = String.valueOf(Character.toLowerCase(unit.name().charAt(0)));
         }
 
-        public String toString(long n) {
-            return n == 1 ? this.stringSingular : this.stringPlural;
+        public String toString(boolean concise, long n) {
+            if (concise) {
+                return this.conciseString;
+            }
+            return n == 1 ? this.formalStringSingular : this.formalStringPlural;
         }
     }
-
 }
