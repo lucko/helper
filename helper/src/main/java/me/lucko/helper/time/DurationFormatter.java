@@ -117,7 +117,7 @@ public enum DurationFormatter {
         Unit(ChronoUnit unit) {
             this.duration = unit.getDuration().getSeconds();
             this.formalStringPlural = " " + unit.name().toLowerCase();
-            this.formalStringSingular = unit.name().substring(0, unit.name().length() - 1).toLowerCase();
+            this.formalStringSingular = " " + unit.name().substring(0, unit.name().length() - 1).toLowerCase();
             this.conciseString = String.valueOf(Character.toLowerCase(unit.name().charAt(0)));
         }
 
