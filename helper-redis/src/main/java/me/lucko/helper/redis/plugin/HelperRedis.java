@@ -27,6 +27,7 @@ package me.lucko.helper.redis.plugin;
 
 import com.google.common.reflect.TypeToken;
 
+import java.util.concurrent.locks.ReentrantLock;
 import me.lucko.helper.Schedulers;
 import me.lucko.helper.messaging.AbstractMessenger;
 import me.lucko.helper.messaging.Channel;
@@ -58,6 +59,7 @@ public class HelperRedis implements Redis {
     private final CompositeTerminable registry = CompositeTerminable.create();
 
     private PubSubListener listener = null;
+    private ReentrantLock listenerLock = new ReentrantLock();
 
     public HelperRedis(@Nonnull RedisCredentials credentials) {
         JedisPoolConfig config = new JedisPoolConfig();
@@ -131,11 +133,23 @@ public class HelperRedis implements Redis {
                 channel -> {
                     Log.info("[helper-redis] Subscribing to channel: " + channel);
                     this.channels.add(channel);
+                    this.listenerLock.lock();
+                    try {
+                        HelperRedis.this.listener.subscribe(channel.getBytes(StandardCharsets.UTF_8));
+                    } finally {
+                        this.listenerLock.unlock();
+                    }
                     this.listener.subscribe(channel.getBytes(StandardCharsets.UTF_8));
                 },
                 channel -> {
                     Log.info("[helper-redis] Unsubscribing from channel: " + channel);
                     this.channels.remove(channel);
+                    this.listenerLock.lock();
+                    try {
+                        HelperRedis.this.listener.unsubscribe(channel.getBytes(StandardCharsets.UTF_8));
+                    } finally {
+                        this.listenerLock.unlock();
+                    }
                     this.listener.unsubscribe(channel.getBytes(StandardCharsets.UTF_8));
                 }
         );
