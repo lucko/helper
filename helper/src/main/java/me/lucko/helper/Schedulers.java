@@ -25,6 +25,15 @@
 
 package me.lucko.helper;
 
+import java.util.Objects;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import javax.annotation.Nonnull;
+import me.lucko.helper.exception.HelperException;
+import me.lucko.helper.exception.HelperExceptionEvent;
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.promise.ThreadContext;
@@ -35,18 +44,8 @@ import me.lucko.helper.scheduler.Ticks;
 import me.lucko.helper.scheduler.builder.TaskBuilder;
 import me.lucko.helper.utils.Log;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
-
-import java.util.Objects;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-
-import javax.annotation.Nonnull;
 
 /**
  * Provides common instances of {@link Scheduler}.
@@ -189,7 +188,9 @@ public final class Schedulers {
                 this.backingTask.accept(this);
                 this.counter.incrementAndGet();
             } catch (Throwable e) {
-                Log.severe("[SCHEDULER] Exception thrown whilst executing task");
+                String msg = "Exception thrown whilst executing Bukkit task";
+                Log.severe("[SCHEDULER] " + msg);
+                Events.call(new HelperExceptionEvent(new HelperException(msg, e)));
                 e.printStackTrace();
             }
 
@@ -246,8 +247,10 @@ public final class Schedulers {
                 this.backingTask.accept(this);
                 this.counter.incrementAndGet();
             } catch (Throwable e) {
-                Log.severe("[SCHEDULER] Exception thrown whilst executing task");
+                String msg = "Exception thrown whilst executing async task";
+                Log.severe("[SCHEDULER] " + msg);
                 e.printStackTrace();
+                Events.call(new HelperExceptionEvent(new HelperException(msg, e)));
             }
         }
 
