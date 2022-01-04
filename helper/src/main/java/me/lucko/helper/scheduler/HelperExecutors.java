@@ -25,25 +25,18 @@
 
 package me.lucko.helper.scheduler;
 
-import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
-import me.lucko.helper.utils.Log;
+import me.lucko.helper.internal.exception.HelperExceptions;
 
 import org.bukkit.Bukkit;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Consumer;
 
 /**
  * Provides common {@link Executor} instances.
  */
 public final class HelperExecutors {
-    private static final Consumer<Throwable> EXCEPTION_CONSUMER = throwable -> {
-        Log.severe("[SCHEDULER] Exception thrown whilst executing task");
-        throwable.printStackTrace();
-    };
-
     private static final Executor SYNC_BUKKIT = new BukkitSyncExecutor();
     private static final Executor ASYNC_BUKKIT = new BukkitAsyncExecutor();
     private static final HelperAsyncExecutor ASYNC_HELPER = new HelperAsyncExecutor();
@@ -67,43 +60,21 @@ public final class HelperExecutors {
     private static final class BukkitSyncExecutor implements Executor {
         @Override
         public void execute(Runnable runnable) {
-            Bukkit.getScheduler().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), wrapRunnable(runnable));
+            Bukkit.getScheduler().scheduleSyncDelayedTask(LoaderUtils.getPlugin(), HelperExceptions.wrapSchedulerTask(runnable));
         }
     }
 
     private static final class BukkitAsyncExecutor implements Executor {
         @Override
         public void execute(Runnable runnable) {
-            Bukkit.getScheduler().runTaskAsynchronously(LoaderUtils.getPlugin(), wrapRunnable(runnable));
+            Bukkit.getScheduler().runTaskAsynchronously(LoaderUtils.getPlugin(), HelperExceptions.wrapSchedulerTask(runnable));
         }
     }
 
+    @Deprecated
     public static Runnable wrapRunnable(Runnable runnable) {
-        return new SchedulerWrappedRunnable(runnable);
+        return HelperExceptions.wrapSchedulerTask(runnable);
     }
-
-    private static final class SchedulerWrappedRunnable implements Runnable, Delegate<Runnable> {
-        private final Runnable delegate;
-
-        private SchedulerWrappedRunnable(Runnable delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void run() {
-            try {
-                this.delegate.run();
-            } catch (Throwable t) {
-                EXCEPTION_CONSUMER.accept(t);
-            }
-        }
-
-        @Override
-        public Runnable getDelegate() {
-            return this.delegate;
-        }
-    }
-
 
     private HelperExecutors() {}
 

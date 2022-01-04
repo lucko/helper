@@ -27,13 +27,13 @@ package me.lucko.helper;
 
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
+import me.lucko.helper.internal.exception.HelperExceptions;
 import me.lucko.helper.promise.ThreadContext;
 import me.lucko.helper.scheduler.HelperExecutors;
 import me.lucko.helper.scheduler.Scheduler;
 import me.lucko.helper.scheduler.Task;
 import me.lucko.helper.scheduler.Ticks;
 import me.lucko.helper.scheduler.builder.TaskBuilder;
-import me.lucko.helper.utils.Log;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.scheduler.BukkitRunnable;
@@ -189,8 +189,7 @@ public final class Schedulers {
                 this.backingTask.accept(this);
                 this.counter.incrementAndGet();
             } catch (Throwable e) {
-                Log.severe("[SCHEDULER] Exception thrown whilst executing task");
-                e.printStackTrace();
+                HelperExceptions.reportScheduler(e);
             }
 
             if (this.cancelled.get()) {
@@ -246,8 +245,7 @@ public final class Schedulers {
                 this.backingTask.accept(this);
                 this.counter.incrementAndGet();
             } catch (Throwable e) {
-                Log.severe("[SCHEDULER] Exception thrown whilst executing task");
-                e.printStackTrace();
+                HelperExceptions.reportScheduler(e);
             }
         }
 

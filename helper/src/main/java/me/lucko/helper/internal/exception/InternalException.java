@@ -23,43 +23,12 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.internal.exception;
 
-import me.lucko.helper.internal.LoaderUtils;
+public abstract class InternalException extends RuntimeException {
 
-import org.bukkit.Bukkit;
-
-import java.util.logging.Level;
-
-import javax.annotation.Nonnull;
-
-/**
- * Utility for quickly accessing a logger instance without using {@link Bukkit#getLogger()}
- */
-public final class Log {
-
-    public static void info(@Nonnull String s) {
-        LoaderUtils.getPlugin().getLogger().info(s);
-    }
-
-    public static void warn(@Nonnull String s) {
-        LoaderUtils.getPlugin().getLogger().warning(s);
-    }
-
-    public static void severe(@Nonnull String s) {
-        LoaderUtils.getPlugin().getLogger().severe(s);
-    }
-
-    public static void warn(@Nonnull String s, Throwable t) {
-        LoaderUtils.getPlugin().getLogger().log(Level.WARNING, s, t);
-    }
-
-    public static void severe(@Nonnull String s, Throwable t) {
-        LoaderUtils.getPlugin().getLogger().log(Level.SEVERE, s, t);
-    }
-
-    private Log() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
+    protected InternalException(String what, Throwable cause) {
+        super("Exception occurred in a helper " + what, cause);
     }
 
 }

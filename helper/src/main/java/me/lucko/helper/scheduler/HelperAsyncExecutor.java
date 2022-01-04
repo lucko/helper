@@ -27,6 +27,8 @@ package me.lucko.helper.scheduler;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+import me.lucko.helper.internal.exception.HelperExceptions;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -77,12 +79,12 @@ final class HelperAsyncExecutor extends AbstractExecutorService implements Sched
 
     @Override
     public void execute(Runnable runnable) {
-        this.taskService.execute(HelperExecutors.wrapRunnable(runnable));
+        this.taskService.execute(HelperExceptions.wrapSchedulerTask(runnable));
     }
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        Runnable delegate = HelperExecutors.wrapRunnable(command);
+        Runnable delegate = HelperExceptions.wrapSchedulerTask(command);
         return consumeTask(this.timerExecutionService.schedule(() -> this.taskService.execute(delegate), delay, unit));
     }
 
@@ -93,7 +95,7 @@ final class HelperAsyncExecutor extends AbstractExecutorService implements Sched
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        return consumeTask(this.timerExecutionService.scheduleAtFixedRate(new FixedRateWorker(HelperExecutors.wrapRunnable(command)), initialDelay, period, unit));
+        return consumeTask(this.timerExecutionService.scheduleAtFixedRate(new FixedRateWorker(HelperExceptions.wrapSchedulerTask(command)), initialDelay, period, unit));
     }
 
     @Override

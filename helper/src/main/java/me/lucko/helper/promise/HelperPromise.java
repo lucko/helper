@@ -31,9 +31,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
+import me.lucko.helper.internal.exception.HelperExceptions;
 import me.lucko.helper.scheduler.HelperExecutors;
 import me.lucko.helper.scheduler.Ticks;
-import me.lucko.helper.utils.Log;
 
 import org.bukkit.Bukkit;
 
@@ -46,7 +46,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -59,10 +58,6 @@ import javax.annotation.Nullable;
  * @param <V> the result type
  */
 final class HelperPromise<V> implements Promise<V> {
-    private static final Consumer<Throwable> EXCEPTION_CONSUMER = throwable -> {
-        Log.severe("[SCHEDULER] Exception thrown whilst executing task");
-        throwable.printStackTrace();
-    };
 
     @Nonnull
     static <U> HelperPromise<U> empty() {
@@ -163,7 +158,7 @@ final class HelperPromise<V> implements Promise<V> {
 
     private void executeSync(@Nonnull Runnable runnable) {
         if (ThreadContext.forCurrentThread() == ThreadContext.SYNC) {
-            HelperExecutors.wrapRunnable(runnable).run();
+            HelperExceptions.wrapSchedulerTask(runnable).run();
         } else {
             HelperExecutors.sync().execute(runnable);
         }
@@ -177,7 +172,7 @@ final class HelperPromise<V> implements Promise<V> {
         if (delayTicks <= 0) {
             executeSync(runnable);
         } else {
-            Bukkit.getScheduler().runTaskLater(LoaderUtils.getPlugin(), HelperExecutors.wrapRunnable(runnable), delayTicks);
+            Bukkit.getScheduler().runTaskLater(LoaderUtils.getPlugin(), HelperExceptions.wrapSchedulerTask(runnable), delayTicks);
         }
     }
 
@@ -185,7 +180,7 @@ final class HelperPromise<V> implements Promise<V> {
         if (delayTicks <= 0) {
             executeAsync(runnable);
         } else {
-            Bukkit.getScheduler().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), HelperExecutors.wrapRunnable(runnable), delayTicks);
+            Bukkit.getScheduler().runTaskLaterAsynchronously(LoaderUtils.getPlugin(), HelperExceptions.wrapSchedulerTask(runnable), delayTicks);
         }
     }
 
@@ -193,7 +188,7 @@ final class HelperPromise<V> implements Promise<V> {
         if (delay <= 0) {
             executeSync(runnable);
         } else {
-            Bukkit.getScheduler().runTaskLater(LoaderUtils.getPlugin(), HelperExecutors.wrapRunnable(runnable), Ticks.from(delay, unit));
+            Bukkit.getScheduler().runTaskLater(LoaderUtils.getPlugin(), HelperExceptions.wrapSchedulerTask(runnable), Ticks.from(delay, unit));
         }
     }
 
@@ -201,7 +196,7 @@ final class HelperPromise<V> implements Promise<V> {
         if (delay <= 0) {
             executeAsync(runnable);
         } else {
-            HelperExecutors.asyncHelper().schedule(HelperExecutors.wrapRunnable(runnable), delay, unit);
+            HelperExecutors.asyncHelper().schedule(HelperExceptions.wrapSchedulerTask(runnable), delay, unit);
         }
     }
 
@@ -655,7 +650,7 @@ final class HelperPromise<V> implements Promise<V> {
             try {
                 HelperPromise.this.fut.complete(this.supplier.call());
             } catch (Throwable t) {
-                EXCEPTION_CONSUMER.accept(t);
+                HelperExceptions.reportPromise(t);
                 HelperPromise.this.fut.completeExceptionally(t);
             }
         }
@@ -676,7 +671,7 @@ final class HelperPromise<V> implements Promise<V> {
             try {
                 HelperPromise.this.fut.complete(this.supplier.get());
             } catch (Throwable t) {
-                EXCEPTION_CONSUMER.accept(t);
+                HelperExceptions.reportPromise(t);
                 HelperPromise.this.fut.completeExceptionally(t);
             }
         }
@@ -701,7 +696,7 @@ final class HelperPromise<V> implements Promise<V> {
             try {
                 this.promise.complete(this.function.apply(this.value));
             } catch (Throwable t) {
-                EXCEPTION_CONSUMER.accept(t);
+                HelperExceptions.reportPromise(t);
                 this.promise.completeExceptionally(t);
             }
         }
@@ -737,7 +732,7 @@ final class HelperPromise<V> implements Promise<V> {
                     }
                 }
             } catch (Throwable t) {
-                EXCEPTION_CONSUMER.accept(t);
+                HelperExceptions.reportPromise(t);
                 this.promise.completeExceptionally(t);
             }
         }
@@ -762,7 +757,7 @@ final class HelperPromise<V> implements Promise<V> {
             try {
                 this.promise.complete(this.function.apply(this.t));
             } catch (Throwable t) {
-                EXCEPTION_CONSUMER.accept(t);
+                HelperExceptions.reportPromise(t);
                 this.promise.completeExceptionally(t);
             }
         }

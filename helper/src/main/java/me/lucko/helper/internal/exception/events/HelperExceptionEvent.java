@@ -23,43 +23,38 @@
  *  SOFTWARE.
  */
 
-package me.lucko.helper.utils;
+package me.lucko.helper.internal.exception.events;
 
-import me.lucko.helper.internal.LoaderUtils;
+import com.google.common.base.Preconditions;
+
+import me.lucko.helper.internal.exception.InternalException;
 
 import org.bukkit.Bukkit;
-
-import java.util.logging.Level;
-
-import javax.annotation.Nonnull;
+import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
 
 /**
- * Utility for quickly accessing a logger instance without using {@link Bukkit#getLogger()}
+ * Event called when an internal exception occurs.
  */
-public final class Log {
+public class HelperExceptionEvent extends Event {
+    private static final HandlerList handlers = new HandlerList();
 
-    public static void info(@Nonnull String s) {
-        LoaderUtils.getPlugin().getLogger().info(s);
+    private final InternalException exception;
+
+    public HelperExceptionEvent(InternalException exception) {
+        super(!Bukkit.isPrimaryThread());
+        this.exception = Preconditions.checkNotNull(exception, "exception");
     }
 
-    public static void warn(@Nonnull String s) {
-        LoaderUtils.getPlugin().getLogger().warning(s);
+    public InternalException getException() {
+        return this.exception;
     }
 
-    public static void severe(@Nonnull String s) {
-        LoaderUtils.getPlugin().getLogger().severe(s);
+    public HandlerList getHandlers() {
+        return handlers;
     }
 
-    public static void warn(@Nonnull String s, Throwable t) {
-        LoaderUtils.getPlugin().getLogger().log(Level.WARNING, s, t);
+    public static HandlerList getHandlerList() {
+        return handlers;
     }
-
-    public static void severe(@Nonnull String s, Throwable t) {
-        LoaderUtils.getPlugin().getLogger().log(Level.SEVERE, s, t);
-    }
-
-    private Log() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
-    }
-
 }

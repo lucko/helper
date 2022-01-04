@@ -25,7 +25,7 @@
 
 package me.lucko.helper.event.functional;
 
-import me.lucko.helper.utils.Log;
+import me.lucko.helper.internal.exception.HelperExceptions;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -40,10 +40,7 @@ import javax.annotation.Nonnull;
  */
 public interface SubscriptionBuilder<T> {
 
-    BiConsumer<Object, Throwable> DEFAULT_EXCEPTION_CONSUMER = (event, throwable) -> {
-        Log.severe("[EVENTS] Exception thrown whilst handling event: " + event.getClass().getName());
-        throwable.printStackTrace();
-    };
+    BiConsumer<Object, Throwable> DEFAULT_EXCEPTION_CONSUMER = HelperExceptions::reportEvent;
 
     /**
      * Add a expiry predicate.
