@@ -25,9 +25,12 @@
 
 package me.lucko.helper.event.functional.single;
 
+import me.lucko.helper.Events;
 import me.lucko.helper.Helper;
 import me.lucko.helper.event.SingleSubscription;
 
+import me.lucko.helper.exception.HelperException;
+import me.lucko.helper.exception.HelperExceptionEvent;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -139,6 +142,10 @@ class HelperEventListener<T extends Event> implements SingleSubscription<T>, Eve
             // increment call counter
             this.callCount.incrementAndGet();
         } catch (Throwable t) {
+            if (!(event instanceof HelperExceptionEvent)) {
+                String msg = "Exception thrown when handling " + event.getEventName();
+                Events.call(new HelperExceptionEvent(new HelperException(msg, t)));
+            }
             this.exceptionConsumer.accept(eventInstance, t);
         }
 
