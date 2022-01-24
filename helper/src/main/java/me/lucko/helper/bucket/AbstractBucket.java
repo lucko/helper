@@ -28,7 +28,6 @@ package me.lucko.helper.bucket;
 import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.bucket.partitioning.PartitioningStrategy;
-import me.lucko.helper.utils.ImmutableCollectors;
 
 import java.util.AbstractSet;
 import java.util.Collection;
@@ -82,14 +81,19 @@ public abstract class AbstractBucket<E> extends AbstractSet<E> implements Bucket
         this.size = size;
         this.content = createSet();
 
-        //noinspection unchecked
-        Set<E>[] objs = new Set[size];
+        ImmutableList.Builder<Set<E>> sets = ImmutableList.builder();
+        ImmutableList.Builder<BucketPartition<E>> views = ImmutableList.builder();
+
         for (int i = 0; i < size; i++) {
-            objs[i] = createSet();
+            Set<E> set = createSet();
+            sets.add(set);
+
+            SetView view = new SetView(set, i);
+            views.add(view);
         }
 
-        this.partitions = ImmutableList.copyOf(objs);
-        this.partitionView = this.partitions.stream().map(SetView::new).collect(ImmutableCollectors.toList());
+        this.partitions = sets.build();
+        this.partitionView = views.build();
         this.partitionCycle = Cycle.of(this.partitionView);
     }
 
@@ -235,9 +239,9 @@ public abstract class AbstractBucket<E> extends AbstractSet<E> implements Bucket
         private final Set<E> backing;
         private final int index;
 
-        private SetView(Set<E> backing) {
+        private SetView(Set<E> backing, int index) {
             this.backing = backing;
-            this.index = AbstractBucket.this.partitions.indexOf(backing);
+            this.index = index;
         }
 
         @Override
