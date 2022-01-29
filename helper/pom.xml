@@ -95,7 +95,6 @@
                                     <include>net.kyori:adventure-platform-bukkit</include>
                                     <include>net.kyori:examination</include>                                                                        
                                     <include>org.spongepowered:configurate-core</include>
-                                    <include>org.spongepowered:configurate-core</include>
                                     <include>org.spongepowered:configurate-yaml</include>
                                     <include>org.spongepowered:configurate-gson</include>
                                     <include>org.spongepowered:configurate-hocon</include>
