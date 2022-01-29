@@ -89,6 +89,12 @@
                                     <include>net.kyori:text-serializer-legacy</include>
                                     <include>net.kyori:text-feature-pagination</include>
                                     <include>me.lucko:textlegacy</include>
+                                    <include>net.kyori:adventure-api</include>
+                                    <include>net.kyori:adventure-text-serializer-gson</include>
+                                    <include>net.kyori:adventure-text-serializer-legacy</include>
+                                    <include>net.kyori:adventure-platform-bukkit</include>
+                                    <include>net.kyori:examination</include>                                                                        
+                                    <include>org.spongepowered:configurate-core</include>
                                     <include>org.spongepowered:configurate-core</include>
                                     <include>org.spongepowered:configurate-yaml</include>
                                     <include>org.spongepowered:configurate-gson</include>
@@ -110,6 +116,14 @@
                                     <pattern>net.kyori.text</pattern>
                                     <shadedPattern>me.lucko.helper.text3</shadedPattern>
                                 </relocation>
+                            <!--<relocation>
+                                    <pattern>net.kyori.examination</pattern>
+                                    <shadedPattern>me.lucko.helper.adventure.examination</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.kyori.adventure</pattern>
+                                    <shadedPattern>me.lucko.helper.adventure</shadedPattern>
+                                </relocation> -->
                                 <relocation>
                                     <pattern>net.kyori.event</pattern>
                                     <shadedPattern>me.lucko.helper.eventbus</shadedPattern>
@@ -288,6 +302,41 @@
             <groupId>me.lucko</groupId>
             <artifactId>textlegacy</artifactId>
             <version>1.6.5</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <!-- Adventure -->
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-api</artifactId>
+            <version>4.9.3</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.checkerframework</groupId>
+                    <artifactId>checker-qual</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-gson</artifactId>
+            <version>4.9.3</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-legacy</artifactId>
+            <version>4.9.3</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-platform-bukkit</artifactId>
+            <version>4.0.1</version>
             <scope>compile</scope>
             <optional>true</optional>
         </dependency>

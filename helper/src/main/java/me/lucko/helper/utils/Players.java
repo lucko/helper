@@ -29,7 +29,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import me.lucko.helper.Helper;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.adventure.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.Bukkit;
