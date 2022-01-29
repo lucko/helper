@@ -3,3 +3,4 @@ version: ${project.version}
 main: me.lucko.helper.js.HelperJsPlugin
 description: JavaScript plugins powered by helper.
 depend: [helper]
+api-version: 1.13

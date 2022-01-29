@@ -6,3 +6,4 @@ main: me.lucko.helper.lilypad.plugin.HelperLilyPadPlugin
 website: https://github.com/lucko/helper
 load: STARTUP
 depend: [helper, LilyPad-Connect]
+api-version: 1.13

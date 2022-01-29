@@ -6,3 +6,4 @@ main: me.lucko.helper.sql.plugin.HelperSqlPlugin
 website: https://github.com/lucko/helper
 load: STARTUP
 depend: [helper]
+api-version: 1.13
