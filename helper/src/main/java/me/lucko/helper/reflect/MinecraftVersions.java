@@ -38,6 +38,16 @@ import java.util.regex.Pattern;
 public final class MinecraftVersions {
 
     /**
+     * Version 1.18 - caves and cliffs part 2
+     */
+    public static final MinecraftVersion v1_18 = MinecraftVersion.parse("1.18");
+    
+    /**
+     * Version 1.17 - caves and cliffs part 1
+     */
+    public static final MinecraftVersion v1_17 = MinecraftVersion.parse("1.17");
+
+    /**
      * Version 1.16 - nether update
      */
     public static final MinecraftVersion v1_16 = MinecraftVersion.parse("1.16");
