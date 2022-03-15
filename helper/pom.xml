@@ -170,7 +170,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>shadow-bukkit</artifactId>
-            <version>1.18.1</version>
+            <version>1.18.2</version>
             <scope>compile</scope>
         </dependency>
         <!-- flowpowered math -->
@@ -315,7 +315,7 @@
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
             <artifactId>ProtocolLib</artifactId>
-            <version>4.7.0</version>
+            <version>4.8.0</version>
             <scope>provided</scope>
         </dependency>
         <!-- citizens -->
