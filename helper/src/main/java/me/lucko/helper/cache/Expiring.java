@@ -74,9 +74,7 @@ public final class Expiring<T> implements Supplier<T> {
                     this.value = t;
 
                     // reset expiration timer
-                    nanos = now + this.durationNanos;
-
-                    this.expirationNanos = nanos;
+                    this.expirationNanos = now + this.durationNanos;
                     return t;
                 }
             }
