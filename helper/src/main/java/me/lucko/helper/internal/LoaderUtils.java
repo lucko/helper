@@ -66,6 +66,13 @@ public final class LoaderUtils {
         return plugin;
     }
 
+    /**
+     * To be used for testing only
+     */
+    public static synchronized void forceSetPlugin(HelperPlugin plugin) {
+        LoaderUtils.plugin = plugin;
+    }
+
     public static Set<Plugin> getHelperImplementationPlugins() {
         return Stream.concat(
                 Stream.<Plugin>of(getPlugin()),
