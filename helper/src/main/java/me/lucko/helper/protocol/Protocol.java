@@ -30,12 +30,8 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketContainer;
-
 import me.lucko.helper.event.functional.protocol.ProtocolSubscriptionBuilder;
-
 import org.bukkit.entity.Player;
-
-import java.lang.reflect.InvocationTargetException;
 
 import javax.annotation.Nonnull;
 
@@ -84,11 +80,7 @@ public final class Protocol {
      * @param packet the packet
      */
     public static void sendPacket(@Nonnull Player player, @Nonnull PacketContainer packet) {
-        try {
-            manager().sendServerPacket(player, packet);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
+        manager().sendServerPacket(player, packet);
     }
 
     /**

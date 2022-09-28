@@ -25,13 +25,12 @@
 
 package me.lucko.helper.reflect;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * Encapsulates a version of Minecraft.
@@ -51,12 +50,12 @@ public final class MinecraftVersion implements Comparable<MinecraftVersion> {
     /**
      * The newest known version of Minecraft
      */
-    private static final String NEWEST_MINECRAFT_VERSION = "1.18.2";
+    private static final String NEWEST_MINECRAFT_VERSION = "1.19.2";
 
     /**
      * The date (with ISO 8601 or YYYY-MM-DD) when the most recent version was released.
      */
-    private static final String MINECRAFT_LAST_RELEASE_DATE = "2022-02-28";
+    private static final String MINECRAFT_LAST_RELEASE_DATE = "2022-08-05";
 
     /**
      * Gets the {@link MinecraftVersion} of the runtime server.

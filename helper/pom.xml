@@ -12,7 +12,7 @@
 
     <artifactId>helper</artifactId>
     <packaging>jar</packaging>
-    <version>5.6.12</version>
+    <version>5.6.13</version>
 
     <name>helper</name>
     <description>A utility to reduce boilerplate code in Bukkit plugins.</description>
@@ -170,7 +170,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>shadow-bukkit</artifactId>
-            <version>1.18.2</version>
+            <version>1.19.2</version>
             <scope>compile</scope>
         </dependency>
         <!-- flowpowered math -->
@@ -315,7 +315,7 @@
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
             <artifactId>ProtocolLib</artifactId>
-            <version>4.8.0</version>
+            <version>5.0.0</version>
             <scope>provided</scope>
         </dependency>
         <!-- citizens -->

@@ -26,14 +26,12 @@
 package me.lucko.helper.reflect;
 
 import com.google.common.collect.ImmutableSet;
-
 import me.lucko.helper.utils.Indexing;
-
-import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * An emumeration of NMS versions.
@@ -122,6 +120,11 @@ public enum NmsVersion {
             MinecraftVersion.of(1, 18, 0),
             MinecraftVersion.of(1, 18, 1),
             MinecraftVersion.of(1, 18, 2)
+    ),
+    v1_19_R1(
+            MinecraftVersion.of(1, 19, 0),
+            MinecraftVersion.of(1, 19, 1),
+            MinecraftVersion.of(1, 19, 2)
     );
 
     private final Set<MinecraftVersion> minecraftVersions;
