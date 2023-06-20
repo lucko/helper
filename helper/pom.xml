@@ -163,7 +163,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>shadow-bukkit</artifactId>
-            <version>1.19.4</version>
+            <version>1.19.3</version>
             <scope>compile</scope>
         </dependency>
         <!-- flowpowered math -->
@@ -308,7 +308,7 @@
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
             <artifactId>ProtocolLib</artifactId>
-            <version>5.0.0</version>
+            <version>5.0.0-SNAPSHOT</version> <!-- for some reason the non snapshot version wont work? -->
             <scope>provided</scope>
         </dependency>
         <!-- citizens -->
