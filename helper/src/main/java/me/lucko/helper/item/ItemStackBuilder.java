@@ -139,10 +139,6 @@ public final class ItemStackBuilder {
     public ItemStackBuilder data(int data) {
         return durability(data);
     }
-    
-    public ItemStackBuilder customModelData(@Nullable Integer customModelData){
-        return transformMeta(meta -> meta.setCustomModelData(customModelData));
-    }
 
     public ItemStackBuilder amount(int amount) {
         return transform(itemStack -> itemStack.setAmount(amount));
