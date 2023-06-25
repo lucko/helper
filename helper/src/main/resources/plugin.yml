@@ -7,3 +7,4 @@ website: https://github.com/lucko/helper
 load: STARTUP
 softdepend: [ProtocolLib, Citizens, ViaVersion]
 api-version: 1.13
+folia-supported: true

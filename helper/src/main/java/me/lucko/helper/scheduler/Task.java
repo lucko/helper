@@ -49,13 +49,6 @@ public interface Task extends Terminable {
     boolean stop();
 
     /**
-     * Gets the Bukkit ID for this task
-     *
-     * @return the bukkit id for this task
-     */
-    int getBukkitId();
-
-    /**
      * {@link #stop() Stops} the task
      */
     @Override

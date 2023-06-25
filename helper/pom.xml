@@ -95,6 +95,7 @@
                                     <include>org.spongepowered:configurate-hocon</include>
                                     <include>com.typesafe:config</include>
                                     <include>net.kyori:event-api</include>
+                                    <include>com.github.Anon8281:UniversalScheduler</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
@@ -336,6 +337,12 @@
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.Anon8281</groupId>
+            <artifactId>UniversalScheduler</artifactId>
+            <version>0.1.3</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

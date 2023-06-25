@@ -25,6 +25,7 @@
 
 package me.lucko.helper;
 
+import com.github.Anon8281.universalScheduler.UniversalRunnable;
 import me.lucko.helper.interfaces.Delegate;
 import me.lucko.helper.internal.LoaderUtils;
 import me.lucko.helper.internal.exception.HelperExceptions;
@@ -35,18 +36,15 @@ import me.lucko.helper.scheduler.Task;
 import me.lucko.helper.scheduler.Ticks;
 import me.lucko.helper.scheduler.builder.TaskBuilder;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
-
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
-import javax.annotation.Nonnull;
 
 /**
  * Provides common instances of {@link Scheduler}.
@@ -93,9 +91,10 @@ public final class Schedulers {
 
     /**
      * Gets Bukkit's scheduler.
-     *
+     * Deprecated: not supported by Folia
      * @return bukkit's scheduler
      */
+    @Deprecated
     public static BukkitScheduler bukkit() {
         return Helper.bukkitScheduler();
     }
@@ -168,7 +167,7 @@ public final class Schedulers {
         }
     }
 
-    private static class HelperTask extends BukkitRunnable implements Task, Delegate<Consumer<Task>> {
+    private static class HelperTask extends UniversalRunnable implements Task, Delegate<Consumer<Task>> {
         private final Consumer<Task> backingTask;
 
         private final AtomicInteger counter = new AtomicInteger(0);
@@ -205,11 +204,6 @@ public final class Schedulers {
         @Override
         public boolean stop() {
             return !this.cancelled.getAndSet(true);
-        }
-
-        @Override
-        public int getBukkitId() {
-            return getTaskId();
         }
 
         @Override
@@ -262,11 +256,6 @@ public final class Schedulers {
             } else {
                 return false;
             }
-        }
-
-        @Override
-        public int getBukkitId() {
-            throw new UnsupportedOperationException();
         }
 
         @Override
