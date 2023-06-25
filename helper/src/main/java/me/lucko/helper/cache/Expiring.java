@@ -54,8 +54,7 @@ public final class Expiring<T> implements Supplier<T> {
 
     private volatile T value;
 
-    // when to expire. 0 means "not yet initialized".
-    private volatile long expirationNanos;
+    private volatile long expirationNanos = System.nanoTime();
 
     private Expiring(Supplier<T> supplier, long duration, TimeUnit unit) {
         this.supplier = supplier;
@@ -67,7 +66,7 @@ public final class Expiring<T> implements Supplier<T> {
         long nanos = this.expirationNanos;
         long now = System.nanoTime();
 
-        if (nanos == 0 || now - nanos >= 0) {
+        if (now - nanos >= 0) {
             synchronized (this) {
                 if (nanos == this.expirationNanos) { // recheck for lost race
                     // compute the value using the delegate
@@ -75,10 +74,7 @@ public final class Expiring<T> implements Supplier<T> {
                     this.value = t;
 
                     // reset expiration timer
-                    nanos = now + this.durationNanos;
-                    // In the very unlikely event that nanos is 0, set it to 1;
-                    // no one will notice 1 ns of tardiness.
-                    this.expirationNanos = (nanos == 0) ? 1 : nanos;
+                    this.expirationNanos = now + this.durationNanos;
                     return t;
                 }
             }
