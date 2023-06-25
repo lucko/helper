@@ -26,7 +26,7 @@
 package me.lucko.helper.item;
 
 import me.lucko.helper.menu.Item;
-import me.lucko.helper.text.Text;
+import me.lucko.helper.adventure.Text;
 import me.lucko.helper.utils.annotation.NonnullByDefault;
 
 import org.bukkit.ChatColor;

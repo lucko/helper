@@ -27,6 +27,7 @@ package me.lucko.helper.internal;
 
 import me.lucko.helper.Helper;
 import me.lucko.helper.plugin.HelperPlugin;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -45,6 +46,7 @@ import javax.annotation.Nonnull;
 public final class LoaderUtils {
     private static HelperPlugin plugin = null;
     private static Thread mainThread = null;
+    private static BukkitAudiences adventure = null;
 
     @Nonnull
     public static synchronized HelperPlugin getPlugin() {
@@ -100,6 +102,14 @@ public final class LoaderUtils {
         return mainThread;
     }
 
+    public static synchronized BukkitAudiences getAdventure() {
+        if (adventure == null) {
+            adventure = BukkitAudiences.create(getPlugin());
+        }
+
+        return adventure;
+    }
+    
     // performs an intial setup for global handlers
     private static void setup() {
 
