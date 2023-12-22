@@ -44,13 +44,14 @@ class FunctionalCommand extends AbstractCommand {
     private final FunctionalCommandHandler handler;
     private @Nullable final FunctionalTabHandler tabHandler;
 
-    FunctionalCommand(ImmutableList<Predicate<CommandContext<?>>> predicates, FunctionalCommandHandler handler, @Nullable FunctionalTabHandler tabHandler, @Nullable String permission, @Nullable String permissionMessage, @Nullable String description) {
+    FunctionalCommand(ImmutableList<Predicate<CommandContext<?>>> predicates, FunctionalCommandHandler handler, @Nullable FunctionalTabHandler tabHandler, @Nullable String permission, @Nullable String permissionMessage, @Nullable String description, @Nullable String... aliases) {
         this.predicates = predicates;
         this.handler = handler;
         this.tabHandler = tabHandler;
         this.permission = permission;
         this.permissionMessage = permissionMessage;
         this.description = description;
+        this.aliases = aliases;
     }
 
     @Override

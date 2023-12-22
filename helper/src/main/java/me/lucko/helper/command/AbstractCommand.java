@@ -37,6 +37,7 @@ import org.bukkit.command.TabCompleter;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * An abstract implementation of {@link Command} and {@link CommandExecutor}
@@ -47,10 +48,17 @@ public abstract class AbstractCommand implements Command, CommandExecutor, TabCo
     protected @Nullable String permission;
     protected @Nullable String permissionMessage;
     protected @Nullable String description;
+    protected @Nullable String[] aliases;
 
     @Override
     public void register(String... aliases) {
         LoaderUtils.getPlugin().registerCommand(this, permission, permissionMessage, description, aliases);
+    }
+
+    @Override
+    public void register() {
+        Objects.requireNonNull(this.aliases, "aliases");
+        register(this.aliases);
     }
 
     @Override

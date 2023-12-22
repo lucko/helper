@@ -57,6 +57,8 @@ public interface FunctionalCommandBuilder<T extends CommandSender> {
         return new FunctionalCommandBuilderImpl<>();
     }
 
+    FunctionalCommandBuilder<T> aliases(String... aliases);
+
     /**
      * Sets the command description to the specified one.
      *

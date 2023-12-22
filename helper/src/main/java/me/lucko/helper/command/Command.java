@@ -38,6 +38,11 @@ import java.util.List;
 public interface Command extends Terminable {
 
     /**
+     * Registers this command with the server, via the given plugin instance.
+     */
+    void register();
+
+    /**
      * Registers this command with the server, via the given plugin instance
      *
      * @param aliases the aliases for the command
