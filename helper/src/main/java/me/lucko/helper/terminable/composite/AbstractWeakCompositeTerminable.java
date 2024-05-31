@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class AbstractWeakCompositeTerminable implements CompositeTerminable {
     private final Deque<WeakReference<AutoCloseable>> closeables = new ConcurrentLinkedDeque<>();
+    private boolean closed = false;
 
     protected AbstractWeakCompositeTerminable() {
 
@@ -63,10 +64,16 @@ public class AbstractWeakCompositeTerminable implements CompositeTerminable {
                 caught.add(e);
             }
         }
+        this.closed = true;
 
         if (!caught.isEmpty()) {
             throw new CompositeClosingException(caught);
         }
+    }
+
+    @Override
+    public boolean isClosed() {
+        return this.closed;
     }
 
     @Override
