@@ -38,7 +38,7 @@ import me.lucko.helper.messaging.conversation.ConversationReply;
 import me.lucko.helper.messaging.conversation.ConversationReplyListener;
 import me.lucko.helper.profiles.Profile;
 import me.lucko.helper.promise.Promise;
-import me.lucko.helper.text3.Text;
+import me.lucko.helper.adventure.Text;
 
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;

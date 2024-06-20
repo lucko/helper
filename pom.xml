@@ -55,6 +55,7 @@
         <source.version>3.2.1</source.version>
         <javadoc.version>3.3.2</javadoc.version>
 
+        <adventure.version>4.14.0</adventure.version>
         <bukkit.version>1.12.2-R0.1-SNAPSHOT</bukkit.version>
     </properties>
 

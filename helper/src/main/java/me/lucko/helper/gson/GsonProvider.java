@@ -25,6 +25,11 @@
 
 package me.lucko.helper.gson;
 
+import java.io.Reader;
+import java.util.Objects;
+
+import javax.annotation.Nonnull;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -35,20 +40,15 @@ import me.lucko.helper.datatree.DataTree;
 import me.lucko.helper.gson.typeadapters.BukkitSerializableAdapterFactory;
 import me.lucko.helper.gson.typeadapters.GsonSerializableAdapterFactory;
 import me.lucko.helper.gson.typeadapters.JsonElementTreeSerializer;
-
-import net.kyori.text.serializer.gson.GsonComponentSerializer;
-
-import java.io.Reader;
-import java.util.Objects;
-
-import javax.annotation.Nonnull;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
 /**
  * Provides static instances of Gson
  */
 public final class GsonProvider {
 
-    private static final Gson STANDARD_GSON = GsonComponentSerializer.populate(new GsonBuilder())
+    private static final Gson STANDARD_GSON = GsonComponentSerializer.gson().populator()
+        .apply(new GsonBuilder())
             .registerTypeHierarchyAdapter(DataTree.class, JsonElementTreeSerializer.INSTANCE)
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
             .registerTypeAdapterFactory(BukkitSerializableAdapterFactory.INSTANCE)
@@ -56,7 +56,8 @@ public final class GsonProvider {
             .disableHtmlEscaping()
             .create();
 
-    private static final Gson PRETTY_PRINT_GSON = GsonComponentSerializer.populate(new GsonBuilder())
+    private static final Gson PRETTY_PRINT_GSON = GsonComponentSerializer.gson().populator()
+        .apply(new GsonBuilder())
             .registerTypeHierarchyAdapter(DataTree.class, JsonElementTreeSerializer.INSTANCE)
             .registerTypeAdapterFactory(GsonSerializableAdapterFactory.INSTANCE)
             .registerTypeAdapterFactory(BukkitSerializableAdapterFactory.INSTANCE)

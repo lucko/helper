@@ -35,10 +35,11 @@ import me.lucko.helper.config.typeserializers.HelperTypeSerializer;
 import me.lucko.helper.config.typeserializers.JsonTreeTypeSerializer;
 import me.lucko.helper.config.typeserializers.Text3TypeSerializer;
 import me.lucko.helper.config.typeserializers.TextTypeSerializer;
+import me.lucko.helper.config.typeserializers.AdventureTypeSerializer;
 import me.lucko.helper.datatree.DataTree;
 import me.lucko.helper.gson.GsonSerializable;
 
-import net.kyori.text.Component;
+import net.kyori.adventure.text.Component;
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.yaml.snakeyaml.DumperOptions;
@@ -118,8 +119,8 @@ public abstract class ConfigFactory<N extends ConfigurationNode, L extends Confi
         helperSerializers.register(TypeToken.of(DataTree.class), JsonTreeTypeSerializer.INSTANCE);
         helperSerializers.register(TypeToken.of(String.class), ColoredStringTypeSerializer.INSTANCE);
         helperSerializers.register(TypeToken.of(me.lucko.helper.text.Component.class), TextTypeSerializer.INSTANCE);
-        helperSerializers.register(TypeToken.of(Component.class), Text3TypeSerializer.INSTANCE);
-
+        helperSerializers.register(TypeToken.of(net.kyori.text.Component.class), Text3TypeSerializer.INSTANCE);
+        helperSerializers.register(TypeToken.of(Component.class), AdventureTypeSerializer.INSTANCE);
         TYPE_SERIALIZERS = helperSerializers.newChild();
     }
 
